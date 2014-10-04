@@ -1,11 +1,18 @@
 from lxml import etree
 from lxml.etree import Element, SubElement
 
+import os
+import os.path
+import shutil
+import subprocess
+import copy
+
 class Generator:
     def __init__(self, tree):
         self._tree = tree
 
 class AndroidGenerator(Generator):
+    ANDROID_NS="http://schemas.android.com/apk/res/android"
     NS = "http://schemas.android.com/apk/res/com.android.inputmethod.latin"
 
     def _element(self, *args, **kwargs):
@@ -16,6 +23,14 @@ class AndroidGenerator(Generator):
                 v = '\\' + v
             o["{%s}%s" % (self.NS, k)] = v
         return Element(*args, **o)
+
+    def _android_subelement(self, *args, **kwargs):
+        o = {}
+        for k, v in kwargs.items():
+            if k == 'keyLabel' and v in ['#', '@']:
+                v = '\\' + v
+            o["{%s}%s" % (self.ANDROID_NS, k)] = v
+        return SubElement(*args, **o)
 
     def _subelement(self, *args, **kwargs):
         o = {}
@@ -29,7 +44,8 @@ class AndroidGenerator(Generator):
         return etree.tostring(tree, pretty_print=True,
             xml_declaration=True, encoding='utf-8').decode()
 
-    def generate(self):
+    def generate(self, base='.', sdk_base='./sdk'):
+        self.get_source_tree(base, sdk_base)
         name = self._tree.name
 
         styles = [
@@ -51,7 +67,155 @@ class AndroidGenerator(Generator):
                 row = ("%s/%s" % (prefix, row[0]), row[1])
                 files.append(row)
 
-        return files
+        files.append(self.update_method_xml())
+
+        self.save_files(files, base)
+
+        self.build(base)
+
+    def build(self, base, debug=True):
+        # TODO normal build
+        print("Building...")
+        process = subprocess.Popen(['ant', 'debug'], 
+                    cwd=os.path.join(base, 'deps', 'LatinIME', 'java'))
+        process.wait()
+
+        fn = "LatinIME-debug.apk"
+        path = os.path.join(base, 'deps', 'LatinIME', 'java', 'bin')
+
+        print("Copying '%s' to build/ directory..." % fn)
+        os.makedirs(os.path.join(base, 'build'), exist_ok=True)
+        shutil.copy(os.path.join(path, fn), os.path.join(base, 'build'))
+
+        print("Done!")
+
+    def update_method_xml(self, base='.'):
+        print("Updating method.xml...")
+        fn = os.path.join(base, 'deps', 'LatinIME', 'java',
+                    'res', 'xml', 'method.xml')
+
+        with open(fn) as f:
+            tree = etree.parse(f)
+
+        self._android_subelement(tree.getroot(), 'subtype',
+            icon="@drawable/ic_ime_switcher_dark",
+            label=self._tree.display_name,
+            imeSubtypeLocale=self._tree.locales[0],
+            imeSubtypeMode="keyboard",
+            imeSubtypeExtraValue="KeyboardLayoutSet=%s,AsciiCapable,EmojiCapable" % self._tree.name)
+
+        return ('xml/method.xml', self._tostring(tree))
+
+    def save_files(self, files, base):
+        fn = os.path.join(base, 'deps', 'LatinIME', 'java', 'res')
+        for k, v in files:
+            with open(os.path.join(fn, k), 'w') as f:
+                print("Saving file '%s'..." % k)
+                f.write(v)
+
+    def get_source_tree(self, base, sdk_base):
+        # TODO check SDK base is valid
+
+        tag = 'android-4.4.4_r2.0.1'
+
+        deps_dir = os.path.join(base, 'deps')
+        os.makedirs(deps_dir, exist_ok=True)
+
+        processes = []
+
+        repos = [
+            ('LatinIME', 'https://android.googlesource.com/platform/packages/inputmethods/LatinIME'),
+            ('inputmethodcommon', 'https://android.googlesource.com/platform/frameworks/opt/inputmethodcommon')]
+
+        for d, url in repos:
+            cmd = ['git', 'clone', url]
+            cwd = deps_dir
+
+            if os.path.isdir(os.path.join(deps_dir, d)):
+                continue
+
+            print("Cloning repository '%s'..." % d)
+            processes.append(subprocess.Popen(cmd, cwd=cwd,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE))
+
+        for process in processes:
+            output = process.communicate()
+            if process.returncode != 0:
+                raise Exception(output[1])
+
+        processes = []
+
+        for d, url in repos:
+            print("Updating repository '%s'..." % d)
+
+            cmd = "git checkout master; git reset --hard; git clean -f; git pull; git checkout tags/%s" % tag
+            cwd = os.path.join(deps_dir, d)
+
+            processes.append(subprocess.Popen(cmd, cwd=cwd, shell=True,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE))
+
+        for process in processes:
+            output = process.communicate()
+            if process.returncode != 0:
+                raise Exception(output[1])
+
+        print("Copying relevant files from 'inputmethodcommon' to 'LatinIME'...")
+
+        src = os.path.join(deps_dir, 'inputmethodcommon', 'java', 'com')
+        dst = os.path.join(deps_dir, 'LatinIME', 'java', 'src')
+
+        cmd = ['cp', '-r', src, dst]
+        process = subprocess.Popen(cmd, cwd=base,
+                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output = process.communicate()
+        if process.returncode != 0:
+            raise Exception(output[1])
+
+        print("Create Android project...")
+
+        cmd = "%s update project -n LatinIME -t android-19 -p ." % \
+            os.path.join(os.path.abspath(sdk_base), 'tools/android')
+        process = subprocess.Popen(cmd, cwd=os.path.join(deps_dir, 'LatinIME', 'java'),
+                shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output = process.communicate()
+        if process.returncode != 0:
+            raise Exception(output[1])
+
+        print("Updating build.xml...")
+
+        self.update_build_xml(base, sdk_base)
+
+        os.makedirs(os.path.join(deps_dir, 'LatinIME', 'java', 'libs'), exist_ok=True)
+
+        print("Copying support libraries from Android SDK...")
+        shutil.copy(os.path.join(sdk_base, "extras/android/support/v4/android-support-v4.jar"),
+                    os.path.join(deps_dir, 'LatinIME', 'java', 'libs'))
+
+    def update_build_xml(self, base, sdk_base):
+        base_buildxml_fn = os.path.join(sdk_base, 'tools', 'ant', 'build.xml')
+        buildxml_fn = os.path.join(base, 'deps', 'LatinIME', 'java', 'build.xml')
+
+        with open(base_buildxml_fn) as f:
+            base_buildxml = etree.parse(f)
+
+        with open(buildxml_fn) as f:
+            buildxml = etree.parse(f)
+
+        root = buildxml.getroot()
+        #print(self._tostring(root[-1]))
+        #root.remove(root[-1])
+
+        #for node in base_buildxml.getroot().getchildren():
+        #    root.append(node)
+
+        target = base_buildxml.xpath('target[@name="-package-resources"]')[0]
+        print(self._tostring(target)
+)
+        SubElement(target[1][0], 'nocompress', extension='dict')
+        root.insert(len(root)-1, target)
+
+        with open(buildxml_fn, 'w') as f:
+            f.write(self._tostring(root))
 
     def kbd_layout_set(self):
         out = Element("KeyboardLayoutSet", nsmap={"latin": self.NS})
@@ -61,7 +225,7 @@ class AndroidGenerator(Generator):
         self._subelement(out, "Element", elementName="alphabet",
             elementKeyboard=kbd,
             enableProximityCharsCorrection="true")
-        
+
         for name, kbd in (
             ("alphabetAutomaticShifted", kbd),
             ("alphabetManualShifted", kbd),
@@ -133,7 +297,7 @@ class AndroidGenerator(Generator):
         for n in range(1, len(self._tree.modes['default'])+1):
             merge = Element('merge', nsmap={"latin": self.NS})
             switch = self._subelement(merge, 'switch')
-            
+
             case = self._subelement(switch, 'case',
                 keyboardLayoutSetElement="alphabetManualShifted|alphabetShiftLocked|" +
                                          "alphabetShiftLockShifted")
@@ -143,7 +307,7 @@ class AndroidGenerator(Generator):
             default = self._subelement(switch, 'default')
 
             self.add_rows(n, self._tree.modes['default'][n-1], style, default)
-            
+
             yield ('rowkeys_%s%s.xml' % (self._tree.name, n), self._tostring(merge))
 
     def _attrib(self, node, **kwargs):

@@ -14,6 +14,14 @@ class Keyboard:
         return self._tree['name']
 
     @property
+    def display_name(self):
+        return self._tree['displayName']
+
+    @property
+    def locales(self):
+        return self._tree['locales']
+
+    @property
     def modifiers(self):
         return self._tree['modifiers']
 
@@ -77,9 +85,3 @@ if __name__ == "__main__":
     import sys, os, os.path
     kbdtree = Parser().parse(open(sys.argv[1]))
     out = gen.AndroidGenerator(kbdtree).generate()
-    for k, v in out:
-        print("Saving %s..." % k)
-
-        os.makedirs(os.path.dirname(k), exist_ok=True)
-        with open(k, 'w') as f:
-            f.write(v)
