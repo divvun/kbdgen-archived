@@ -11,12 +11,17 @@ class AndroidGenerator(Generator):
     def _element(self, *args, **kwargs):
         o = {}
         for k, v in kwargs.items():
+            if k in ['keyLabel', 'additionalMoreKeys', 'keyHintLabel'] and\
+                    v in ['#', '@']:
+                v = '\\' + v
             o["{%s}%s" % (self.NS, k)] = v
         return Element(*args, **o)
 
     def _subelement(self, *args, **kwargs):
         o = {}
         for k, v in kwargs.items():
+            if k == 'keyLabel' and v in ['#', '@']:
+                v = '\\' + v
             o["{%s}%s" % (self.NS, k)] = v
         return SubElement(*args, **o)
 
@@ -51,11 +56,17 @@ class AndroidGenerator(Generator):
     def kbd_layout_set(self):
         out = Element("KeyboardLayoutSet", nsmap={"latin": self.NS})
 
-        self._subelement(out, "Element", elementName="alphabet",
-            elementKeyboard="@xml/kbd_%s" % self._tree.name,
-            enableProximityCharsCorrection="true")
+        kbd = "@xml/kbd_%s" % self._tree.name
 
+        self._subelement(out, "Element", elementName="alphabet",
+            elementKeyboard=kbd,
+            enableProximityCharsCorrection="true")
+        
         for name, kbd in (
+            ("alphabetAutomaticShifted", kbd),
+            ("alphabetManualShifted", kbd),
+            ("alphabetShiftLocked", kbd),
+            ("alphabetShiftLockShifted", kbd),
             ("symbols", "@xml/kbd_symbols"),
             ("symbolsShifted", "@xml/kbd_symbols_shift"),
             ("phone", "@xml/kbd_phone"),
@@ -118,10 +129,22 @@ class AndroidGenerator(Generator):
         return self._tostring(out)
 
     def rowkeys(self, style):
-        for n, values in enumerate(self._tree.modes['default']):
-            n += 1
-            rows = self.add_rows(n, values, style)
-            yield ('rowkeys_%s%s.xml' % (self._tree.name, n), self._tostring(rows))
+        # TODO check that lengths of both modes are the same
+        for n in range(1, len(self._tree.modes['default'])+1):
+            merge = Element('merge', nsmap={"latin": self.NS})
+            switch = self._subelement(merge, 'switch')
+            
+            case = self._subelement(switch, 'case',
+                keyboardLayoutSetElement="alphabetManualShifted|alphabetShiftLocked|" +
+                                         "alphabetShiftLockShifted")
+
+            self.add_rows(n, self._tree.modes['shift'][n-1], style, case)
+
+            default = self._subelement(switch, 'default')
+
+            self.add_rows(n, self._tree.modes['default'][n-1], style, default)
+            
+            yield ('rowkeys_%s%s.xml' % (self._tree.name, n), self._tostring(merge))
 
     def _attrib(self, node, **kwargs):
         for k, v in kwargs.items():
@@ -156,8 +179,7 @@ class AndroidGenerator(Generator):
             if action.row == n and action.position in [side, 'both']:
                 self.add_button_type(key, action, row, tree, is_start)
 
-    def add_rows(self, n, values, style):
-        out = Element("merge", nsmap={"latin": self.NS})
+    def add_rows(self, n, values, style, out):
         i = 1
 
         self.add_special_buttons(n, style, values, out, True)
@@ -181,5 +203,3 @@ class AndroidGenerator(Generator):
                 #self._attrib(node, 'keyHintLabel', more_keys[0])
 
         self.add_special_buttons(n, style, values, out, False)
-
-        return out

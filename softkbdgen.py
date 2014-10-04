@@ -70,12 +70,16 @@ class Parser:
 
         return Keyboard(tree)
 
+def xml_encode_numeric_entity(ch):
+    return "&#%s;" % hex(ord(ch))[1:]
+
 if __name__ == "__main__":
     import sys, os, os.path
     kbdtree = Parser().parse(open(sys.argv[1]))
     out = gen.AndroidGenerator(kbdtree).generate()
     for k, v in out:
         print("Saving %s..." % k)
+
         os.makedirs(os.path.dirname(k), exist_ok=True)
         with open(k, 'w') as f:
             f.write(v)
