@@ -1,10 +1,10 @@
-displayName: Northern Sami
-name: sme
-locales: [ sme, no, se ]
+internalName: northern_sami 
 
-author: Brendan Molloy
-email: brendan@bbqsrc.net
-description: A test keyboard for Northern Sami.
+displayNames:
+  en: Northern Sami
+  sme: Sámegiella
+
+locale: sme
  
 modes:
   default: [
@@ -38,4 +38,3 @@ styles:
     actions:
       shift: [3, left, fill]
       backspace: [3, right, fill]
-

@@ -5,21 +5,50 @@ from collections import namedtuple
 
 Action = namedtuple("Action", ['row', 'position', 'width'])
 
+class Project:
+    def __init__(self, tree):
+        self._tree = tree
+
+    @property
+    def locales(self):
+        return self._tree['locales']
+    
+    @property
+    def author(self):
+        return self._tree['author']
+    
+    @property
+    def email(self):
+        return self._tree['email']
+    
+    @property
+    def layouts(self):
+        return self._tree['layouts']
+
+    @property
+    def targets(self):
+        return self._tree['targets']
+
+    @property
+    def target(self, target):
+        return self._tree['targets'].get(target, {})
+
+
 class Keyboard:
     def __init__(self, tree):
         self._tree = tree
 
     @property
-    def name(self):
-        return self._tree['name']
+    def internal_name(self):
+        return self._tree['internalName']
 
     @property
-    def display_name(self):
-        return self._tree['displayName']
+    def display_names(self):
+        return self._tree['displayNames']
 
     @property
-    def locales(self):
-        return self._tree['locales']
+    def locale(self):
+        return self._tree['locale']
 
     @property
     def modifiers(self):
@@ -46,14 +75,15 @@ class Keyboard:
     def get_longpress(self, key):
         return self._tree['longpress'].get(key, None)
 
+
 class Parser:
     def __init__(self):
         pass
 
-    def parse(self, data):
+    def _parse_layout(self, data):
         tree = yaml.load(data)
 
-        for key in ['name', 'modes']:
+        for key in ['locale', 'displayNames', 'internalName', 'modes']:
             if key not in tree:
                 raise Exception("%s key missing from file." % key)
 
@@ -77,6 +107,29 @@ class Parser:
                 styles['actions'][action] = Action(info[0], info[1], info[2])
 
         return Keyboard(tree)
+
+    def _parse_project(self, data):
+        tree = yaml.load(data)
+
+        for key in ['locales', 'author',
+                    'email', 'layouts', 'targets']:
+            if key not in tree:
+                raise Exception("%s key missing from file." % key)
+
+        layouts = {}
+
+        for layout in tree['layouts']:
+            with open("%s.yaml" % layout) as f:
+                l = self._parse_layout(f)
+                layouts[l.internal_name] = l
+
+        tree['layouts'] = layouts
+
+        print (tree)
+        return Project(tree)
+
+    def parse(self, data):
+        return self._parse_project(data)
 
 def xml_encode_numeric_entity(ch):
     return "&#%s;" % hex(ord(ch))[1:]

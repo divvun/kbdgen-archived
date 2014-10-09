@@ -7,13 +7,15 @@ import shutil
 import subprocess
 import copy
 
+class CulturalImperialismException(Exception): pass
+
 class Generator:
-    def __init__(self, tree):
-        self._tree = tree
+    def __init__(self, project):
+        self._project = project
 
 class AndroidGenerator(Generator):
     ANDROID_NS="http://schemas.android.com/apk/res/android"
-    NS = "http://schemas.android.com/apk/res/com.android.inputmethod.latin"
+    NS = "http://schemas.android.com/apk/res-auto"
 
     def _element(self, *args, **kwargs):
         o = {}
@@ -46,42 +48,90 @@ class AndroidGenerator(Generator):
 
     def generate(self, base='.', sdk_base='./sdk'):
         self.get_source_tree(base, sdk_base)
-        name = self._tree.name
 
         styles = [
             ('phone', 'xml'),
             ('tablet', 'xml-sw600dp')
         ]
 
-        files = [
-            ('xml/keyboard_layout_set_%s.xml' % name, self.kbd_layout_set()),
-            ('xml/kbd_%s.xml' % name, self.keyboard())
-        ]
+        files = []
 
-        for style, prefix in styles:
-            self.gen_key_width(style)
+        print(self._project.layouts)
 
-            files.append(("%s/rows_%s.xml" % (prefix, name), self.rows(style)))
+        for name, kbd in self._project.layouts.items():
 
-            for row in self.rowkeys(style):
-                row = ("%s/%s" % (prefix, row[0]), row[1])
-                files.append(row)
+            files += [
+                ('res/xml/keyboard_layout_set_%s.xml' % name, self.kbd_layout_set(kbd)),
+                ('res/xml/kbd_%s.xml' % name, self.keyboard(kbd))
+            ]
 
-        files.append(self.update_method_xml())
+            for style, prefix in styles:
+                self.gen_key_width(kbd, style)
+
+                files.append(("res/%s/rows_%s.xml" % (prefix, name),
+                    self.rows(kbd, style)))
+
+                for row in self.rowkeys(kbd, style):
+                    row = ("res/%s/%s" % (prefix, row[0]), row[1])
+                    files.append(row)
+
+            self.update_method_xml(kbd, base)
+            self.update_strings_xml(kbd, base)
 
         self.save_files(files, base)
 
+        self.update_localisation(base)
+
         self.build(base)
 
+    def sanity_checks(self):
+        pass #stub
+
+    def _upd_locale(self, d, values):
+        print("Updating localisation for %s..." % d)
+
+        fn = os.path.join(d, "strings-appname.xml")
+        node = None
+
+        if os.path.exists(fn):
+            with open(fn) as f:
+                tree = etree.parse(f)
+            nodes = tree.xpath("string[@name='english_ime_name']")
+            if len(nodes) > 0:
+                node = nodes[0]
+        else:
+            tree = etree.XML("<resources/>")
+
+        if node is None:
+            node = SubElement(tree, 'string', name="english_ime_name")
+
+        node.text = values['name'].replace("'", r"\'")
+
+        with open(fn, 'w') as f:
+            f.write(self._tostring(tree))
+
+    def update_localisation(self, base):
+        res_dir = os.path.join(base, 'deps', 'sami-ime', 'res')
+
+        self._upd_locale(os.path.join(res_dir, "values"),
+            self._project.locales['en'])
+
+        for locale, values in self._project.locales.items():
+            d = os.path.join(res_dir, "values-%s" % locale)
+            if os.path.isdir(d):
+                self._upd_locale(d, values)
+
     def build(self, base, debug=True):
+        self.sanity_checks()
+
         # TODO normal build
         print("Building...")
         process = subprocess.Popen(['ant', 'debug'], 
-                    cwd=os.path.join(base, 'deps', 'LatinIME', 'java'))
+                    cwd=os.path.join(base, 'deps', 'sami-ime'))
         process.wait()
 
-        fn = "LatinIME-debug.apk"
-        path = os.path.join(base, 'deps', 'LatinIME', 'java', 'bin')
+        fn = "SamiIME-debug.apk"
+        path = os.path.join(base, 'deps', 'sami-ime', 'bin')
 
         print("Copying '%s' to build/ directory..." % fn)
         os.makedirs(os.path.join(base, 'build'), exist_ok=True)
@@ -89,25 +139,53 @@ class AndroidGenerator(Generator):
 
         print("Done!")
 
-    def update_method_xml(self, base='.'):
-        print("Updating method.xml...")
-        fn = os.path.join(base, 'deps', 'LatinIME', 'java',
-                    'res', 'xml', 'method.xml')
+    def _str_xml(self, val_dir, name, subtype):
+        if os.path.isdir(val_dir):
+            fn = os.path.join(val_dir, 'strings.xml')
+
+            print("Updating %s..." % fn)
+            with open(fn) as f:
+                tree = etree.parse(f)
+                SubElement(tree.getroot(),
+                    "string",
+                    name="subtype_%s" % subtype)\
+                    .text = name
+
+            with open(fn, 'w') as f:
+                f.write(self._tostring(tree))
+
+    def update_strings_xml(self, kbd, base):
+        # TODO sanity check for non-existence directories
+        # TODO run this only once preferably
+        res_dir = os.path.join(base, 'deps', 'sami-ime', 'res')
+
+        for locale, name in kbd.display_names.items():
+            if locale == "en":
+                val_dir = os.path.join(res_dir, 'values')
+            else:
+                val_dir = os.path.join(res_dir, 'values-%s' % locale)
+            self._str_xml(val_dir, name, kbd.internal_name)
+
+    def update_method_xml(self, kbd, base):
+        # TODO run this only once preferably
+        print("Updating res/xml/method.xml...")
+        fn = os.path.join(base, 'deps', 'sami-ime', 'res', 'xml', 'method.xml')
 
         with open(fn) as f:
             tree = etree.parse(f)
 
         self._android_subelement(tree.getroot(), 'subtype',
             icon="@drawable/ic_ime_switcher_dark",
-            label=self._tree.display_name,
-            imeSubtypeLocale=self._tree.locales[0],
+            label="@string/subtype_%s" % kbd.internal_name,
+            imeSubtypeLocale=kbd.locale,
             imeSubtypeMode="keyboard",
-            imeSubtypeExtraValue="KeyboardLayoutSet=%s,AsciiCapable,EmojiCapable" % self._tree.name)
-
-        return ('xml/method.xml', self._tostring(tree))
+            imeSubtypeExtraValue="KeyboardLayoutSet=%s,AsciiCapable,EmojiCapable" % kbd.internal_name)
+        with open(fn, 'w') as f:
+            f.write(self._tostring(tree))
+        #return ('res/xml/method.xml', self._tostring(tree))
 
     def save_files(self, files, base):
-        fn = os.path.join(base, 'deps', 'LatinIME', 'java', 'res')
+        fn = os.path.join(base, 'deps', 'sami-ime')
         for k, v in files:
             with open(os.path.join(fn, k), 'w') as f:
                 print("Saving file '%s'..." % k)
@@ -116,16 +194,14 @@ class AndroidGenerator(Generator):
     def get_source_tree(self, base, sdk_base):
         # TODO check SDK base is valid
 
-        tag = 'android-4.4.4_r2.0.1'
-
         deps_dir = os.path.join(base, 'deps')
         os.makedirs(deps_dir, exist_ok=True)
 
         processes = []
 
         repos = [
-            ('LatinIME', 'https://android.googlesource.com/platform/packages/inputmethods/LatinIME'),
-            ('inputmethodcommon', 'https://android.googlesource.com/platform/frameworks/opt/inputmethodcommon')]
+            ('sami-ime', 'https://github.com/bbqsrc/sami-ime.git')
+            ]
 
         for d, url in repos:
             cmd = ['git', 'clone', url]
@@ -135,11 +211,10 @@ class AndroidGenerator(Generator):
                 continue
 
             print("Cloning repository '%s'..." % d)
-            processes.append(subprocess.Popen(cmd, cwd=cwd,
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE))
+            processes.append(subprocess.Popen(cmd, cwd=cwd))
 
         for process in processes:
-            output = process.communicate()
+            output = process.wait()
             if process.returncode != 0:
                 raise Exception(output[1])
 
@@ -148,118 +223,100 @@ class AndroidGenerator(Generator):
         for d, url in repos:
             print("Updating repository '%s'..." % d)
 
-            cmd = "git checkout master; git reset --hard; git clean -f; git pull; git checkout tags/%s" % tag
+            cmd = """git checkout stable;
+                     git reset --hard;
+                     git clean -f;
+                     git pull;"""
             cwd = os.path.join(deps_dir, d)
 
-            processes.append(subprocess.Popen(cmd, cwd=cwd, shell=True,
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE))
+            processes.append(subprocess.Popen(cmd, cwd=cwd, shell=True))
 
         for process in processes:
-            output = process.communicate()
+            output = process.wait()
             if process.returncode != 0:
                 raise Exception(output[1])
 
-        print("Copying relevant files from 'inputmethodcommon' to 'LatinIME'...")
-
-        src = os.path.join(deps_dir, 'inputmethodcommon', 'java', 'com')
-        dst = os.path.join(deps_dir, 'LatinIME', 'java', 'src')
-
-        cmd = ['cp', '-r', src, dst]
-        process = subprocess.Popen(cmd, cwd=base,
-                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output = process.communicate()
-        if process.returncode != 0:
-            raise Exception(output[1])
-
         print("Create Android project...")
 
-        cmd = "%s update project -n LatinIME -t android-19 -p ." % \
+        cmd = "%s update project -n SamiIME -t android-19 -p ." % \
             os.path.join(os.path.abspath(sdk_base), 'tools/android')
-        process = subprocess.Popen(cmd, cwd=os.path.join(deps_dir, 'LatinIME', 'java'),
-                shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output = process.communicate()
+        process = subprocess.Popen(cmd, cwd=os.path.join(deps_dir, 'sami-ime'),
+                shell=True)
+        output = process.wait()
         if process.returncode != 0:
             raise Exception(output[1])
 
-        print("Updating build.xml...")
+        #print("Updating build.xml...")
 
-        self.update_build_xml(base, sdk_base)
+        #self.update_build_xml(base, sdk_base)
 
-        os.makedirs(os.path.join(deps_dir, 'LatinIME', 'java', 'libs'), exist_ok=True)
+    def create_ant_properties(self):
+        data = "package.name=%s\n" % self._project.target('android')['packageId']
 
-        print("Copying support libraries from Android SDK...")
-        shutil.copy(os.path.join(sdk_base, "extras/android/support/v4/android-support-v4.jar"),
-                    os.path.join(deps_dir, 'LatinIME', 'java', 'libs'))
+        return ('ant.properties', data)
 
-    def update_build_xml(self, base, sdk_base):
-        base_buildxml_fn = os.path.join(sdk_base, 'tools', 'ant', 'build.xml')
-        buildxml_fn = os.path.join(base, 'deps', 'LatinIME', 'java', 'build.xml')
+    #def update_build_xml(self, base, sdk_base):
+    #    base_buildxml_fn = os.path.join(sdk_base, 'tools', 'ant', 'build.xml')
+    #    buildxml_fn = os.path.join(base, 'deps', 'sami-ime', 'build.xml')
+    #
+    #    with open(base_buildxml_fn) as f:
+    #        base_buildxml = etree.parse(f)
+    #
+    #    with open(buildxml_fn) as f:
+    #        buildxml = etree.parse(f)
+    #
+    #    root = buildxml.getroot()
+    #
+    #    target = base_buildxml.xpath('target[@name="-package-resources"]')[0]
+    #    SubElement(target[1][0], 'nocompress', extension='dict')
+    #    root.insert(len(root)-1, target)
+    #
+    #    with open(buildxml_fn, 'w') as f:
+    #        f.write(self._tostring(root))
 
-        with open(base_buildxml_fn) as f:
-            base_buildxml = etree.parse(f)
-
-        with open(buildxml_fn) as f:
-            buildxml = etree.parse(f)
-
-        root = buildxml.getroot()
-        #print(self._tostring(root[-1]))
-        #root.remove(root[-1])
-
-        #for node in base_buildxml.getroot().getchildren():
-        #    root.append(node)
-
-        target = base_buildxml.xpath('target[@name="-package-resources"]')[0]
-        print(self._tostring(target)
-)
-        SubElement(target[1][0], 'nocompress', extension='dict')
-        root.insert(len(root)-1, target)
-
-        with open(buildxml_fn, 'w') as f:
-            f.write(self._tostring(root))
-
-    def kbd_layout_set(self):
+    def kbd_layout_set(self, kbd):
         out = Element("KeyboardLayoutSet", nsmap={"latin": self.NS})
 
-        kbd = "@xml/kbd_%s" % self._tree.name
+        kbd_str = "@xml/kbd_%s" % kbd.internal_name
 
         self._subelement(out, "Element", elementName="alphabet",
-            elementKeyboard=kbd,
+            elementKeyboard=kbd_str,
             enableProximityCharsCorrection="true")
 
-        for name, kbd in (
-            ("alphabetAutomaticShifted", kbd),
-            ("alphabetManualShifted", kbd),
-            ("alphabetShiftLocked", kbd),
-            ("alphabetShiftLockShifted", kbd),
+        for name, kbd_str in (
+            ("alphabetAutomaticShifted", kbd_str),
+            ("alphabetManualShifted", kbd_str),
+            ("alphabetShiftLocked", kbd_str),
+            ("alphabetShiftLockShifted", kbd_str),
             ("symbols", "@xml/kbd_symbols"),
             ("symbolsShifted", "@xml/kbd_symbols_shift"),
             ("phone", "@xml/kbd_phone"),
             ("phoneSymbols", "@xml/kbd_phone_symbols"),
             ("number", "@xml/kbd_number")
         ):
-            self._subelement(out, "Element", elementName=name, elementKeyboard=kbd)
+            self._subelement(out, "Element", elementName=name, elementKeyboard=kbd_str)
 
         return self._tostring(out)
 
-    def row_has_special_keys(self, n, style):
-        for key, action in self._tree.get_actions(style).items():
+    def row_has_special_keys(self, kbd, n, style):
+        for key, action in kbd.get_actions(style).items():
             if action.row == n:
                 return True
         return False
 
-    def rows(self, style):
+    def rows(self, kbd, style):
         out = Element("merge", nsmap={"latin": self.NS})
 
         self._subelement(out, "include", keyboardLayout="@xml/key_styles_common")
 
-        for n, values in enumerate(self._tree.modes['default']):
+        for n, values in enumerate(kbd.modes['default']):
             n += 1
 
             row = self._subelement(out, "Row")
             include = self._subelement(row, "include", keyboardLayout="@xml/rowkeys_%s%s" % (
-                self._tree.name, n))
+                kbd.internal_name, n))
 
-            if not self.row_has_special_keys(n, style):
+            if not self.row_has_special_keys(kbd, n, style):
                 self._attrib(include, keyWidth='%.2f%%p' % (100 / len(values)))
             else:
                 self._attrib(include, keyWidth='%.2f%%p' % self.key_width)
@@ -269,9 +326,9 @@ class AndroidGenerator(Generator):
 
         return self._tostring(out)
 
-    def gen_key_width(self, style):
+    def gen_key_width(self, kbd, style):
         m = 0
-        for row in self._tree.modes['default']:
+        for row in kbd.modes['default']:
             r = len(row)
             if r > m:
                m = r
@@ -283,18 +340,18 @@ class AndroidGenerator(Generator):
 
         self.key_width = (vals[style] / m)
 
-    def keyboard(self, **kwargs):
+    def keyboard(self, kbd, **kwargs):
         out = Element("Keyboard", nsmap={"latin": self.NS})
 
         self._attrib(out, **kwargs)
 
-        self._subelement(out, "include", keyboardLayout="@xml/rows_%s" % self._tree.name)
+        self._subelement(out, "include", keyboardLayout="@xml/rows_%s" % kbd.internal_name)
 
         return self._tostring(out)
 
-    def rowkeys(self, style):
+    def rowkeys(self, kbd, style):
         # TODO check that lengths of both modes are the same
-        for n in range(1, len(self._tree.modes['default'])+1):
+        for n in range(1, len(kbd.modes['default'])+1):
             merge = Element('merge', nsmap={"latin": self.NS})
             switch = self._subelement(merge, 'switch')
 
@@ -302,13 +359,13 @@ class AndroidGenerator(Generator):
                 keyboardLayoutSetElement="alphabetManualShifted|alphabetShiftLocked|" +
                                          "alphabetShiftLockShifted")
 
-            self.add_rows(n, self._tree.modes['shift'][n-1], style, case)
+            self.add_rows(kbd, n, kbd.modes['shift'][n-1], style, case)
 
             default = self._subelement(switch, 'default')
 
-            self.add_rows(n, self._tree.modes['default'][n-1], style, default)
+            self.add_rows(kbd, n, kbd.modes['default'][n-1], style, default)
 
-            yield ('rowkeys_%s%s.xml' % (self._tree.name, n), self._tostring(merge))
+            yield ('rowkeys_%s%s.xml' % (kbd.internal_name, n), self._tostring(merge))
 
     def _attrib(self, node, **kwargs):
         for k, v in kwargs.items():
@@ -336,20 +393,20 @@ class AndroidGenerator(Generator):
 
         tree.append(node)
 
-    def add_special_buttons(self, n, style, row, tree, is_start):
+    def add_special_buttons(self, kbd, n, style, row, tree, is_start):
         side = "left" if is_start else "right"
 
-        for key, action in self._tree.get_actions(style).items():
+        for key, action in kbd.get_actions(style).items():
             if action.row == n and action.position in [side, 'both']:
                 self.add_button_type(key, action, row, tree, is_start)
 
-    def add_rows(self, n, values, style, out):
+    def add_rows(self, kbd, n, values, style, out):
         i = 1
 
-        self.add_special_buttons(n, style, values, out, True)
+        self.add_special_buttons(kbd, n, style, values, out, True)
 
         for key in values:
-            more_keys = self._tree.get_longpress(key)
+            more_keys = kbd.get_longpress(key)
 
             node = self._subelement(out, "Key", keyLabel=key)
             if n == 1:
@@ -364,6 +421,6 @@ class AndroidGenerator(Generator):
 
             elif more_keys is not None:
                 self._attrib(node, moreKeys=','.join(more_keys))
-                #self._attrib(node, 'keyHintLabel', more_keys[0])
+                self._attrib(node, keyHintLabel=more_keys[0])
 
-        self.add_special_buttons(n, style, values, out, False)
+        self.add_special_buttons(kbd, n, style, values, out, False)
