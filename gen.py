@@ -59,6 +59,8 @@ class AndroidGenerator(Generator):
             xml_declaration=True, encoding='utf-8').decode()
 
     def generate(self, base='.', sdk_base='./sdk'):
+        sdk_base = os.getenv("ANDROID_SDK", sdk_base)
+
         if not self.sanity_checks():
             return
 
