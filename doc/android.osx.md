@@ -15,7 +15,9 @@ You will need:
 3. Unzip the Android SDK somewhere. I will assume you unzipped it to `~/sdks`
 4. As root: `port install apache-ant python3.4 py34-pip`
 5. As root: `pip3.4 install pycountry lxml PyYAML`
-6. Done!
+6. Run: `export ANDROID_SDK="~/sdks/android-sdk-macosx"`, replacing the string with where you put the directory.
+7. Run: `$ANDROID_SDK/tools/android update sdk -u -t "tools,platform-tools,build-tools-19.1.0,extra-android-support,android-19"`. Say yes to all the EULAs.
+8. Done!
 
 # Running
 
