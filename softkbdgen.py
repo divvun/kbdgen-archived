@@ -1,6 +1,9 @@
 import yaml
 import gen
 
+import argparse
+import sys
+
 from collections import namedtuple
 
 Action = namedtuple("Action", ['row', 'position', 'width'])
@@ -29,9 +32,8 @@ class Project:
     def targets(self):
         return self._tree['targets']
 
-    @property
     def target(self, target):
-        return self._tree['targets'].get(target, {})
+        return self._tree['targets'].get(target, {}) or {}
 
 
 class Keyboard:
@@ -125,7 +127,6 @@ class Parser:
 
         tree['layouts'] = layouts
 
-        print (tree)
         return Project(tree)
 
     def parse(self, data):
@@ -134,7 +135,25 @@ class Parser:
 def xml_encode_numeric_entity(ch):
     return "&#%s;" % hex(ord(ch))[1:]
 
+def parse_args():
+    p = argparse.ArgumentParser()
+    p.add_argument('-D', '--dry-run', action="store_true",
+                   help="Don't build, just do sanity checks.")
+    p.add_argument('-R', '--release', action='store_true',
+                   help="Compile in 'release' mode.")
+    p.add_argument('-t', '--target', required=True,
+                   help="Target output.")
+    p.add_argument('project', type=argparse.FileType('r'),
+                   default=sys.stdin)
+    return p.parse_args()
+
 if __name__ == "__main__":
-    import sys, os, os.path
-    kbdtree = Parser().parse(open(sys.argv[1]))
-    out = gen.AndroidGenerator(kbdtree).generate()
+    args = parse_args()
+
+    project = Parser().parse(args.project)
+
+    if args.target != "android":
+        print("Error: only Android is supported currently.")
+        sys.exit()
+
+    gen.AndroidGenerator(project, dict(args._get_kwargs())).generate()

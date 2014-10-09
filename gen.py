@@ -6,12 +6,24 @@ import os.path
 import shutil
 import subprocess
 import copy
+import re
+
+import pycountry
 
 class CulturalImperialismException(Exception): pass
 
 class Generator:
-    def __init__(self, project):
+    def __init__(self, project, args=None):
         self._project = project
+        self._args = args or {}
+
+    @property
+    def is_release(self):
+        return self._args.get('release', False)
+
+    @property
+    def dry_run(self):
+        return self._args.get('dry_run', False)
 
 class AndroidGenerator(Generator):
     ANDROID_NS="http://schemas.android.com/apk/res/android"
@@ -47,6 +59,13 @@ class AndroidGenerator(Generator):
             xml_declaration=True, encoding='utf-8').decode()
 
     def generate(self, base='.', sdk_base='./sdk'):
+        if not self.sanity_checks():
+            return
+
+        if self.dry_run:
+            print("Dry run completed.")
+            return
+
         self.get_source_tree(base, sdk_base)
 
         styles = [
@@ -55,8 +74,6 @@ class AndroidGenerator(Generator):
         ]
 
         files = []
-
-        print(self._project.layouts)
 
         for name, kbd in self._project.layouts.items():
 
@@ -85,7 +102,28 @@ class AndroidGenerator(Generator):
         self.build(base)
 
     def sanity_checks(self):
-        pass #stub
+        sane = True
+
+        pid = self._project.target('android').get('packageId')
+        if pid is None:
+            sane = False
+            print("Error: no package ID provided for Android target.")
+
+        for name, kbd in self._project.layouts.items():
+            for dn_locale in kbd.display_names:
+                try:
+                    pycountry.languages.get(alpha2=dn_locale)
+                except KeyError:
+                    sane = False
+                    print("Error: (%s) '%s' is not a supported locale. You should provide the code in ISO 639-1 format, if possible." % (
+                        name, dn_locale))
+
+            for mode, rows in kbd.modes.items():
+                for n, row in enumerate(rows):
+                    if len(row) > 11:
+                        print("Warning: (%s) row %s has %s keys. It is recommended to have less than 12 keys per row." % (name, n+1, len(row)))
+
+        return sane
 
     def _upd_locale(self, d, values):
         print("Updating localisation for %s..." % d)
@@ -122,8 +160,6 @@ class AndroidGenerator(Generator):
                 self._upd_locale(d, values)
 
     def build(self, base, debug=True):
-        self.sanity_checks()
-
         # TODO normal build
         print("Building...")
         process = subprocess.Popen(['ant', 'debug'], 
@@ -246,33 +282,10 @@ class AndroidGenerator(Generator):
         if process.returncode != 0:
             raise Exception(output[1])
 
-        #print("Updating build.xml...")
-
-        #self.update_build_xml(base, sdk_base)
-
     def create_ant_properties(self):
         data = "package.name=%s\n" % self._project.target('android')['packageId']
 
         return ('ant.properties', data)
-
-    #def update_build_xml(self, base, sdk_base):
-    #    base_buildxml_fn = os.path.join(sdk_base, 'tools', 'ant', 'build.xml')
-    #    buildxml_fn = os.path.join(base, 'deps', 'sami-ime', 'build.xml')
-    #
-    #    with open(base_buildxml_fn) as f:
-    #        base_buildxml = etree.parse(f)
-    #
-    #    with open(buildxml_fn) as f:
-    #        buildxml = etree.parse(f)
-    #
-    #    root = buildxml.getroot()
-    #
-    #    target = base_buildxml.xpath('target[@name="-package-resources"]')[0]
-    #    SubElement(target[1][0], 'nocompress', extension='dict')
-    #    root.insert(len(root)-1, target)
-    #
-    #    with open(buildxml_fn, 'w') as f:
-    #        f.write(self._tostring(root))
 
     def kbd_layout_set(self, kbd):
         out = Element("KeyboardLayoutSet", nsmap={"latin": self.NS})
@@ -424,3 +437,4 @@ class AndroidGenerator(Generator):
                 self._attrib(node, keyHintLabel=more_keys[0])
 
         self.add_special_buttons(kbd, n, style, values, out, False)
+
