@@ -1,0 +1,17 @@
+locales:
+  en:
+    name: "Brendan's Sami Keyboard"
+    description: "A test keyboard for Northern and Kildin Sami."
+  nb:
+    name: "Samisk Tastatur"
+    description: "A test keyboard for Northern Sami and Kildin Sami."
+
+author: Brendan Molloy
+email: brendan@bbqsrc.net
+
+layouts: [sme, sjd]
+
+targets:
+  android:
+    packageId: so.brendan.keyboards.sami
+
