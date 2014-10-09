@@ -1,10 +1,10 @@
 internalName: northern_sami 
 
 displayNames:
-  en: Northern Sami
   se: Sámegiella
+  en: Northern Sami
 
-locale: sme
+locale: se
  
 modes:
   default: [

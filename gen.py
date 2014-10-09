@@ -68,6 +68,8 @@ class AndroidGenerator(Generator):
             print("Dry run completed.")
             return
 
+        self.native_locale_workaround()
+
         self.get_source_tree(base, sdk_base)
 
         styles = [
@@ -103,6 +105,13 @@ class AndroidGenerator(Generator):
 
         self.build(base)
 
+    def native_locale_workaround(self):
+        for name, kbd in self._project.layouts.items():
+            n = kbd.display_names.get(kbd.locale, None)
+            if n is not None:
+                kbd.display_names['zz'] = n
+                del kbd.display_names[kbd.locale]
+
     def sanity_checks(self):
         sane = True
 
@@ -113,6 +122,8 @@ class AndroidGenerator(Generator):
 
         for name, kbd in self._project.layouts.items():
             for dn_locale in kbd.display_names:
+                if dn_locale in ['zz', kbd.locale]:
+                    continue
                 try:
                     pycountry.languages.get(alpha2=dn_locale)
                 except KeyError:
@@ -124,7 +135,6 @@ class AndroidGenerator(Generator):
                 for n, row in enumerate(rows):
                     if len(row) > 11:
                         print("Warning: (%s) row %s has %s keys. It is recommended to have less than 12 keys per row." % (name, n+1, len(row)))
-
         return sane
 
     def _upd_locale(self, d, values):
@@ -178,19 +188,23 @@ class AndroidGenerator(Generator):
         print("Done!")
 
     def _str_xml(self, val_dir, name, subtype):
-        if os.path.isdir(val_dir):
-            fn = os.path.join(val_dir, 'strings.xml')
+        os.makedirs(val_dir, exist_ok=True)
+        fn = os.path.join(val_dir, 'strings.xml')
+        print("Updating %s..." % fn)
 
-            print("Updating %s..." % fn)
+        if not os.path.exists(fn):
+            root = etree.XML("<resources/>")
+        else:
             with open(fn) as f:
-                tree = etree.parse(f)
-                SubElement(tree.getroot(),
-                    "string",
-                    name="subtype_%s" % subtype)\
-                    .text = name
+                root = etree.parse(f).getroot()
 
-            with open(fn, 'w') as f:
-                f.write(self._tostring(tree))
+        SubElement(root,
+            "string",
+            name="subtype_%s" % subtype)\
+            .text = name
+
+        with open(fn, 'w') as f:
+            f.write(self._tostring(root))
 
     def update_strings_xml(self, kbd, base):
         # TODO sanity check for non-existence directories
@@ -203,6 +217,7 @@ class AndroidGenerator(Generator):
             else:
                 val_dir = os.path.join(res_dir, 'values-%s' % locale)
             self._str_xml(val_dir, name, kbd.internal_name)
+        
 
     def update_method_xml(self, kbd, base):
         # TODO run this only once preferably
@@ -263,7 +278,7 @@ class AndroidGenerator(Generator):
 
             cmd = """git checkout stable;
                      git reset --hard;
-                     git clean -f;
+                     git clean -fdx;
                      git pull;"""
             cwd = os.path.join(deps_dir, d)
 
