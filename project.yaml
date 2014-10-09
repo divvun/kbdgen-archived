@@ -4,7 +4,7 @@ locales:
     description: "A test keyboard for Northern and Kildin Sami."
   nb:
     name: "Samisk Tastatur"
-    description: "A test keyboard for Northern Sami and Kildin Sami."
+    description: "En test tastaturet for nordsamisk og kildinsamisk."
 
 author: Brendan Molloy
 email: brendan@bbqsrc.net
