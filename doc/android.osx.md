@@ -13,8 +13,8 @@ You will need:
 1. Install MacPorts.
 2. Install JDK 7.
 3. Unzip the Android SDK somewhere. I will assume you unzipped it to `~/sdks`
-4. As root: `port install apache-ant python3.4 py34-setuptools`
-5. As root: `pip3.4 install pycountry lxml`
+4. As root: `port install apache-ant python3.4 py34-pip`
+5. As root: `pip3.4 install pycountry lxml PyYAML`
 6. Done!
 
 # Running
