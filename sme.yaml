@@ -1,11 +1,12 @@
-internalName: northern_sami 
+internalName: northern_sami
 
 displayNames:
   se: Sámegiella
   en: Northern Sami
+  nb: Nordsamisk
 
 locale: se
- 
+
 modes:
   default: [
     á š e r t y u i o p ŋ,
@@ -33,7 +34,7 @@ styles:
     actions:
       backspace: [1, right, fill]
       enter: [2, right, fill]
-      shift: [3, both, fill] 
+      shift: [3, both, fill]
   phone:
     actions:
       shift: [3, left, fill]
