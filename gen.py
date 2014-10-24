@@ -1,5 +1,6 @@
 from lxml import etree
 from lxml.etree import Element, SubElement
+from textwrap import dedent, indent
 
 import os
 import os.path
@@ -7,15 +8,51 @@ import shutil
 import subprocess
 import copy
 import re
+import io
+
 
 import pycountry
 
 class CulturalImperialismException(Exception): pass
 
+
+def git_clone(src, dst, branch, cwd='.'):
+    print("Cloning repository '%s' to '%s'..." % (src, dst))
+
+    cmd = ['git', 'clone', src, dst]
+
+    process = subprocess.Popen(cmd, cwd=cwd)
+    process.wait()
+
+    git_update(dst, branch, cwd)
+
+
+def git_update(dst, branch, cwd='.'):
+    print("Updating repository '%s'..." % dst)
+
+    cmd = """git checkout %s;
+             git reset --hard;
+             git clean -fdx;
+             git pull;""" % branch
+
+    cwd = os.path.join(cwd, dst)
+
+    process = subprocess.Popen(cmd, cwd=cwd, shell=True)
+    process.wait()
+
+
 class Generator:
     def __init__(self, project, args=None):
         self._project = project
         self._args = args or {}
+
+    @property
+    def repo(self):
+        return self._args.get('repo', None)
+
+    @property
+    def branch(self):
+        return self._args.get('branch', 'stable')
 
     @property
     def is_release(self):
@@ -24,6 +61,68 @@ class Generator:
     @property
     def dry_run(self):
         return self._args.get('dry_run', False)
+
+
+class AppleiOSGenerator(Generator):
+    def generate(self, base='.'):
+        build_dir = os.path.join(base, 'build')
+
+        os.makedirs(build_dir, exist_ok=True)
+
+        for name, layout in self._project.layouts.items():
+            gen_dir = os.path.join(build_dir, 'ios_%s' % name)
+
+            if os.path.isdir(gen_dir):
+                git_update(gen_dir, self.branch, base)
+            else:
+                git_clone(self.repo, gen_dir, self.branch, base)
+
+            with open(os.path.join(gen_dir, 'Keyboard',\
+                        'GeneratedKeyboard.swift'), 'w') as f:
+                f.write(self.generate_file(layout))
+
+            print("You may now open TastyImitationKeyboard.xcodeproj in '%s'." %\
+                    gen_dir)
+
+    def generate_file(self, layout):
+        buf = io.StringIO()
+
+        buf.write(dedent("""\
+        // GENERATED FILE: DO NOT EDIT.
+
+        func generatedKeyboard() -> Keyboard {
+            var kbd = Keyboard()
+
+        """))
+
+        row_count = 0
+
+        shift_key = indent(dedent("""\
+        kbd.addKey(Key(.Shift), row: 2, page: 0)
+
+        """), '    ')
+
+        key_loop = indent(dedent("""\
+        for key in ["%s"] {
+            var model = Key(.Character)
+            model.setLetter(key)
+            kbd.addKey(model, row: %s, page: 0)
+        }
+
+        """), '    ')
+
+        for row in layout.modes['shift']:
+            if (row_count == 2):
+                buf.write(shift_key)
+            buf.write(key_loop % ('", "'.join(row), row_count))
+            row_count += 1
+
+        buf.write(dedent("""\
+            return kbd
+        }"""))
+
+        return buf.getvalue()
+
 
 class AndroidGenerator(Generator):
     ANDROID_NS="http://schemas.android.com/apk/res/android"

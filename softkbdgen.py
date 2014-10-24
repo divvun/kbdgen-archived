@@ -141,6 +141,9 @@ def parse_args():
                    help="Don't build, just do sanity checks.")
     p.add_argument('-R', '--release', action='store_true',
                    help="Compile in 'release' mode.")
+    p.add_argument('-r', '--repo', help='Git repo.')
+    p.add_argument('-b', '--branch', default='stable',
+                   help='Git branch (default: stable)')
     p.add_argument('-t', '--target', required=True,
                    help="Target output.")
     p.add_argument('project', type=argparse.FileType('r'),
@@ -152,8 +155,11 @@ if __name__ == "__main__":
 
     project = Parser().parse(args.project)
 
-    if args.target != "android":
-        print("Error: only Android is supported currently.")
+    if args.target not in ["android", "ios"]:
+        print("Error: only 'android' and 'ios' is supported currently.")
         sys.exit()
 
-    gen.AndroidGenerator(project, dict(args._get_kwargs())).generate()
+    if args.target == "android":
+        gen.AndroidGenerator(project, dict(args._get_kwargs())).generate()
+    elif args.target == "ios":
+        gen.AppleiOSGenerator(project, dict(args._get_kwargs())).generate()
