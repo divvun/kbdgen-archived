@@ -117,9 +117,17 @@ class AppleiOSGenerator(Generator):
             buf.write(key_loop % ('", "'.join(row), row_count))
             row_count += 1
 
+        retStr = layout.strings.get('return', 'return')
+        spaceStr = layout.strings.get('space', 'space')
+
         buf.write(dedent("""\
             return kbd
-        }"""))
+        }
+
+        func generatedConfig() -> [String: String] {
+            return ["return": "%s", "space": "%s"]
+        }
+        """ % (retStr, spaceStr)))
 
         return buf.getvalue()
 

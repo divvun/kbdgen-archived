@@ -61,6 +61,10 @@ class Keyboard:
         return self._tree['modes']
 
     @property
+    def strings(self):
+        return self._tree.get('strings', {})
+
+    @property
     def styles(self):
         return self._tree['styles']
 
