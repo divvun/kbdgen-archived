@@ -10,7 +10,6 @@ import copy
 import re
 import io
 
-
 import pycountry
 
 class CulturalImperialismException(Exception): pass
