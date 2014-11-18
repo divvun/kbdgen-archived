@@ -235,13 +235,17 @@ class AndroidGenerator(Generator):
                     pycountry.languages.get(alpha2=dn_locale)
                 except KeyError:
                     sane = False
-                    print("Error: (%s) '%s' is not a supported locale. You should provide the code in ISO 639-1 format, if possible." % (
+                    print(("Error: (%s) '%s' is not a supported locale. " +\
+                          "You should provide the code in ISO 639-1 " +\
+                          "format, if possible.") % (
                         name, dn_locale))
 
             for mode, rows in kbd.modes.items():
                 for n, row in enumerate(rows):
                     if len(row) > 11:
-                        print("Warning: (%s) row %s has %s keys. It is recommended to have less than 12 keys per row." % (name, n+1, len(row)))
+                        print(("Warning: (%s) row %s has %s keys. It is " +\
+                               "recommended to have less than 12 keys per " +\
+                               "row.") % (name, n+1, len(row)))
         return sane
 
     def _upd_locale(self, d, values):
@@ -281,7 +285,7 @@ class AndroidGenerator(Generator):
     def build(self, base, debug=True):
         # TODO normal build
         print("Building...")
-        process = subprocess.Popen(['ant', 'debug'], 
+        process = subprocess.Popen(['ant', 'debug'],
                     cwd=os.path.join(base, 'deps', 'sami-ime'))
         process.wait()
 
@@ -324,7 +328,6 @@ class AndroidGenerator(Generator):
             else:
                 val_dir = os.path.join(res_dir, 'values-%s' % locale)
             self._str_xml(val_dir, name, kbd.internal_name)
-        
 
     def update_method_xml(self, kbd, base):
         # TODO run this only once preferably
