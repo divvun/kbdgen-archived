@@ -9,6 +9,10 @@ import subprocess
 import copy
 import re
 import io
+import json
+import uuid
+import plistlib
+import collections
 
 import pycountry
 
@@ -38,6 +42,131 @@ def git_update(dst, branch, cwd='.'):
 
     process = subprocess.Popen(cmd, cwd=cwd, shell=True)
     process.wait()
+
+
+def plutil_get_json(path):
+    cmd = "plutil -convert json -o -".split(" ")
+    cmd.append(path)
+
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    json_str = process.communicate()[0].decode()
+    return json.loads(json_str, object_pairs_hook=collections.OrderedDict)
+
+
+def plutil_to_xml_str(json_obj):
+    cmd = "plutil -convert xml1 -o - -".split(" ")
+
+    process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE)
+    return process.communicate(json.dumps(json_obj).encode())[0].decode()
+
+
+class Pbxproj:
+    @staticmethod
+    def gen_key():
+        return uuid.uuid4().hex[8:].upper()
+
+    def __init__(self, path):
+        self._proj = plutil_get_json(path)
+
+    def __str__(self):
+        return plutil_to_xml_str(self._proj)
+
+    @property
+    def objects(self):
+        return self._proj['objects']
+
+    @property
+    def root(self):
+        return self.objects[self._proj['rootObject']]
+
+    @property
+    def main_group(self):
+        return self.objects[self.root['mainGroup']]
+
+    def find_resource_build_phase(self, target_name):
+        targets = [self.objects[t] for t in self.root['targets']]
+        target = None
+
+        for t in targets:
+            if t['name'] == target_name:
+                target = t
+                break
+
+        if target is None:
+            return None
+
+        for build_phase in target['buildPhases']:
+            phase = self.objects[build_phase]
+            if phase['isa'] == "PBXResourcesBuildPhase":
+                return phase
+
+        return None
+
+    def create_plist_string_file(self, locale):
+        o = {
+            "isa": "PBXFileReference",
+            "lastKnownFileType": "text.plist.strings",
+            "name": locale,
+            "path": "%s.lproj/InfoPlist.strings" % locale,
+            "sourceTree": "<group>"
+        }
+
+        k = Pbxproj.gen_key()
+        self.objects[k] = o
+        return k
+
+    def create_plist_string_variant(self, variants):
+        o = {
+            "isa": "PBXVariantGroup",
+            "children": variants,
+            "name": "InfoPlist.strings",
+            "sourceTree": "<group>"
+        }
+
+        return o
+
+    def add_plist_strings(self, locales):
+        plist_strs = [self.create_plist_string_file(l) for l in locales]
+        variant = self.create_plist_string_variant(plist_strs)
+
+        var_key = Pbxproj.gen_key()
+        self.objects[var_key] = variant
+
+        key = Pbxproj.gen_key()
+        self.objects[key] = {
+            "isa": "PBXBuildFile",
+            "fileRef": var_key
+        }
+
+        return (var_key, key)
+
+    def add_plist_strings_to_build_phase(self, locales, target_name):
+        phase = self.find_resource_build_phase(target_name)
+        (var_ref, ref) = self.add_plist_strings(locales)
+        phase['files'].append(ref)
+        return var_ref
+
+    def add_ref_to_group(self, ref, group_list):
+        o = self.main_group
+        n = False
+
+        for g in group_list:
+            for c in o['children']:
+                co = self.objects[c]
+                if n:
+                    break
+                if co.get('path', co.get('name', None)) == g:
+                    o = co
+                    n = True
+            if n:
+                n = False
+                continue
+            else:
+                return False
+
+        o['children'].append(ref)
+        return True
 
 
 class Generator:
@@ -76,12 +205,113 @@ class AppleiOSGenerator(Generator):
             else:
                 git_clone(self.repo, gen_dir, self.branch, base)
 
-            with open(os.path.join(gen_dir, 'Keyboard',\
+            # Generated swift file
+            with open(os.path.join(gen_dir, 'Keyboard',
                         'GeneratedKeyboard.swift'), 'w') as f:
                 f.write(self.generate_file(layout))
 
+            # Hosting app plist
+            with open(os.path.join(gen_dir, 'HostingApp',
+                        'Info.plist'), 'rb') as f:
+                plist = plistlib.load(f, dict_type=collections.OrderedDict)
+
+            with open(os.path.join(gen_dir, 'HostingApp',
+                        'Info.plist'), 'wb') as f:
+                self.update_plist(plist, f)
+
+            # Keyboard plist
+            with open(os.path.join(gen_dir, 'Keyboard',
+                        'Info.plist'), 'rb') as f:
+                plist = plistlib.load(f, dict_type=collections.OrderedDict)
+
+            with open(os.path.join(gen_dir, 'Keyboard',
+                        'Info.plist'), 'wb') as f:
+                self.update_kbd_plist(plist, layout, f)
+
+            # Update pbxproj with locales
+            path = os.path.join(gen_dir,
+                'TastyImitationKeyboard.xcodeproj', 'project.pbxproj')
+            pbxproj = Pbxproj(path)
+            with open(path, 'w') as f:
+                self.update_pbxproj(pbxproj, layout, f)
+
+            # Create locale strings
+            self.create_locales(gen_dir, layout)
+
             print("You may now open TastyImitationKeyboard.xcodeproj in '%s'." %\
                     gen_dir)
+
+    def write_l18n_str(self, f, key, value):
+        f.write('"%s" = "%s";\n' % (key, value))
+
+    def create_locales(self, gen_dir, layout):
+        for locale, attrs in self._project.locales.items():
+            lproj_dir = locale if locale != "en" else "Base"
+            lproj = os.path.join(gen_dir, 'HostingApp', '%s.lproj' % lproj_dir)
+            os.makedirs(lproj, exist_ok=True)
+
+            with open(os.path.join(lproj, 'InfoPlist.strings'), 'a') as f:
+                self.write_l18n_str(f, 'CFBundleName', attrs['name'])
+                self.write_l18n_str(f, 'CFBundleDisplayName', attrs['name'])
+
+        for locale, name in layout.display_names.items():
+            lproj_dir = locale if locale != "en" else "Base"
+            lproj = os.path.join(gen_dir, 'Keyboard', '%s.lproj' % lproj_dir)
+            os.makedirs(lproj, exist_ok=True)
+
+            with open(os.path.join(lproj, 'InfoPlist.strings'), 'a') as f:
+                self.write_l18n_str(f, 'CFBundleName', name)
+                self.write_l18n_str(f, 'CFBundleDisplayName', name)
+
+    def get_layout_locales(self, layout):
+        locales = set(layout.display_names.keys())
+        locales.remove('en')
+        locales.add("Base")
+        locales.add(layout.locale)
+        return locales
+
+    def get_project_locales(self):
+        locales = set(self._project.locales.keys())
+        locales.remove('en')
+        locales.add("Base")
+        return locales
+
+    def get_locales(self, layout):
+        return list(self.get_layout_locales(layout) |
+                    self.get_project_locales())
+
+    def update_pbxproj(self, pbxproj, layout, f):
+        pbxproj.root['knownRegions'] = self.get_locales(layout)
+
+        ref = pbxproj.add_plist_strings_to_build_phase(
+                self.get_project_locales(), "HostingApp")
+        pbxproj.add_ref_to_group(ref, ["HostingApp", "Supporting Files"])
+
+        ref = pbxproj.add_plist_strings_to_build_phase(
+                self.get_layout_locales(layout), "Keyboard")
+        pbxproj.add_ref_to_group(ref, ["Keyboard", "Supporting Files"])
+
+        f.write(str(pbxproj))
+
+    def update_kbd_plist(self, plist, layout, f):
+        bundle_id = "%s.%s" % (
+                self._project.target('ios')['packageId'],
+                layout.locale)
+
+        plist['CFBundleName'] = layout.display_names['en']
+        plist['CFBundleDisplayName'] = layout.display_names['en']
+        plist['NSExtension']['NSExtensionAttributes']['PrimaryLanguage'] =\
+                layout.locale
+        plist['CFBundleIdentifier'] = bundle_id
+
+        plistlib.dump(plist, f)
+
+    def update_plist(self, plist, f):
+        plist['CFBundleName'] = self._project.target('ios')['bundleName']
+        plist['CFBundleDisplayName'] = self._project.target('ios')['bundleName']
+        plist['CFBundleIdentifier'] = self._project.target('ios')['packageId']
+
+        plistlib.dump(plist, f)
 
     def generate_file(self, layout):
         buf = io.StringIO()

@@ -21,4 +21,5 @@ targets:
 
   ios:
     packageId: so.brendan.keyboards.sami
+    bundleName: "Sami Keyboard"
 
