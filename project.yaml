@@ -16,6 +16,9 @@ layouts: [sme, sjd]
 targets:
   android:
     packageId: so.brendan.keyboards.sami
+    keyStore: /Users/brendan/git/softkbdgen/test.keystore
+    keyAlias: sami_keyboard
+
   ios:
     packageId: so.brendan.keyboards.sami
 

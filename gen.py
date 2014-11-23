@@ -206,11 +206,13 @@ class AndroidGenerator(Generator):
             self.update_method_xml(kbd, base)
             self.update_strings_xml(kbd, base)
 
+        files.append(self.create_ant_properties())
+
         self.save_files(files, base)
 
         self.update_localisation(base)
 
-        self.build(base)
+        self.build(base, self.is_release)
 
     def native_locale_workaround(self):
         for name, kbd in self._project.layouts.items():
@@ -282,14 +284,14 @@ class AndroidGenerator(Generator):
             if os.path.isdir(d):
                 self._upd_locale(d, values)
 
-    def build(self, base, debug=True):
+    def build(self, base, release_mode=True):
         # TODO normal build
         print("Building...")
-        process = subprocess.Popen(['ant', 'debug'],
+        process = subprocess.Popen(['ant', 'release' if release_mode else 'debug'],
                     cwd=os.path.join(base, 'deps', self.REPO))
         process.wait()
 
-        if debug:
+        if not release_mode:
             fn = self._project.internal_name + "-debug.apk"
         else:
             fn = self._project.internal_name + "-release.apk"
@@ -385,7 +387,15 @@ class AndroidGenerator(Generator):
             raise Exception(output[1])
 
     def create_ant_properties(self):
-        data = "package.name=%s\n" % self._project.target('android')['packageId']
+        data = dedent("""\
+        package.name=%s
+        key.store=%s
+        key.alias=%s
+        """ % (
+            self._project.target('android')['packageId'],
+            self._project.target('android')['keyStore'],
+            self._project.target('android')['keyAlias']
+        ))
 
         return ('ant.properties', data)
 
