@@ -132,7 +132,8 @@ class AppleiOSGenerator(Generator):
 
 
 class AndroidGenerator(Generator):
-    ANDROID_NS="http://schemas.android.com/apk/res/android"
+    REPO = "giella-ime"
+    ANDROID_NS = "http://schemas.android.com/apk/res/android"
     NS = "http://schemas.android.com/apk/res-auto"
 
     def _element(self, *args, **kwargs):
@@ -271,7 +272,7 @@ class AndroidGenerator(Generator):
             f.write(self._tostring(tree))
 
     def update_localisation(self, base):
-        res_dir = os.path.join(base, 'deps', 'sami-ime', 'res')
+        res_dir = os.path.join(base, 'deps', self.REPO, 'res')
 
         self._upd_locale(os.path.join(res_dir, "values"),
             self._project.locales['en'])
@@ -285,11 +286,15 @@ class AndroidGenerator(Generator):
         # TODO normal build
         print("Building...")
         process = subprocess.Popen(['ant', 'debug'],
-                    cwd=os.path.join(base, 'deps', 'sami-ime'))
+                    cwd=os.path.join(base, 'deps', self.REPO))
         process.wait()
 
-        fn = "SamiIME-debug.apk"
-        path = os.path.join(base, 'deps', 'sami-ime', 'bin')
+        if debug:
+            fn = self._project.internal_name + "-debug.apk"
+        else:
+            fn = self._project.internal_name + "-release.apk"
+            # TODO other release shi
+        path = os.path.join(base, 'deps', self.REPO, 'bin')
 
         print("Copying '%s' to build/ directory..." % fn)
         os.makedirs(os.path.join(base, 'build'), exist_ok=True)
@@ -319,7 +324,7 @@ class AndroidGenerator(Generator):
     def update_strings_xml(self, kbd, base):
         # TODO sanity check for non-existence directories
         # TODO run this only once preferably
-        res_dir = os.path.join(base, 'deps', 'sami-ime', 'res')
+        res_dir = os.path.join(base, 'deps', self.REPO, 'res')
 
         for locale, name in kbd.display_names.items():
             if locale == "en":
@@ -331,7 +336,7 @@ class AndroidGenerator(Generator):
     def update_method_xml(self, kbd, base):
         # TODO run this only once preferably
         print("Updating res/xml/method.xml...")
-        fn = os.path.join(base, 'deps', 'sami-ime', 'res', 'xml', 'method.xml')
+        fn = os.path.join(base, 'deps', self.REPO, 'res', 'xml', 'method.xml')
 
         with open(fn) as f:
             tree = etree.parse(f)
@@ -347,7 +352,7 @@ class AndroidGenerator(Generator):
         #return ('res/xml/method.xml', self._tostring(tree))
 
     def save_files(self, files, base):
-        fn = os.path.join(base, 'deps', 'sami-ime')
+        fn = os.path.join(base, 'deps', self.REPO)
         for k, v in files:
             with open(os.path.join(fn, k), 'w') as f:
                 print("Saving file '%s'..." % k)
@@ -359,50 +364,21 @@ class AndroidGenerator(Generator):
         deps_dir = os.path.join(base, 'deps')
         os.makedirs(deps_dir, exist_ok=True)
 
-        processes = []
+        print("Preparing dependencies...")
 
-        repos = [
-            ('sami-ime', 'https://github.com/bbqsrc/sami-ime.git')
-            ]
+        repo_dir = os.path.join(deps_dir, self.REPO)
 
-        for d, url in repos:
-            cmd = ['git', 'clone', url]
-            cwd = deps_dir
-
-            if os.path.isdir(os.path.join(deps_dir, d)):
-                continue
-
-            print("Cloning repository '%s'..." % d)
-            processes.append(subprocess.Popen(cmd, cwd=cwd))
-
-        for process in processes:
-            output = process.wait()
-            if process.returncode != 0:
-                raise Exception(output[1])
-
-        processes = []
-
-        for d, url in repos:
-            print("Updating repository '%s'..." % d)
-
-            cmd = """git checkout stable;
-                     git reset --hard;
-                     git clean -fdx;
-                     git pull;"""
-            cwd = os.path.join(deps_dir, d)
-
-            processes.append(subprocess.Popen(cmd, cwd=cwd, shell=True))
-
-        for process in processes:
-            output = process.wait()
-            if process.returncode != 0:
-                raise Exception(output[1])
+        if os.path.isdir(repo_dir):
+            git_update(repo_dir, self.branch, base)
+        else:
+            git_clone(self.repo, repo_dir, self.branch, base)
 
         print("Create Android project...")
 
-        cmd = "%s update project -n SamiIME -t android-19 -p ." % \
-            os.path.join(os.path.abspath(sdk_base), 'tools/android')
-        process = subprocess.Popen(cmd, cwd=os.path.join(deps_dir, 'sami-ime'),
+        cmd = "%s update project -n %s -t android-19 -p ." % (
+            os.path.join(os.path.abspath(sdk_base), 'tools/android'),
+            self._project.internal_name)
+        process = subprocess.Popen(cmd, cwd=os.path.join(deps_dir, self.REPO),
                 shell=True)
         output = process.wait()
         if process.returncode != 0:

@@ -1,3 +1,5 @@
+internalName: sami_keyboard
+
 locales:
   en:
     name: "Brendan's Sami Keyboard"
@@ -13,5 +15,7 @@ layouts: [sme, sjd]
 
 targets:
   android:
+    packageId: so.brendan.keyboards.sami
+  ios:
     packageId: so.brendan.keyboards.sami
 

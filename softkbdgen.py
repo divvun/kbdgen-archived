@@ -15,15 +15,15 @@ class Project:
     @property
     def locales(self):
         return self._tree['locales']
-    
+
     @property
     def author(self):
         return self._tree['author']
-    
+
     @property
     def email(self):
         return self._tree['email']
-    
+
     @property
     def layouts(self):
         return self._tree['layouts']
@@ -31,6 +31,10 @@ class Project:
     @property
     def targets(self):
         return self._tree['targets']
+
+    @property
+    def internal_name(self):
+        return self._tree['internalName']
 
     def target(self, target):
         return self._tree['targets'].get(target, {}) or {}
