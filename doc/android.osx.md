@@ -7,6 +7,7 @@ You will need:
 * MacPorts: https://guide.macports.org/chunked/installing.macports.html
 * JDK 7: http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html
 * Android SDK (click "VIEW ALL DOWNLOADS AND SIZES" and choose from "SDK Tools Only"): https://developer.android.com/sdk/index.html?hl=i
+* GiellaIME checked out somewhere (https://github.com/bbqsrc/giella-ime)
 
 # Installation
 
@@ -24,7 +25,10 @@ You will need:
 1. Run `export ANDROID_SDK="~/sdks/android-sdk-macosx"`, replacing the string with where you put the directory.
 2. In the `softkbdgen` directory, run `python3.4 softkbdgen.py --help` to see the help text.
 
-An example: `python3.4 softkbdgen.py --target android project.yaml`
+An example: `python3.4 softkbdgen.py --repo local/path/to/giella-ime --target android project.yaml`
+
+You can also substitute a local path to a git repo to the remote path and the
+application will automatically check it out for you.
 
 # Examples
 
@@ -36,7 +40,8 @@ See the `project.yaml` file for an example of project files.
 
 ## Projects
 
-Your project files must have at least the following properties: `author`, `email`, `locales`, `layouts`, and in most cases, `targets`.
+Your project files must have at least the following properties: `author`,
+`email`, `locales`, `layouts`, and in most cases, `targets`.
 
 
 `author` and `email` are pretty straight forward:
@@ -46,7 +51,8 @@ author: Your name
 email: Your email
 ```
 
-`locales` are also quite straight forward. You provide a map of locales to a `name` and `description` property in the language being localised to.
+`locales` are also quite straight forward. You provide a map of locales to a
+`name` and `description` property in the language being localised to.
 
 ```yaml
 locales:
@@ -58,38 +64,60 @@ locales:
     description: Other locales are not supported for localisation on Android. :(
 ```
 
-`layouts` refers to the keyboard layout descriptors you wish to include in this package.
+`layouts` refers to the keyboard layout descriptors you wish to include in
+this package.
 
 ```yaml
 layouts: [smj, sjd]
 ```
 
-`targets` defines target-specific configuration. At this stage, only `android: packageId` is supported (and also required).
+`targets` defines target-specific configuration.
+
+The Android-specific configuration keys are:
+
+* *packageId (required)*: the reverse-domain notation ID for the package
+
+If you are planning to generate an APK for release, [it must be signed](http://developer.android.com/tools/publishing/app-signing.html).
+
+If you wish to sign your packages, you need to provide the following:
+
+* *keyStore*: the absolute path to your keystore (see section "Generating keystores")
+* *keyAlias*: the alias for the key in the keystore (as above)
 
 ```yaml
 targets:
   android:
     packageId: com.example.amazing.keyboards
+    keyStore: /absolute/path/to/my/keystore
+    keyAlias: alias_specified_during_generation
 ```
 
 ## Keyboards
 
-Your keyboard layout descriptor has the following required properties: `internalName`, `displayNames`, `locale`, and `modes`. Optionally, you may also include `longpress` and `styles`.
+Your keyboard layout descriptor has the following required properties:
+`internalName`, `displayNames`, `locale`, and `modes`. Optionally, you may
+also include `longpress` and `styles`.
 
-`internalName` is required for file naming and other internal identification purposes. Please use lower case ASCII characters and underscores eg `some_name` to avoid any issues during compilation.
+`internalName` is required for file naming and other internal identification
+purposes. Please use lower case ASCII characters and underscores eg
+`some_name` to avoid any issues during compilation.
 
 ```yaml
 internalName: my_keyboard
 ```
 
-`displayNames` is a map of localised display names for your keyboard. These locales may be ISO 639-3 if you so desire, although for maximum compatibility, use 639-1 where possible.
+`displayNames` is a map of localised display names for your keyboard. These
+locales may be ISO 639-3 if you so desire, although for maximum
+compatibility, use 639-1 where possible.
 
 ```yaml
 displayNames:
   en: Kildin Sami
   nb: kildinsamisk
 ```
-`modes` is a map of the several modes available, with layouts provided. Currently supported modes are `default` and `shift`. `default` is required.
+
+`modes` is a map of the several modes available, with layouts provided.
+Currently supported modes are `default` and `shift`. `default` is required.
 
 ```yaml
 modes:
@@ -105,7 +133,8 @@ modes:
   ]
 ```
 
-`longpress` allows one to determine which keys appear in the long press menu, per key.
+`longpress` allows one to determine which keys appear in the long press menu,
+per key.
 
 ```yaml
 longpress:
@@ -119,11 +148,17 @@ longpress:
   o: ø ö
 ```
 
-`styles` is a map that allows you to more closely fine tune the appearance of the keyboard.
+`styles` is a map that allows you to more closely fine tune the appearance
+of the keyboard.
 
-At the moment, it only controls action keys, such as the return key or shift buttons, with the `action` property. This property supports the properties `tablet` and `phone`, with each of those supporting `backspace`, `enter` and `shift`.
+At the moment, it only controls action keys, such as the return key or shift
+buttons, with the `action` property. This property supports the properties
+`tablet` and `phone`, with each of those supporting `backspace`, `enter`
+and `shift`.
 
-Those three action key properties take a list of values: row, side, width. The width parameter supports the keyword `fill` which fills remaining space, or a percentage.
+Those three action key properties take a list of values: row, side, width.
+The width parameter supports the keyword `fill` which fills remaining
+space, or a percentage.
 
 ```yaml
 styles:
@@ -131,9 +166,33 @@ styles:
     actions:
       backspace: [1, right, fill]
       enter: [2, right, fill]
-      shift: [3, both, fill] 
+      shift: [3, both, fill]
   phone:
     actions:
       shift: [3, left, fill]
       backspace: [3, right, fill]
 ```
+
+# Generating keystores
+
+Make sure you've read the
+["Signing Your Applications"](http://developer.android.com/tools/publishing/app-signing.html)
+page from the Android Developers website.
+
+It is recommended that you use 4096-bit keys, and name the keystore and
+alias your key with the internal name of your project.
+
+For example, if my project name was "sami_keyboard", adn I wanted the key to
+last for 10000 days, I would run the following command:
+
+`keytool -genkey -v -keystore sami_keyboard.keystore -alias sami_keyboard -keyalg RSA -keysize 4096 -validity 10000`
+
+*Make sure you keep your key safe! Don't publish it to git or svn.*
+
+The warning straight from the Android website says:
+
+> Warning: Keep your keystore and private key in a safe and secure place,
+> and ensure that you have secure backups of them. If you publish an app to
+> Google Play and then lose the key with which you signed your app, you will
+> not be able to publish any updates to your app, since you must always sign
+> all versions of your app with the same key.
