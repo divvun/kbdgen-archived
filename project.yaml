@@ -2,7 +2,7 @@ internalName: sami_keyboard
 
 locales:
   en:
-    name: "Brendan's Sami Keyboard"
+    name: &bundleName "Brendan's Sami Keyboard"
     description: "A test keyboard for Northern and Kildin Sami."
   nb:
     name: "Samisk Tastatur"
@@ -13,6 +13,9 @@ email: brendan@bbqsrc.net
 
 layouts: [sme, sjd]
 
+version: 1.0
+build: 1
+
 targets:
   android:
     packageId: so.brendan.keyboards.sami
@@ -21,4 +24,4 @@ targets:
 
   ios:
     packageId: so.brendan.keyboards.sami
-
+    bundleName: *bundleName
