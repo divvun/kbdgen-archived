@@ -30,6 +30,15 @@ An example: `python3.4 softkbdgen.py --repo local/path/to/giella-ime --target an
 You can also substitute a local path to a git repo to the remote path and the
 application will automatically check it out for you.
 
+## Build files
+
+Files will be placed in the `build/` directory. In debug mode, a file by the
+name of `<project internalName>-debug.apk` will appear, while in release mode
+(when provided with `-R` flag), `<project internalName>-release.apk` will
+appear.
+
+The release APK can be used to be uploaded to the Play Store.
+
 # Examples
 
 See the `sme.yaml` and `sjd.yaml` files for examples of keyboard layouts.
