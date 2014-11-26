@@ -168,6 +168,11 @@ if __name__ == "__main__":
         sys.exit()
 
     if args.target == "android":
-        gen.AndroidGenerator(project, dict(args._get_kwargs())).generate()
+        x = gen.AndroidGenerator(project, dict(args._get_kwargs()))
     elif args.target == "ios":
-        gen.AppleiOSGenerator(project, dict(args._get_kwargs())).generate()
+        x = gen.AppleiOSGenerator(project, dict(args._get_kwargs()))
+
+    try:
+        x.generate()
+    except gen.MissingApplicationException as e:
+        print(e)

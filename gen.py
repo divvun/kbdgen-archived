@@ -13,11 +13,13 @@ import json
 import uuid
 import plistlib
 import collections
+import distutils
 
 import pycountry
 
 class CulturalImperialismException(Exception): pass
 
+class MissingApplicationException(Exception): pass
 
 def git_clone(src, dst, branch, cwd='.'):
     print("Cloning repository '%s' to '%s'..." % (src, dst))
@@ -591,7 +593,12 @@ class AndroidGenerator(Generator):
                 f.write(v)
 
     def get_source_tree(self, base, sdk_base):
-        # TODO check SDK base is valid
+        if distutils.spawn.find_executable(os.path.join(
+            os.path.abspath(sdk_base), 'tools', 'android')) is None:
+            raise MissingApplicationException(
+                    "Error: Could not find the Android SDK. " +\
+                    "Ensure your environment is configured correctly, " +\
+                    "specifically the ANDROID_SDK env variable.")
 
         deps_dir = os.path.join(base, 'deps')
         os.makedirs(deps_dir, exist_ok=True)
@@ -612,9 +619,9 @@ class AndroidGenerator(Generator):
             self._project.internal_name)
         process = subprocess.Popen(cmd, cwd=os.path.join(deps_dir, self.REPO),
                 shell=True)
-        output = process.wait()
+        process.wait()
         if process.returncode != 0:
-            raise Exception(output[1])
+            raise Exception("Application ended with error code %s." % process.returncode)
 
     def create_ant_properties(self):
         data = dedent("""\
@@ -768,15 +775,19 @@ class AndroidGenerator(Generator):
                 if i > 0 and i <= 10:
                     if i == 10:
                         i = 0
-                    self._attrib(node, keyHintLabel=str(i), additionalMoreKeys=str(i))
+                    self._attrib(node,
+                            keyHintLabel=str(i),
+                            additionalMoreKeys=str(i))
                     if i > 0:
                         i += 1
                 elif more_keys is not None:
                     self._attrib(node, keyHintLabel=more_keys[0])
 
             elif more_keys is not None:
-                self._attrib(node, moreKeys=','.join(more_keys))
                 self._attrib(node, keyHintLabel=more_keys[0])
+
+            if more_keys is not None:
+                self._attrib(node, moreKeys=','.join(more_keys))
 
         self.add_special_buttons(kbd, n, style, values, out, False)
 
