@@ -30,6 +30,13 @@ An example: `python3.4 softkbdgen.py --repo local/path/to/giella-ime --target an
 You can also substitute a local path to a git repo to the remote path and the
 application will automatically check it out for you.
 
+# Testing on a device
+
+1. Plug your Android device in.
+2. Run `ANDROID_SDK/platform-tools/adb install -r <path to apk>`
+
+If it spits errors, uninstall the package off your device first.
+
 ## Build files
 
 Files will be placed in the `build/` directory. In debug mode, a file by the
