@@ -198,12 +198,14 @@ page from the Android Developers website.
 It is recommended that you use 4096-bit keys, and name the keystore and
 alias your key with the internal name of your project.
 
-For example, if my project name was "sami_keyboard", adn I wanted the key to
+**Use ASCII characters only for your password if you value your sanity.**
+
+For example, if my project name was "sami_keyboard", and I wanted the key to
 last for 10000 days, I would run the following command:
 
 `keytool -genkey -v -keystore sami_keyboard.keystore -alias sami_keyboard -keyalg RSA -keysize 4096 -validity 10000`
 
-*Make sure you keep your key safe! Don't publish it to git or svn.*
+**Make sure you keep your key safe! Don't publish it to git or svn.**
 
 The warning straight from the Android website says:
 
