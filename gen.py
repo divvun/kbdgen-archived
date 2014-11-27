@@ -297,7 +297,7 @@ class AppleiOSGenerator(Generator):
     def update_kbd_plist(self, plist, layout, f):
         bundle_id = "%s.%s" % (
                 self._project.target('ios')['packageId'],
-                layout.locale)
+                layout.internal_name.replace("_", "-"))
 
         plist['CFBundleName'] = layout.display_names['en']
         plist['CFBundleDisplayName'] = layout.display_names['en']
