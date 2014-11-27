@@ -157,7 +157,7 @@ class Parser:
     def parse(self, data, cfg_pairs=None):
         project = self._parse_project(data)
         if cfg_pairs is not None:
-            self._overrides(project._tree, cfg_pairs)
+            self._overrides(project._tree, parse_cfg_pairs(cfg_pairs))
         return project
 
 def parse_args():
@@ -188,7 +188,7 @@ if __name__ == "__main__":
 
     try:
         project = Parser().parse(args.project,
-                                 parse_cfg_pairs(args.cfg_pairs))
+                                 args.cfg_pairs)
     except Exception as e:
         print(e)
         sys.exit(1)
