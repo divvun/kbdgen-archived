@@ -13,7 +13,6 @@ import json
 import uuid
 import plistlib
 import collections
-import distutils
 
 import pycountry
 
@@ -593,8 +592,9 @@ class AndroidGenerator(Generator):
                 f.write(v)
 
     def get_source_tree(self, base, sdk_base):
-        if distutils.spawn.find_executable(os.path.join(
-            os.path.abspath(sdk_base), 'tools', 'android')) is None:
+
+        if not os.path.exists(os.path.join(
+            os.path.abspath(sdk_base), 'tools', 'android')):
             raise MissingApplicationException(
                     "Error: Could not find the Android SDK. " +\
                     "Ensure your environment is configured correctly, " +\
