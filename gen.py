@@ -169,6 +169,217 @@ class Pbxproj:
         o['children'].append(ref)
         return True
 
+    def add_file(self, fmt, path, **kwargs):
+        ref = Pbxproj.gen_key()
+
+        o = {
+            'isa': "PBXFileReference",
+            "lastKnownFileType": fmt,
+            "path": path,
+            "sourceTree": "<group>"
+        }
+
+        o.update(kwargs)
+
+        self.objects[ref] = o
+
+        return ref
+
+    def add_plist_file(self, path):
+        return self.add_file("text.plist.xml", path)
+
+    def add_swift_file(self, path):
+        return self.add_file("sourcecode.swift", path, fileEncoding=4)
+
+    def add_path(self, path_list, target=None):
+        if target is None:
+            target = self.main_group
+
+        for name in path_list:
+            children = [self.objects[r] for r in target['children']]
+            for c in children:
+                if c.get('path', None) == name:
+                    target = c
+                    break
+            else:
+                ref = Pbxproj.gen_key()
+
+                o = {
+                    "children": [],
+                    "isa": "PBXGroup",
+                    "path": name,
+                    "sourceTree": "<group>"
+                }
+
+                self.objects[ref] = o
+                target['children'].append(ref)
+                target = self.objects[ref]
+
+    def clear_target_dependencies(self, target):
+        for o in self.objects.values():
+            if o.get('isa', None) == 'PBXNativeTarget' and\
+                    o.get('name', None) == target:
+                break
+        else:
+            raise Exception("No src found.")
+
+        # HACK: unclear; leaves dangling nodes
+        o['dependencies'] = []
+
+    def clear_target_embedded_binaries(self, target):
+        for o in self.objects.values():
+            if o.get('isa', None) == 'PBXNativeTarget' and\
+                    o.get('name', None) == target:
+                break
+        else:
+            raise Exception("No src found.")
+
+        target_o = o
+        for o in [self.objects[x] for x in target_o['buildPhases']]:
+            if o.get('isa', None) == 'PBXCopyFilesBuildPhase' and\
+                    o.get('name', None) == "Embed App Extensions":
+                break
+        else:
+            raise Exception("No src found.")
+
+        o['files'] = []
+
+    def add_appex_to_target_embedded_binaries(self, appex, target):
+        for appex_ref, o in self.objects.items():
+            if o.get('isa', None) == 'PBXFileReference' and\
+                    o.get('path', None) == appex:
+                break
+        else:
+            raise Exception("No src found.")
+
+        for o in self.objects.values():
+            if o.get('isa', None) == 'PBXNativeTarget' and\
+                    o.get('name', None) == target:
+                break
+        else:
+            raise Exception("No src found.")
+
+        target_o = o
+        for o in [self.objects[x] for x in target_o['buildPhases']]:
+            if o.get('isa', None) == 'PBXCopyFilesBuildPhase' and\
+                    o.get('name', None) == "Embed App Extensions":
+                break
+        else:
+            raise Exception("No src found.")
+
+        ref = Pbxproj.gen_key()
+        appex_o = {
+            "isa": "PBXBuildFile",
+            "fileRef": appex_ref,
+            "settings": {"ATTRIBUTES": ["RemoveHeadersOnCopy"]}
+        }
+        self.objects[ref] = appex_o
+
+        o['files'].append(ref)
+
+    def add_source_ref_to_build_phase(self, ref, target):
+        for o in self.objects.values():
+            if o.get('isa', None) == 'PBXNativeTarget' and\
+                    o.get('name', None) == target:
+                break
+        else:
+            raise Exception("No src found.")
+
+        target_o = o
+        for o in [self.objects[x] for x in target_o['buildPhases']]:
+            if o.get('isa', None) == 'PBXSourcesBuildPhase':
+                break
+        else:
+            raise Exception("No src found.")
+
+        nref = Pbxproj.gen_key()
+        self.objects[nref] = {
+            "isa": "PBXBuildFile",
+            "fileRef": ref
+        }
+
+        o['files'].append(nref)
+
+    def remove_target(self, target):
+        for ref, o in self.objects.items():
+            if o.get('isa', None) == 'PBXNativeTarget' and\
+                    o.get('name', None) == target:
+                break
+        else:
+            raise Exception("No src found.")
+        prod_ref = o['productReference']
+        #del self.objects[o['productReference']]
+
+        for nref, o in self.objects.items():
+            if o.get('isa', None) == 'PBXBuildFile' and\
+                    o.get('fileRef', None) == prod_ref:
+                break
+        else:
+            raise Exception("No src found.")
+
+        for o in self.objects.values():
+            if o.get('isa', None) == 'PBXGroup' and\
+                    o.get('name', None) == "Products":
+                break
+        else:
+            raise Exception("No src found.")
+
+        o['children'].remove(prod_ref)
+        self.root['targets'].remove(ref)
+
+        #del self.objects[nref]
+        #del self.objects[prod_ref]
+        #del self.objects[ref]
+
+    def duplicate_target(self, src_name, dst_name, plist_path):
+        for o in self.objects.values():
+            if o.get('isa', None) == 'PBXNativeTarget' and\
+                    o.get('name', None) == src_name:
+                break
+        else:
+            raise Exception("No src found.")
+
+        base_clone = copy.deepcopy(o)
+        base_ref = Pbxproj.gen_key()
+        self.objects[base_ref] = base_clone
+
+        new_phases = []
+        for phase in base_clone['buildPhases']:
+            ref = Pbxproj.gen_key()
+            new_phases.append(ref)
+            self.objects[ref] = copy.deepcopy(self.objects[phase])
+        base_clone['buildPhases'] = new_phases
+        base_clone['name'] = dst_name
+
+        conf_ref = Pbxproj.gen_key()
+        conf_clone = copy.deepcopy(self.objects[base_clone['buildConfigurationList']])
+        self.objects[conf_ref] = conf_clone
+        base_clone['buildConfigurationList'] = conf_ref
+
+        new_confs = []
+        for conf in conf_clone['buildConfigurations']:
+            ref = Pbxproj.gen_key()
+            new_confs.append(ref)
+            self.objects[ref] = copy.deepcopy(self.objects[conf])
+
+            self.objects[ref]['buildSettings']['INFOPLIST_FILE'] = plist_path
+            self.objects[ref]['buildSettings']['PRODUCT_NAME'] = dst_name
+        conf_clone['buildConfigurations'] = new_confs
+
+        appex_ref = Pbxproj.gen_key()
+        appex_clone = copy.deepcopy(self.objects[base_clone['productReference']])
+        self.objects[appex_ref] = appex_clone
+        appex_clone['path'] = "%s.appex" % dst_name
+        base_clone['productReference'] = appex_ref
+
+        # HACK: have to generate PBXContainerItemProxy etc for this to work
+        base_clone['dependencies'] = []
+
+        self.add_ref_to_group(appex_ref, ['Products'])
+
+        self.root['targets'].append(base_ref)
+
+
 
 class Generator:
     def __init__(self, project, args=None):
@@ -194,53 +405,70 @@ class Generator:
 
 class AppleiOSGenerator(Generator):
     def generate(self, base='.'):
-        build_dir = os.path.join(base, 'build')
+        build_dir = os.path.join(base, 'build',
+                'ios', self._project.target('ios')['packageId'])
 
-        os.makedirs(build_dir, exist_ok=True)
+        if os.path.isdir(build_dir):
+            git_update(build_dir, self.branch, base)
+        else:
+            git_clone(self.repo, build_dir, self.branch, base)
+
+        path = os.path.join(build_dir,
+            'TastyImitationKeyboard.xcodeproj', 'project.pbxproj')
+        pbxproj = Pbxproj(path)
+
+        pbxproj.clear_target_dependencies("HostingApp")
+        pbxproj.clear_target_embedded_binaries("HostingApp")
+
+        # Keyboard plist
+        with open(os.path.join(build_dir, 'Keyboard',
+                    'Info.plist'), 'rb') as f:
+            plist = plistlib.load(f, dict_type=collections.OrderedDict)
 
         for name, layout in self._project.layouts.items():
-            gen_dir = os.path.join(build_dir, 'ios_%s' % name)
+            out_dir = os.path.join(build_dir, 'Generated', name)
+            os.makedirs(out_dir, exist_ok=True)
 
-            if os.path.isdir(gen_dir):
-                git_update(gen_dir, self.branch, base)
-            else:
-                git_clone(self.repo, gen_dir, self.branch, base)
+            # Generate target
+            pbxproj.duplicate_target('Keyboard',
+                    name, os.path.relpath(os.path.join(out_dir, 'Info.plist'), build_dir))
+            pbxproj.add_appex_to_target_embedded_binaries("%s.appex" % name, "HostingApp")
 
             # Generated swift file
-            with open(os.path.join(gen_dir, 'Keyboard',
-                        'GeneratedKeyboard.swift'), 'w') as f:
+            fn = os.path.join(out_dir, 'KeyboardLayout_%s.swift' % name)
+            with open(fn, 'w') as f:
                 f.write(self.generate_file(layout))
+            pbxproj.add_path(['Generated', name])
+            ref = pbxproj.add_swift_file(os.path.basename(fn))
+            pbxproj.add_ref_to_group(ref, ['Generated', name])
+            pbxproj.add_source_ref_to_build_phase(ref, name)
 
-            # Hosting app plist
-            with open(os.path.join(gen_dir, 'HostingApp',
-                        'Info.plist'), 'rb') as f:
-                plist = plistlib.load(f, dict_type=collections.OrderedDict)
+            with open(os.path.join(out_dir, 'Info.plist'), 'wb') as f:
+                self.update_kbd_plist(plist.copy(), layout, f)
+            ref = pbxproj.add_plist_file('Info.plist')
+            pbxproj.add_ref_to_group(ref, ['Generated', name])
 
-            with open(os.path.join(gen_dir, 'HostingApp',
-                        'Info.plist'), 'wb') as f:
-                self.update_plist(plist, f)
+        # Hosting app plist
+        with open(os.path.join(build_dir, 'HostingApp',
+                    'Info.plist'), 'rb') as f:
+            plist = plistlib.load(f, dict_type=collections.OrderedDict)
 
-            # Keyboard plist
-            with open(os.path.join(gen_dir, 'Keyboard',
-                        'Info.plist'), 'rb') as f:
-                plist = plistlib.load(f, dict_type=collections.OrderedDict)
+        with open(os.path.join(build_dir, 'HostingApp',
+                    'Info.plist'), 'wb') as f:
+            self.update_plist(plist, f)
 
-            with open(os.path.join(gen_dir, 'Keyboard',
-                        'Info.plist'), 'wb') as f:
-                self.update_kbd_plist(plist, layout, f)
+        # Create locale strings
+        self.create_locales(build_dir, layout)
 
-            # Update pbxproj with locales
-            path = os.path.join(gen_dir,
-                'TastyImitationKeyboard.xcodeproj', 'project.pbxproj')
-            pbxproj = Pbxproj(path)
-            with open(path, 'w') as f:
-                self.update_pbxproj(pbxproj, layout, f)
+        # Stops the original keyboard being built.
+        pbxproj.remove_target("Keyboard")
 
-            # Create locale strings
-            self.create_locales(gen_dir, layout)
+        # Update pbxproj with locales
+        with open(path, 'w') as f:
+            self.update_pbxproj(pbxproj, layout, f)
 
-            print("You may now open TastyImitationKeyboard.xcodeproj in '%s'." %\
-                    gen_dir)
+        print("You may now open TastyImitationKeyboard.xcodeproj in '%s'." %\
+                    build_dir)
 
     def write_l18n_str(self, f, key, value):
         f.write('"%s" = "%s";\n' % (key, value))
@@ -288,9 +516,9 @@ class AppleiOSGenerator(Generator):
                 self.get_project_locales(), "HostingApp")
         pbxproj.add_ref_to_group(ref, ["HostingApp", "Supporting Files"])
 
-        ref = pbxproj.add_plist_strings_to_build_phase(
-                self.get_layout_locales(layout), "Keyboard")
-        pbxproj.add_ref_to_group(ref, ["Keyboard", "Supporting Files"])
+        #ref = pbxproj.add_plist_strings_to_build_phase(
+        #        self.get_layout_locales(layout), "Keyboard")
+        #pbxproj.add_ref_to_group(ref, ["Keyboard", "Supporting Files"])
 
         f.write(str(pbxproj))
 
@@ -303,6 +531,8 @@ class AppleiOSGenerator(Generator):
         plist['CFBundleDisplayName'] = layout.display_names['en']
         plist['NSExtension']['NSExtensionAttributes']['PrimaryLanguage'] =\
                 layout.locale
+        plist['NSExtension']['NSExtensionPrincipalClass'] =\
+                "${PRODUCT_MODULE_NAME}.%s" % layout.internal_name
         plist['CFBundleIdentifier'] = bundle_id
 
         plistlib.dump(plist, f)
@@ -317,20 +547,32 @@ class AppleiOSGenerator(Generator):
     def generate_file(self, layout):
         buf = io.StringIO()
 
+        retStr = layout.strings.get('return', 'return')
+        spaceStr = layout.strings.get('space', 'space')
+
         buf.write(dedent("""\
         // GENERATED FILE: DO NOT EDIT.
 
-        func generatedKeyboard() -> Keyboard {
-            var kbd = Keyboard()
+        import UIKit
 
-        """))
+        class %s: GiellaKeyboard {
+            var keyNames = ["return": "%s", "space": "%s"];
+
+            required init(coder: NSCoder) {
+                fatalError("init(coder:) has not been implemented")
+            }
+
+            init() {
+                var kbd = Keyboard()
+
+        """ % (layout.internal_name, retStr, spaceStr)))
 
         row_count = 0
 
         shift_key = indent(dedent("""\
         kbd.addKey(Key(.Shift), row: 2, page: 0)
 
-        """), '    ')
+        """), ' ' * 8)
 
         key_loop = indent(dedent("""\
         for key in ["%s"] {
@@ -339,7 +581,7 @@ class AppleiOSGenerator(Generator):
             kbd.addKey(model, row: %s, page: 0)
         }
 
-        """), '    ')
+        """), ' ' * 8)
 
         for row in layout.modes['shift']:
             if (row_count == 2):
@@ -347,17 +589,12 @@ class AppleiOSGenerator(Generator):
             buf.write(key_loop % ('", "'.join(row), row_count))
             row_count += 1
 
-        retStr = layout.strings.get('return', 'return')
-        spaceStr = layout.strings.get('space', 'space')
-
-        buf.write(dedent("""\
-            return kbd
+        buf.write(indent(dedent("""\
+            super.init(keyboard: kbd, keyNames: keyNames)
         }
+        """), ' ' * 4))
 
-        func generatedConfig() -> [String: String] {
-            return ["return": "%s", "space": "%s"]
-        }
-        """ % (retStr, spaceStr)))
+        buf.write('}\n')
 
         return buf.getvalue()
 
