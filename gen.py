@@ -458,14 +458,14 @@ class AppleiOSGenerator(Generator):
             self.update_plist(plist, f)
 
         # Create locale strings
-        self.create_locales(build_dir, layout)
+        self.create_locales(build_dir)
 
         # Stops the original keyboard being built.
         pbxproj.remove_target("Keyboard")
 
         # Update pbxproj with locales
         with open(path, 'w') as f:
-            self.update_pbxproj(pbxproj, layout, f)
+            self.update_pbxproj(pbxproj, f)
 
         print("You may now open TastyImitationKeyboard.xcodeproj in '%s'." %\
                     build_dir)
@@ -473,7 +473,7 @@ class AppleiOSGenerator(Generator):
     def write_l18n_str(self, f, key, value):
         f.write('"%s" = "%s";\n' % (key, value))
 
-    def create_locales(self, gen_dir, layout):
+    def create_locales(self, gen_dir):
         for locale, attrs in self._project.locales.items():
             lproj_dir = locale if locale != "en" else "Base"
             lproj = os.path.join(gen_dir, 'HostingApp', '%s.lproj' % lproj_dir)
@@ -483,14 +483,15 @@ class AppleiOSGenerator(Generator):
                 self.write_l18n_str(f, 'CFBundleName', attrs['name'])
                 self.write_l18n_str(f, 'CFBundleDisplayName', attrs['name'])
 
-        for locale, name in layout.display_names.items():
-            lproj_dir = locale if locale != "en" else "Base"
-            lproj = os.path.join(gen_dir, 'Keyboard', '%s.lproj' % lproj_dir)
-            os.makedirs(lproj, exist_ok=True)
+        for name, layout in self._project.layouts.items():
+            for locale, lname in layout.display_names.items():
+                lproj_dir = locale if locale != "en" else "Base"
+                lproj = os.path.join(gen_dir, 'Generated', name, '%s.lproj' % lproj_dir)
+                os.makedirs(lproj, exist_ok=True)
 
-            with open(os.path.join(lproj, 'InfoPlist.strings'), 'a') as f:
-                self.write_l18n_str(f, 'CFBundleName', name)
-                self.write_l18n_str(f, 'CFBundleDisplayName', name)
+                with open(os.path.join(lproj, 'InfoPlist.strings'), 'a') as f:
+                    self.write_l18n_str(f, 'CFBundleName', lname)
+                    self.write_l18n_str(f, 'CFBundleDisplayName', lname)
 
     def get_layout_locales(self, layout):
         locales = set(layout.display_names.keys())
@@ -505,20 +506,30 @@ class AppleiOSGenerator(Generator):
         locales.add("Base")
         return locales
 
-    def get_locales(self, layout):
-        return list(self.get_layout_locales(layout) |
-                    self.get_project_locales())
+    #def get_locales(self, layout):
+    #    return list(self.get_layout_locales(layout) |
+    #                self.get_project_locales())
 
-    def update_pbxproj(self, pbxproj, layout, f):
-        pbxproj.root['knownRegions'] = self.get_locales(layout)
+    def get_all_locales(self):
+        o = self.get_project_locales()
+
+        for layout in self._project.layouts.values():
+            o |= self.get_layout_locales(layout)
+
+        return sorted(list(o))
+
+
+    def update_pbxproj(self, pbxproj, f):
+        pbxproj.root['knownRegions'] = self.get_all_locales()
 
         ref = pbxproj.add_plist_strings_to_build_phase(
                 self.get_project_locales(), "HostingApp")
         pbxproj.add_ref_to_group(ref, ["HostingApp", "Supporting Files"])
 
-        #ref = pbxproj.add_plist_strings_to_build_phase(
-        #        self.get_layout_locales(layout), "Keyboard")
-        #pbxproj.add_ref_to_group(ref, ["Keyboard", "Supporting Files"])
+        for name, layout in self._project.layouts.items():
+            ref = pbxproj.add_plist_strings_to_build_phase(
+                    self.get_layout_locales(layout), name)
+            pbxproj.add_ref_to_group(ref, ["Generated", name])
 
         f.write(str(pbxproj))
 
