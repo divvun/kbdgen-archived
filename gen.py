@@ -509,8 +509,6 @@ class AppleiOSGenerator(Generator):
             attr_node.getparent().remove(attr_node)
         o.sort()
 
-        print(o)
-
         with open(xml_fn, 'w') as f:
             f.write(self._tostring(tree))
 
@@ -628,8 +626,9 @@ class AppleiOSGenerator(Generator):
     def generate_file(self, layout):
         buf = io.StringIO()
 
-        retStr = layout.strings.get('return', 'return')
-        spaceStr = layout.strings.get('space', 'space')
+        ret_str = layout.strings.get('return', 'return')
+        space_str = layout.strings.get('space', 'space')
+        longpress_str = ("%r" % layout.longpress)[1:-1].replace("'", '"')
 
         buf.write(dedent("""\
         // GENERATED FILE: DO NOT EDIT.
@@ -637,7 +636,9 @@ class AppleiOSGenerator(Generator):
         import UIKit
 
         class %s: GiellaKeyboard {
-            var keyNames = ["return": "%s", "space": "%s"];
+            var keyNames = ["return": "%s", "space": "%s"]
+
+            var longPresses = [%s]
 
             required init(coder: NSCoder) {
                 fatalError("init(coder:) has not been implemented")
@@ -646,7 +647,7 @@ class AppleiOSGenerator(Generator):
             init() {
                 var kbd = Keyboard()
 
-        """ % (layout.internal_name, retStr, spaceStr)))
+        """ % (layout.internal_name, ret_str, space_str, longpress_str)))
 
         row_count = 0
 
@@ -658,6 +659,12 @@ class AppleiOSGenerator(Generator):
         key_loop = indent(dedent("""\
         for key in ["%s"] {
             var model = Key(.Character)
+            if let lp = longPresses[key]? {
+                model.setUppercaseLongPress(lp)
+            }
+            if let lp = longPresses[key.lowercaseString]? {
+                model.setLowercaseLongPress(lp)
+            }
             model.setLetter(key)
             kbd.addKey(model, row: %s, page: 0)
         }
