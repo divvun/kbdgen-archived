@@ -1,6 +1,6 @@
 appStrings:
     en:
-        testText: "Type some text here to test"
+        textTest: "Type some text here to test"
         dismissKeyboard: "Dismiss Keyboard"
         openSettings: "Open Settings"
         instructionsTitle: "How to enable the keyboards:"
@@ -12,7 +12,7 @@ appStrings:
             You may now access these keyboards by pressing the globe icon next to the spacebar.
         imageSource: 'Background image: "Mountains outside Narvik" by Alexander Cahlenstein (CC BY)'
     nb:
-        testText: "Skriv tekst her for å teste"
+        textTest: "Skriv tekst her for å teste"
         dismissKeyboard: "Fjern tastatur"
         openSettings: "Åpne Innstillinger"
         instructionsTitle: "Hvordan du slår på tastaturene:"
