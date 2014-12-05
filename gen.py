@@ -104,12 +104,12 @@ class Pbxproj:
 
         return None
 
-    def create_plist_string_file(self, locale):
+    def create_plist_string_file(self, locale, name="InfoPlist.strings"):
         o = {
             "isa": "PBXFileReference",
             "lastKnownFileType": "text.plist.strings",
             "name": locale,
-            "path": "%s.lproj/InfoPlist.strings" % locale,
+            "path": "%s.lproj/%s" % (locale, name),
             "sourceTree": "<group>"
         }
 
@@ -147,6 +147,24 @@ class Pbxproj:
         (var_ref, ref) = self.add_plist_strings(locales)
         phase['files'].append(ref)
         return var_ref
+
+    def find_variant_group(self, target):
+        for o in self.objects.values():
+            if o.get('isa', None) == 'PBXVariantGroup' and\
+                    o.get('name', None) == target:
+                break
+        else:
+            raise Exception("No src found.")
+        return o
+
+    def add_plist_strings_to_variant_group(self, locales, variant_name, target_name):
+        variant = self.find_variant_group(variant_name)
+        o = []
+        for locale in locales:
+            ref = self.create_plist_string_file(locale, target_name)
+            variant['children'].append(ref)
+            o.append(ref)
+        return o
 
     def add_ref_to_group(self, ref, group_list):
         o = self.main_group
@@ -379,8 +397,6 @@ class Pbxproj:
 
         self.root['targets'].append(base_ref)
 
-
-
 class Generator:
     def __init__(self, project, args=None):
         self._project = project
@@ -458,6 +474,7 @@ class AppleiOSGenerator(Generator):
             self.update_plist(plist, f)
 
         # Create locale strings
+        self.localise_hosting_app(pbxproj, build_dir)
         self.create_locales(build_dir)
 
         # Stops the original keyboard being built.
@@ -470,8 +487,56 @@ class AppleiOSGenerator(Generator):
         print("You may now open TastyImitationKeyboard.xcodeproj in '%s'." %\
                     build_dir)
 
-    def write_l18n_str(self, f, key, value):
-        f.write('"%s" = "%s";\n' % (key, value))
+    def _tostring(self, tree):
+        return etree.tostring(tree, pretty_print=True,
+            xml_declaration=True, encoding='utf-8').decode()
+
+    def get_translatables_from_storyboard(self, xml_fn):
+        with open(xml_fn) as f:
+            tree = etree.parse(f)
+
+        o = {}
+        for key, node, attr_node in [(n.attrib['value'], n.getparent().getparent(), n)
+                for n in tree.xpath("//*[@keyPath='translate']")]:
+            if node.attrib.get('placeholder', None) is not None:
+                o[key] = "%s.placeholder" % node.attrib['id']
+            if 'text' in node.attrib or\
+                    node.find("string[@key='text']") is not None:
+                o[key] = "%s.text" % node.attrib['id']
+            state_node = node.find('state')
+            if state_node is not None:
+                o[key] = "%s.%sTitle" % (node.attrib['id'], state_node.attrib['key'])
+            attr_node.getparent().remove(attr_node)
+
+        with open(xml_fn, 'w') as f:
+            f.write(self._tostring(tree))
+
+        return o
+
+    def localise_hosting_app(self, pbxproj, gen_dir):
+        base_dir = os.path.join(gen_dir, "HostingApp")
+        xml_fn = os.path.join(base_dir, "Base.lproj", "Main.storyboard")
+
+        trans_pairs = self.get_translatables_from_storyboard(xml_fn)
+
+        for locale, o in self._project.app_strings.items():
+            lproj_dir = "%s.lproj" % locale
+            path = os.path.join(base_dir, lproj_dir)
+            os.makedirs(path, exist_ok=True)
+
+            with open(os.path.join(path, 'Main.strings'), 'a') as f:
+                for key, oid_path in trans_pairs.items():
+                    if key in o:
+                        self.write_l10n_str(f, oid_path, o[key])
+                    else:
+                        f.write("/* Missing translation: %s */\n" % key)
+
+        ref = pbxproj.add_plist_strings_to_variant_group(
+                self._project.app_strings.keys(), "Main.storyboard", "Main.strings")
+
+
+    def write_l10n_str(self, f, key, value):
+        f.write('"%s" = %s;\n' % (key, json.dumps(value)))
 
     def create_locales(self, gen_dir):
         for locale, attrs in self._project.locales.items():
@@ -480,8 +545,8 @@ class AppleiOSGenerator(Generator):
             os.makedirs(lproj, exist_ok=True)
 
             with open(os.path.join(lproj, 'InfoPlist.strings'), 'a') as f:
-                self.write_l18n_str(f, 'CFBundleName', attrs['name'])
-                self.write_l18n_str(f, 'CFBundleDisplayName', attrs['name'])
+                self.write_l10n_str(f, 'CFBundleName', attrs['name'])
+                self.write_l10n_str(f, 'CFBundleDisplayName', attrs['name'])
 
         for name, layout in self._project.layouts.items():
             for locale, lname in layout.display_names.items():
@@ -490,8 +555,8 @@ class AppleiOSGenerator(Generator):
                 os.makedirs(lproj, exist_ok=True)
 
                 with open(os.path.join(lproj, 'InfoPlist.strings'), 'a') as f:
-                    self.write_l18n_str(f, 'CFBundleName', lname)
-                    self.write_l18n_str(f, 'CFBundleDisplayName', lname)
+                    self.write_l10n_str(f, 'CFBundleName', lname)
+                    self.write_l10n_str(f, 'CFBundleDisplayName', lname)
 
     def get_layout_locales(self, layout):
         locales = set(layout.display_names.keys())

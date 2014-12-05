@@ -3,6 +3,7 @@ import gen
 
 import argparse
 import sys
+import os
 
 from collections import namedtuple
 
@@ -35,6 +36,10 @@ class Project:
     @property
     def internal_name(self):
         return self._tree['internalName']
+
+    @property
+    def app_strings(self):
+        return self._tree['appStrings']
 
     def target(self, target):
         return self._tree['targets'].get(target, {}) or {}
@@ -106,6 +111,9 @@ class Parser:
         for path, v in cfg_pairs:
             resolve_path(path, v)
 
+    def _parse_global(self):
+        with open(os.path.join(os.path.dirname(__file__), "global.yaml")) as f:
+            return yaml.load(f)
 
     def _parse_layout(self, data):
         tree = yaml.load(data)
@@ -136,7 +144,8 @@ class Parser:
         return Keyboard(tree)
 
     def _parse_project(self, data):
-        tree = yaml.load(data)
+        tree = self._parse_global()
+        tree.update(yaml.load(data))
 
         for key in ['locales', 'author',
                     'email', 'layouts', 'targets']:
