@@ -481,7 +481,7 @@ class AppleiOSGenerator(Generator):
         pbxproj.remove_target("Keyboard")
 
         # Update pbxproj with locales
-        with open(path, 'w') as f:
+        with open(path, 'wb') as f:
             self.update_pbxproj(pbxproj, f)
 
         print("You may now open TastyImitationKeyboard.xcodeproj in '%s'." %\
@@ -524,19 +524,20 @@ class AppleiOSGenerator(Generator):
             path = os.path.join(base_dir, lproj_dir)
             os.makedirs(path, exist_ok=True)
 
-            with open(os.path.join(path, 'Main.strings'), 'a') as f:
+            with open(os.path.join(path, 'Main.strings'), 'ab') as f:
                 for key, oid_path in trans_pairs.items():
                     if key in o:
                         self.write_l10n_str(f, oid_path, o[key])
                     else:
-                        f.write("/* Missing translation: %s */\n" % key)
+                        f.write(("/* Missing translation: %s */\n" %
+                            key).encode('utf-16'))
 
         ref = pbxproj.add_plist_strings_to_variant_group(
                 self._project.app_strings.keys(), "Main.storyboard", "Main.strings")
 
 
     def write_l10n_str(self, f, key, value):
-        f.write('"%s" = %s;\n' % (key, json.dumps(value)))
+        f.write(('"%s" = %s;\n' % (key, json.dumps(value))).encode('utf-16'))
 
     def create_locales(self, gen_dir):
         for locale, attrs in self._project.locales.items():
@@ -544,7 +545,7 @@ class AppleiOSGenerator(Generator):
             lproj = os.path.join(gen_dir, 'HostingApp', '%s.lproj' % lproj_dir)
             os.makedirs(lproj, exist_ok=True)
 
-            with open(os.path.join(lproj, 'InfoPlist.strings'), 'a') as f:
+            with open(os.path.join(lproj, 'InfoPlist.strings'), 'ab') as f:
                 self.write_l10n_str(f, 'CFBundleName', attrs['name'])
                 self.write_l10n_str(f, 'CFBundleDisplayName', attrs['name'])
 
@@ -554,7 +555,7 @@ class AppleiOSGenerator(Generator):
                 lproj = os.path.join(gen_dir, 'Generated', name, '%s.lproj' % lproj_dir)
                 os.makedirs(lproj, exist_ok=True)
 
-                with open(os.path.join(lproj, 'InfoPlist.strings'), 'a') as f:
+                with open(os.path.join(lproj, 'InfoPlist.strings'), 'ab') as f:
                     self.write_l10n_str(f, 'CFBundleName', lname)
                     self.write_l10n_str(f, 'CFBundleDisplayName', lname)
 
@@ -596,7 +597,7 @@ class AppleiOSGenerator(Generator):
                     self.get_layout_locales(layout), name)
             pbxproj.add_ref_to_group(ref, ["Generated", name])
 
-        f.write(str(pbxproj))
+        f.write(str(pbxproj).encode('utf-16'))
 
     def update_kbd_plist(self, plist, layout, f):
         bundle_id = "%s.%s" % (
