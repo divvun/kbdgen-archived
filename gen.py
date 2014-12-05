@@ -481,7 +481,7 @@ class AppleiOSGenerator(Generator):
         pbxproj.remove_target("Keyboard")
 
         # Update pbxproj with locales
-        with open(path, 'wb') as f:
+        with open(path, 'w') as f:
             self.update_pbxproj(pbxproj, f)
 
         print("You may now open TastyImitationKeyboard.xcodeproj in '%s'." %\
@@ -597,7 +597,7 @@ class AppleiOSGenerator(Generator):
                     self.get_layout_locales(layout), name)
             pbxproj.add_ref_to_group(ref, ["Generated", name])
 
-        f.write(str(pbxproj).encode('utf-16'))
+        f.write(str(pbxproj))
 
     def update_kbd_plist(self, plist, layout, f):
         bundle_id = "%s.%s" % (
