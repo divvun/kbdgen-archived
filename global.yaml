@@ -11,4 +11,15 @@ appStrings:
 
             You may now access these keyboards by pressing the globe icon next to the spacebar.
         imageSource: 'Background image: "Mountains outside Narvik" by Alexander Cahlenstein (CC BY)'
+    nb:
+        testText: "Skriv tekst her for å teste"
+        dismissKeyboard: "Fjern tastatur"
+        openSettings: "Åpne Innstillinger"
+        instructionsTitle: "Hvordan du slår på tastaturene:"
+        instructions: |
+            1. I Innstillinger, gå til Generelt > Tastatur > Tastaturer > Legg til nytt tastatur...
+            2. Under "Tredjepartstastaturer", velg denne tastaturappen.
+            3. Slå på de tastaturene du vil ha i lista som kommer opp, og trykk "Ferdig".
 
+            Du kan nå bytte til disse tastaturene ved å trykke på globustasten til venstre for mellomromstasten.
+        imageSource: 'Bakgrunnsbilde: "Mountains outside Narvik" av Alexander Cahlenstein (CC BY)'
