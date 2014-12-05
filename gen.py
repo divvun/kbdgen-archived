@@ -629,6 +629,8 @@ class AppleiOSGenerator(Generator):
         ret_str = layout.strings.get('return', 'return')
         space_str = layout.strings.get('space', 'space')
         longpress_str = ("%r" % layout.longpress)[1:-1].replace("'", '"')
+        if len(longpress_str) == 0:
+            longpress_str = '"":[""]'
 
         buf.write(dedent("""\
         // GENERATED FILE: DO NOT EDIT.
@@ -638,8 +640,6 @@ class AppleiOSGenerator(Generator):
         class %s: GiellaKeyboard {
             var keyNames = ["return": "%s", "space": "%s"]
 
-            var longPresses = [%s]
-
             required init(coder: NSCoder) {
                 fatalError("init(coder:) has not been implemented")
             }
@@ -647,7 +647,9 @@ class AppleiOSGenerator(Generator):
             init() {
                 var kbd = Keyboard()
 
-        """ % (layout.internal_name, ret_str, space_str, longpress_str)))
+                let longPresses = %s.getLongPresses()
+
+        """ % (layout.internal_name, ret_str, space_str, layout.internal_name)))
 
         row_count = 0
 
@@ -677,12 +679,24 @@ class AppleiOSGenerator(Generator):
             buf.write(key_loop % ('", "'.join(row), row_count))
             row_count += 1
 
+        # There's this awful bug with the Swift parser where any sufficiently
+        # long static literal dictionary of arrays causes the indexer to
+        # freak out and die. Xcode 800% CPU anyone?
+        # Workaround is to generate it slowly.
         buf.write(indent(dedent("""\
             super.init(keyboard: kbd, keyNames: keyNames)
         }
+
+        class func getLongPresses() -> [String: [String]] {
+            var lps = [String: [String]]()
         """), ' ' * 4))
 
-        buf.write('}\n')
+        for k, v in layout.longpress.items():
+            buf.write(indent(dedent("""\
+                lps["%s"] = %s
+            """ % (k, json.dumps(v, ensure_ascii=False))), ' ' * 8))
+
+        buf.write('        return lps\n    }\n}\n')
 
         return buf.getvalue()
 

@@ -125,11 +125,11 @@ class Parser:
         if 'default' not in tree['modes']:
             raise Exception("No default mode supplied in file.")
 
-        if 'modifiers' not in tree:
+        if 'modifiers' not in tree or tree.get('modifiers', None) is None:
             tree['modifiers'] = []
 
-        if 'longpress' not in tree:
-            tree['longpress'] = []
+        if 'longpress' not in tree or tree.get('longpress', None) is None:
+            tree['longpress'] = {}
 
         for mode, strings in tree['modes'].items():
             tree['modes'][mode] = [x.strip().split(' ') for x in strings]
@@ -199,6 +199,7 @@ if __name__ == "__main__":
         project = Parser().parse(args.project,
                                  args.cfg_pairs)
     except Exception as e:
+        raise e
         print(e)
         sys.exit(1)
 
