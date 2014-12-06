@@ -4,6 +4,7 @@ import gen
 import argparse
 import sys
 import os
+import re
 
 from collections import namedtuple
 
@@ -132,10 +133,10 @@ class Parser:
             tree['longpress'] = {}
 
         for mode, strings in tree['modes'].items():
-            tree['modes'][mode] = [x.strip().split(' ') for x in strings]
+            tree['modes'][mode] = [re.split(r"\s+", x.strip()) for x in strings]
 
         for longpress, strings in tree['longpress'].items():
-            tree['longpress'][longpress] = strings.strip().split(' ')
+            tree['longpress'][longpress] = re.split(r"\s+", strings.strip())
 
         for style, styles in tree['styles'].items():
             for action, info in styles['actions'].items():
