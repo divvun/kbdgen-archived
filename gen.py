@@ -953,8 +953,9 @@ class AndroidGenerator(Generator):
 
         print("Create Android project...")
 
-        cmd = "%s update project -n GiellaIME -t android-19 -p ." % (
-            os.path.join(os.path.abspath(sdk_base), 'tools/android'))
+        cmd = "%s update project -n %s -t android-19 -p ." % (
+            os.path.join(os.path.abspath(sdk_base), 'tools/android'),
+            self._project.internal_name)
         process = subprocess.Popen(cmd, cwd=os.path.join(deps_dir, self.REPO),
                 shell=True)
         process.wait()
