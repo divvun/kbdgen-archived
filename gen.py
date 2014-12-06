@@ -931,7 +931,6 @@ class AndroidGenerator(Generator):
                 f.write(v)
 
     def get_source_tree(self, base, sdk_base):
-
         if not os.path.exists(os.path.join(
             os.path.abspath(sdk_base), 'tools', 'android')):
             raise MissingApplicationException(
@@ -961,6 +960,12 @@ class AndroidGenerator(Generator):
         process.wait()
         if process.returncode != 0:
             raise Exception("Application ended with error code %s." % process.returncode)
+
+        rules_fn = os.path.join(deps_dir, self.REPO, 'custom_rules.xml')
+        with open(rules_fn) as f:
+            x = f.read()
+        with open(rules_fn, 'w') as f:
+            f.write(x.replace('GiellaIME', self._project.internal_name))
 
     def create_ant_properties(self):
         data = dedent("""\
