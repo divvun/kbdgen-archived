@@ -953,9 +953,8 @@ class AndroidGenerator(Generator):
 
         print("Create Android project...")
 
-        cmd = "%s update project -n %s -t android-19 -p ." % (
-            os.path.join(os.path.abspath(sdk_base), 'tools/android'),
-            self._project.internal_name)
+        cmd = "%s update project -n GiellaIME -t android-19 -p ." % (
+            os.path.join(os.path.abspath(sdk_base), 'tools/android'))
         process = subprocess.Popen(cmd, cwd=os.path.join(deps_dir, self.REPO),
                 shell=True)
         process.wait()
@@ -967,10 +966,14 @@ class AndroidGenerator(Generator):
         package.name=%s
         key.store=%s
         key.alias=%s
+        version.code=%s
+        version.name=%s
         """ % (
             self._project.target('android')['packageId'],
             self._project.target('android')['keyStore'],
-            self._project.target('android')['keyAlias']
+            self._project.target('android')['keyAlias'],
+            self._project.build,
+            self._project.version
         ))
 
         return ('ant.properties', data)

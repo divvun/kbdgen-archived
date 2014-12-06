@@ -42,6 +42,14 @@ class Project:
     def app_strings(self):
         return self._tree['appStrings']
 
+    @property
+    def version(self):
+        return self._tree['version']
+
+    @property
+    def build(self):
+        return self._tree['build']
+
     def target(self, target):
         return self._tree['targets'].get(target, {}) or {}
 
