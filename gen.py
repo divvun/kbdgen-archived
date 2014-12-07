@@ -647,16 +647,20 @@ class AppleiOSGenerator(Generator):
             init() {
                 var kbd = Keyboard()
 
+                let isPad = UIDevice.currentDevice().userInterfaceIdiom == UIUserInterfaceIdiom.Pad
+
                 let longPresses = %s.getLongPresses()
 
         """ % (layout.internal_name, ret_str, space_str, layout.internal_name)))
 
         row_count = 0
 
-        shift_key = indent(dedent("""\
+        action_keys_start = indent(dedent("""\
         kbd.addKey(Key(.Shift), row: 2, page: 0)
 
         """), ' ' * 8)
+
+        buf.write(action_keys_start)
 
         key_loop = indent(dedent("""\
         for key in ["%s"] {
@@ -674,8 +678,6 @@ class AppleiOSGenerator(Generator):
         """), ' ' * 8)
 
         for row in layout.modes['shift']:
-            if (row_count == 2):
-                buf.write(shift_key)
             buf.write(key_loop % ('", "'.join(row), row_count))
             row_count += 1
 
@@ -684,6 +686,33 @@ class AppleiOSGenerator(Generator):
         # freak out and die. Xcode 800% CPU anyone?
         # Workaround is to generate it slowly.
         buf.write(indent(dedent("""\
+            if isPad {
+                var returnKey = Key(.Return)
+                returnKey.uppercaseKeyCap = keyNames["return"]
+                returnKey.uppercaseOutput = "\\n"
+                returnKey.lowercaseOutput = "\\n"
+
+                var commaKey = Key(.Character)
+                commaKey.uppercaseKeyCap = ",!"
+                commaKey.lowercaseKeyCap = ",!"
+                commaKey.uppercaseOutput = "!"
+                commaKey.lowercaseOutput = ","
+
+                var fullStopKey = Key(.Character)
+                fullStopKey.uppercaseKeyCap = ".?"
+                fullStopKey.lowercaseKeyCap = ".?"
+                fullStopKey.uppercaseOutput = "?"
+                fullStopKey.lowercaseOutput = "."
+
+                kbd.addKey(Key(.Backspace), row: 0, page: 0)
+                kbd.addKey(returnKey, row: 1, page: 0)
+                kbd.addKey(commaKey, row: 2, page: 0)
+                kbd.addKey(fullStopKey, row: 2, page: 0)
+                kbd.addKey(Key(.Shift), row: 2, page: 0)
+            } else {
+                kbd.addKey(Key(.Backspace), row: 2, page: 0)
+            }
+
             super.init(keyboard: kbd, keyNames: keyNames)
         }
 
