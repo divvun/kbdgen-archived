@@ -643,13 +643,13 @@ class AppleiOSGenerator(Generator):
         import UIKit
 
         class %s: GiellaKeyboard {
-            var keyNames = ["keyboard": "%s", "return": "%s", "space": "%s"]
-
             required init(coder: NSCoder) {
                 fatalError("init(coder:) has not been implemented")
             }
 
             init() {
+                var keyNames = ["keyboard": "%s", "return": "%s", "space": "%s"]
+
                 var kbd = Keyboard()
 
                 let isPad = UIDevice.currentDevice().userInterfaceIdiom == UIUserInterfaceIdiom.Pad
