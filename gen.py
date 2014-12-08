@@ -632,13 +632,18 @@ class AppleiOSGenerator(Generator):
         if len(longpress_str) == 0:
             longpress_str = '"":[""]'
 
+        l10n_name = layout.display_names.get(layout.locale, None)
+        if l10n_name is None:
+            raise Exception("Keyboard requires localisation " +
+                            "into its own locale. (%s missing.)" % l10n_name)
+
         buf.write(dedent("""\
         // GENERATED FILE: DO NOT EDIT.
 
         import UIKit
 
         class %s: GiellaKeyboard {
-            var keyNames = ["return": "%s", "space": "%s"]
+            var keyNames = ["keyboard": "%s", "return": "%s", "space": "%s"]
 
             required init(coder: NSCoder) {
                 fatalError("init(coder:) has not been implemented")
@@ -651,7 +656,8 @@ class AppleiOSGenerator(Generator):
 
                 let longPresses = %s.getLongPresses()
 
-        """ % (layout.internal_name, ret_str, space_str, layout.internal_name)))
+        """ % (layout.internal_name, l10n_name, ret_str,
+                    space_str, layout.internal_name)))
 
         row_count = 0
 
