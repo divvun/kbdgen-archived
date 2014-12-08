@@ -692,15 +692,13 @@ class AppleiOSGenerator(Generator):
                 returnKey.uppercaseOutput = "\\n"
                 returnKey.lowercaseOutput = "\\n"
 
-                var commaKey = Key(.Character)
-                commaKey.uppercaseKeyCap = ",!"
-                commaKey.lowercaseKeyCap = ",!"
+                var commaKey = Key(.SpecialCharacter)
+                commaKey.uppercaseKeyCap = "!\\n,"
                 commaKey.uppercaseOutput = "!"
                 commaKey.lowercaseOutput = ","
 
-                var fullStopKey = Key(.Character)
-                fullStopKey.uppercaseKeyCap = ".?"
-                fullStopKey.lowercaseKeyCap = ".?"
+                var fullStopKey = Key(.SpecialCharacter)
+                fullStopKey.uppercaseKeyCap = "?\\n."
                 fullStopKey.uppercaseOutput = "?"
                 fullStopKey.lowercaseOutput = "."
 
