@@ -643,7 +643,7 @@ class AppleiOSGenerator(Generator):
         import UIKit
 
         class %s: GiellaKeyboard {
-            var keyNames = ["keyboard": "%s", "return": "%s", "space": "%s"]
+            var names = ["keyboard": "%s", "return": "%s", "space": "%s"]
 
             required init(coder: NSCoder) {
                 fatalError("init(coder:) has not been implemented")
@@ -694,7 +694,7 @@ class AppleiOSGenerator(Generator):
         buf.write(indent(dedent("""\
             if isPad {
                 var returnKey = Key(.Return)
-                returnKey.uppercaseKeyCap = keyNames["return"]
+                returnKey.uppercaseKeyCap = names["return"]
                 returnKey.uppercaseOutput = "\\n"
                 returnKey.lowercaseOutput = "\\n"
 
@@ -717,7 +717,7 @@ class AppleiOSGenerator(Generator):
                 kbd.addKey(Key(.Backspace), row: 2, page: 0)
             }
 
-            super.init(keyboard: kbd, keyNames: keyNames)
+            super.init(keyboard: kbd, names: names)
         }
 
         class func getLongPresses() -> [String: [String]] {
