@@ -345,10 +345,6 @@ class Pbxproj:
         o['children'].remove(prod_ref)
         self.root['targets'].remove(ref)
 
-        #del self.objects[nref]
-        #del self.objects[prod_ref]
-        #del self.objects[ref]
-
     def duplicate_target(self, src_name, dst_name, plist_path):
         for o in self.objects.values():
             if o.get('isa', None) == 'PBXNativeTarget' and\
@@ -574,10 +570,6 @@ class AppleiOSGenerator(Generator):
         locales.add("Base")
         return locales
 
-    #def get_locales(self, layout):
-    #    return list(self.get_layout_locales(layout) |
-    #                self.get_project_locales())
-
     def get_all_locales(self):
         o = self.get_project_locales()
 
@@ -585,7 +577,6 @@ class AppleiOSGenerator(Generator):
             o |= self.get_layout_locales(layout)
 
         return sorted(list(o))
-
 
     def update_pbxproj(self, pbxproj, f):
         pbxproj.root['knownRegions'] = self.get_all_locales()
@@ -815,6 +806,8 @@ class AndroidGenerator(Generator):
 
         self.update_localisation(base)
 
+        self.generate_icons(base)
+
         self.build(base, self.is_release)
 
     def native_locale_workaround(self):
@@ -886,6 +879,34 @@ class AndroidGenerator(Generator):
             d = os.path.join(res_dir, "values-%s" % locale)
             if os.path.isdir(d):
                 self._upd_locale(d, values)
+
+    def generate_icons(self, base):
+        icon = self._project.target('android').get('icon', None)
+        if icon is None:
+            print("Warning: no icon supplied!")
+            return
+
+        res_dir = os.path.join(base, 'deps', self.REPO, 'res')
+
+        cmd_tmpl = "convert -resize %dx%d %s %s"
+
+        for suffix, dimen in (
+                ('hdpi', 72),
+                ('mdpi', 48),
+                ('xhdpi', 96),
+                ('xxhdpi', 144)):
+            mipmap_dir = "mipmap-%s" % suffix
+            cmd = cmd_tmpl % (dimen, dimen, icon, os.path.join(
+                res_dir, mipmap_dir, "ic_launcher_keyboard.png"))
+
+            print("Creating '%s' at size %dx%d" % (mipmap_dir, dimen, dimen))
+            process = subprocess.Popen(cmd, shell=True,
+                    stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+            out, err = process.communicate()
+            if process.returncode != 0:
+                print(err)
+                raise Exception("Application ended with error code %s." % process.returncode)
+
 
     def build(self, base, release_mode=True):
         # TODO normal build
@@ -1009,7 +1030,7 @@ class AndroidGenerator(Generator):
         version.name=%s
         """ % (
             self._project.target('android')['packageId'],
-            self._project.target('android')['keyStore'],
+            os.path.abspath(self._project.target('android')['keyStore']),
             self._project.target('android')['keyAlias'],
             self._project.build,
             self._project.version

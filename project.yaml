@@ -13,15 +13,17 @@ email: brendan@bbqsrc.net
 
 layouts: [sme, sjd]
 
-version: 1.0
-build: 1
+version: "1.0"
+build: "1"
 
 targets:
   android:
     packageId: so.brendan.keyboards.sami
+    icon: sami-icon.pdf
     keyStore: /Users/brendan/git/softkbdgen/sami_keyboard.keystore
     keyAlias: sami_keyboard
 
   ios:
     packageId: so.brendan.keyboards.sami
+    icon: sami-icon.pdf
     bundleName: *bundleName
