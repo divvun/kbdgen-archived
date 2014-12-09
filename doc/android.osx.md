@@ -8,6 +8,7 @@ You will need:
 * JDK 7: http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html
 * Android SDK (click "VIEW ALL DOWNLOADS AND SIZES" and choose from "SDK Tools Only"): https://developer.android.com/sdk/index.html?hl=i
 * GiellaIME checked out somewhere (https://github.com/bbqsrc/giella-ime)
+* Imagemagick (for converting icons to their correct sizes)
 
 # Installation
 
@@ -92,6 +93,8 @@ layouts: [smj, sjd]
 The Android-specific configuration keys are:
 
 * *packageId (required)*: the reverse-domain notation ID for the package
+* *icon (recommended)*: path to the icon file to be converted into the various
+sizes required by Android
 
 If you are planning to generate an APK for release, [it must be signed](http://developer.android.com/tools/publishing/app-signing.html).
 
@@ -104,6 +107,7 @@ If you wish to sign your packages, you need to provide the following:
 targets:
   android:
     packageId: com.example.amazing.keyboards
+    icon: icon.png
     keyStore: /absolute/path/to/my/keystore
     keyAlias: alias_specified_during_generation
 ```
