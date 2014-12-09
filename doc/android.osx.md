@@ -100,7 +100,7 @@ If you are planning to generate an APK for release, [it must be signed](http://d
 
 If you wish to sign your packages, you need to provide the following:
 
-* *keyStore*: the absolute path to your keystore (see section "Generating keystores")
+* *keyStore*: the absolute or relative path to your keystore (see section "Generating keystores")
 * *keyAlias*: the alias for the key in the keystore (as above)
 
 ```yaml
@@ -108,7 +108,7 @@ targets:
   android:
     packageId: com.example.amazing.keyboards
     icon: icon.png
-    keyStore: /absolute/path/to/my/keystore
+    keyStore: path/to/my/keystore
     keyAlias: alias_specified_during_generation
 ```
 
