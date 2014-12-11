@@ -34,8 +34,8 @@ def git_clone(src, dst, branch, cwd='.'):
 def git_update(dst, branch, cwd='.'):
     print("Updating repository '%s'..." % dst)
 
-    cmd = """git checkout %s;
-             git reset --hard;
+    cmd = """git reset --hard;
+             git checkout %s;
              git clean -fdx;
              git pull;""" % branch
 
@@ -604,6 +604,8 @@ class AppleiOSGenerator(Generator):
         plist['NSExtension']['NSExtensionPrincipalClass'] =\
                 "${PRODUCT_MODULE_NAME}.%s" % layout.internal_name
         plist['CFBundleIdentifier'] = bundle_id
+        plist['CFBundleShortVersionString'] = self._project.version
+        plist['CFBundleVersion'] = self._project.build
 
         plistlib.dump(plist, f)
 
@@ -611,6 +613,8 @@ class AppleiOSGenerator(Generator):
         plist['CFBundleName'] = self._project.target('ios')['bundleName']
         plist['CFBundleDisplayName'] = self._project.target('ios')['bundleName']
         plist['CFBundleIdentifier'] = self._project.target('ios')['packageId']
+        plist['CFBundleShortVersionString'] = self._project.version
+        plist['CFBundleVersion'] = self._project.build
 
         plistlib.dump(plist, f)
 
