@@ -53,6 +53,9 @@ class Project:
     def target(self, target):
         return self._tree['targets'].get(target, {}) or {}
 
+    def icon(self, target, size=None):
+        # TODO handle size param
+        return self.target(target).get('icon', None)
 
 class Keyboard:
     def __init__(self, tree):

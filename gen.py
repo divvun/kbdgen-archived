@@ -4,6 +4,7 @@ from textwrap import dedent, indent
 
 import os
 import os.path
+import sys
 import shutil
 import subprocess
 import copy
@@ -495,12 +496,52 @@ class AppleiOSGenerator(Generator):
         with open(path, 'w') as f:
             self.update_pbxproj(pbxproj, f)
 
+        # Generate icons for hosting app
+        self.gen_hosting_app_icons(build_dir)
+
         print("You may now open TastyImitationKeyboard.xcodeproj in '%s'." %\
                     build_dir)
 
     def _tostring(self, tree):
         return etree.tostring(tree, pretty_print=True,
             xml_declaration=True, encoding='utf-8').decode()
+
+    def gen_hosting_app_icons(self, build_dir):
+        if self._project.icon('ios') is None:
+            print("Warning: no icon supplied!")
+            return
+
+        path = os.path.join(build_dir, 'HostingApp',
+                'Images.xcassets', 'AppIcon.appiconset')
+
+        with open(os.path.join(path, "Contents.json")) as f:
+            contents = json.load(f, object_pairs_hook=collections.OrderedDict)
+
+        cmd_tmpl = "convert -background white -alpha remove -resize %dx%d %s %s"
+
+        for obj in contents['images']:
+            scale = int(obj['scale'][:-1])
+            h, w = obj['size'].split('x')
+            h = int(h) * scale
+            w = int(w) * scale
+
+            icon = self._project.icon('ios', w)
+            fn = "%s-%s@%s.png" % (obj['idiom'], obj['size'], obj['scale'])
+            obj['filename'] = fn
+            cmd = cmd_tmpl % (w, h, icon, os.path.join(path, fn))
+
+            print("Creating '%s'..." % (fn))
+            process = subprocess.Popen(cmd, shell=True,
+                    stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+            out, err = process.communicate()
+            if process.returncode != 0:
+                print(err.decode())
+                print("Application ended with error code %s." % process.returncode)
+                sys.exit(process.returncode)
+
+        with open(os.path.join(path, "Contents.json"), 'w') as f:
+            json.dump(contents, f)
+
 
     def get_translatables_from_storyboard(self, xml_fn):
         with open(xml_fn) as f:
@@ -823,7 +864,7 @@ class AndroidGenerator(Generator):
 
         self.update_method_xmls(layouts, base)
 
-        files.append(self.create_ant_properties())
+        files.append(self.create_ant_properties(self.is_release))
 
         self.save_files(files, base)
 
@@ -908,7 +949,7 @@ class AndroidGenerator(Generator):
                 self._upd_locale(d, values)
 
     def generate_icons(self, base):
-        icon = self._project.target('android').get('icon', None)
+        icon = self._project.icon('android')
         if icon is None:
             print("Warning: no icon supplied!")
             return
@@ -931,8 +972,9 @@ class AndroidGenerator(Generator):
                     stderr=subprocess.PIPE, stdout=subprocess.PIPE)
             out, err = process.communicate()
             if process.returncode != 0:
-                print(err)
-                raise Exception("Application ended with error code %s." % process.returncode)
+                print(err.decode())
+                print("Application ended with error code %s." % process.returncode)
+                sys.exit(process.returncode)
 
 
     def build(self, base, release_mode=True):
@@ -958,7 +1000,7 @@ class AndroidGenerator(Generator):
     def _str_xml(self, val_dir, name, subtype):
         os.makedirs(val_dir, exist_ok=True)
         fn = os.path.join(val_dir, 'strings.xml')
-        print("Updating %s..." % fn)
+        print("Updating '%s'..." % fn)
 
         if not os.path.exists(fn):
             root = etree.XML("<resources/>")
@@ -1006,7 +1048,7 @@ class AndroidGenerator(Generator):
         base_layouts = layouts[None]
         del layouts[None]
 
-        print("Updating res/xml/method.xml...")
+        print("Updating 'res/xml/method.xml'...")
         path = os.path.join(base, 'deps', self.REPO, 'res', '%s')
         fn = os.path.join(path, 'method.xml')
 
@@ -1023,7 +1065,7 @@ class AndroidGenerator(Generator):
 
         for api_ver, kbds in layouts.items():
             xmlv = "xml-v%s" % api_ver
-            print("Updating res/%s/method.xml..." % xmlv)
+            print("Updating 'res/%s/method.xml'..." % xmlv)
             os.makedirs(path % xmlv, exist_ok=True)
             with open(fn % xmlv, 'w') as f:
                 f.write(self.gen_method_xml(kbds, copy.deepcopy(tree)))
@@ -1032,7 +1074,7 @@ class AndroidGenerator(Generator):
         fn = os.path.join(base, 'deps', self.REPO)
         for k, v in files:
             with open(os.path.join(fn, k), 'w') as f:
-                print("Saving file '%s'..." % k)
+                print("Creating '%s'..." % k)
                 f.write(v)
 
     def get_source_tree(self, base, sdk_base):
@@ -1072,20 +1114,31 @@ class AndroidGenerator(Generator):
         with open(rules_fn, 'w') as f:
             f.write(x.replace('GiellaIME', self._project.internal_name))
 
-    def create_ant_properties(self):
-        data = dedent("""\
-        package.name=%s
-        key.store=%s
-        key.alias=%s
-        version.code=%s
-        version.name=%s
-        """ % (
-            self._project.target('android')['packageId'],
-            os.path.abspath(self._project.target('android')['keyStore']),
-            self._project.target('android')['keyAlias'],
-            self._project.build,
-            self._project.version
-        ))
+    def create_ant_properties(self, release_mode=False):
+        if release_mode:
+            data = dedent("""\
+            package.name=%s
+            key.store=%s
+            key.alias=%s
+            version.code=%s
+            version.name=%s
+            """ % (
+                self._project.target('android')['packageId'],
+                os.path.abspath(self._project.target('android')['keyStore']),
+                self._project.target('android')['keyAlias'],
+                self._project.build,
+                self._project.version
+            ))
+        else:
+            data = dedent("""\
+            package.name=%s
+            version.code=%s
+            version.name=%s
+            """ % (
+                self._project.target('android')['packageId'],
+                self._project.build,
+                self._project.version
+            ))
 
         return ('ant.properties', data)
 
