@@ -25,5 +25,7 @@ targets:
 
   ios:
     packageId: so.brendan.keyboards.sami
-    icon: sami-icon.pdf
+    icon:
+        90: sami-icon-small.png
+        150: sami-icon.png
     bundleName: *bundleName

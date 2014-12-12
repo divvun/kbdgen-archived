@@ -530,7 +530,7 @@ class AppleiOSGenerator(Generator):
             obj['filename'] = fn
             cmd = cmd_tmpl % (w, h, icon, os.path.join(path, fn))
 
-            print("Creating '%s'..." % (fn))
+            print("Creating '%s' from '%s'..." % (fn, icon))
             process = subprocess.Popen(cmd, shell=True,
                     stderr=subprocess.PIPE, stdout=subprocess.PIPE)
             out, err = process.communicate()
