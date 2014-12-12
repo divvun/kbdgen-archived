@@ -15,6 +15,15 @@ import plistlib
 import collections
 
 import pycountry
+import boolmap
+
+ANDROID_GLYPHS = {}
+
+for api in range(16, 21+1):
+    if api in (17, 18, 20):
+        continue
+    with open(os.path.join(os.path.dirname(__file__), "android-glyphs-api%s.bin" % api), 'rb') as f:
+        ANDROID_GLYPHS[api] = boolmap.BoolMap(f.read())
 
 class CulturalImperialismException(Exception): pass
 
@@ -417,6 +426,12 @@ class Generator:
 
 class AppleiOSGenerator(Generator):
     def generate(self, base='.'):
+        # TODO sanity checks
+
+        if self.dry_run:
+            print("Dry run completed.")
+            return
+
         build_dir = os.path.join(base, 'build',
                 'ios', self._project.target('ios')['packageId'])
 
@@ -784,6 +799,8 @@ class AndroidGenerator(Generator):
 
         files = []
 
+        layouts = collections.defaultdict(list)
+
         for name, kbd in self._project.layouts.items():
 
             files += [
@@ -801,8 +818,10 @@ class AndroidGenerator(Generator):
                     row = ("res/%s/%s" % (prefix, row[0]), row[1])
                     files.append(row)
 
-            self.update_method_xml(kbd, base)
+            layouts[kbd.target("android").get("minimumSdk", None)].append(kbd)
             self.update_strings_xml(kbd, base)
+
+        self.update_method_xmls(layouts, base)
 
         files.append(self.create_ant_properties())
 
@@ -837,7 +856,7 @@ class AndroidGenerator(Generator):
                     pycountry.languages.get(alpha2=dn_locale)
                 except KeyError:
                     sane = False
-                    print(("Error: (%s) '%s' is not a supported locale. " +\
+                    print(("[%s] Error: '%s' is not a supported locale. " +\
                           "You should provide the code in ISO 639-1 " +\
                           "format, if possible.") % (
                         name, dn_locale))
@@ -845,9 +864,13 @@ class AndroidGenerator(Generator):
             for mode, rows in kbd.modes.items():
                 for n, row in enumerate(rows):
                     if len(row) > 11:
-                        print(("Warning: (%s) row %s has %s keys. It is " +\
+                        print(("[%s] Warning: row %s has %s keys. It is " +\
                                "recommended to have less than 12 keys per " +\
                                "row.") % (name, n+1, len(row)))
+
+            self.detect_unavailable_glyphs_long_press(kbd, 16)
+            self.detect_unavailable_glyphs_long_press(kbd, 19)
+            self.detect_unavailable_glyphs_long_press(kbd, 21)
         return sane
 
     def _upd_locale(self, d, values):
@@ -963,23 +986,47 @@ class AndroidGenerator(Generator):
                 val_dir = os.path.join(res_dir, 'values-%s' % locale)
             self._str_xml(val_dir, name, kbd.internal_name)
 
-    def update_method_xml(self, kbd, base):
+    def gen_method_xml(self, kbds, tree):
+        root = tree.getroot()
+
+        for kbd in kbds:
+            self._android_subelement(root, 'subtype',
+                icon="@drawable/ic_ime_switcher_dark",
+                label="@string/subtype_%s" % kbd.internal_name,
+                imeSubtypeLocale=kbd.locale,
+                imeSubtypeMode="keyboard",
+                imeSubtypeExtraValue="KeyboardLayoutSet=%s,AsciiCapable,EmojiCapable" % kbd.internal_name)
+
+        return self._tostring(tree)
+
+
+    def update_method_xmls(self, layouts, base):
         # TODO run this only once preferably
+
+        base_layouts = layouts[None]
+        del layouts[None]
+
         print("Updating res/xml/method.xml...")
-        fn = os.path.join(base, 'deps', self.REPO, 'res', 'xml', 'method.xml')
+        path = os.path.join(base, 'deps', self.REPO, 'res', '%s')
+        fn = os.path.join(path, 'method.xml')
 
-        with open(fn) as f:
+        with open(fn % 'xml') as f:
             tree = etree.parse(f)
+        with open(fn % 'xml', 'w') as f:
+            f.write(self.gen_method_xml(base_layouts, tree))
 
-        self._android_subelement(tree.getroot(), 'subtype',
-            icon="@drawable/ic_ime_switcher_dark",
-            label="@string/subtype_%s" % kbd.internal_name,
-            imeSubtypeLocale=kbd.locale,
-            imeSubtypeMode="keyboard",
-            imeSubtypeExtraValue="KeyboardLayoutSet=%s,AsciiCapable,EmojiCapable" % kbd.internal_name)
-        with open(fn, 'w') as f:
-            f.write(self._tostring(tree))
-        #return ('res/xml/method.xml', self._tostring(tree))
+        for kl, vl in reversed(sorted(layouts.items())):
+            for kr, vr in layouts.items():
+                if kl >= kr:
+                    continue
+                layouts[kr] = vl + vr
+
+        for api_ver, kbds in layouts.items():
+            xmlv = "xml-v%s" % api_ver
+            print("Updating res/%s/method.xml..." % xmlv)
+            os.makedirs(path % xmlv, exist_ok=True)
+            with open(fn % xmlv, 'w') as f:
+                f.write(self.gen_method_xml(kbds, copy.deepcopy(tree)))
 
     def save_files(self, files, base):
         fn = os.path.join(base, 'deps', self.REPO)
@@ -1197,3 +1244,25 @@ class AndroidGenerator(Generator):
 
         self.add_special_buttons(kbd, n, style, values, out, False)
 
+    def detect_unavailable_glyphs_long_press(self, layout, api_ver):
+        glyphs = ANDROID_GLYPHS.get(api_ver, None)
+        if glyphs is None:
+            print("Warning: no glyphs file found for API %s! Can't detect " +
+                  "missing characters from Android font!" % api_ver)
+            return
+
+        for vals in layout.longpress.values():
+            for v in vals:
+                for c in v:
+                    if glyphs[ord(c)] is False:
+                        print("[%s] Warning: '%s' (codepoint: U+%04X) is not supported by API %s!" % (
+                            layout.internal_name,
+                            c, ord(c), api_ver))
+
+    # TODO finish this method
+    def detect_unavailable_glyphs_keys(self, key, api_ver):
+        glyphs = ANDROID_GLYPHS.get(api_ver, None)
+        if glyphs is None:
+            print("Warning: no glyphs file found for API %s! Can't detect " +
+                  "missing characters from Android font!" % api_ver)
+            return

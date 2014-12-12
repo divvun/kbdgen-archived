@@ -40,6 +40,10 @@ styles:
       shift: [3, left, fill]
       backspace: [3, right, fill]
 
+targets:
+  android:
+    minimumSdk: 21
+
 strings:
   space: gaske
   return: linnjámolsun

@@ -193,6 +193,22 @@ styles:
       backspace: [3, right, fill]
 ```
 
+There is also the ability to supply Android-specific target information in a
+keyboard using the `targets` -> `android` notation. Currently, only the key
+`minimumSdk` is supported, which allows for generating a keyboard only for
+a certain SDK and above.
+
+[Click here for Android documentation on API versions compared to OS version](https://source.android.com/source/build-numbers.html)
+
+Note: the lowest API supported by this keyboard is API 16, but it *may* work
+on older variants.
+
+```yaml
+targets:
+  android:
+    minimumSdk: 21
+```
+
 # Generating keystores
 
 Make sure you've read the

@@ -86,6 +86,9 @@ class Keyboard:
     def styles(self):
         return self._tree['styles']
 
+    def target(self, target):
+        return self._tree.get('targets', {}).get(target, {}) or {}
+
     def get_actions(self, style):
         return self.styles[style]['actions']
 
