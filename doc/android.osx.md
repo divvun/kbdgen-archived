@@ -15,18 +15,19 @@ You will need:
 1. Install MacPorts.
 2. Install JDK 7.
 3. Unzip the Android SDK somewhere. I will assume you unzipped it to `~/sdks`
-4. As root: `port install apache-ant python3.4 py34-pip`
+4. As root: `port install apache-ant python3.4 py34-pip imagemagick`
 5. As root: `pip3.4 install pycountry lxml PyYAML`
-6. Run: `export ANDROID_SDK="~/sdks/android-sdk-macosx"`, replacing the string with where you put the directory.
-7. Run: `$ANDROID_SDK/tools/android update sdk -u -t "tools,platform-tools,build-tools-19.1.0,extra-android-support,android-19"`. Say yes to all the EULAs.
-8. Done!
+6. As root and in this repo's directory: `pip3.4 install .`. Ensure that the path `pip` installs the `softkbdgen` binary to is in your `$PATH`.
+7. Run: `export ANDROID_SDK="~/sdks/android-sdk-macosx"`, replacing the string with where you put the directory.
+8. Run: `$ANDROID_SDK/tools/android update sdk -u -t "tools,platform-tools,build-tools-19.1.0,extra-android-support,android-19"`. Say yes to all the EULAs.
+9. Done!
 
 # Running
 
 1. Run `export ANDROID_SDK="~/sdks/android-sdk-macosx"`, replacing the string with where you put the directory.
-2. In the `softkbdgen` directory, run `python3.4 softkbdgen.py --help` to see the help text.
+2. Run `softkbdgen.py --help` to see the help text.
 
-An example: `python3.4 softkbdgen.py --repo local/path/to/giella-ime --target android project.yaml`
+An example: `softkbdgen --repo local/path/to/giella-ime --target android project.yaml`
 
 You can also substitute a local path to a git repo to the remote path and the
 application will automatically check it out for you.

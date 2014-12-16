@@ -1,7 +1,3 @@
-from lxml import etree
-from lxml.etree import Element, SubElement
-from textwrap import dedent, indent
-
 import os
 import os.path
 import sys
@@ -14,9 +10,13 @@ import json
 import uuid
 import plistlib
 import collections
+from textwrap import dedent, indent
 
 import pycountry
-import boolmap
+from lxml import etree
+from lxml.etree import Element, SubElement
+
+from . import boolmap
 
 ANDROID_GLYPHS = {}
 
