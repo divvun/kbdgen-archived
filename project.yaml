@@ -24,6 +24,7 @@ targets:
     keyAlias: sami_keyboard
 
   ios:
+    certificateId: iOS Distribution
     packageId: so.brendan.keyboards.sami
     icon:
         90: sami-icon-small.png

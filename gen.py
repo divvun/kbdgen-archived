@@ -499,8 +499,63 @@ class AppleiOSGenerator(Generator):
         # Generate icons for hosting app
         self.gen_hosting_app_icons(build_dir)
 
-        print("You may now open TastyImitationKeyboard.xcodeproj in '%s'." %\
+        if self.is_release:
+            self.build_release(base, build_dir)
+        else:
+            print("You may now open TastyImitationKeyboard.xcodeproj in '%s'." %\
                     build_dir)
+
+    def build_release(self, base_dir, build_dir):
+        # TODO check signing ID exists in advance (in sanity checks)
+
+        xcarchive = os.path.abspath(os.path.join(base_dir, 'build', "%s.xcarchive" %\
+                self._project.internal_name))
+        ipa = os.path.abspath(os.path.join(base_dir, 'build', "%s.ipa" %\
+                self._project.internal_name))
+
+        if os.path.exists(xcarchive):
+            shutil.rmtree(xcarchive)
+        if os.path.exists(ipa):
+            os.remove(ipa)
+
+        projpath = ":".join(os.path.abspath(os.path.join(build_dir,
+            'TastyImitationKeyboard.xcodeproj'))[1:].split(os.sep))
+
+        applescript = dedent("""'
+        tell application "Xcode"
+            open "%s"
+            quit
+        end tell
+        '""") % projpath
+
+        cmd0 = """/usr/bin/osascript -e %s""" % applescript
+        cmd1 = """xcodebuild -configuration Release -scheme HostingApp archive
+        -archivePath "%s" """.replace("\n", ' ') % xcarchive
+        cmd2 = """xcodebuild -exportArchive -exportFormat ipa
+        -archivePath "%s" -exportPath "%s" """.replace('\n', ' ') % (
+                xcarchive, ipa)
+        cmd3 = """codesign -f -vv -s "%s" "%s" """ % (
+                self._project.target('ios').get('certificateId', ''),
+                ipa)
+
+        for cmd, msg in (
+                (cmd0, "Generating schemes..."),
+                (cmd1, "Building .xcarchive..."),
+                (cmd2, "Building .ipa..."),
+                (cmd3, "Signing...")):
+
+            print(msg)
+            process = subprocess.Popen(cmd, cwd=build_dir, shell=True,
+                    stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+            out, err = process.communicate()
+            if process.returncode != 0:
+                print(err.decode())
+                print("Application ended with error code %s." % process.returncode)
+                sys.exit(process.returncode)
+
+        if os.path.exists(xcarchive):
+            shutil.rmtree(xcarchive)
+        print("Done! -> %s" % ipa)
 
     def _tostring(self, tree):
         return etree.tostring(tree, pretty_print=True,
