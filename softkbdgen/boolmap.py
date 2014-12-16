@@ -63,8 +63,6 @@ def parse_range_data(data):
             chunk.append(chunk[0])
         new_ranges.append(range(int(chunk[0], 16), int(chunk[1], 16) + 1))
 
-    # pop the end, I hate it.
-    new_ranges.pop()
     return new_ranges
 
 
