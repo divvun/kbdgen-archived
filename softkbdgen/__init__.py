@@ -146,9 +146,11 @@ class Parser:
         for path, v in cfg_pairs:
             resolve_path(path, v)
 
-    def _parse_global(self):
-        with open(os.path.join(os.path.dirname(__file__), "global.yaml")) as f:
-            return yaml.load(f)
+    def _parse_global(self, cfg_file=None):
+        if cfg_file is None:
+            cfg_file = open(
+                    os.path.join(os.path.dirname(__file__), "global.yaml"))
+        return yaml.load(cfg_file)
 
     def _parse_layout(self, data):
         tree = yaml.load(data)
@@ -178,8 +180,7 @@ class Parser:
 
         return Keyboard(tree)
 
-    def _parse_project(self, data):
-        tree = self._parse_global()
+    def _parse_project(self, tree):
         tree.update(yaml.load(data))
 
         for key in ['locales', 'author',
@@ -198,8 +199,9 @@ class Parser:
 
         return Project(tree)
 
-    def parse(self, data, cfg_pairs=None):
-        project = self._parse_project(data)
+    def parse(self, data, cfg_pairs=None, cfg_file=None):
+        tree = self._parse_global(cfg_file)
+        project = self._parse_project(tree)
         if cfg_pairs is not None:
             self._overrides(project._tree, parse_cfg_pairs(cfg_pairs))
         return project

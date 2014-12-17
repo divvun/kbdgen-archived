@@ -10,6 +10,8 @@ def parse_args():
                    help="Key-value overrides (eg -K target.thing.foo=42)")
     p.add_argument('-R', '--release', action='store_true',
                    help="Compile in 'release' mode.")
+    p.add_argument('-G', '--global', type=argparse.FileType('r'),
+                   help="Override the global.yaml file")
     p.add_argument('-b', '--branch', default='stable',
                    help='Git branch (default: stable)')
     p.add_argument('-r', '--repo', help='Git repo.')
