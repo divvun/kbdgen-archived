@@ -21,12 +21,6 @@ def parse_args():
                    default=sys.stdin)
     return p.parse_args()
 
-def parse_cfg_pairs(str_list):
-    try:
-        return [x.split('=', 1) for x in str_list]
-    except:
-        raise Exception("Error: invalid key-value pair provided.")
-
 def main():
     args = parse_args()
 

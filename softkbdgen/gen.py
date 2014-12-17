@@ -524,25 +524,29 @@ class AppleiOSGenerator(Generator):
         applescript = dedent("""'
         tell application "Xcode"
             open "%s"
-            quit
+
         end tell
         '""") % projpath
 
+        code_sign_id = self._project.target('ios').get('codeSignId', '')
+        provisioning_profile_id = self._project.target('ios').get(
+                'provisioningProfileId', '')
+
         cmd0 = """/usr/bin/osascript -e %s""" % applescript
         cmd1 = """xcodebuild -configuration Release -scheme HostingApp archive
-        -archivePath "%s" """.replace("\n", ' ') % xcarchive
+        -archivePath "%s" CODE_SIGN_IDENTITY="%s" """.replace("\n", ' ') % (
+                xcarchive, code_sign_id)
         cmd2 = """xcodebuild -exportArchive -exportFormat ipa
-        -archivePath "%s" -exportPath "%s" """.replace('\n', ' ') % (
-                xcarchive, ipa)
-        cmd3 = """codesign -f -vv -s "%s" "%s" """ % (
-                self._project.target('ios').get('certificateId', ''),
-                ipa)
+        -archivePath "%s" -exportPath "%s"
+        -exportProvisioningProfile "%s"
+        """.replace('\n', ' ') % (
+                xcarchive, ipa, provisioning_profile_id)
 
         for cmd, msg in (
                 (cmd0, "Generating schemes..."),
                 (cmd1, "Building .xcarchive..."),
-                (cmd2, "Building .ipa..."),
-                (cmd3, "Signing...")):
+                (cmd2, "Building .ipa and signing..."),
+                ):
 
             print(msg)
             process = subprocess.Popen(cmd, cwd=build_dir, shell=True,
