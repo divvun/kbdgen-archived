@@ -181,8 +181,6 @@ class Parser:
         return Keyboard(tree)
 
     def _parse_project(self, tree):
-        tree.update(yaml.load(data))
-
         for key in ['locales', 'author',
                     'email', 'layouts', 'targets']:
             if key not in tree:
@@ -201,6 +199,8 @@ class Parser:
 
     def parse(self, data, cfg_pairs=None, cfg_file=None):
         tree = self._parse_global(cfg_file)
+        tree.update(yaml.load(data))
+
         project = self._parse_project(tree)
         if cfg_pairs is not None:
             self._overrides(project._tree, parse_cfg_pairs(cfg_pairs))
