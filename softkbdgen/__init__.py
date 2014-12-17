@@ -146,7 +146,7 @@ class Parser:
         for path, v in cfg_pairs:
             resolve_path(path, v)
 
-    def _parse_cfg_pairs(str_list):
+    def _parse_cfg_pairs(self, str_list):
         try:
             return [x.split('=', 1) for x in str_list]
         except:
