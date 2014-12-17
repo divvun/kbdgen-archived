@@ -146,6 +146,12 @@ class Parser:
         for path, v in cfg_pairs:
             resolve_path(path, v)
 
+    def _parse_cfg_pairs(str_list):
+        try:
+            return [x.split('=', 1) for x in str_list]
+        except:
+            raise Exception("Error: invalid key-value pair provided.")
+
     def _parse_global(self, cfg_file=None):
         if cfg_file is None:
             cfg_file = open(
@@ -203,7 +209,7 @@ class Parser:
 
         project = self._parse_project(tree)
         if cfg_pairs is not None:
-            self._overrides(project._tree, parse_cfg_pairs(cfg_pairs))
+            self._overrides(project._tree, self._parse_cfg_pairs(cfg_pairs))
         return project
 
 
