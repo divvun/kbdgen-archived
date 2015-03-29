@@ -1,4 +1,5 @@
 import argparse
+import yaml
 
 from . import *
 
@@ -27,6 +28,12 @@ def main():
     try:
         project = Parser().parse(args.project,
                                  args.cfg_pairs)
+
+    except yaml.scanner.ScannerError as e:
+        print("Error parsing project:")
+        print(e.problem)
+        print(e.problem_mark)
+        sys.exit(1)
     except Exception as e:
         raise e
         print(e)

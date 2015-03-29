@@ -424,6 +424,24 @@ class Generator:
     def dry_run(self):
         return self._args.get('dry_run', False)
 
+#OSX_VIRTUAL_KEYS
+#[10, 18, 19, 20, 21, 23, 22, 26, 28, 25, 29, 27, 24],
+#[12, 13, 14, 15, 17, 16, 32, 34, 31, 35, 33, 30],
+#[0, 1, 2, 3, 5, 4, 38, 40, 37, 41, 39, 42],
+#[50, 6, 7, 8, 9, 11, 45, 46, 43, 47, 44],
+
+
+class OSXGenerator(Generator):
+    def generate(self, base='.'):
+        self.generate_xml()
+
+        if self.dry_run:
+            print("Dry run completed.")
+            return
+
+    def generate_xml(self):
+
+
 
 class AppleiOSGenerator(Generator):
     def generate(self, base='.'):

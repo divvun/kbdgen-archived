@@ -1,6 +1,7 @@
 import sys
 import os
 import re
+import copy
 from collections import namedtuple
 
 import yaml
@@ -174,8 +175,37 @@ class Parser:
         if 'longpress' not in tree or tree.get('longpress', None) is None:
             tree['longpress'] = {}
 
+        strdicts = []
+        keycache = {}
+        layermap = {
+            'iso-layer3': 'iso-default'
+        }
+
         for mode, strings in tree['modes'].items():
-            tree['modes'][mode] = [re.split(r"\s+", x.strip()) for x in strings]
+            if isinstance(strings, list):
+                print("DEPRECATED: %s is a list. Please use a string block (eg default: |)" % mode)
+            elif isinstance(strings, str):
+                strings = strings.strip().split('\n')
+            if isinstance(strings, dict):
+                strdicts.append((mode, strings))
+            else:
+                tree['modes'][mode] = [re.split(r"\s+", x.strip()) for x in strings]
+                keycache[mode] = {}
+                for y, row in enumerate(tree['modes'][mode]):
+                    for x, key in enumerate(row):
+                        keycache[mode][key] = (y, x)
+
+        for mode, keys in strdicts:
+            if mode not in layermap:
+                print("ERROR mode not in layermap TODO FINISH")
+                continue
+
+            basemode = layermap[mode]
+            tree['modes'][mode] = copy.deepcopy(tree['modes'][basemode])
+            for k, v in keys.items():
+                k = str(k)
+                y, x = keycache[basemode][k]
+                tree['modes'][mode][y][x] = v
 
         for longpress, strings in tree['longpress'].items():
             tree['longpress'][longpress] = re.split(r"\s+", strings.strip())
