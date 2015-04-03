@@ -9,14 +9,18 @@ import io
 import json
 import uuid
 import plistlib
-import collections
+import random
+import itertools
+
 from textwrap import dedent, indent
+from collections import OrderedDict, defaultdict
 
 import pycountry
 from lxml import etree
 from lxml.etree import Element, SubElement
 
 from . import boolmap
+from . import cldr
 
 ANDROID_GLYPHS = {}
 
@@ -29,6 +33,17 @@ for api in range(16, 21+1):
 class CulturalImperialismException(Exception): pass
 
 class MissingApplicationException(Exception): pass
+
+# TODO use logger for output
+# TODO move into util module...
+def mode_iter(layout, key, required=False, fallback=None):
+    mode = layout.modes.get(key, None)
+    if mode:
+        return itertools.chain.from_iterable(mode)
+    if required:
+        raise Exception("'%s' has a required mode." % key)
+    return itertools.repeat(fallback)
+
 
 def git_clone(src, dst, branch, cwd='.'):
     print("Cloning repository '%s' to '%s'..." % (src, dst))
@@ -61,7 +76,7 @@ def plutil_get_json(path):
 
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     json_str = process.communicate()[0].decode()
-    return json.loads(json_str, object_pairs_hook=collections.OrderedDict)
+    return json.loads(json_str, object_pairs_hook=OrderedDict)
 
 
 def plutil_to_xml_str(json_obj):
@@ -424,23 +439,438 @@ class Generator:
     def dry_run(self):
         return self._args.get('dry_run', False)
 
-#OSX_VIRTUAL_KEYS
-#[10, 18, 19, 20, 21, 23, 22, 26, 28, 25, 29, 27, 24],
-#[12, 13, 14, 15, 17, 16, 32, 34, 31, 35, 33, 30],
-#[0, 1, 2, 3, 5, 4, 38, 40, 37, 41, 39, 42],
-#[50, 6, 7, 8, 9, 11, 45, 46, 43, 47, 44],
+WIN_KEYMAP = OrderedDict((
+    ("E00", "29"),
+    ("E01", "02"),
+    ("E02", "03"),
+    ("E03", "04"),
+    ("E04", "05"),
+    ("E05", "06"),
+    ("E06", "07"),
+    ("E07", "08"),
+    ("E08", "09"),
+    ("E09", "0a"),
+    ("E10", "0b"),
+    ("E11", "0c"),
+    ("E12", "0d"),
+    ("D01", "10"),
+    ("D02", "11"),
+    ("D03", "12"),
+    ("D04", "13"),
+    ("D05", "14"),
+    ("D06", "15"),
+    ("D07", "16"),
+    ("D08", "17"),
+    ("D09", "18"),
+    ("D10", "19"),
+    ("D11", "1a"),
+    ("D12", "1b"),
+    ("C01", "1e"),
+    ("C02", "1f"),
+    ("C03", "20"),
+    ("C04", "21"),
+    ("C05", "22"),
+    ("C06", "23"),
+    ("C07", "24"),
+    ("C08", "25"),
+    ("C09", "26"),
+    ("C10", "27"),
+    ("C11", "28"),
+    ("C12", "2b"),
+    ("B00", "56"),
+    ("B01", "2c"),
+    ("B02", "2d"),
+    ("B03", "2e"),
+    ("B04", "2f"),
+    ("B05", "30"),
+    ("B06", "31"),
+    ("B07", "32"),
+    ("B08", "33"),
+    ("B09", "34"),
+    ("B10", "35")
+))
 
+# SC 53 is decimal, 39 is space
+WIN_VK_MAP = OrderedDict(((k, v) for k, v in zip(WIN_KEYMAP.keys(), (
+    "OEM_5", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "OEM_PLUS", "OEM_4",
+    "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "OEM_6", "OEM_1",
+    "A", "S", "D", "F", "G", "H", "J", "K", "L", "OEM_3", "OEM_7", "OEM_2",
+    "OEM_102", "Z", "X", "C", "V", "B", "N", "M", "OEM_COMMA", "OEM_PERIOD", "OEM_MINUS"
+))))
 
-class OSXGenerator(Generator):
+#TODO move to cldr.py
+CP_REGEX = re.compile(r"\\u{(.+?)}")
+
+class WindowsGenerator(Generator):
     def generate(self, base='.'):
-        self.generate_xml()
+        outputs = OrderedDict()
+
+        for name, layout in self._project.layouts.items():
+            outputs[name] = self.generate_klc(layout)
 
         if self.dry_run:
             print("Dry run completed.")
             return
 
-    def generate_xml(self):
+        build_dir = os.path.join(base, 'build', 'win',
+                self._project.internal_name)
+        os.makedirs(build_dir, exist_ok=True)
 
+        for name, data in outputs.items():
+            with open(os.path.join(build_dir, "%s.klc" % name), 'w') as f:
+                f.write(data.replace('\n', '\r\n'))
+
+    def _klc_write_headers(self, layout, buf):
+        buf.write('KBD\t%s\t"%s"\n\n' % (
+            layout.internal_name.replace(" ", ""),
+            layout.display_names[layout.locale]))
+
+        # TODO copyright strings? fuuu
+        buf.write('COPYRIGHT\t"(c) 2015 The Developers"\n\n')
+        buf.write('COMPANY\t"???"\n\n')
+        buf.write('LOCALENAME\t"%s"\n\n' % layout.locale)
+        # Use fallback ID in every case (MS-LCID)
+        buf.write('LOCALEID\t"00001000"\n\n')
+        buf.write('VERSION\t1.0\n\n')
+        # 0: default, 1: shift, 2: ctrl, 6: altGr/ctrl+alt, 7: shift+6
+        buf.write('SHIFTSTATE\n\n0\n1\n2\n6\n7\n\n')
+
+        buf.write('LAYOUT       ;\n\n')
+        buf.write('//SC\tVK_ \t\tCaps\tNormal\tShift\tCtrl\tAltGr\tAltShft\t-> Output\n')
+        buf.write('//--\t----\t\t----\t------\t-----\t----\t-----\t-------\t   ------\n\n')
+
+    def _klc_write_keys(self, layout, buf):
+        # TODO support the key-value mode with a wrapper
+
+        col0 = mode_iter(layout, 'iso-default', required=True)
+        col1 = mode_iter(layout, 'iso-shift')
+        col2 = mode_iter(layout, 'iso-ctrl')
+        col6 = mode_iter(layout, 'iso-alt')
+        col7 = mode_iter(layout, 'iso-alt+shift')
+
+        caps = mode_iter(layout, 'iso-caps')
+        altcaps = mode_iter(layout, 'iso-alt+caps')
+
+        def win_filter(*args):
+            def wf(v):
+                """actual filter function"""
+                if v is None:
+                    return '-1'
+
+                if re.match(r"^\d{4}$", v):
+                    return v
+
+                v = CP_REGEX.sub(lambda x: chr(int(x.group(1), 16)), v)
+
+                # check for anything outsize A-Za-z range
+                if re.match("^[A-Za-z]$", v):
+                    return v
+
+                return "%04x" % ord(v)
+
+            return tuple(wf(i) for i in args)
+
+        for (sc, vk, c0, c1, c2, c6, c7, cap) in zip(WIN_KEYMAP.values(),
+                WIN_VK_MAP.values(), col0, col1, col2, col6, col7, caps):
+            # TODO cap state (last one) 5 means caps applies in altgr state
+            # TODO handle the altgr caps
+
+            if cap is None:
+                cap_mode = "1" if c0 != c1 else "0"
+            else:
+                cap_mode = "1" if cap == c1 else "0"
+
+            if len(vk) < 8:
+                vk += "\t"
+            buf.write("%s\t%s\t%s" % (sc, vk, cap_mode))
+            for mode, key in (('iso-default', c0),
+                              ('iso-shift', c1),
+                              ('iso-ctrl', c2),
+                              ('iso-alt', c6),
+                              ('iso-alt+shift', c7)):
+                buf.write("\t%s" % win_filter(key))
+                if key in layout.dead_keys.get(mode, []):
+                    buf.write("@")
+
+            buf.write("\t  // %s %s %s %s %s\n" % (c0, c1, c2, c6, c7))
+
+        # Space, such special case oh my.
+        buf.write("39\tSPACE\t\t0\t")
+        if layout.special.get('space', None) is None:
+            buf.write("0020\t0020\t0020\t-1\t-1\n")
+        else:
+            o = layout.special['space']
+            buf.write("%s\t%s\t%s\t%s\t%s\n" % win_filter(
+                    o.get('iso-default', '0020'),
+                    o.get('iso-shift', '0020'),
+                    o.get('iso-ctrl', '0020'),
+                    o.get('iso-alt', '-1'),
+                    o.get('iso-alt+shift', '-1')
+                ))
+
+        # Decimal key on keypad.
+        buf.write("53\tDECIMAL\t\t0\t%s\t%s\t-1\t-1\t-1\n" % win_filter(
+            layout.decimal, layout.decimal))
+
+        buf.write('\n')
+
+        # Deadkeys!
+        for basekey, o in layout.transforms.items():
+            buf.write("\nDEADKEY\t%s\n\n" % win_filter(basekey))
+            for key, output in o.items():
+                key = str(key)
+                key = str(output)
+                if len(key) != 1 or len(output) != 1:
+                    print("WARNING: %s%s -> %s is invalid for Windows deadkeys; skipping." % (basekey, key, output))
+                    continue
+                buf.write("%s\t%s\t// %s -> %s\n" % (win_filter(key, output) + (key, output)))
+
+
+    def generate_klc(self, layout):
+        buf = io.StringIO()
+
+        self._klc_write_headers(layout, buf)
+        self._klc_write_keys(layout, buf)
+
+        buf.write("ENDKBD\n")
+
+        return buf.getvalue()
+        # TODO constrain caps to be inverse of default. Always.
+
+OSX_KEYMAP = {
+    'C01': '0',
+    'C02': '1',
+    'C03': '2',
+    'C04': '3',
+    'C06': '4',
+    'C05': '5',
+    'B01': '6',
+    'B02': '7',
+    'B03': '8',
+    'B04': '9',
+    'B00': '10',
+    'B05': '11',
+    'D01': '12',
+    'D02': '13',
+    'D03': '14',
+    'D04': '15',
+    'D06': '16',
+    'D05': '17',
+    'E01': '18',
+    'E02': '19',
+    'E03': '20',
+    'E04': '21',
+    'E06': '22',
+    'E05': '23',
+    'E12': '24',
+    'E09': '25',
+    'E07': '26',
+    'E11': '27',
+    'E08': '28',
+    'E10': '29',
+    'D12': '30',
+    'D09': '31',
+    'D07': '32',
+    'D11': '33',
+    'D08': '34',
+    'D10': '35',
+    'C09': '37',
+    'C07': '38',
+    'C11': '39',
+    'C08': '40',
+    'C10': '41',
+    'D13': '42',
+    'B08': '43',
+    'B10': '44',
+    'B06': '45',
+    'B07': '46',
+    'B09': '47',
+    'A03': '49',
+    'E00': '50',
+    'E13': '93',
+    'B11': '94'
+}
+
+def iterable_set(iterable):
+    return {i for i in itertools.chain.from_iterable(iterable)}
+
+def random_id():
+    return str(-random.randrange(1, 65536))
+
+class OSXGenerator(Generator):
+    def generate(self, base='.'):
+        self.build_dir = os.path.abspath(os.path.join(base, 'build',
+                'osx', self._project.internal_name))
+
+        o = OrderedDict()
+
+        for name, layout in self._project.layouts.items():
+            o[name] = self.generate_xml(name, layout)
+
+        if self.dry_run:
+            print("Dry run completed.")
+            return
+
+        if os.path.exists(self.build_dir):
+            shutil.rmtree(self.build_dir)
+
+        bundle = os.path.join(self.build_dir,
+                 "%s.bundle" % self._project.internal_name)
+
+        bundle_path = self.create_bundle(self.build_dir)
+        res_path = os.path.join(bundle_path, "Contents", "Resources")
+
+        for fn, data in o.items():
+            with open(os.path.join(res_path, "%s.keylayout" % fn), 'w') as f:
+                f.write(data)
+
+        self.create_installer(bundle_path)
+
+    def create_bundle(self, path):
+        bundle_path = os.path.join(path, "%s.bundle" % self._project.internal_name)
+        os.makedirs(os.path.join(bundle_path, 'Contents', 'Resources'),
+            exist_ok=True)
+
+        with open(os.path.join(bundle_path, 'Contents', "Info.plist"), 'w') as f:
+            f.write(dedent("""\
+                <?xml version="1.0" encoding="UTF-8"?>
+                <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+                <plist version="1.0">
+                <dict>
+                    <key>CFBundleIdentifier</key>
+                    <string>%s</string>
+                    <key>CFBundleName</key>
+                    <string>%s</string>
+                    <key>CFBundleVersion</key>
+                    <string>%s</string>
+                </dict>
+                </plist>
+                """) % (
+                    self._project.target('osx')['packageId'],
+                    self._project.target('osx')['bundleName'],
+                    self._project.build
+                )
+            )
+
+        return bundle_path
+
+    def create_installer(self, bundle):
+        cmd = ['productbuild', '--component',
+                bundle, '/Library/Keyboard Layouts',
+                "%s.pkg" % self._project.internal_name]
+
+        process = subprocess.Popen(cmd, cwd=self.build_dir,
+                stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+
+        out, err = process.communicate()
+
+        if process.returncode != 0:
+            print(err.decode())
+            print("Application ended with error code %s." % process.returncode)
+            sys.exit(process.returncode)
+
+
+    def generate_xml(self, name, layout):
+        tree = Element('keyboard', group="126", id=random_id(), name=name)
+
+        modifiers_ref = "Modifiers"
+        mapset_ref = "Default"
+
+        layout_node = SubElement(tree, 'layouts')
+        SubElement(layout_node, 'layout', first='0', last='17',
+                modifiers=modifiers_ref, mapSet=mapset_ref)
+
+        modmap = SubElement(tree, 'modifierMap', id=modifiers_ref, defaultIndex='0')
+
+        # THE REST
+
+        actions, terminators = self.generate_deadkeys(layout)
+        tree.append(actions)
+        tree.append(terminators)
+
+        return etree.tostring(tree, pretty_print=True, encoding="utf-8").decode('utf-8')
+
+    def generate_deadkeys(self, layout):
+        actions = Element('actions')
+        terminators = Element('terminators')
+        dead_keys = iterable_set(layout.dead_keys.values())
+
+        for key in dead_keys:
+            key_id = "Key %s" % key
+            key_pressed = "%s Pressed" % key_id
+            node = SubElement(actions, "action", id=key_id)
+            SubElement(node, 'when', state="none", next=key_pressed)
+
+            # TODO catch errors here
+            SubElement(terminators, 'when', state=key_pressed,
+                       output=layout.transforms[key][" "])
+
+        key_map = {}
+
+        for base, transforms in layout.transforms.items():
+            for transform_from, transform_to in transforms.items():
+                transform_from = str(transform_from)
+                transform_to = str(transform_to)
+
+                if transform_from == ' ':
+                    continue
+                if transform_from not in key_map:
+                    key_map[transform_from] = Element('action', id="Key %s" % transform_from)
+                    SubElement(key_map[transform_from], 'when', state="none", output=transform_from)
+                SubElement(key_map[transform_from], 'when', state="Key %s Pressed" % base, output=transform_to)
+
+        for k, v in sorted(key_map.items()):
+            actions.append(v)
+
+        return (actions, terminators)
+
+class XKBGenerator(Generator):
+    def generate(self, base='.'):
+        for name, layout in self._project.layouts.items():
+            print(self.generate_nonsense(name, layout))
+
+        if self.dry_run:
+            print("Dry run completed.")
+            return
+
+    def generate_nonsense(self, name, layout):
+        buf = io.StringIO()
+
+        buf.write("default partial alphanumeric_keys\n")
+        buf.write('xkb_symbols "basic" {\n')
+        buf.write('    name[Group1]= "%s";\n' % layout.display_names[layout.locale])
+        buf.write('    include "us(basic)"\n\n')
+
+        col0 = mode_iter(layout, 'iso-default', required=True)
+        col1 = mode_iter(layout, 'iso-shift')
+        col2 = mode_iter(layout, 'iso-alt')
+        col3 = mode_iter(layout, 'iso-alt+shift')
+
+        def xkb_filter(*args):
+            def xf(v):
+                """actual filter function"""
+                if v is None:
+                    return ''
+
+                v = CP_REGEX.sub(lambda x: chr(int(x.group(1), 16)), v)
+
+                # check for anything outsize A-Za-z range
+                if re.match("^[A-Za-z]$", v):
+                    return v
+
+                return "U%04X" % ord(v)
+
+            o = [xf(i) for i in args]
+            while len(o) > 0 and o[-1] == '':
+                o.pop()
+            return tuple(o)
+
+        for (iso, c0, c1, c2, c3) in zip(WIN_KEYMAP.keys(), col0, col1, col2, col3):
+            cols = ", ".join("%10s" % x for x in xkb_filter(c0, c1, c2, c3))
+            buf.write("    key <A%s> { [ %s ] };\n" % (iso, cols))
+
+        buf.write('\n    include "level3(ralt_switch)"\n};')
+        return buf.getvalue()
 
 
 class AppleiOSGenerator(Generator):
@@ -469,7 +899,7 @@ class AppleiOSGenerator(Generator):
         # Keyboard plist
         with open(os.path.join(build_dir, 'Keyboard',
                     'Info.plist'), 'rb') as f:
-            plist = plistlib.load(f, dict_type=collections.OrderedDict)
+            plist = plistlib.load(f, dict_type=OrderedDict)
 
         for name, layout in self._project.layouts.items():
             out_dir = os.path.join(build_dir, 'Generated', name)
@@ -497,7 +927,7 @@ class AppleiOSGenerator(Generator):
         # Hosting app plist
         with open(os.path.join(build_dir, 'HostingApp',
                     'Info.plist'), 'rb') as f:
-            plist = plistlib.load(f, dict_type=collections.OrderedDict)
+            plist = plistlib.load(f, dict_type=OrderedDict)
 
         with open(os.path.join(build_dir, 'HostingApp',
                     'Info.plist'), 'wb') as f:
@@ -592,7 +1022,7 @@ class AppleiOSGenerator(Generator):
                 'Images.xcassets', 'AppIcon.appiconset')
 
         with open(os.path.join(path, "Contents.json")) as f:
-            contents = json.load(f, object_pairs_hook=collections.OrderedDict)
+            contents = json.load(f, object_pairs_hook=OrderedDict)
 
         cmd_tmpl = "convert -background white -alpha remove -resize %dx%d %s %s"
 
@@ -917,7 +1347,7 @@ class AndroidGenerator(Generator):
 
         files = []
 
-        layouts = collections.defaultdict(list)
+        layouts = defaultdict(list)
 
         for name, kbd in self._project.layouts.items():
 

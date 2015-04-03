@@ -95,6 +95,22 @@ class Keyboard:
         return self._tree['locale']
 
     @property
+    def special(self):
+        return self._tree['special']
+
+    @property
+    def decimal(self):
+        return self._tree['decimal']
+
+    @property
+    def dead_keys(self):
+        return self._tree['deadKeys']
+
+    @property
+    def transforms(self):
+        return self._tree['transforms']
+
+    @property
     def modifiers(self):
         return self._tree['modifiers']
 
@@ -166,8 +182,9 @@ class Parser:
             if key not in tree:
                 raise Exception("%s key missing from file." % key)
 
-        if 'default' not in tree['modes']:
-            raise Exception("No default mode supplied in file.")
+        # TODO move this to android and ios generators
+        #if 'default' not in tree['modes']:
+        #    raise Exception("No default mode supplied in file.")
 
         if 'modifiers' not in tree or tree.get('modifiers', None) is None:
             tree['modifiers'] = []
@@ -189,6 +206,7 @@ class Parser:
             if isinstance(strings, dict):
                 strdicts.append((mode, strings))
             else:
+                # TODO wtf can this even be reached??
                 tree['modes'][mode] = [re.split(r"\s+", x.strip()) for x in strings]
                 keycache[mode] = {}
                 for y, row in enumerate(tree['modes'][mode]):
@@ -210,7 +228,7 @@ class Parser:
         for longpress, strings in tree['longpress'].items():
             tree['longpress'][longpress] = re.split(r"\s+", strings.strip())
 
-        for style, styles in tree['styles'].items():
+        for style, styles in tree.get('styles', {}).items():
             for action, info in styles['actions'].items():
                 styles['actions'][action] = Action(info[0], info[1], info[2])
 

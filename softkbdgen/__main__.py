@@ -39,14 +39,22 @@ def main():
         print(e)
         sys.exit(1)
 
-    if args.target not in ["android", "ios"]:
-        print("Error: only 'android' and 'ios' are supported currently.")
+    generators = {
+        "android": gen.AndroidGenerator,
+        "ios": gen.AppleiOSGenerator,
+        "osx": gen.OSXGenerator,
+        "win": gen.WindowsGenerator,
+        "x11": gen.XKBGenerator
+    }
+
+    generator = generators.get(args.target, None)
+
+    if generator is None:
+        print("Error: '%s' is not a valid target." % args.target)
+        print("Valid targets: %s" % ", ".join(generators))
         sys.exit(1)
 
-    if args.target == "android":
-        x = gen.AndroidGenerator(project, dict(args._get_kwargs()))
-    elif args.target == "ios":
-        x = gen.AppleiOSGenerator(project, dict(args._get_kwargs()))
+    x = generator(project, dict(args._get_kwargs()))
 
     try:
         x.generate()
