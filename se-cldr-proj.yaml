@@ -1,0 +1,33 @@
+internalName: sami_keyboard
+
+locales:
+  en:
+    name: &bundleName "Brendan's Sami Keyboard"
+    description: "A test keyboard for Northern and Kildin Sami."
+  nb:
+    name: "Samisk Tastatur"
+    description: "Et testtastatur for nordsamisk og kildinsamisk."
+
+author: Brendan Molloy
+email: brendan@bbqsrc.net
+
+layouts: [se-cldr]
+
+version: "1.0"
+build: "1"
+
+targets:
+  android:
+    packageId: so.brendan.keyboards.sami
+    icon: sami-icon.pdf
+    keyStore: /Users/brendan/git/softkbdgen/sami_keyboard.keystore
+    keyAlias: sami_keyboard
+  ios: &fuu
+    codeSignId: "iOS Development"
+    provisioningProfileId: Test
+    packageId: so.brendan.keyboards.sami
+    icon:
+        90: sami-icon-small.png
+        150: sami-icon.png
+    bundleName: *bundleName
+  osx: *fuu
