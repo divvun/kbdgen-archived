@@ -1,7 +1,7 @@
-internalName: se-t-k0-osx
+internalName: se-cldr
 
 displayNames:
-  se: Northern Sami
+  se: Northern Sami (CLDR)
 
 locale: se
 
@@ -26,11 +26,11 @@ modes:
     q w é ˇ þ y ˀ ʼ œ ˙ ˚ ¨
     ¯ ß ð ƒ . ˛ ˘ ˜ - ö ä @
     < ÷ x ¸ ‹ › ‘ ’ ‚ … –
-  #"iso-alt+shift": |
-  #  § ¡ ® ¥ ¢ ̂ ¶ \ { } ̋ ¿
-  #  Q W É ̌ Þ Y ̉ ̛ Œ
-  #  ̄ № Ð ʔ ̣ ̨ ̆ ̃ ̵ Ö Ä *
-  #  > ⁄ X ̧ « » “ ” „ · —
+  "iso-alt+shift": |
+    § ¡ ® ¥ ¢ ̂ ¶ \ { } ̋ ¿ \u{300}
+    Q W É ̌ Þ Y ̉ ̛ Œ \u{307} \u{30A} \u{308}
+    ̄ № Ð ʔ ̣ ̨ ̆ ̃ ̵ Ö Ä *
+    > ⁄ X ̧ « » “ ” „ · —
   "iso-alt+caps": |
     ' © ™ £ € ˆ § | [ ] ˝ ±
     Q W É ˇ Þ Y ˀ ʼ Œ ˙ ˚ ¨

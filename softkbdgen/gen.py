@@ -521,8 +521,8 @@ class WindowsGenerator(Generator):
                 f.write(data.replace('\n', '\r\n'))
 
     def _klc_write_headers(self, layout, buf):
-        buf.write('KBD\t%s\t"%s"\n\n' % (
-            layout.internal_name.replace(" ", ""),
+        buf.write('KBD\tkbd%s\t"%s"\n\n' % (
+            re.sub(r'[^A-Za-z0-9]', "", layout.internal_name)[:5],
             layout.display_names[layout.locale]))
 
         # TODO copyright strings? fuuu
@@ -551,7 +551,7 @@ class WindowsGenerator(Generator):
         caps = mode_iter(layout, 'iso-caps')
         altcaps = mode_iter(layout, 'iso-alt+caps')
 
-        def win_filter(*args):
+        def win_filter(*args, force=False):
             def wf(v):
                 """actual filter function"""
                 if v is None:
@@ -563,7 +563,7 @@ class WindowsGenerator(Generator):
                 v = CP_REGEX.sub(lambda x: chr(int(x.group(1), 16)), v)
 
                 # check for anything outsize A-Za-z range
-                if re.match("^[A-Za-z]$", v):
+                if not force and re.match("^[A-Za-z]$", v):
                     return v
 
                 return "%04x" % ord(v)
@@ -618,12 +618,23 @@ class WindowsGenerator(Generator):
         for basekey, o in layout.transforms.items():
             buf.write("\nDEADKEY\t%s\n\n" % win_filter(basekey))
             for key, output in o.items():
-                key = str(key)
-                key = str(output)
-                if len(key) != 1 or len(output) != 1:
-                    print("WARNING: %s%s -> %s is invalid for Windows deadkeys; skipping." % (basekey, key, output))
+                if key == ' ':
                     continue
-                buf.write("%s\t%s\t// %s -> %s\n" % (win_filter(key, output) + (key, output)))
+
+                key = str(key)
+                output = str(output)
+
+                if len(key) != 1 or len(output) != 1:
+                    print(("WARNING: %s%s -> %s is invalid for Windows " +
+                           "deadkeys; skipping.") % (basekey, key, output))
+                    continue
+                buf.write("%s\t%s\t// %s -> %s\n" % (
+                    win_filter(key, output, force=True) + (key, output)))
+
+            # Create fallback key from space, or the basekey.
+            output = o.get(' ', basekey)
+            buf.write("0020\t%s\t// fallback -> %s\n" % (
+                win_filter(output)[0], output))
 
 
     def generate_klc(self, layout):
