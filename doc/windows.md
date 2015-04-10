@@ -1,9 +1,9 @@
-# Required software
+## Required software
 
 * Microsoft Keyboard Layout Creator
   * <http://www.microsoft.com/en-us/download/details.aspx?id=22339>
 
-# Usage
+## Usage
 
 Just run `softkbdgen` with `--target win` to generate the MS Keyboard Layout
 Creator `.klc` files for your project.
@@ -15,7 +15,7 @@ Simply load the generated files in MSKLC, and select
 and 64-bit versions of Windows. Compatibility can only be guaranteed for
 Windows 7 and later.
 
-# Mappings between modes in descriptor files and Windows keyboards
+## Mappings between modes in descriptor files and Windows keyboards
 
 - **iso-default**: Base keyboard
 - **iso-shift**: Shift pressed
@@ -27,7 +27,7 @@ Windows 7 and later.
 
 Any other modes are ignored by this target.
 
-# Other useful information
+## Other useful information
 
 * Windows keyboard identifiers must be unique, are 8 characters long and
   begin with `kbd`. The next 5 characters are generated from the next 5
