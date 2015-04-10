@@ -14,6 +14,7 @@ class Project:
     def __init__(self, tree):
         self._tree = tree
 
+    # TODO properties should never throw.
     @property
     def locales(self):
         return self._tree['locales']
@@ -49,6 +50,14 @@ class Project:
     @property
     def build(self):
         return self._tree['build']
+
+    @property
+    def copyright(self):
+        return self._tree.get('copyright', '')
+
+    @property
+    def organisation(self):
+        return self._tree.get('organisation', '')
 
     def target(self, target):
         return self._tree['targets'].get(target, {}) or {}

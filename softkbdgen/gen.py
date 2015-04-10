@@ -14,6 +14,7 @@ import itertools
 
 from textwrap import dedent, indent
 from collections import OrderedDict, defaultdict
+from itertools import zip_longest
 
 import pycountry
 from lxml import etree
@@ -38,11 +39,19 @@ class MissingApplicationException(Exception): pass
 # TODO move into util module...
 def mode_iter(layout, key, required=False, fallback=None):
     mode = layout.modes.get(key, None)
-    if mode:
+    if mode is None:
+        if required:
+            raise Exception("'%s' has a required mode." % key)
+        return itertools.repeat(fallback)
+
+    if isinstance(mode, dict):
+        def wrapper():
+            for iso in WIN_KEYMAP:
+                yield mode.get(iso, fallback)
+        return wrapper()
+    else:
+        print("List: %s" % mode)
         return itertools.chain.from_iterable(mode)
-    if required:
-        raise Exception("'%s' has a required mode." % key)
-    return itertools.repeat(fallback)
 
 
 def git_clone(src, dst, branch, cwd='.'):
@@ -501,6 +510,9 @@ WIN_VK_MAP = OrderedDict(((k, v) for k, v in zip(WIN_KEYMAP.keys(), (
 #TODO move to cldr.py
 CP_REGEX = re.compile(r"\\u{(.+?)}")
 
+def decode_u(v):
+    return CP_REGEX.sub(lambda x: chr(int(x.group(1), 16)), v)
+
 class WindowsGenerator(Generator):
     def generate(self, base='.'):
         outputs = OrderedDict()
@@ -525,9 +537,11 @@ class WindowsGenerator(Generator):
             re.sub(r'[^A-Za-z0-9]', "", layout.internal_name)[:5],
             layout.display_names[layout.locale]))
 
-        # TODO copyright strings? fuuu
-        buf.write('COPYRIGHT\t"(c) 2015 The Developers"\n\n')
-        buf.write('COMPANY\t"???"\n\n')
+        copyright = self._project.copyright
+        organisation = self._project.organisation
+
+        buf.write('COPYRIGHT\t"%s"\n\n' % copyright)
+        buf.write('COMPANY\t"%s"\n\n' % organisation)
         buf.write('LOCALENAME\t"%s"\n\n' % layout.locale)
         # Use fallback ID in every case (MS-LCID)
         buf.write('LOCALEID\t"00001000"\n\n')
@@ -560,7 +574,7 @@ class WindowsGenerator(Generator):
                 if re.match(r"^\d{4}$", v):
                     return v
 
-                v = CP_REGEX.sub(lambda x: chr(int(x.group(1), 16)), v)
+                v = decode_u(v)
 
                 # check for anything outsize A-Za-z range
                 if not force and re.match("^[A-Za-z]$", v):
@@ -570,8 +584,20 @@ class WindowsGenerator(Generator):
 
             return tuple(wf(i) for i in args)
 
-        for (sc, vk, c0, c1, c2, c6, c7, cap) in zip(WIN_KEYMAP.values(),
-                WIN_VK_MAP.values(), col0, col1, col2, col6, col7, caps):
+        def win_ligature(v):
+            o = tuple('%04x' % ord(c) for c in decode_u(v))
+            if len(o) > 4:
+                raise Exception('Ligatures cannot be longer than 4 codepoints.')
+            return o
+
+        # Hold all the ligatures
+        ligatures = []
+
+        for (sc, vk, c0, c1, c2, c6, c7, cap) in zip_longest(WIN_KEYMAP.values(),
+                WIN_VK_MAP.values(), col0, col1, col2, col6, col7, caps,
+                fillvalue="-1"):
+
+            print((sc, vk, c0, c1, c2, c6, c7, cap))
             # TODO cap state (last one) 5 means caps applies in altgr state
             # TODO handle the altgr caps
 
@@ -583,14 +609,20 @@ class WindowsGenerator(Generator):
             if len(vk) < 8:
                 vk += "\t"
             buf.write("%s\t%s\t%s" % (sc, vk, cap_mode))
-            for mode, key in (('iso-default', c0),
-                              ('iso-shift', c1),
-                              ('iso-ctrl', c2),
-                              ('iso-alt', c6),
-                              ('iso-alt+shift', c7)):
-                buf.write("\t%s" % win_filter(key))
-                if key in layout.dead_keys.get(mode, []):
-                    buf.write("@")
+            for n, mode, key in ((0, 'iso-default', c0),
+                                 (1, 'iso-shift', c1),
+                                 (2, 'iso-ctrl', c2),
+                                 (6, 'iso-alt', c6),
+                                 (7, 'iso-alt+shift', c7)):
+
+                filtered = decode_u(key or '')
+                if key is not None and len(filtered) > 1:
+                    buf.write("\t%%")
+                    ligatures.append((filtered, (vk, str(n)) + win_ligature(key)))
+                else:
+                    buf.write("\t%s" % win_filter(key))
+                    if key in layout.dead_keys.get(mode, []):
+                        buf.write("@")
 
             buf.write("\t  // %s %s %s %s %s\n" % (c0, c1, c2, c6, c7))
 
@@ -609,14 +641,25 @@ class WindowsGenerator(Generator):
                 ))
 
         # Decimal key on keypad.
-        buf.write("53\tDECIMAL\t\t0\t%s\t%s\t-1\t-1\t-1\n" % win_filter(
+        buf.write("53\tDECIMAL\t\t0\t%s\t%s\t-1\t-1\t-1\n\n" % win_filter(
             layout.decimal, layout.decimal))
 
-        buf.write('\n')
+        # Ligatures!
+        if len(ligatures) > 0:
+            buf.write("LIGATURE\n\n")
+            buf.write("//VK_\tMod#\tChr0\tChr1\tChr2\tChr3\n")
+            buf.write("//----\t----\t----\t----\t----\t----\n\n")
+            for original, row in ligatures:
+                more_tabs = len(row)-7
+                buf.write("%s\t\t%s%s\t// %s\n" % (row[0],
+                    "\t".join(row[1:]),
+                    '\t' * more_tabs,
+                    original))
+            buf.write('\n')
 
         # Deadkeys!
         for basekey, o in layout.transforms.items():
-            buf.write("\nDEADKEY\t%s\n\n" % win_filter(basekey))
+            buf.write("DEADKEY\t%s\n\n" % win_filter(basekey))
             for key, output in o.items():
                 if key == ' ':
                     continue
@@ -633,7 +676,7 @@ class WindowsGenerator(Generator):
 
             # Create fallback key from space, or the basekey.
             output = o.get(' ', basekey)
-            buf.write("0020\t%s\t// fallback -> %s\n" % (
+            buf.write("0020\t%s\t// fallback -> %s\n\n" % (
                 win_filter(output)[0], output))
 
 
@@ -1830,7 +1873,6 @@ class AndroidGenerator(Generator):
                             layout.internal_name,
                             c, ord(c), api_ver))
 
-    # TODO finish this method
     def detect_unavailable_glyphs_keys(self, key, api_ver):
         glyphs = ANDROID_GLYPHS.get(api_ver, None)
         if glyphs is None:
