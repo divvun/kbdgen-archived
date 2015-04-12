@@ -642,7 +642,7 @@ class WindowsGenerator(Generator):
 
         # Space, such special case oh my.
         buf.write("39\tSPACE\t\t0\t")
-        if layout.special.get('space', None) is None:
+        if 'space' not in layout.special:
             buf.write("0020\t0020\t0020\t-1\t-1\n")
         else:
             o = layout.special['space']
@@ -1379,7 +1379,7 @@ class AppleiOSGenerator(Generator):
         o = []
         for key, node, attr_node in [(n.attrib['value'], n.getparent().getparent(), n)
                 for n in tree.xpath("//*[@keyPath='translate']")]:
-            if node.attrib.get('placeholder', None) is not None:
+            if 'placeholder' in node.attrib:
                 o.append(("%s.placeholder" % node.attrib['id'], key))
             if 'text' in node.attrib or\
                     node.find("string[@key='text']") is not None:

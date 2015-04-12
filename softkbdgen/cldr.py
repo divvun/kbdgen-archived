@@ -1,6 +1,8 @@
 import lxml.etree
 import itertools
 import re
+import datetime
+import os.path
 
 from lxml.etree import Element, SubElement
 from io import StringIO
@@ -160,10 +162,18 @@ class CLDRKeyboard:
         "caps+shift": "iso-shift+caps",
         "opt+shift+cmd?": "iso-alt+shift",
         "opt+caps": "iso-alt+caps",
+        "opt+caps?": "iso-alt",
+        "opt+shift+caps?": "iso-alt+shift",
         "opt+caps+shift": "iso-alt+shift+caps"
     }
 
-    def __init__(self, data):
+    @classmethod
+    def from_file(cls, f):
+        return cls(f.read(), filename=os.path.basename(f.name))
+
+    def __init__(self, data, filename=None):
+        self._filename = filename
+
         self._modes = OrderedDict()
 
         # Actual transforms themselves
@@ -207,13 +217,13 @@ class CLDRKeyboard:
 
             # OS X definitions are in a pseudo-ANSI format that inverts
             # the E00 and B00 keys. No idea why.
-            if is_osx:
+            if is_osx and 'B00' in o:
                 tmp = o['E00']
                 o['E00'] = o['B00']
                 o['B00'] = tmp
 
             # Force ANSI-style keys into the ISO world.
-            if o.get('D13', None) is not None:
+            if 'D13' in o:
                 o['C12'] = o['D13']
                 del o['D13']
 
@@ -231,6 +241,11 @@ class CLDRKeyboard:
 
     def as_yaml(self):
         x = StringIO()
+
+        x.write("### Generated from %s on %s.\n\n" % (
+                self._filename or "string data",
+                datetime.datetime.utcnow().strftime("%Y-%m-%d at %H:%M")
+            ))
 
         x.write("internalName: %s\n\n" % self._internal_name)
         x.write("displayNames:\n  %s: %s\n\n" % (self._locale, self._name))
@@ -264,9 +279,10 @@ class CLDRKeyboard:
             for ch, v in o.items():
                 x.write('    %s: %s\n' % (filtered(ch), filtered(v)))
 
-        x.write("\nspecial:\n  space:\n")
-        for mode, v in self._space.items():
-            x.write('    %s: %s\n' % (mode, filtered(v)))
+        if len(self._space) > 0:
+            x.write("\nspecial:\n  space:\n")
+            for mode, v in self._space.items():
+                x.write('    %s: %s\n' % (mode, filtered(v)))
 
         return x.getvalue()
 
@@ -283,7 +299,7 @@ def kbd2yaml_main():
                    default=sys.stdout)
     args = p.parse_args()
 
-    args.yaml.write(CLDRKeyboard(args.cldr_xml.read()).as_yaml())
+    args.yaml.write(CLDRKeyboard.from_file(args.cldr_xml).as_yaml())
 
 if __name__ == "__main__":
     kbd2yaml_main()
