@@ -213,7 +213,9 @@ class Parser:
             elif isinstance(strings, str):
                 strings = strings.strip().split('\n')
             if isinstance(strings, dict):
-                strdicts.append((mode, strings))
+                # TODO abuse the strdicts loop, for now just add to modes.
+                #strdicts.append((mode, strings))
+                pass
             else:
                 # TODO wtf can this even be reached??
                 tree['modes'][mode] = [re.split(r"\s+", x.strip()) for x in strings]

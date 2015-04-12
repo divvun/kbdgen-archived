@@ -23,6 +23,8 @@ from lxml.etree import Element, SubElement
 from . import boolmap
 from . import cldr
 
+from .cldr import CP_REGEX, decode_u
+
 ANDROID_GLYPHS = {}
 
 for api in range(16, 21+1):
@@ -50,7 +52,6 @@ def mode_iter(layout, key, required=False, fallback=None):
                 yield mode.get(iso, fallback)
         return wrapper()
     else:
-        print("List: %s" % mode)
         return itertools.chain.from_iterable(mode)
 
 
@@ -485,7 +486,7 @@ WIN_KEYMAP = OrderedDict((
     ("C09", "26"),
     ("C10", "27"),
     ("C11", "28"),
-    ("C12", "2b"),
+    ("D13", "2b"), #C12
     ("B00", "56"),
     ("B01", "2c"),
     ("B02", "2d"),
@@ -508,11 +509,6 @@ WIN_VK_MAP = OrderedDict(((k, v) for k, v in zip(WIN_KEYMAP.keys(), (
 ))))
 
 #TODO move to cldr.py
-CP_REGEX = re.compile(r"\\u{(.+?)}")
-
-def decode_u(v):
-    return CP_REGEX.sub(lambda x: chr(int(x.group(1), 16)), v)
-
 class WindowsGenerator(Generator):
     def generate(self, base='.'):
         outputs = OrderedDict()
@@ -562,8 +558,12 @@ class WindowsGenerator(Generator):
         col6 = mode_iter(layout, 'iso-alt')
         col7 = mode_iter(layout, 'iso-alt+shift')
 
+        # TODO support SGCAP!
+
         caps = mode_iter(layout, 'iso-caps')
         altcaps = mode_iter(layout, 'iso-alt+caps')
+        #capsshift = mode_iter(layout, 'iso-shift+caps')
+        #altcapsshift = mode_iter(layout, 'iso-alt+shift+caps')
 
         def win_filter(*args, force=False):
             def wf(v):
@@ -702,7 +702,7 @@ OSX_KEYMAP = {
     'B02': '7',
     'B03': '8',
     'B04': '9',
-    'B00': '10',
+    'B00': '50', # E00 flipped!
     'B05': '11',
     'D01': '12',
     'D02': '13',
@@ -728,6 +728,7 @@ OSX_KEYMAP = {
     'D11': '33',
     'D08': '34',
     'D10': '35',
+    # U WOT 36 - space yeah yeah
     'C09': '37',
     'C07': '38',
     'C11': '39',
@@ -739,17 +740,253 @@ OSX_KEYMAP = {
     'B06': '45',
     'B07': '46',
     'B09': '47',
+    # U WOT 48 - backspace yeah yeah
     'A03': '49',
-    'E00': '50',
+    'E00': '10', # B00 flipped!
     'E13': '93',
     'B11': '94'
 }
+
+OSX_HARDCODED = OrderedDict((
+    ("36", r"\u{D}"),
+    ("48", r"\u{9}"),
+    ("51", r"\u{8}"),
+    ("53", r"\u{1B}"),
+    ("64", r"\u{10}"),
+    ("66", r"\u{1D}"),
+    ("70", r"\u{1C}"),
+    ("71", r"\u{1B}"),
+    ("72", r"\u{1F}"),
+    ("76", r"\u{3}"),
+    ("77", r"\u{1E}"),
+    ("79", r"\u{10}"),
+    ("80", r"\u{10}"),
+    ("96", r"\u{10}"),
+    ("97", r"\u{10}"),
+    ("98", r"\u{10}"),
+    ("99", r"\u{10}"),
+    ("100", r"\u{10}"),
+    ("101", r"\u{10}"),
+    ("103", r"\u{10}"),
+    ("105", r"\u{10}"),
+    ("106", r"\u{10}"),
+    ("107", r"\u{10}"),
+    ("109", r"\u{10}"),
+    ("111", r"\u{10}"),
+    ("113", r"\u{10}"),
+    ("114", r"\u{5}"),
+    ("115", r"\u{1}"),
+    ("116", r"\u{B}"),
+    ("117", r"\u{7F}"),
+    ("118", r"\u{10}"),
+    ("119", r"\u{4}"),
+    ("120", r"\u{10}"),
+    ("121", r"\u{C}"),
+    ("122", r"\u{10}"),
+    ("123", r"\u{1C}"),
+    ("124", r"\u{1D}"),
+    ("125", r"\u{1F}"),
+    ("126", r"\u{1E}")
+))
 
 def iterable_set(iterable):
     return {i for i in itertools.chain.from_iterable(iterable)}
 
 def random_id():
-    return str(-random.randrange(1, 65536))
+    return str(-random.randrange(1, 32768))
+
+class OSXKeyLayout:
+    doctype = '<!DOCTYPE keyboard PUBLIC "" ' +\
+              '"file://localhost/System/Library/DTDs/KeyboardLayout.dtd">'
+
+    modes = OrderedDict((
+        ('iso-default', ('command?', 'anyShift? caps? command')),
+        ('iso-shift', ('anyShift caps?',)),
+        ('iso-caps', ('caps',)),
+        ('iso-shift+caps', ('anyShift caps',)),
+        ('iso-alt', ('anyOption', 'caps? anyOption command')),
+        ('iso-alt+shift', ('anyShift anyOption',
+                           'anyShift caps? anyOption command')),
+        ('iso-alt+caps', ('caps anyOption',)),
+        ('iso-alt+shift+caps', ('anyShift anyOption caps',)),
+        ('iso-ctrl', (
+            "anyShift? caps? anyOption? anyControl",
+            "anyShift? anyOption? command? anyControl",
+            "anyShift caps anyOption command rightControl",
+            "anyShift caps rightOption? command anyControl",
+            "rightShift? caps anyOption command anyControl",
+            "anyShift caps anyOption command control",
+            "anyShift caps option? command anyControl",
+            "shift? caps anyOption command anyControl",
+            "caps? anyOption? command? anyControl"))
+        ))
+
+    def __bytes__(self):
+        """XML almost; still encode the control chars. Death to standards!"""
+        v = CP_REGEX.sub(lambda x: "&#x%04X;" % int(x.group(1), 16),
+                str(self))
+        # TODO compile not sub
+        v = re.sub(r"[^\0-\u02af]",
+                lambda x: "&#x%04X;" % ord(x.group(0)),
+                v)
+
+        return ('<?xml version="1.0" encoding="UTF-8"?>\n%s' % v).encode('utf-8')
+
+    def __str__(self):
+        return etree.tostring(self.elements['root'], encoding='unicode',
+                           doctype=self.doctype, pretty_print=True)
+
+    def __init__(self, name, id_):
+        modifiers_ref = "modifiers"
+        mapset_ref = "default"
+
+        self.elements = {}
+
+        root = Element('keyboard', group="126", id=id_, name=name)
+        self.elements['root'] = root
+
+        self.elements['layouts'] = SubElement(root, 'layouts')
+
+        SubElement(self.elements['layouts'], 'layout', first="0", last="17",
+                mapSet=mapset_ref, modifiers=modifiers_ref)
+
+        self.elements['modifierMap'] = SubElement(root, 'modifierMap',
+                id=modifiers_ref, defaultIndex="0")
+
+        self.elements['keyMapSet'] = SubElement(root, 'keyMapSet',
+                id=mapset_ref)
+
+        self.elements['actions'] = SubElement(root, 'actions')
+
+        self.elements['terminators'] = SubElement(root, 'terminators')
+
+        self.key_cache = {}
+        self.kmap_cache = {}
+        self.action_cache = {}
+
+        self._n = 0
+        #self._init_modifier_maps()
+
+    def _add_modifier_map(self, mode):
+        mm = self.elements['modifierMap']
+        kms = self.elements['keyMapSet']
+
+        node = SubElement(mm, 'keyMapSelect', mapIndex=str(self._n))
+        for mod in self.modes[mode]:
+            SubElement(node, 'modifier', keys=mod)
+
+        self.kmap_cache[mode] = SubElement(kms, 'keyMap', index=str(self._n))
+        self._n += 1
+        return self.kmap_cache[mode]
+
+    def _init_modifier_maps(self):
+        mm = self.elements['modifierMap']
+        kms = self.elements['keyMapSet']
+
+        for n, (mode, mods) in enumerate(self.modes.items()):
+            node = SubElement(mm, 'keyMapSelect', mapIndex=str(n))
+            for mod in mods:
+                SubElement(node, 'modifier', keys=mod)
+
+            self.kmap_cache[mode] = SubElement(kms, 'keyMap', index=str(n))
+
+    def _get_kmap(self, mode):
+        kmap = self.kmap_cache.get(mode, None)
+        if kmap is not None:
+            return kmap
+        return self._add_modifier_map(mode)
+
+    def _set_key(self, mode, key, key_id, action=None, output=None):
+        if action is not None and output is not None:
+            raise Exception("Cannot specify contradictory action and output.")
+
+        key_key = "%s %s" % (mode, key_id)
+
+        node = self.key_cache.get(key_key, None)
+
+        if node is None:
+            kmap_node = self._get_kmap(mode)
+            node = SubElement(kmap_node, "key", code=key_id)
+            self.key_cache[key_key] = node
+
+        if action is not None:
+            node.attrib['action'] = action
+            if node.attrib.get('output', None):
+                del node.attrib['output']
+        elif output is not None:
+            node.attrib['output'] = output
+            if node.attrib.get('action', None):
+                del node.attrib['action']
+
+    def _set_default_action(self, action_id):
+        pressed_id = "%s Pressed" % action_id
+        action = self.action_cache.get(action_id, None)
+
+        if action is None:
+            action = SubElement(self.elements['actions'], 'action',
+                     id=action_id)
+            self.action_cache[action_id] = action
+
+        if len(action.xpath('when[@state="none"]')) == 0:
+            SubElement(action, 'when', state='none', next=pressed_id)
+
+    def _set_terminator(self, action_id, output):
+        termin = self.elements['terminators'].xpath(
+                        'when[@state="%s"]' % action_id)
+
+        if len(termin) == 0:
+            SubElement(self.elements['terminators'], 'when', state=action_id,
+                    output=output)
+
+    def _set_default_transform(self, action_id, output):
+        action = self.action_cache.get(action_id, None)
+
+        # TODO create a generic create or get method for actions
+        if action is None:
+            action = SubElement(self.elements['actions'], 'action',
+                     id=action_id)
+            self.action_cache[action_id] = action
+
+        if len(action.xpath('when[@state="none"]')) == 0:
+            SubElement(action, 'when', state='none', output=output)
+
+    def set_key(self, mode, key, key_id):
+        self._set_key(mode, key, key_id, output=key)
+
+    def set_deadkey(self, mode, key, key_id, output):
+        """output is the output when the deadkey is followed by an invalid"""
+        action_id = "Key %s" % key
+        pressed_id = "%s Pressed" % action_id
+
+        self._set_key(mode, key, key_id, action=action_id)
+
+        # Create default action (set to pressed state)
+        self._set_default_action(action_id)
+        self._set_terminator(pressed_id, output)
+
+    def set_transform_key(self, mode, key, key_id):
+        action_id = "Key %s" % key
+        pressed_id = "%s Pressed" % action_id
+
+        self._set_key(mode, key, key_id, action=pressed_id)
+
+        # Find action, add none state (move the output)
+        self._set_default_transform(pressed_id, key)
+
+    def add_transform(self, action_id, state, output=None, next=None):
+        action = self.action_cache.get(action_id, None)
+
+        if action is None:
+            raise Exception("'%s' was not a found action_id." % action_id)
+
+        if state is not None and next is not None:
+            raise Exception("State and next cannot be simultaneously defined.")
+
+        if output is not None:
+            SubElement(action, 'when', state=state, output=output)
+        elif next is not None:
+            SubElement(action, 'when', state=state, next=next)
+
 
 class OSXGenerator(Generator):
     def generate(self, base='.'):
@@ -759,7 +996,7 @@ class OSXGenerator(Generator):
         o = OrderedDict()
 
         for name, layout in self._project.layouts.items():
-            o[name] = self.generate_xml(name, layout)
+            o[name] = self.generate_xml(layout)
 
         if self.dry_run:
             print("Dry run completed.")
@@ -774,7 +1011,9 @@ class OSXGenerator(Generator):
         bundle_path = self.create_bundle(self.build_dir)
         res_path = os.path.join(bundle_path, "Contents", "Resources")
 
-        for fn, data in o.items():
+        for name, data in o.items():
+            layout = self._project.layouts[name]
+            fn = layout.display_names[layout.locale]
             with open(os.path.join(res_path, "%s.keylayout" % fn), 'w') as f:
                 f.write(data)
 
@@ -785,24 +1024,47 @@ class OSXGenerator(Generator):
         os.makedirs(os.path.join(bundle_path, 'Contents', 'Resources'),
             exist_ok=True)
 
+        bundle_id = "%s.keyboardlayout.%s" % (
+                self._project.target('osx')['packageId'],
+                self._project.internal_name
+            )
+
+        target_tmpl = indent(dedent("""\
+<key>KLInfo_%s</key>
+<dict>
+    <key>TISInputSourceID</key>
+    <string>%s.%s</string>
+    <key>TISIntendedLanguage</key>
+    <string>%s</string>
+</dict>"""), "        ")
+
+        targets = []
+        for name, layout in self._project.layouts.items():
+            name = layout.display_names[layout.locale]
+            bundle_chunk = name.lower().replace(' ', '')
+            targets.append(target_tmpl % (name, bundle_id, bundle_chunk,
+                layout.locale))
+
         with open(os.path.join(bundle_path, 'Contents', "Info.plist"), 'w') as f:
             f.write(dedent("""\
-                <?xml version="1.0" encoding="UTF-8"?>
-                <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-                <plist version="1.0">
-                <dict>
-                    <key>CFBundleIdentifier</key>
-                    <string>%s</string>
-                    <key>CFBundleName</key>
-                    <string>%s</string>
-                    <key>CFBundleVersion</key>
-                    <string>%s</string>
-                </dict>
-                </plist>
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <key>CFBundleIdentifier</key>
+        <string>%s</string>
+        <key>CFBundleName</key>
+        <string>%s</string>
+        <key>CFBundleVersion</key>
+        <string>%s</string>
+%s
+    </dict>
+</plist>
                 """) % (
-                    self._project.target('osx')['packageId'],
+                    bundle_id,
                     self._project.target('osx')['bundleName'],
-                    self._project.build
+                    self._project.build,
+                    '\n'.join(targets)
                 )
             )
 
@@ -823,60 +1085,64 @@ class OSXGenerator(Generator):
             print("Application ended with error code %s." % process.returncode)
             sys.exit(process.returncode)
 
+    def generate_xml(self, layout):
+        name = layout.display_names[layout.locale]
+        out = OSXKeyLayout(name, random_id())
 
-    def generate_xml(self, name, layout):
-        tree = Element('keyboard', group="126", id=random_id(), name=name)
+        # Naively add all keys
+        for mode_name in OSXKeyLayout.modes:
+            # TODO throw on null
+            mode = layout.modes.get(mode_name, None)
+            if mode is None:
+                print("WARNING: layout '%s' has no mode '%s'" % (
+                    layout.internal_name, mode_name))
+                continue
 
-        modifiers_ref = "Modifiers"
-        mapset_ref = "Default"
-
-        layout_node = SubElement(tree, 'layouts')
-        SubElement(layout_node, 'layout', first='0', last='17',
-                modifiers=modifiers_ref, mapSet=mapset_ref)
-
-        modmap = SubElement(tree, 'modifierMap', id=modifiers_ref, defaultIndex='0')
-
-        # THE REST
-
-        actions, terminators = self.generate_deadkeys(layout)
-        tree.append(actions)
-        tree.append(terminators)
-
-        return etree.tostring(tree, pretty_print=True, encoding="utf-8").decode('utf-8')
-
-    def generate_deadkeys(self, layout):
-        actions = Element('actions')
-        terminators = Element('terminators')
-        dead_keys = iterable_set(layout.dead_keys.values())
-
-        for key in dead_keys:
-            key_id = "Key %s" % key
-            key_pressed = "%s Pressed" % key_id
-            node = SubElement(actions, "action", id=key_id)
-            SubElement(node, 'when', state="none", next=key_pressed)
-
-            # TODO catch errors here
-            SubElement(terminators, 'when', state=key_pressed,
-                       output=layout.transforms[key][" "])
-
-        key_map = {}
-
-        for base, transforms in layout.transforms.items():
-            for transform_from, transform_to in transforms.items():
-                transform_from = str(transform_from)
-                transform_to = str(transform_to)
-
-                if transform_from == ' ':
+            if isinstance(mode, dict):
+                keyiter = mode_iter(layout, mode_name)
+            else:
+                keyiter = itertools.chain.from_iterable(mode)
+            action_keys = { str(i) for j in layout.transforms.keys()
+                             for i in layout.transforms[j] }
+            for (iso, key) in zip(WIN_KEYMAP, keyiter):
+                if key is None:
                     continue
-                if transform_from not in key_map:
-                    key_map[transform_from] = Element('action', id="Key %s" % transform_from)
-                    SubElement(key_map[transform_from], 'when', state="none", output=transform_from)
-                SubElement(key_map[transform_from], 'when', state="Key %s Pressed" % base, output=transform_to)
 
-        for k, v in sorted(key_map.items()):
-            actions.append(v)
+                key_id = OSX_KEYMAP[iso]
 
-        return (actions, terminators)
+                if key in layout.dead_keys.get(mode_name, []):
+                    out.set_deadkey(mode_name, key, key_id,
+                            layout.transforms[key].get(' ', key))
+                else:
+                    out.set_key(mode_name, key, key_id)
+
+                # Now cater for transforms too
+                if key in action_keys:
+                    out.set_transform_key(mode_name, key, key_id)
+
+            # Space bar special case
+            sp = layout.special.get('space', {}).get(mode_name, " ")
+            out.set_key(mode_name, sp, "49")
+            out.set_transform_key(mode_name, sp, "49")
+
+            # Add hardcoded keyboard bits
+            for key_id, key in OSX_HARDCODED.items():
+                out.set_key(mode_name, key, key_id)
+
+            # TODO Generate default cmd pages!
+
+        # Generate remaining transforms
+        for base, o in layout.transforms.items():
+            base_id = "Key %s Pressed" % base
+            for trans_key, output in o.items():
+                if len(decode_u(str(trans_key))) > 1:
+                    print("WARNING: '%s' has len longer than 1; not supported yet." % trans_key)
+                    continue
+                key_id = "Key %s Pressed" % trans_key
+                out.add_transform(key_id, base_id, output=output)
+
+        return bytes(out).decode('utf-8')
+
 
 class XKBGenerator(Generator):
     def generate(self, base='.'):

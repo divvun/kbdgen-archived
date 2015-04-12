@@ -7,7 +7,22 @@ from io import StringIO
 from collections import OrderedDict
 
 CP_REGEX = re.compile(r"\\u{(.+?)}")
+
 ENTITY_REGEX = re.compile(r"&#(\d+);")
+
+def decode_u(v, newlines=True):
+    def chk(x):
+        vv = chr(int(x.group(1), 16))
+        if newlines == False and vv in ('\n', '\r'):
+            return x.group(0)
+        return vv
+
+    return CP_REGEX.sub(chk, v)
+
+def encode_u(v): #
+    return re.sub(r"([\x80-\xa0\xad\u2000-\u200f\u2011\u2028-\u202f\u205f-\u206f]|" +
+                  r"[^\u0020-\u02af\u0370-\u1fff])",
+        lambda x: r"\u{%X}" % ord(x.group(0)), v)
 
 def key_cmp(x):
     ch, n = parse_cell(x[0])
@@ -15,12 +30,14 @@ def key_cmp(x):
 
 def process_value(*args):
     def pv(v):
-        def p(x):
-            gv = int(x.group(1), 16)
-            if gv <= 0x20 or gv == 0xA0:
-                return x.group(0)
-            return chr(gv)
-        return CP_REGEX.sub(p, v)
+        return encode_u(decode_u(v))
+#    def pv(v):
+#        def p(x):
+#            gv = int(x.group(1), 16)
+#            if gv <= 0x20 or gv == 0xA0:
+#                return x.group(0)
+#            return chr(gv)
+#        return CP_REGEX.sub(p, v)
 
     return tuple(pv(i) for i in args) if len(args) > 1 else pv(args[0])
 
@@ -70,10 +87,10 @@ def is_full_layout(o):
 
 def filtered(v):
     if v == '"':
-        return '"\""'
-    if v in " -?:,[]{}#&*!>'%@`~":
+        return r'"\""'
+    if v in " -?:,[]{}#&*!>'%@`~=":
         return '"%s"' % v
-    return v
+    return encode_u(v)
 
 def to_xml(yaml_tree):
     tree = lxml.etree.fromstring("""<keyboard locale="%s"/>""" % \
@@ -104,7 +121,7 @@ def to_xml(yaml_tree):
 
                 # TODO make this more optimal, chaining all lists and only
                 # assigning when it makes sense to do so
-                if v not in yaml_tree['deadkeys'].get(mode, {}):
+                if v not in yaml_tree['deadKeys'].get(mode, {}):
                     key_node.attrib['transform'] = 'no'
         else:
             chain = itertools.chain(
@@ -115,7 +132,7 @@ def to_xml(yaml_tree):
             for iso, to in zip(chain, re.split(r"[\s\n]+", key_map)):
                 key_node = SubElement(node, 'map', iso=iso, to=to)
 
-                if to not in yaml_tree['deadkeys'].get(mode, {}):
+                if to not in yaml_tree['deadKeys'].get(mode, {}):
                     key_node.attrib['transform'] = 'no'
 
         # Space special case!
@@ -135,6 +152,17 @@ def to_xml(yaml_tree):
 
 
 class CLDRKeyboard:
+    modes = {
+        "default": "iso-default",
+        "shift": "iso-shift",
+        "opt": "iso-alt",
+        "caps": "iso-caps",
+        "caps+shift": "iso-shift+caps",
+        "opt+shift+cmd?": "iso-alt+shift",
+        "opt+caps": "iso-alt+caps",
+        "opt+caps+shift": "iso-alt+shift+caps"
+    }
+
     def __init__(self, data):
         self._modes = OrderedDict()
 
@@ -162,21 +190,20 @@ class CLDRKeyboard:
         is_osx = self._internal_name.endswith('osx')
 
         for keymap in tree.xpath("keyMap"):
-            mode = "iso-" + keymap.attrib.get('modifiers', 'default')
+            mode = keymap.attrib.get('modifiers', 'default')
+            new_mode = self.modes.get(mode, '??? %s' % mode)
             o = {}
             for key in keymap.xpath('map'):
                 iso_key = key.attrib['iso']
                 if not is_relevant_cell(iso_key):
                     if iso_key == "A03" and key.attrib['to'] != " ":
-                        self._space[mode] = process_value(key.attrib['to'])
-
-                    # TODO special case A03 (space)
+                        self._space[new_mode] = process_value(key.attrib['to'])
                     continue
 
                 o[iso_key] = process_value(key.attrib['to'])
                 if o[iso_key] in self._deadkey_set and \
                         key.attrib.get('transform', None) != "no":
-                    self._deadkeys.setdefault(mode, set()).add(o[iso_key])
+                    self._deadkeys.setdefault(new_mode, set()).add(o[iso_key])
 
             # OS X definitions are in a pseudo-ANSI format that inverts
             # the E00 and B00 keys. No idea why.
@@ -190,11 +217,11 @@ class CLDRKeyboard:
                 o['C12'] = o['D13']
                 del o['D13']
 
-            self._modes[mode] = OrderedDict(sorted(o.items(), key=key_cmp))
+            self._modes[new_mode] = OrderedDict(sorted(o.items(), key=key_cmp))
 
     def _parse_transforms(self, tree):
         for transform in tree.xpath("transforms[@type='simple']/transform"):
-            from_ = transform.attrib['from']
+            from_ = decode_u(transform.attrib['from'])
             self._deadkey_set.add(from_[0])
             self._transforms.setdefault(
                     from_[0], OrderedDict())[from_[1:]] = process_value(transform.attrib['to'])
@@ -212,7 +239,7 @@ class CLDRKeyboard:
         x.write("modes:\n")
         for mode, o in self._modes.items():
             if is_full_layout(o):
-                x.write('  "%s": |' % mode)
+                x.write('  %s: |' % mode)
                 cur = None
                 for iso_key, value in o.items():
                     if cur != iso_key[0]:
@@ -222,13 +249,14 @@ class CLDRKeyboard:
                     x.write(value)
                 x.write('\n')
             else:
-                x.write('  "%s":\n' % mode)
+                x.write('  %s:\n' % mode)
                 for iso_key, value in o.items():
                     x.write('    %s: %s\n' % (iso_key, filtered(value)))
 
-        x.write("\ndeadkeys:\n")
+        x.write("\ndeadKeys:\n")
         for mode, keys in self._deadkeys.items():
-            x.write('  "%s": ["%s"]\n' % (mode, '", "'.join(keys)))
+            x.write(('  %s: ["%s"]\n' % (mode, '", "'.join(keys))).replace(
+                "\\", r"\\"))
 
         x.write("\ntransforms:\n")
         for base_ch, o in self._transforms.items():
@@ -238,14 +266,32 @@ class CLDRKeyboard:
 
         x.write("\nspecial:\n  space:\n")
         for mode, v in self._space.items():
-            x.write('    "%s": %s\n' % (mode, filtered(v)))
+            x.write('    %s: %s\n' % (mode, filtered(v)))
 
         return x.getvalue()
 
-if __name__ == "__main__":
-    import sys
-    v = CLDRKeyboard(open(sys.argv[1], 'rb').read()).as_yaml()
-    print(v)
-    import yaml
 
-    print(to_xml(yaml.load(StringIO(v))))
+def kbd2yaml_main():
+    import argparse, sys
+
+    p = argparse.ArgumentParser(prog="cldr-kbd2yaml")
+    p.add_argument('--osx', action='store_true',
+                   help="Force detection of XML file as an OS X keyboard.")
+    p.add_argument('cldr_xml', type=argparse.FileType('rb'),
+                   default=sys.stdin)
+    p.add_argument('yaml', type=argparse.FileType('w'),
+                   default=sys.stdout)
+    args = p.parse_args()
+
+    args.yaml.write(CLDRKeyboard(args.cldr_xml.read()).as_yaml())
+
+if __name__ == "__main__":
+    kbd2yaml_main()
+
+#if __name__ == "__main__":
+#    import sys
+#    v = CLDRKeyboard(open(sys.argv[1], 'rb').read()).as_yaml()
+#    print(v)
+#    import yaml
+#
+#    print(to_xml(yaml.load(StringIO(v))))

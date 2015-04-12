@@ -1,7 +1,7 @@
-internalName: se-cldr
+internalName: se-sv-cldr
 
 displayNames:
-  se: Northern Sami (CLDR)
+  se: Northern Sami - Swedish (CLDR)
 
 locale: se
 
@@ -9,32 +9,32 @@ modes:
   "iso-default": |
     ' 1 2 3 4 5 6 7 8 9 0 + ´
     á š e r t ŧ u i o p å ŋ
-    a s d f g h j k l ø æ đ
+    a s d f g h j k l ö ä đ
     ž z č c v b n m , . -
   "iso-shift": |
     § ! " # $ % & / ( ) = ? `
     Á Š E R T Ŧ U I O P Å Ŋ
-    A S D F G H J K L Ø Æ Đ
+    A S D F G H J K L Ö Ä Đ
     Ž Z Č C V B N M ; : _
   "iso-caps": |
     ' 1 2 3 4 5 6 7 8 9 0 + ´
     Á Š E R T Ŧ U I O P Å Ŋ
-    A S D F G H J K L Ø Æ Đ
+    A S D F G H J K L Ö Ä Đ
     Ž Z Č C V B N M , . -
   "iso-alt": |
     ' © ™ £ € ˆ § | [ ] ˝ ± ´
     q w é ˇ þ y ˀ ʼ œ ˙ ˚ ¨
-    ¯ ß ð ƒ . ˛ ˘ ˜ - ö ä @
+    ¯ ß ð ƒ . ˛ ˘ ˜ - ø æ @
     < ÷ x ¸ ‹ › ‘ ’ ‚ … –
   "iso-alt+shift": |
     § ¡ ® ¥ ¢ ̂ ¶ \ { } ̋ ¿ \u{300}
     Q W É ̌ Þ Y ̉ ̛ Œ \u{307} \u{30A} \u{308}
-    ̄ № Ð ʔ ̣ ̨ ̆ ̃ ̵ Ö Ä *
+    ̄ № Ð ʔ ̣ ̨ ̆ ̃ ̵ Ø Æ *
     > ⁄ X ̧ « » “ ” „ · —
   "iso-alt+caps": |
     ' © ™ £ € ˆ § | [ ] ˝ ± \u{300}
     Q W É ˇ Þ Y ˀ ʼ Œ ˙ ˚ ¨
-    ¯ SS Ð ƒ . ˛ ˘ ˜ - Ö Ä @
+    ¯ SS Ð ƒ . ˛ ˘ ˜ - Ø Æ @
     < ÷ X ¸ ‹ › ‘ ’ ‚ … –
   "iso-ctrl": |
     0 1 2 3 4 5 6 7 8 9 0 \u{1F} =

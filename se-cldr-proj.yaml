@@ -14,7 +14,7 @@ email: brendan@bbqsrc.net
 copyright: (c) 2015 Nobody. CC0 License.
 organisation: Nobody Co.
 
-layouts: [se-cldr]
+layouts: [se-cldr, se-cldr-sv, iu-cldr]
 
 version: "1.0"
 build: "1"

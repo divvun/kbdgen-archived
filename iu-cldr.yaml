@@ -1,56 +1,124 @@
-internalName: se-cldr
+internalName: iu-cldr
 
 displayNames:
-  se: Northern Sami (CLDR)
+  iu: Inuktitut-Nunavut (CLDR)
 
-locale: se
+locale: iu
 
 modes:
-  "iso-default": |
-    ' 1 2 3 4 5 6 7 8 9 0 + ´
-    á š e r t ŧ u i o p å ŋ
-    a s d f g h j k l ø æ đ
-    ž z č c v b n m , . -
-  "iso-shift": |
-    § ! " # $ % & / ( ) = ? `
-    Á Š E R T Ŧ U I O P Å Ŋ
-    A S D F G H J K L Ø Æ Đ
-    Ž Z Č C V B N M ; : _
-  "iso-caps": |
-    ' 1 2 3 4 5 6 7 8 9 0 + ´
-    Á Š E R T Ŧ U I O P Å Ŋ
-    A S D F G H J K L Ø Æ Đ
-    Ž Z Č C V B N M , . -
-  "iso-alt": |
-    ' © ™ £ € ˆ § | [ ] ˝ ± ´
-    q w é ˇ þ y ˀ ʼ œ ˙ ˚ ¨
-    ¯ ß ð ƒ . ˛ ˘ ˜ - ö ä @
-    < ÷ x ¸ ‹ › ‘ ’ ‚ … –
-  "iso-alt+shift": |
-    § ¡ ® ¥ ¢ ̂ ¶ \ { } ̋ ¿ \u{300}
-    Q W É ̌ Þ Y ̉ ̛ Œ \u{307} \u{30A} \u{308}
-    ̄ № Ð ʔ ̣ ̨ ̆ ̃ ̵ Ö Ä *
-    > ⁄ X ̧ « » “ ” „ · —
-  "iso-alt+caps": |
-    ' © ™ £ € ˆ § | [ ] ˝ ± \u{300}
-    Q W É ˇ Þ Y ˀ ʼ Œ ˙ ˚ ¨
-    ¯ SS Ð ƒ . ˛ ˘ ˜ - Ö Ä @
-    < ÷ X ¸ ‹ › ‘ ’ ‚ … –
-  "iso-ctrl": |
+  iso-caps: | # TODO: rename or remove mode
+    § 1 2 3 4 5 6 7 8 9 0 - =
+    q w e r t y u i o p [ ]
+    a s d f g h j k l ; ' \
+    ` z x c v b n m , . /
+  iso-shift+caps: | # TODO: rename or remove mode
+    ± ! @ # $ % ^ & * ( ) _ +
+    Q W E R T Y U I O P { }
+    A S D F G H J K L : " |
+    ~ Z X C V B N M < > ?
+  iso-default: | # TODO: rename or remove mode
+    § ᖕ ᑉ ᕐ ᒃ ᑦ ᖅ ᒻ ᓐ ᓪ ᔾ - ᒡ
+    ᖏ ᐃ ᕿ ᑭ ᑎ ᓯ ᒥ ᓂ ᓕ ᔨ ᒡ \u{2D9}
+    ᖑ ᐅ ᖁ ᑯ ᑐ ᓱ ᒧ ᓄ ᓗ ; ' \
+    \u{2D9} ᖓ ᐊ ᖃ ᑲ ᑕ ᓴ ᒪ , . ᔭ
+  iso-shift: | # TODO: rename or remove mode
+    ~ 1 2 3 4 5 6 7 8 9 0 _ +
+    ᒋ ᐱ ᕆ ᖕ ᙱ ᙳ ᙵ ᖤ ᖠ ᖦ ᔅ \u{2D9}
+    ᒍ ᐳ ᕈ ᕕ ( ) ᔪ ᕗ ᖢ : " |
+    \u{2D9} ᒐ ᐸ ᕋ ? ᕼ ᓇ ᓚ < > ᕙ
+  iso-alt: | # TODO: rename or remove mode
+    § ¡ \u{2122} £ ¢ § \u{2C6} ¶ \u{2022} ª º \u{2013} \u{2260}
+    œ \u{2D9} ´ ® þ ¥ ¨ \u{2BC} ø , \u{201C} \u{2018}
+    ¯ ß ð ƒ © \u{2CD} \u{2DD} \u{2DA} - \u{2026} æ «
+    ` \u{2C0} . ¸ \u{2C7} \u{2D8} \u{2DC} \u{2DB} \u{2264} \u{2265} ÷
+  iso-alt+shift: |
+    ± \u{2044} \u{20AC} \u{2039} \u{203A} \u{2020} \u{302} \u{2021} ° · \u{201A} \u{2014} ±
+    Œ \u{307} \u{301} \u{2030} Þ \u{A0}\u{30F} \u{308} \u{31B} Ø \u{326} \u{201D} \u{2019}
+    \u{304} \u{A0}\u{311} Ð \u{A0}\u{330} \u{2038} \u{331} \u{30B} \u{30A} \u{335} \u{2116} Æ »
+    \u{300} \u{309} \u{323} \u{327} \u{30C} \u{306} \u{303} \u{328} \u{201E} ʔ ¿
+  iso-alt+caps:
+    E00: §
+    E01: "!"
+    E02: "@"
+    E03: "#"
+    E04: $
+    E05: ^
+    E06: "%"
+    E07: "&"
+    E08: "*"
+    E09: "["
+    E10: "]"
+    E11: \u{2013}
+    E12: "="
+    D01: ᖐ
+    D02: ᐄ
+    D03: ᖀ
+    D04: ᑮ
+    D05: ᑏ
+    D06: ᓰ
+    D07: ᒦ
+    D08: ᓃ
+    D09: ᓖ
+    D10: ᔩ
+    D12: \u{2D9}
+    C01: ᖒ
+    C02: ᐆ
+    C03: ᖂ
+    C04: ᑰ
+    C05: ᑑ
+    C06: ᓲ
+    C07: ᒨ
+    C08: ᓅ
+    C09: ᓘ
+    C10: \u{2026}
+    C11: \u{2018}
+    C12: \u{2022}
+    B00: \u{2D9}
+    B01: ᖔ
+    B02: ᐋ
+    B03: ᖄ
+    B04: ᑳ
+    B05: ᑖ
+    B06: ᓵ
+    B07: ᒫ
+    B08: ᙭
+    B09: ł
+    B10: ᔮ
+  iso-alt+shift+caps: # TODO: rename or remove mode
+    E00: ±
+    E12: \u{2014}
+    D01: ᒌ
+    D02: ᐲ
+    D03: ᕇ
+    D05: ᙲ
+    D06: ᙴ
+    D07: ᙶ
+    D08: ᖥ
+    D09: ᖡ
+    D12: \u{2D9}
+    C01: ᒎ
+    C02: ᐴ
+    C03: ᕉ
+    C04: ᕖ
+    C07: ᔫ
+    C08: ᕘ
+    C09: ᖣ
+    B00: \u{2D9}
+    B01: ᒑ
+    B02: ᐹ
+    B03: ᕌ
+    B06: ᓈ
+    B07: ᓛ
+    B10: ᕚ
+  iso-ctrl: | # TODO: rename or remove mode
     0 1 2 3 4 5 6 7 8 9 0 \u{1F} =
     \u{11} \u{17} \u{5} \u{12} \u{14} \u{19} \u{15} \u{9} \u{F} \u{10} \u{1B} \u{1D}
     \u{1} \u{13} \u{4} \u{6} \u{7} \u{8} \u{A} \u{B} \u{C} ; ' \u{1C}
     ` \u{1A} \u{18} \u{3} \u{16} \u{2} \u{E} \u{D} , . /
 
-decimal: ","
-
 deadKeys:
-  "iso-default": ["´"]
-  "iso-shift": ["`"]
-  "iso-caps": ["´"]
-  "iso-alt": ["˝", "ˇ", "˛", "ƒ", "¨", "ʼ", "¯", "ˆ", "˚", "-", "˜", "¸", ".", "˘", "˙", "ˀ"]
-  "iso-alt+shift": ["ʔ", "№"]
-  "iso-alt+caps": ["˝", "ˇ", "˛", "ƒ", "¨", "ʼ", "¯", "ˆ", "˚", "-", "˜", "¸", ".", "˘", "˙", "ˀ"]
+  "iso-alt": [",", "-", ".", "¸", "`", "´", "¨", "¯"]
+  "iso-alt+shift": ["ʔ"]
 
 transforms:
   "-":
@@ -119,6 +187,20 @@ transforms:
     Y: Ỵ
     z: ẓ
     Z: Ẓ
+  \u{2038}:
+    " ": \u{2038}
+    d: ḓ
+    D: Ḓ
+    e: ḙ
+    E: Ḙ
+    l: ḽ
+    L: Ḽ
+    n: ṋ
+    N: Ṋ
+    t: ṱ
+    T: Ṱ
+    u: ṷ
+    U: Ṷ
   "`":
     " ": "`"
     a: à
@@ -143,8 +225,6 @@ transforms:
     " ": ´
     a: á
     A: Á
-    å: ǻ
-    Å: Ǻ
     æ: ǽ
     Æ: Ǽ
     c: ć
@@ -183,8 +263,8 @@ transforms:
     Y: Ý
     z: ź
     Z: Ź
-  ˜:
-    " ": "~"
+  \u{2DC}:
+    " ": \u{2DC}
     a: ã
     A: Ã
     e: ẽ
@@ -213,24 +293,24 @@ transforms:
     G: Ḡ
     i: ī
     I: Ī
-    l: ḹ
-    L: Ḹ
+    l: l\u{323}\u{304}
+    L: L\u{323}\u{304}
     o: ō
     O: Ō
-    r: ṝ
-    R: Ṝ
-    s: s̄
-    S: S̄
+    r: r\u{323}\u{304}
+    R: R\u{323}\u{304}
+    s: s\u{304}
+    S: S\u{304}
     u: ū
     U: Ū
     v: ǖ
     V: Ǖ
     y: ȳ
     Y: Ȳ
-    z: z̄
-    Z: Z̄
-  ˘:
-    " ": ˘
+    z: z\u{304}
+    Z: Z\u{304}
+  \u{2D8}:
+    " ": \u{2D8}
     a: ă
     A: Ă
     e: ĕ
@@ -245,8 +325,8 @@ transforms:
     O: Ŏ
     u: ŭ
     U: Ŭ
-  ˙:
-    " ": ˙
+  \u{2D9}:
+    " ": \u{2D9}
     a: ȧ
     A: Ȧ
     b: ḃ
@@ -287,6 +367,54 @@ transforms:
     Y: Ẏ
     z: ż
     Z: Ż
+    ᐃ: ᐄ
+    ᐅ: ᐆ
+    ᐊ: ᐋ
+    ᐱ: ᐲ
+    ᐳ: ᐴ
+    ᐸ: ᐹ
+    ᑎ: ᑏ
+    ᑐ: ᑑ
+    ᑕ: ᑖ
+    ᑭ: ᑮ
+    ᑯ: ᑰ
+    ᑲ: ᑳ
+    ᒋ: ᒌ
+    ᒍ: ᒎ
+    ᒐ: ᒑ
+    ᒥ: ᒦ
+    ᒧ: ᒨ
+    ᒪ: ᒫ
+    ᓂ: ᓃ
+    ᓄ: ᓅ
+    ᓇ: ᓈ
+    ᓕ: ᓖ
+    ᓗ: ᓘ
+    ᓚ: ᓛ
+    ᓯ: ᓰ
+    ᓱ: ᓲ
+    ᓴ: ᓵ
+    ᔨ: ᔩ
+    ᔪ: ᔫ
+    ᔭ: ᔮ
+    ᕆ: ᕇ
+    ᕈ: ᕉ
+    ᕋ: ᕌ
+    ᕕ: ᕖ
+    ᕗ: ᕘ
+    ᕙ: ᕚ
+    ᕿ: ᖀ
+    ᖁ: ᖂ
+    ᖃ: ᖄ
+    ᖏ: ᖐ
+    ᖑ: ᖒ
+    ᖓ: ᖔ
+    ᙱ: ᙲ
+    ᙳ: ᙴ
+    ᙵ: ᙶ
+    ᖠ: ᖡ
+    ᖢ: ᖣ
+    ᖤ: ᖥ
   ¨:
     " ": ¨
     a: ä
@@ -300,7 +428,7 @@ transforms:
     o: ö
     O: Ö
     t: ẗ
-    T: T̈
+    T: T\u{308}
     u: ü
     U: Ü
     w: ẅ
@@ -309,22 +437,22 @@ transforms:
     X: Ẍ
     y: ÿ
     Y: Ÿ
-  ˚:
-    " ": ˚
+  \u{2DA}:
+    " ": \u{2DA}
     a: å
     A: Å
-    e: e̊
-    E: E̊
-    o: o̊
-    O: O̊
+    e: e\u{30A}
+    E: E\u{30A}
+    o: o\u{30A}
+    O: O\u{30A}
     u: ů
     U: Ů
     w: ẘ
-    W: W̊
+    W: W\u{30A}
     y: ẙ
-    Y: Y̊
-  ˝:
-    " ": ˝
+    Y: Y\u{30A}
+  \u{2DD}:
+    " ": \u{2DD}
     o: ő
     O: Ő
     u: ű
@@ -351,16 +479,12 @@ transforms:
     R: Ŗ
     s: ş
     S: Ş
-    š: ș
-    Š: Ș
     t: ţ
     T: Ţ
-    ŧ: ț
-    Ŧ: Ț
-    z: z̧
-    Z: Z̧
-  ˛:
-    " ": ˛
+    z: z\u{327}
+    Z: Z\u{327}
+  \u{2DB}:
+    " ": \u{2DB}
     a: ą
     A: Ą
     e: ę
@@ -371,8 +495,8 @@ transforms:
     O: Ǫ
     u: ų
     U: Ų
-  ˆ:
-    " ": ^
+  \u{2C6}:
+    " ": \u{2C6}
     a: â
     A: Â
     c: ĉ
@@ -387,10 +511,10 @@ transforms:
     I: Î
     j: ĵ
     J: Ĵ
-    m: m̂
-    M: M̂
-    n: n̂
-    N: N̂
+    m: m\u{302}
+    M: M\u{302}
+    n: n\u{302}
+    N: N\u{302}
     o: ô
     O: Ô
     s: ŝ
@@ -403,8 +527,8 @@ transforms:
     Y: Ŷ
     z: ẑ
     Z: Ẑ
-  ˇ:
-    " ": ˇ
+  \u{2C7}:
+    " ": \u{2C7}
     a: ǎ
     A: Ǎ
     c: č
@@ -420,7 +544,7 @@ transforms:
     i: ǐ
     I: Ǐ
     j: ǰ
-    J: J̌
+    J: J\u{30C}
     k: ǩ
     K: Ǩ
     l: ľ
@@ -439,23 +563,46 @@ transforms:
     U: Ǔ
     v: ǚ
     V: Ǚ
-    x: ǯ
-    X: Ǯ
     z: ž
     Z: Ž
-  ƒ:
-    " ": ƒ
-    (: ≤
-    ): ≥
-    0: °
-    q: •
-  №:
-    " ": №
+  \u{2CD}:
+    " ": \u{2CD}
+    b: ḇ
+    B: Ḇ
+    d: ḏ
+    D: Ḏ
+    h: ẖ
+    H: H\u{331}
+    k: ḵ
+    K: Ḵ
+    l: ḻ
+    L: Ḻ
+    n: ṉ
+    N: Ṉ
+    r: ṟ
+    R: Ṟ
+    t: ṯ
+    T: Ṯ
+    z: ẕ
+    Z: Ẕ
+  \u{2116}:
+    " ": \u{2116}
+    "'": \u{2B9}
+    \u{2018}: \u{2BB}
+    \u{2019}: \u{2BC}
+    "\"": \u{2BA}
+    \u{201C}: \u{2BD}
+    "@": Ƨ
+    "*": Ȣ
+    "#": Ɛ
+    "%": Ƽ
+    ^: Ƅ
     2: ƨ
     3: ɛ
     5: ƽ
     6: ƅ
-    7: ⁊
+    7: \u{204A}
+    8: ȣ
     a: ə
     A: Ə
     c: ɔ
@@ -469,7 +616,7 @@ transforms:
     j: ƞ
     J: Ƞ
     k: ĸ
-    K: K’
+    K: K\u{2019}
     m: ɯ
     M: Ɯ
     n: ŋ
@@ -524,8 +671,8 @@ transforms:
     Y: Ƴ
     z: ȥ
     Z: Ȥ
-  ˀ:
-    " ": ˀ
+  \u{2C0}:
+    " ": \u{2C0}
     a: ả
     A: Ả
     e: ẻ
@@ -538,8 +685,8 @@ transforms:
     U: Ủ
     y: ỷ
     Y: Ỷ
-  ʼ:
-    " ": ʼ
+  \u{2BC}:
+    " ": \u{2BC}
     o: ơ
     O: Ơ
     u: ư
@@ -547,8 +694,7 @@ transforms:
 
 special:
   space:
-    "iso-caps": \u{A0}
     "iso-alt": \u{A0}
     "iso-alt+shift": \u{A0}
     "iso-alt+caps": \u{A0}
-
+    "iso-alt+shift+caps": \u{A0}
