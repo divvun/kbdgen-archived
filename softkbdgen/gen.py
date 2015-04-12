@@ -508,7 +508,6 @@ WIN_VK_MAP = OrderedDict(((k, v) for k, v in zip(WIN_KEYMAP.keys(), (
     "OEM_102", "Z", "X", "C", "V", "B", "N", "M", "OEM_COMMA", "OEM_PERIOD", "OEM_MINUS"
 ))))
 
-#TODO move to cldr.py
 class WindowsGenerator(Generator):
     def generate(self, base='.'):
         outputs = OrderedDict()
@@ -558,12 +557,14 @@ class WindowsGenerator(Generator):
         col6 = mode_iter(layout, 'iso-alt')
         col7 = mode_iter(layout, 'iso-alt+shift')
 
-        # TODO support SGCAP!
+        alt_caps = mode_iter(layout, 'iso-alt+caps')
 
+        # TODO support SGCAP!
         caps = mode_iter(layout, 'iso-caps')
-        altcaps = mode_iter(layout, 'iso-alt+caps')
-        #capsshift = mode_iter(layout, 'iso-shift+caps')
-        #altcapsshift = mode_iter(layout, 'iso-alt+shift+caps')
+        caps_shift = mode_iter(layout, 'iso-shift+caps')
+
+        # Cannot be supported. :(
+        #alt_caps_shift = mode_iter(layout, 'iso-alt+shift+caps')
 
         def win_filter(*args, force=False):
             def wf(v):
@@ -593,27 +594,36 @@ class WindowsGenerator(Generator):
         # Hold all the ligatures
         ligatures = []
 
-        for (sc, vk, c0, c1, c2, c6, c7, cap) in zip_longest(WIN_KEYMAP.values(),
-                WIN_VK_MAP.values(), col0, col1, col2, col6, col7, caps,
-                fillvalue="-1"):
+        for (sc, vk, c0, c1, c2, c6, c7, cap, scap, acap) in zip(
+                WIN_KEYMAP.values(), WIN_VK_MAP.values(), col0, col1, col2,
+                col6, col7, caps, caps_shift, alt_caps):
 
-            print((sc, vk, c0, c1, c2, c6, c7, cap))
+            print((sc, vk, c0, c1, c2, c6, c7, cap, scap))
             # TODO cap state (last one) 5 means caps applies in altgr state
             # TODO handle the altgr caps
 
-            if cap is None:
-                cap_mode = "1" if c0 != c1 else "0"
+            cap_mode = 0
+            if cap is not None and c0 != cap and c1 != cap:
+                cap_mode = "SGCap"
+            elif cap is None:
+                cap_mode += 1 if c0 != c1 else 0
+                cap_mode += 4 if c6 != c7 else 0
             else:
-                cap_mode = "1" if cap == c1 else "0"
+                print(cap, c1)
+                cap_mode += 1 if cap == c1 else 0
+                cap_mode += 4 if acap == c7 else 0
+            cap_mode = str(cap_mode)
 
             if len(vk) < 8:
                 vk += "\t"
             buf.write("%s\t%s\t%s" % (sc, vk, cap_mode))
+
+            # n is the col number for ligatures.
             for n, mode, key in ((0, 'iso-default', c0),
                                  (1, 'iso-shift', c1),
                                  (2, 'iso-ctrl', c2),
-                                 (6, 'iso-alt', c6),
-                                 (7, 'iso-alt+shift', c7)):
+                                 (3, 'iso-alt', c6),
+                                 (4, 'iso-alt+shift', c7)):
 
                 filtered = decode_u(key or '')
                 if key is not None and len(filtered) > 1:
@@ -624,7 +634,11 @@ class WindowsGenerator(Generator):
                     if key in layout.dead_keys.get(mode, []):
                         buf.write("@")
 
-            buf.write("\t  // %s %s %s %s %s\n" % (c0, c1, c2, c6, c7))
+            buf.write("\t// %s %s %s %s %s\n" % (c0, c1, c2, c6, c7))
+
+            if cap_mode == "SGCap":
+                buf.write("-1\t-1\t\t0\t%s\t%s\t\t\t\t// %s %s\n" % (
+                    win_filter(cap, scap) + (cap, scap)))
 
         # Space, such special case oh my.
         buf.write("39\tSPACE\t\t0\t")
@@ -649,10 +663,10 @@ class WindowsGenerator(Generator):
             buf.write("LIGATURE\n\n")
             buf.write("//VK_\tMod#\tChr0\tChr1\tChr2\tChr3\n")
             buf.write("//----\t----\t----\t----\t----\t----\n\n")
-            for original, row in ligatures:
-                more_tabs = len(row)-7
-                buf.write("%s\t\t%s%s\t// %s\n" % (row[0],
-                    "\t".join(row[1:]),
+            for original, col in ligatures:
+                more_tabs = len(col)-7
+                buf.write("%s\t\t%s%s\t// %s\n" % (col[0],
+                    "\t".join(col[1:]),
                     '\t' * more_tabs,
                     original))
             buf.write('\n')
@@ -676,7 +690,7 @@ class WindowsGenerator(Generator):
 
             # Create fallback key from space, or the basekey.
             output = o.get(' ', basekey)
-            buf.write("0020\t%s\t// fallback -> %s\n\n" % (
+            buf.write("0020\t%s\t//   -> %s\n\n" % (
                 win_filter(output)[0], output))
 
 
@@ -865,7 +879,6 @@ class OSXKeyLayout:
         self.action_cache = {}
 
         self._n = 0
-        #self._init_modifier_maps()
 
     def _add_modifier_map(self, mode):
         mm = self.elements['modifierMap']
@@ -878,17 +891,6 @@ class OSXKeyLayout:
         self.kmap_cache[mode] = SubElement(kms, 'keyMap', index=str(self._n))
         self._n += 1
         return self.kmap_cache[mode]
-
-    def _init_modifier_maps(self):
-        mm = self.elements['modifierMap']
-        kms = self.elements['keyMapSet']
-
-        for n, (mode, mods) in enumerate(self.modes.items()):
-            node = SubElement(mm, 'keyMapSelect', mapIndex=str(n))
-            for mod in mods:
-                SubElement(node, 'modifier', keys=mod)
-
-            self.kmap_cache[mode] = SubElement(kms, 'keyMap', index=str(n))
 
     def _get_kmap(self, mode):
         kmap = self.kmap_cache.get(mode, None)
