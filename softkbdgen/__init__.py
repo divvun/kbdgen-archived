@@ -105,7 +105,7 @@ class Keyboard:
 
     @property
     def special(self):
-        return self._tree['special']
+        return self._tree.get('special', {})
 
     @property
     def decimal(self):

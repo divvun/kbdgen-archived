@@ -23,7 +23,7 @@ def decode_u(v, newlines=True):
 
 def encode_u(v): #
     return re.sub(r"([\x80-\xa0\xad\u2000-\u200f\u2011\u2028-\u202f\u205f-\u206f]|" +
-                  r"[^\u0020-\u02af\u0370-\u1fff])",
+                  r"[^\u0020-\u02af\u0370-\u08ff\u097f-\u1fff])",
         lambda x: r"\u{%X}" % ord(x.group(0)), v)
 
 def key_cmp(x):
@@ -31,26 +31,12 @@ def key_cmp(x):
     return -int(ch, 16) * 16 + n
 
 def process_value(*args):
-    def pv(v):
-        return encode_u(decode_u(v))
-#    def pv(v):
-#        def p(x):
-#            gv = int(x.group(1), 16)
-#            if gv <= 0x20 or gv == 0xA0:
-#                return x.group(0)
-#            return chr(gv)
-#        return CP_REGEX.sub(p, v)
-
+    pv = lambda v: encode_u(decode_u(v))
     return tuple(pv(i) for i in args) if len(args) > 1 else pv(args[0])
 
 def cell_range(ch, from_, to_):
     for i in range(from_, to_+1):
         yield "%s%02d" % (ch, i)
-
-# E00 -> E12
-# D01 -> D13
-# C01 -> C11
-# B00 -> B10
 
 def parse_cell(x):
     a = x[0]
@@ -217,10 +203,15 @@ class CLDRKeyboard:
 
             # OS X definitions are in a pseudo-ANSI format that inverts
             # the E00 and B00 keys. No idea why.
-            if is_osx and 'B00' in o:
+            if is_osx and 'B00' in o and 'E00' in o:
                 tmp = o['E00']
                 o['E00'] = o['B00']
                 o['B00'] = tmp
+
+            if 'B00' not in o and 'E00' in o:
+                o['B00'] = o['E00']
+                print(("WARNING: B00 has been duplicated from E00 in '%s'; " +
+                       "ANSI keyboard definition?") % new_mode)
 
             # Force ANSI-style keys into the ISO world.
             if 'D13' in o:
@@ -230,9 +221,10 @@ class CLDRKeyboard:
             self._modes[new_mode] = OrderedDict(sorted(o.items(), key=key_cmp))
 
     def _parse_transforms(self, tree):
+        # TODO this whole method needs to be rewritten. It is just crap.
         for transform in tree.xpath("transforms[@type='simple']/transform"):
             from_ = decode_u(transform.attrib['from'])
-            self._deadkey_set.add(from_[0])
+            self._deadkey_set.add(process_value(from_[0]))
             self._transforms.setdefault(
                     from_[0], OrderedDict())[from_[1:]] = process_value(transform.attrib['to'])
 
@@ -268,16 +260,18 @@ class CLDRKeyboard:
                 for iso_key, value in o.items():
                     x.write('    %s: %s\n' % (iso_key, filtered(value)))
 
-        x.write("\ndeadKeys:\n")
-        for mode, keys in self._deadkeys.items():
-            x.write(('  %s: ["%s"]\n' % (mode, '", "'.join(keys))).replace(
-                "\\", r"\\"))
+        if len(self._deadkeys) > 0:
+            x.write("\ndeadKeys:\n")
+            for mode, keys in self._deadkeys.items():
+                x.write(('  %s: ["%s"]\n' % (mode, '", "'.join(keys))).replace(
+                    "\\", r"\\"))
 
-        x.write("\ntransforms:\n")
-        for base_ch, o in self._transforms.items():
-            x.write('  %s:\n' % filtered(base_ch))
-            for ch, v in o.items():
-                x.write('    %s: %s\n' % (filtered(ch), filtered(v)))
+        if len(self._transforms) > 0:
+            x.write("\ntransforms:\n")
+            for base_ch, o in self._transforms.items():
+                x.write('  %s:\n' % filtered(base_ch))
+                for ch, v in o.items():
+                    x.write('    %s: %s\n' % (filtered(ch), filtered(v)))
 
         if len(self._space) > 0:
             x.write("\nspecial:\n  space:\n")
@@ -304,10 +298,3 @@ def kbd2yaml_main():
 if __name__ == "__main__":
     kbd2yaml_main()
 
-#if __name__ == "__main__":
-#    import sys
-#    v = CLDRKeyboard(open(sys.argv[1], 'rb').read()).as_yaml()
-#    print(v)
-#    import yaml
-#
-#    print(to_xml(yaml.load(StringIO(v))))

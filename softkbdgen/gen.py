@@ -512,8 +512,8 @@ class WindowsGenerator(Generator):
     def generate(self, base='.'):
         outputs = OrderedDict()
 
-        for name, layout in self._project.layouts.items():
-            outputs[name] = self.generate_klc(layout)
+        for layout in self._project.layouts.values():
+            outputs[self._klc_get_name(layout)] = self.generate_klc(layout)
 
         if self.dry_run:
             print("Dry run completed.")
@@ -527,9 +527,12 @@ class WindowsGenerator(Generator):
             with open(os.path.join(build_dir, "%s.klc" % name), 'w') as f:
                 f.write(data.replace('\n', '\r\n'))
 
+    def _klc_get_name(self, layout):
+        return "kbd" + re.sub(r'[^A-Za-z0-9]', "", layout.internal_name)[:5]
+
     def _klc_write_headers(self, layout, buf):
-        buf.write('KBD\tkbd%s\t"%s"\n\n' % (
-            re.sub(r'[^A-Za-z0-9]', "", layout.internal_name)[:5],
+        buf.write('KBD\t%s\t"%s"\n\n' % (
+            self._klc_get_name(layout),
             layout.display_names[layout.locale]))
 
         copyright = self._project.copyright
@@ -549,8 +552,6 @@ class WindowsGenerator(Generator):
         buf.write('//--\t----\t\t----\t------\t-----\t----\t-----\t-------\t   ------\n\n')
 
     def _klc_write_keys(self, layout, buf):
-        # TODO support the key-value mode with a wrapper
-
         col0 = mode_iter(layout, 'iso-default', required=True)
         col1 = mode_iter(layout, 'iso-shift')
         col2 = mode_iter(layout, 'iso-ctrl')
@@ -559,7 +560,6 @@ class WindowsGenerator(Generator):
 
         alt_caps = mode_iter(layout, 'iso-alt+caps')
 
-        # TODO support SGCAP!
         caps = mode_iter(layout, 'iso-caps')
         caps_shift = mode_iter(layout, 'iso-shift+caps')
 
@@ -576,6 +576,9 @@ class WindowsGenerator(Generator):
                     return v
 
                 v = decode_u(v)
+
+                if v == '\0':
+                    return '-1'
 
                 # check for anything outsize A-Za-z range
                 if not force and re.match("^[A-Za-z]$", v):
@@ -598,10 +601,6 @@ class WindowsGenerator(Generator):
                 WIN_KEYMAP.values(), WIN_VK_MAP.values(), col0, col1, col2,
                 col6, col7, caps, caps_shift, alt_caps):
 
-            print((sc, vk, c0, c1, c2, c6, c7, cap, scap))
-            # TODO cap state (last one) 5 means caps applies in altgr state
-            # TODO handle the altgr caps
-
             cap_mode = 0
             if cap is not None and c0 != cap and c1 != cap:
                 cap_mode = "SGCap"
@@ -609,7 +608,6 @@ class WindowsGenerator(Generator):
                 cap_mode += 1 if c0 != c1 else 0
                 cap_mode += 4 if c6 != c7 else 0
             else:
-                print(cap, c1)
                 cap_mode += 1 if cap == c1 else 0
                 cap_mode += 4 if acap == c7 else 0
             cap_mode = str(cap_mode)
@@ -703,7 +701,6 @@ class WindowsGenerator(Generator):
         buf.write("ENDKBD\n")
 
         return buf.getvalue()
-        # TODO constrain caps to be inverse of default. Always.
 
 OSX_KEYMAP = {
     'C01': '0',
@@ -809,6 +806,8 @@ def iterable_set(iterable):
 def random_id():
     return str(-random.randrange(1, 32768))
 
+XML_ENTITY_REGEX = re.compile(r"[^\0-\u02af]")
+
 class OSXKeyLayout:
     doctype = '<!DOCTYPE keyboard PUBLIC "" ' +\
               '"file://localhost/System/Library/DTDs/KeyboardLayout.dtd">'
@@ -839,11 +838,7 @@ class OSXKeyLayout:
         """XML almost; still encode the control chars. Death to standards!"""
         v = CP_REGEX.sub(lambda x: "&#x%04X;" % int(x.group(1), 16),
                 str(self))
-        # TODO compile not sub
-        v = re.sub(r"[^\0-\u02af]",
-                lambda x: "&#x%04X;" % ord(x.group(0)),
-                v)
-
+        v = XML_ENTITY_REGEX.sub(lambda x: "&#x%04X;" % ord(x.group(0)), v)
         return ('<?xml version="1.0" encoding="UTF-8"?>\n%s' % v).encode('utf-8')
 
     def __str__(self):
@@ -1099,6 +1094,9 @@ class OSXGenerator(Generator):
                 print("WARNING: layout '%s' has no mode '%s'" % (
                     layout.internal_name, mode_name))
                 continue
+
+            # All keymaps must include a code 0
+            out.set_key(mode_name, '', '0')
 
             if isinstance(mode, dict):
                 keyiter = mode_iter(layout, mode_name)
