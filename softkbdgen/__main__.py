@@ -2,6 +2,7 @@ import argparse
 import yaml
 
 from . import *
+from . import svgkbd # TODO remove this req
 
 def parse_args():
     p = argparse.ArgumentParser(prog="softkbdgen")
@@ -35,7 +36,7 @@ def main():
         print(e.problem_mark)
         sys.exit(1)
     except Exception as e:
-        raise e
+        #raise e
         print(e)
         sys.exit(1)
 
@@ -44,7 +45,8 @@ def main():
         "ios": gen.AppleiOSGenerator,
         "osx": gen.OSXGenerator,
         "win": gen.WindowsGenerator,
-        "x11": gen.XKBGenerator
+        "x11": gen.XKBGenerator,
+        "svg": svgkbd.SVGGenerator
     }
 
     generator = generators.get(args.target, None)

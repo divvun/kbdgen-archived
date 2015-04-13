@@ -54,6 +54,20 @@ def mode_iter(layout, key, required=False, fallback=None):
     else:
         return itertools.chain.from_iterable(mode)
 
+# TODO move into util module...
+def mode_dict(layout, key, required=False):
+    mode = layout.modes.get(key, None)
+    if mode is None:
+        if required:
+            raise Exception("'%s' has a required mode." % key)
+        return {}
+
+    if isinstance(mode, dict):
+        return mode
+
+    return OrderedDict(zip(WIN_KEYMAP.keys(),
+        itertools.chain.from_iterable(mode)))
+
 
 def git_clone(src, dst, branch, cwd='.'):
     print("Cloning repository '%s' to '%s'..." % (src, dst))
