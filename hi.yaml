@@ -59,6 +59,8 @@ modes:
     \u{1} \u{13} \u{4} \u{6} \u{7} \u{8} \u{A} \u{B} \u{C} ; ' \u{1C}
     ` \u{1A} \u{18} \u{3} \u{16} \u{2} \u{E} \u{D} , . /
 
+decimal: .
+
 deadKeys:
   iso-default: ["\\u{94D}"]
 
