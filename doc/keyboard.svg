@@ -1,0 +1,356 @@
+<?xml version="1.0"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="960" height="320" xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+    <g stroke-width="0.1" font-family="sans-serif" font-size="7pt" stroke="black">
+        <g id="row-e">
+            <g class='key e00' transform="translate(0, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">E00</text>
+            </g>
+            <g class='key e01' transform="translate(64, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">E01</text>
+            </g>
+            <g class='key e02' transform="translate(128, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">E02</text>
+            </g>
+            <g class='key e03' transform="translate(192, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">E03</text>
+            </g>
+            <g class='key e04' transform="translate(256, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">E04</text>
+            </g>
+            <g class='key e05' transform="translate(320, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">E05</text>
+            </g>
+            <g class='key e06' transform="translate(384, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">E06</text>
+            </g>
+            <g class='key e07' transform="translate(448, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">E07</text>
+            </g>
+            <g class='key e08' transform="translate(512, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">E08</text>
+            </g>
+            <g class='key e09' transform="translate(576, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">E09</text>
+            </g>
+            <g class='key e10' transform="translate(640, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">E10</text>
+            </g>
+            <g class='key e11' transform="translate(704, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">E11</text>
+            </g>
+            <g class='key e12' transform="translate(768, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">E12</text>
+            </g>
+            <g class='key e13' transform="translate(832, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="#fee"/>
+                <text x="2" y="10">E13</text>
+            </g>
+            <g class='key e14' transform="translate(896, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="#eee"/>
+                <text x="2" y="10">E14</text>
+                <text font-size="300%" text-anchor="middle" x="32" y="32"
+                        id="e13-primary" dy=".4em">
+                    &#x232b;
+                </text>
+            </g>
+        </g>
+        <g id="row-d" transform="translate(0, 64)">
+            <g class='key d00' transform="translate(0, 0)">
+                <rect stroke-width="1" width="96" height="64" stroke="black" fill="#eee"/>
+                <text x="2" y="10">D00</text>
+                <text font-size="300%" text-anchor="middle" x="48" y="32"
+                        id="d00-primary" dy=".4em">
+                    &#x21b9;
+                </text>
+            </g>
+            <g class='key d01' transform="translate(96, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">D01</text>
+            </g>
+            <g class='key d02' transform="translate(160, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">D02</text>
+            </g>
+            <g class='key d03' transform="translate(224, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">D03</text>
+            </g>
+            <g class='key d04' transform="translate(288, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">D04</text>
+            </g>
+            <g class='key d05' transform="translate(352, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">D05</text>
+            </g>
+            <g class='key d06' transform="translate(416, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">D06</text>
+            </g>
+            <g class='key d07' transform="translate(480, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">D07</text>
+            </g>
+            <g class='key d08' transform="translate(544, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">D08</text>
+            </g>
+            <g class='key d09' transform="translate(608, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">D09</text>
+            </g>
+            <g class='key d10' transform="translate(672, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">D10</text>
+            </g>
+            <g class='key d11' transform="translate(736, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">D11</text>
+            </g>
+            <g class='key d12' transform="translate(800, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">D12</text>
+            </g>
+            <g class='key d13' transform="translate(864, 0)">
+                <rect stroke-width="1" width="96" height="64" stroke="black" fill="#efe"/>
+                <text x="2" y="10">D13</text>
+            </g>
+        </g>
+        <g id="row-c" transform="translate(0, 128)">
+            <g class='key c00' transform="translate(0, 0)">
+                <rect stroke-width="1" width="112" height="64" stroke="black" fill="#eee"/>
+                <text x="2" y="10">C00</text>
+                <text font-size="300%" text-anchor="middle" x="56" y="32"
+                        id="c00-primary" dy=".4em">
+                    &#x21ea;
+                </text>
+            </g>
+            <g class='key c01' transform="translate(112, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">C01</text>
+            </g>
+            <g class='key c02' transform="translate(176, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">C02</text>
+            </g>
+            <g class='key c03' transform="translate(240, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">C03</text>
+            </g>
+            <g class='key c04' transform="translate(304, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">C04</text>
+            </g>
+            <g class='key c05' transform="translate(368, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">C05</text>
+            </g>
+            <g class='key c06' transform="translate(432, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">C06</text>
+            </g>
+            <g class='key c07' transform="translate(496, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">C07</text>
+            </g>
+            <g class='key c08' transform="translate(560, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">C08</text>
+            </g>
+            <g class='key c09' transform="translate(624, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">C09</text>
+            </g>
+            <g class='key c10' transform="translate(688, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">C10</text>
+            </g>
+            <g class='key c11' transform="translate(752, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">C11</text>
+            </g>
+            <g class='key c12' transform="translate(816, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="#ffe"/>
+                <text x="2" y="10">C12</text>
+            </g>
+            <g class='key c13' transform="translate(880, 0)" width="80" height="64">
+                <rect stroke-width="1" width="80" height="64" stroke="black" fill="#eee"/>
+                <text x="2" y="10">C13</text>
+                <text font-size="300%" text-anchor="middle" x="40" y="32"
+                        id="c13-primary" dy=".4em">
+                    &#x23ce;
+                </text>
+            </g>
+        </g>
+        <g id="row-b" transform="translate(0, 192)">
+            <g class='key b99' transform="translate(0, 0)">
+                <rect stroke-width="1" width="80" height="64" stroke="black" fill="#eee"/>
+                <text x="2" y="10">B99</text>
+                <text font-size="300%" text-anchor="middle" x="40" y="32"
+                        id="b99-primary" dy=".4em">
+                    &#x21e7;
+                </text>
+            </g>
+            <g class='key b00' transform="translate(80, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="#fee"/>
+                <text x="2" y="10">B00</text>
+            </g>
+            <g class='key b01' transform="translate(144, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">B01</text>
+            </g>
+            <g class='key b02' transform="translate(208, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">B02</text>
+            </g>
+            <g class='key b03' transform="translate(272, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">B03</text>
+            </g>
+            <g class='key b04' transform="translate(336, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">B04</text>
+            </g>
+            <g class='key b05' transform="translate(400, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">B05</text>
+            </g>
+            <g class='key b06' transform="translate(464, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">B06</text>
+            </g>
+            <g class='key b07' transform="translate(528, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">B07</text>
+            </g>
+            <g class='key b08' transform="translate(592, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">B08</text>
+            </g>
+            <g class='key b09' transform="translate(656, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">B09</text>
+            </g>
+            <g class='key b10' transform="translate(720, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">B10</text>
+            </g>
+            <g class='key B11' transform="translate(784, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="#eef"/>
+                <text x="2" y="10">B11</text>
+            </g>
+            <g class='key b12' transform="translate(848, 0)">
+                <rect stroke-width="1" width="112" height="64" stroke="black" fill="#eee"/>
+                <text x="2" y="10">B12</text>
+                <text font-size="300%" text-anchor="middle" x="56" y="32"
+                        id="b12-primary" dy=".4em">
+                    &#x21e7;
+                </text>
+            </g>
+        </g>
+        <g id="row-a" transform="translate(0, 256)">
+            <g class='key a99' transform="translate(0, 0)">
+                <rect stroke-width="1" width="112" height="64" stroke="black" fill="#eee"/>
+                <text x="2" y="10">A99</text>
+                <text font-size="200%" text-anchor="middle" x="56" y="32"
+                        id="a99-primary" dy=".8em">
+                    Ctrl
+                </text>
+            </g>
+            <g class='key a00' transform="translate(112, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="#eee"/>
+                <text x="2" y="10">A00</text>
+                <text font-size="200%" text-anchor="middle" x="32" y="32"
+                        id="a00-primary" dy=".8em">
+
+                </text>
+            </g>
+            <g class='key a01' transform="translate(176, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="#eee"/>
+                <text x="2" y="10">A01</text>
+                <text font-size="200%" text-anchor="middle" x="32" y="32"
+                        id="a01-primary" dy=".8em">
+
+                </text>
+            </g>
+            <g class='key a02' transform="translate(240, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="#eee"/>
+                <text x="2" y="10">A02</text>
+                <text font-size="200%" text-anchor="middle" x="32" y="32"
+                        id="a01-primary" dy=".8em">
+                    Alt
+                </text>
+            </g>
+            <g class='key a03' transform="translate(304, 0)">
+                <rect stroke-width="1" width="320" height="64" stroke="black" fill="white"/>
+                <text x="2" y="10">A03</text>
+                <text font-size="300%" text-anchor="middle" x="160" y="32"
+                        id="a03-primary" dy=".4em">
+                    &#x2423;
+                </text>
+            </g>
+            <!--
+            <g class='key a04' transform="translate(368, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="#eee"/>
+                <text x="2" y="10">A04</text>
+            </g>
+            <g class='key a05' transform="translate(432, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="#eee"/>
+                <text x="2" y="10">A05</text>
+            </g>
+            <g class='key a06' transform="translate(496, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="#eee"/>
+                <text x="2" y="10">A06</text>
+            </g>
+            <g class='key a07' transform="translate(560, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="#eee"/>
+                <text x="2" y="10">A07</text>
+            </g>
+            -->
+            <g class='key a08' transform="translate(624, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="#eee"/>
+                <text x="2" y="10">A08</text>
+                <text font-size="200%" text-anchor="middle" x="32" y="32"
+                        id="a08-primary" dy=".8em">
+                    AltGr
+                </text>
+            </g>
+            <g class='key a09' transform="translate(688, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="#eee"/>
+                <text x="2" y="10">A09</text>
+            </g>
+            <g class='key a10' transform="translate(752, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="#eee"/>
+                <text x="2" y="10">A10</text>
+            </g>
+            <g class='key a11' transform="translate(816, 0)">
+                <rect stroke-width="1" width="64" height="64" stroke="black" fill="#eee"/>
+                <text x="2" y="10">A11</text>
+            </g>
+            <g class='key a12' transform="translate(880, 0)">
+                <rect stroke-width="1" width="80" height="64" stroke="black" fill="#eee"/>
+                <text x="2" y="10">A12</text>
+                <text font-size="200%" text-anchor="middle" x="40" y="32"
+                        id="a12-primary" dy=".8em">
+                    Ctrl
+                </text>
+            </g>
+        </g>
+    </g>
+</svg>
