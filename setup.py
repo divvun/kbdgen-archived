@@ -12,7 +12,7 @@ setup(name='softkbdgen',
       entry_points = {
           'console_scripts': [
               'softkbdgen=softkbdgen.__main__:main',
-              'cldr-kbd2yaml=softkbdgen.cldr:kbd2yaml_main',
-              'cldr-yaml2kbd=softkbdgen.cldr:yaml2kbd_main'
+              'cldr2kbdgen=softkbdgen.cldr:cldr2kbdgen_main',
+              'kbdgen2cldr=softkbdgen.cldr:kbdgen2cldr_main'
           ]
       })

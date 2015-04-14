@@ -55,18 +55,23 @@ def mode_iter(layout, key, required=False, fallback=None):
         return itertools.chain.from_iterable(mode)
 
 # TODO move into util module...
-def mode_dict(layout, key, required=False):
+def mode_dict(layout, key, required=False, space=False):
     mode = layout.modes.get(key, None)
     if mode is None:
         if required:
             raise Exception("'%s' has a required mode." % key)
         return {}
 
+    sp = layout.special.get('space', {}).get(key, " ")
+
     if isinstance(mode, dict):
+        mode['A03'] = sp
         return mode
 
-    return OrderedDict(zip(WIN_KEYMAP.keys(),
+    mode = OrderedDict(zip(WIN_KEYMAP.keys(),
         itertools.chain.from_iterable(mode)))
+    mode['A03'] = sp
+    return mode
 
 
 def git_clone(src, dst, branch, cwd='.'):

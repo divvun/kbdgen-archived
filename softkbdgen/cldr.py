@@ -3,10 +3,11 @@ import itertools
 import re
 import datetime
 import os.path
+import unicodedata
 
 from lxml.etree import Element, SubElement
 from io import StringIO
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
 
 CP_REGEX = re.compile(r"\\u{(.+?)}")
 
@@ -19,12 +20,17 @@ def decode_u(v, newlines=True):
             return x.group(0)
         return vv
 
-    return CP_REGEX.sub(chk, v)
+    if v is None:
+        v = ""
 
-def encode_u(v): #
-    return re.sub(r"([\x80-\xa0\xad\u2000-\u200f\u2011\u2028-\u202f\u205f-\u206f]|" +
-                  r"[^\u0020-\u02af\u0370-\u08ff\u097f-\u1fff])",
-        lambda x: r"\u{%X}" % ord(x.group(0)), v)
+    return CP_REGEX.sub(chk, str(v))
+
+BAD_UNICODE_CATS = ('C', 'Z', 'M')
+def encode_u(v):
+    def rep(x):
+        c = unicodedata.category(x)[0]
+        return r"\u{%X}" % ord(x) if c in BAD_UNICODE_CATS else x
+    return "".join([rep(x) for x in v])
 
 def key_cmp(x):
     ch, n = parse_cell(x[0])
@@ -76,7 +82,7 @@ def is_full_layout(o):
 def filtered(v):
     if v == '"':
         return r'"\""'
-    if v in " -?:,[]{}#&*!>'%@`~=":
+    if v in r" |\-?:,[]{}#&*!>'%@`~=":
         return '"%s"' % v
     return encode_u(v)
 
@@ -143,6 +149,7 @@ class CLDRKeyboard:
     modes = {
         "default": "iso-default",
         "shift": "iso-shift",
+        "shift+caps?": "iso-shift",
         "opt": "iso-alt",
         "caps": "iso-caps",
         "caps+shift": "iso-shift+caps",
@@ -202,7 +209,8 @@ class CLDRKeyboard:
                     self._deadkeys.setdefault(new_mode, set()).add(o[iso_key])
 
             # OS X definitions are in a pseudo-ANSI format that inverts
-            # the E00 and B00 keys. No idea why.
+            # the E00 and B00 keys to prioritise B00 to the E00 position if
+            # an ISO language keyboard layout is used on an ANSI keyboard.
             if is_osx and 'B00' in o and 'E00' in o:
                 tmp = o['E00']
                 o['E00'] = o['B00']
@@ -281,19 +289,94 @@ class CLDRKeyboard:
         return x.getvalue()
 
 
-def kbd2yaml_main():
+Left = "left"
+Right = "right"
+Both = "both"
+
+Shift = "shift"
+Alt = "alt"
+Caps = "caps"
+Ctrl = "ctrl"
+OSXCommand = "cmd"
+
+TOKENS = {
+    "shift": Shift,
+    "alt": Alt,
+    "opt": Alt,
+    "caps": Caps,
+    "ctrl": Ctrl,
+    "cmd": OSXCommand
+}
+
+ModeToken = namedtuple("CLDRMode", ['name', 'direction', 'required'])
+
+class CLDRMode:
+    def __init__(self, data):
+        self._raw = data
+        self._kbdgen = None
+
+    def _parse_tokens(self, tokens):
+        def pt(tok):
+            is_required = not tok.endswith("?")
+            if not is_required:
+                tok = tok[:-1]
+
+            is_l = tok.endswith("L")
+            is_r = tok.endswith("R")
+
+            if is_l or is_r:
+                tok = tok[:-1]
+
+            known_token = TOKENS.get(tok, None)
+            if known_token is None:
+                return ModeToken(known_token)
+
+            direction = Both
+            if is_l: direction = Left
+            if is_r: direction = Right
+
+            return ModeToken(known_token, direction, is_required)
+
+        return tuple(pt(x) for x in tokens)
+
+    def _init_kbdgen(self):
+        out = []
+        phrases = self._raw.split(" ")
+        for ph in phrases:
+            tokens = self._parse_tokens(ph.split("+"))
+            out.append(tokens)
+
+        return tuple(out)
+
+    @property
+    def kbdgen(self):
+        if self._kbdgen is None:
+            self._kbdgen = self._init_kbdgen()
+        return self._kbdgen
+
+    @property
+    def cldr(self):
+        return self._raw
+
+
+    def interpret(self):
+        modpile = (x for x in self.parse() if len(x) > 0)
+        for raw, mods in modpile:
+            print(raw, mods)
+
+def cldr2kbdgen_main():
     import argparse, sys
 
-    p = argparse.ArgumentParser(prog="cldr-kbd2yaml")
+    p = argparse.ArgumentParser(prog="cldr2kbdgen")
     p.add_argument('--osx', action='store_true',
                    help="Force detection of XML file as an OS X keyboard.")
     p.add_argument('cldr_xml', type=argparse.FileType('rb'),
                    default=sys.stdin)
-    p.add_argument('yaml', type=argparse.FileType('w'),
+    p.add_argument('kbdgen_yaml', type=argparse.FileType('w'),
                    default=sys.stdout)
     args = p.parse_args()
 
-    args.yaml.write(CLDRKeyboard.from_file(args.cldr_xml).as_yaml())
+    args.kbdgen_yaml.write(CLDRKeyboard.from_file(args.cldr_xml).as_yaml())
 
 if __name__ == "__main__":
     kbd2yaml_main()

@@ -113,7 +113,7 @@ class Keyboard:
 
     @property
     def dead_keys(self):
-        return self._tree['deadKeys']
+        return self._tree.get('deadKeys', {})
 
     @property
     def transforms(self):
