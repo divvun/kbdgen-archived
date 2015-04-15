@@ -12,7 +12,8 @@ from ..cldr import decode_u
 
 class SVGGenerator(Generator):
     def generate(self, base='.'):
-        with open(os.path.join(os.path.dirname(__file__), '../../doc/keyboard-iso.svg')) as f:
+        with open(os.path.join(os.path.dirname(__file__), 'gen',
+                'bin', 'keyboard-iso.svg')) as f:
             tree = etree.parse(f)
         root = tree.getroot()
 
