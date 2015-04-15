@@ -1,4 +1,4 @@
-internalName: kildin_sami 
+internalName: kildin_sami
 
 displayNames:
   en: Kildin Sami
@@ -6,18 +6,18 @@ displayNames:
   sjd: Кӣллт са̄мь кӣлл
 
 locale: sjd
- 
+
 modes:
-  default: [
-    й ц у к е н г ш щ з х,
-    ф ы в а п р о л д ж э,
+  default: |
+    й ц у к е н г ш щ з х
+    ф ы в а п р о л д ж э
     я ч с м и т ь б ю
-  ]
-  shift: [
-    Й Ц У К Е Н Г Ш Щ З Х,
-    Ф Ы В А П Р О Л Д Ж Э,
+
+  shift: |
+    Й Ц У К Е Н Г Ш Щ З Х
+    Ф Ы В А П Р О Л Д Ж Э
     Я Ч С М И Т Ь Б Ю
-  ]
+
 
 longpress:
   Ю̄: Ю̄
@@ -28,7 +28,7 @@ styles:
     actions:
       backspace: [1, right, fill]
       enter: [2, right, fill]
-      shift: [3, both, fill] 
+      shift: [3, both, fill]
   phone:
     actions:
       shift: [3, left, fill]

@@ -8,48 +8,20 @@ displayNames:
 locale: se
 
 modes:
-  iso-default: |
-    | 1 2 3 4 5 6 7 8 9 0 + \
-    á š e r t ŧ u i o p å ŋ
-    a s d f g h j k l ø æ đ
-    ž z č c v b n m , . -
-  iso-shift: |
-    § ! " # ¤ % & / ( ) = ? `
-    Á Š E R T Ŧ U I O P Å Ŋ
-    A S D F G H J K L Ø Æ Đ
-    Ž Z Č C V B N M ; : _
-  iso-caps: |
-    | 1 2 3 4 5 6 7 8 9 0 + \
-    Á Š E R T Ŧ U I O P Å Ŋ
-    A S D F G H J K L Ø Æ Đ
-    Ž Z Č C V B N M , . -
-  iso-caps-shift: |
-    § ! " # ¤ % & / ( ) = ? `
-    á š e r t ŧ u i o p å ŋ
-    a s d f g h j k l ø æ đ
-    ž z č c v b n m ; : _
-  iso-layer3:
-    2: "@"
-  default: [
-    á š e r t y u i o p ŋ,
-    a s d f g h j k l đ ŧ,
+  default: |
+    á š e r t y u i o p ŋ
+    a s d f g h j k l đ ŧ
     ž z č c v b n m w
-  ]
-  shift: [
-    Á Š E R T Y U I O P Ŋ,
-    A S D F G H J K L Đ Ŧ,
+  shift: |
+    Á Š E R T Y U I O P Ŋ
+    A S D F G H J K L Đ Ŧ
     Ž Z Č C V B N M W
-  ]
 
-decimalSeparator: ,
+decimal: ','
 
 deadKeys:
   iso-default: ["`"]
   iso-shift: ["`"]
-
-transforms:
-  `:
-    a: à
 
 longpress:
   Á: Q
