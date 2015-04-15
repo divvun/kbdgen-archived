@@ -4,9 +4,7 @@ import re
 import copy
 from collections import namedtuple
 
-import yaml
-
-from . import gen
+from . import orderedyaml
 
 Action = namedtuple("Action", ['row', 'position', 'width'])
 
@@ -109,7 +107,7 @@ class Keyboard:
 
     @property
     def decimal(self):
-        return self._tree['decimal']
+        return self._tree.get('decimal', None)
 
     @property
     def dead_keys(self):
@@ -117,7 +115,7 @@ class Keyboard:
 
     @property
     def transforms(self):
-        return self._tree['transforms']
+        return self._tree.get('transforms', {})
 
     @property
     def modifiers(self):
@@ -182,10 +180,10 @@ class Parser:
         if cfg_file is None:
             cfg_file = open(
                     os.path.join(os.path.dirname(__file__), "global.yaml"))
-        return yaml.load(cfg_file)
+        return orderedyaml.load(cfg_file)
 
     def _parse_layout(self, data):
-        tree = yaml.load(data)
+        tree = orderedyaml.load(data)
 
         for key in ['locale', 'displayNames', 'internalName', 'modes']:
             if key not in tree:
@@ -264,7 +262,7 @@ class Parser:
 
     def parse(self, data, cfg_pairs=None, cfg_file=None):
         tree = self._parse_global(cfg_file)
-        tree.update(yaml.load(data))
+        tree.update(orderedyaml.load(data))
 
         project = self._parse_project(tree)
         if cfg_pairs is not None:

@@ -10,8 +10,17 @@ from io import StringIO
 from collections import OrderedDict, namedtuple
 
 CP_REGEX = re.compile(r"\\u{(.+?)}")
-
 ENTITY_REGEX = re.compile(r"&#(\d+);")
+
+BAD_UNICODE_CATS = ('C', 'Z', 'M')
+def cldr_sub(value, repl, ignore_space=False):
+    def r(x):
+        c = unicodedata.category(x)[0]
+        if (ignore_space and x == ' ') or c not in BAD_UNICODE_CATS:
+            return x
+        else:
+            return repl(x, c)
+    return "".join([r(x) for x in value])
 
 def decode_u(v, newlines=True):
     def chk(x):
@@ -25,12 +34,12 @@ def decode_u(v, newlines=True):
 
     return CP_REGEX.sub(chk, str(v))
 
-BAD_UNICODE_CATS = ('C', 'Z', 'M')
 def encode_u(v):
-    def rep(x):
-        c = unicodedata.category(x)[0]
-        return r"\u{%X}" % ord(x) if c in BAD_UNICODE_CATS else x
-    return "".join([rep(x) for x in v])
+    return cldr_sub(v, lambda x, c: r"\u{%X}" % ord(x))
+    #def rep(x):
+    #    c = unicodedata.category(x)[0]
+    #    return r"\u{%X}" % ord(x) if c in BAD_UNICODE_CATS else x
+    #return "".join([rep(x) for x in v])
 
 def key_cmp(x):
     ch, n = parse_cell(x[0])
