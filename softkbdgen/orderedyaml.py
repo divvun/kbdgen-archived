@@ -1,6 +1,7 @@
 from collections import OrderedDict
 
 import yaml
+import yaml.constructor
 
 # Courtesy of https://gist.github.com/844388. Thanks!
 class OrderedDictYAMLLoader(yaml.Loader):
