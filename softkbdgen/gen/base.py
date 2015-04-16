@@ -7,17 +7,9 @@ import subprocess
 
 from collections import OrderedDict
 
-class MissingApplicationException(Exception): pass
+from ..base import ISO_KEYS
 
-ISO_KEYS = ( "E00",
-    "E01", "E02", "E03", "E04", "E05", "E06",
-    "E07", "E08", "E09", "E10", "E11", "E12",
-    "D01", "D02", "D03", "D04", "D05", "D06",
-    "D07", "D08", "D09", "D10", "D11", "D12",
-    "C01", "C02", "C03", "C04", "C05", "C06", # TODO fix the D13 special case.
-    "C07", "C08", "C09", "C10", "C11", "D13", # C12 -> D13
-    "B00", "B01", "B02", "B03", "B04", "B05",
-    "B06", "B07", "B08", "B09", "B10" )
+class MissingApplicationException(Exception): pass
 
 def bind_iso_keys(other):
     return OrderedDict(((k, v) for k, v in zip(ISO_KEYS, other)))
@@ -43,38 +35,27 @@ class Generator:
     def dry_run(self):
         return self._args.get('dry_run', False)
 
-# TODO create proper layout class with .list and .dict props.
-def mode_iter(layout, key, required=False, fallback=None):
+
+# TODO create standard layout as OrderedDict with None's for blanks.
+def mode_iter(layout, key, required=False):
     mode = layout.modes.get(key, None)
     if mode is None:
         if required:
             raise Exception("'%s' has a required mode." % key)
-        return itertools.repeat(fallback)
+        return itertools.repeat(None)
 
-    if isinstance(mode, dict):
-        def wrapper():
-            for iso in ISO_KEYS:
-                yield mode.get(iso, fallback)
-        return wrapper()
-    else:
-        return itertools.chain.from_iterable(mode)
+    return mode.values()
 
 def mode_dict(layout, key, required=False, space=False):
     mode = layout.modes.get(key, None)
     if mode is None:
         if required:
             raise Exception("'%s' has a required mode." % key)
-        return {}
+        return OrderedDict(zip(ISO_KEYS, itertools.repeat(None)))
 
-    sp = layout.special.get('space', {}).get(key, " ")
-
-    if isinstance(mode, dict):
+    if space:
+        sp = layout.special.get('space', {}).get(key, " ")
         mode['A03'] = sp
-        return mode
-
-    mode = OrderedDict(zip(ISO_KEYS,
-        itertools.chain.from_iterable(mode)))
-    mode['A03'] = sp
     return mode
 
 def git_update(dst, branch, cwd='.', logger=print):

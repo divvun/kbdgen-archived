@@ -4,16 +4,14 @@ import os
 import os.path
 import re
 import sys
-from collections import namedtuple
+from collections import OrderedDict, namedtuple
 
 from . import orderedyaml, log
 
+log.monkey_patch_trace_logging()
+
 def get_logger(path):
-    #h = logging.StreamHandler()
-    l = logging.getLogger(os.path.basename(os.path.splitext(path)[0]))
-    #h.setFormatter()
-    #l.addHandler(h)
-    return l
+    return logging.getLogger(os.path.basename(os.path.splitext(path)[0]))
 
 log.enable_pretty_logging(
         fmt="%(color)s[%(levelname)1.1s %(module)s:%(lineno)d]%(end_color)s" +
@@ -24,6 +22,16 @@ logger = logging.getLogger()
 VERSION = "0.2a1"
 
 Action = namedtuple("Action", ['row', 'position', 'width'])
+
+ISO_KEYS = ( "E00",
+    "E01", "E02", "E03", "E04", "E05", "E06",
+    "E07", "E08", "E09", "E10", "E11", "E12",
+    "D01", "D02", "D03", "D04", "D05", "D06",
+    "D07", "D08", "D09", "D10", "D11", "D12",
+    "C01", "C02", "C03", "C04", "C05", "C06", # TODO fix the D13 special case.
+    "C07", "C08", "C09", "C10", "C11", "D13", # C12 -> D13
+    "B00", "B01", "B02", "B03", "B04", "B05",
+    "B06", "B07", "B08", "B09", "B10" )
 
 class Project:
     def __init__(self, tree):
@@ -200,7 +208,23 @@ class Parser:
         return orderedyaml.load(cfg_file)
 
     def _parse_layout(self, data):
-        tree = orderedyaml.load(data)
+        if isinstance(data, list):
+            raise Exception("UNSUPPORTED: %s is a list. " +
+                            "Use a string block ('%s: |')" % (mode, mode))
+
+        if isinstance(data, dict):
+            o = OrderedDict()
+            for key in ISO_KEYS:
+                o[key] = data.get(key, None)
+            return o
+        elif isinstance(data, str):
+            data = re.sub(r"[\r\n\s]+", " ", data.strip()).split(" ")
+            if len(data) != len(ISO_KEYS):
+                raise Exception(len(data))
+            return OrderedDict(zip(ISO_KEYS, data))
+
+    def _parse_keyboard_descriptor(self, f):
+        tree = orderedyaml.load(f)
 
         for key in ['locale', 'displayNames', 'internalName', 'modes']:
             if key not in tree:
@@ -216,41 +240,13 @@ class Parser:
         if 'longpress' not in tree or tree.get('longpress', None) is None:
             tree['longpress'] = {}
 
-        strdicts = []
-        keycache = {}
-        layermap = {
-            'iso-layer3': 'iso-default'
-        }
-
-        for mode, strings in tree['modes'].items():
-            if isinstance(strings, list):
-                logger.error("UNSUPPORTED: %s is a list. " +
-                             "Use a string block ('%s: |')" % (mode, mode))
-            elif isinstance(strings, str):
-                strings = strings.strip().split('\n')
-            if isinstance(strings, dict):
-                # TODO abuse the strdicts loop, for now just add to modes.
-                #strdicts.append((mode, strings))
-                pass
-            else:
-                # TODO wtf can this even be reached??
-                tree['modes'][mode] = [re.split(r"\s+", x.strip()) for x in strings]
-                keycache[mode] = {}
-                for y, row in enumerate(tree['modes'][mode]):
-                    for x, key in enumerate(row):
-                        keycache[mode][key] = (y, x)
-
-        for mode, keys in strdicts:
-            if mode not in layermap:
-                #logging.error("mode not in layermap") # TODO FINISH
-                continue
-
-            basemode = layermap[mode]
-            tree['modes'][mode] = copy.deepcopy(tree['modes'][basemode])
-            for k, v in keys.items():
-                k = str(k)
-                y, x = keycache[basemode][k]
-                tree['modes'][mode][y][x] = v
+        for mode in list(tree['modes'].keys()):
+            try:
+                tree['modes'][mode] = self._parse_layout(tree['modes'][mode])
+            except Exception as e:
+                raise Exception(("'%s' in file '%s' is the wrong length. " +
+                                 "Got %s, expected %s.") % (
+                    f.name, mode, e.message, len(ISO_KEYS)))
 
         for longpress, strings in tree['longpress'].items():
             tree['longpress'][longpress] = re.split(r"\s+", strings.strip())
@@ -271,7 +267,7 @@ class Parser:
 
         for layout in tree['layouts']:
             with open("%s.yaml" % layout) as f:
-                l = self._parse_layout(f)
+                l = self._parse_keyboard_descriptor(f)
                 layouts[l.internal_name] = l
 
         tree['layouts'] = layouts

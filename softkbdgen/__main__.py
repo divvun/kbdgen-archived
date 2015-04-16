@@ -20,7 +20,8 @@ def parse_args():
             "error": 40,
             "warning": 30,
             "info": 20,
-            "debug": 10
+            "debug": 10,
+            "trace": 5
         }.get(string, None)
 
         if n is None:
@@ -67,7 +68,9 @@ def main():
             ), file=sys.stderr)
         sys.exit(1)
     except Exception as e:
-        print(e, file=stderr)
+        if logger.getEffectiveLevel() <= 10:
+            raise e
+        print(e, file=sys.stderr)
         sys.exit(1)
 
     generator = generators.get(args.target, None)

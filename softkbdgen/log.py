@@ -241,3 +241,17 @@ def define_logging_options(options=None):
                    help="number of log files to keep")
 
     options.add_parse_callback(lambda: enable_pretty_logging(options))
+
+def monkey_patch_trace_logging():
+    setattr(logging, 'TRACE', 5)
+    logging._levelToName[logging.TRACE] = "TRACE"
+    logging._nameToLevel["TRACE"] = logging.TRACE
+
+    def trace(self, msg, *args, **kwargs):
+        if self.isEnabledFor(logging.TRACE):
+            self._log(logging.TRACE, msg, args, **kwargs)
+
+    logging.Logger.trace = trace
+
+    LogFormatter.DEFAULT_COLORS[logging.TRACE] = 5
+
