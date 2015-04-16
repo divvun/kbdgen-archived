@@ -7,12 +7,15 @@ from lxml import etree
 from lxml.etree import Element, SubElement
 from textwrap import dedent
 
+from .. import get_logger
 from .base import *
 from ..cldr import decode_u
 
+logger = get_logger(__file__)
+
 class SVGGenerator(Generator):
     def generate(self, base='.'):
-        with open(os.path.join(os.path.dirname(__file__), 'gen',
+        with open(os.path.join(os.path.dirname(__file__),
                 'bin', 'keyboard-iso.svg')) as f:
             tree = etree.parse(f)
         root = tree.getroot()
@@ -96,13 +99,13 @@ class SVGGenerator(Generator):
         try:
             p.text = primary
         except Exception as e:
-            print(e)
+            logger.warning(e)
         s = SubElement(g, 'text', **{"dy": "-.4em",
                          "y": "32", "x": "32", "class": "key-text-secondary"})
         try:
             s.text = secondary
         except Exception as e:
-            print(e)
+            logger.warning(e)
         return (g, p, s)
 
     def generate_svg(self, layout, root):

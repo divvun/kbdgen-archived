@@ -1,10 +1,21 @@
-import sys
-import os
-import re
 import copy
+import logging
+import os
+import os.path
+import re
+import sys
 from collections import namedtuple
 
 from . import orderedyaml
+
+logging.basicConfig(format="[%(levelname)1.1s %(module)s:%(lineno)d] %(message)s")
+
+logger = logging.getLogger()
+
+def get_logger(path):
+    return logging.getLogger(os.path.basename(os.path.splitext(path)[0]))
+
+VERSION = "0.2a1"
 
 Action = namedtuple("Action", ['row', 'position', 'width'])
 
@@ -207,7 +218,8 @@ class Parser:
 
         for mode, strings in tree['modes'].items():
             if isinstance(strings, list):
-                print("DEPRECATED: %s is a list. Please use a string block (eg default: |)" % mode)
+                logger.error("UNSUPPORTED: %s is a list. " +
+                             "Use a string block ('%s: |')" % (mode, mode))
             elif isinstance(strings, str):
                 strings = strings.strip().split('\n')
             if isinstance(strings, dict):
@@ -224,7 +236,7 @@ class Parser:
 
         for mode, keys in strdicts:
             if mode not in layermap:
-                print("ERROR mode not in layermap TODO FINISH")
+                #logging.error("mode not in layermap") # TODO FINISH
                 continue
 
             basemode = layermap[mode]

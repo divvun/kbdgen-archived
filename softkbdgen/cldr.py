@@ -1,13 +1,17 @@
-import lxml.etree
-import itertools
-import re
 import datetime
+import itertools
+import logging
 import os.path
+import re
 import unicodedata
 
+import lxml.etree
 from lxml.etree import Element, SubElement
 from io import StringIO
 from collections import OrderedDict, namedtuple
+
+from . import get_logger
+logger = get_logger(__file__)
 
 CP_REGEX = re.compile(r"\\u{(.+?)}")
 ENTITY_REGEX = re.compile(r"&#(\d+);")
@@ -227,8 +231,9 @@ class CLDRKeyboard:
 
             if 'B00' not in o and 'E00' in o:
                 o['B00'] = o['E00']
-                print(("WARNING: B00 has been duplicated from E00 in '%s'; " +
-                       "ANSI keyboard definition?") % new_mode)
+
+                logger.warning(("B00 has been duplicated from E00 in '%s'; " +
+                                "ANSI keyboard definition?") % new_mode)
 
             # Force ANSI-style keys into the ISO world.
             if 'D13' in o:
@@ -367,11 +372,6 @@ class CLDRMode:
     def cldr(self):
         return self._raw
 
-
-    def interpret(self):
-        modpile = (x for x in self.parse() if len(x) > 0)
-        for raw, mods in modpile:
-            print(raw, mods)
 
 def cldr2kbdgen_main():
     import argparse, sys

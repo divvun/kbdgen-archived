@@ -9,15 +9,16 @@ from lxml import etree
 from lxml.etree import Element, SubElement
 
 from .base import *
-from .. import boolmap
+from .. import boolmap, get_logger
+
+logger = get_logger(__file__)
 
 ANDROID_GLYPHS = {}
 
 for api in range(16, 21+1):
     if api in (17, 18, 20):
         continue
-    # TODO move bins
-    with open(os.path.join(os.path.dirname(__file__), '..',
+    with open(os.path.join(os.path.dirname(__file__), 'bin',
             "android-glyphs-api%s.bin" % api), 'rb') as f:
         ANDROID_GLYPHS[api] = boolmap.BoolMap(f.read())
 
@@ -62,7 +63,7 @@ class AndroidGenerator(Generator):
             return
 
         if self.dry_run:
-            print("Dry run completed.")
+            logger.info("Dry run completed.")
             return
 
         self.native_locale_workaround()
@@ -123,7 +124,7 @@ class AndroidGenerator(Generator):
         pid = self._project.target('android').get('packageId')
         if pid is None:
             sane = False
-            print("Error: no package ID provided for Android target.")
+            logger.error("no package ID provided for Android target.")
 
         for name, kbd in self._project.layouts.items():
             for dn_locale in kbd.display_names:
@@ -133,15 +134,14 @@ class AndroidGenerator(Generator):
                     pycountry.languages.get(alpha2=dn_locale)
                 except KeyError:
                     sane = False
-                    print(("[%s] Error: '%s' is not a supported locale. " +\
+                    logger.error(("[%s] '%s' is not a supported locale. " +\
                           "You should provide the code in ISO 639-1 " +\
-                          "format, if possible.") % (
-                        name, dn_locale))
+                          "format, if possible.") % (name, dn_locale))
 
             for mode, rows in kbd.modes.items():
                 for n, row in enumerate(rows):
                     if len(row) > 11:
-                        print(("[%s] Warning: row %s has %s keys. It is " +\
+                        logger.warning(("[%s] row %s has %s keys. It is " +\
                                "recommended to have less than 12 keys per " +\
                                "row.") % (name, n+1, len(row)))
 
@@ -151,7 +151,7 @@ class AndroidGenerator(Generator):
         return sane
 
     def _upd_locale(self, d, values):
-        print("Updating localisation for %s..." % d)
+        logger.info("Updating localisation for %s..." % d)
 
         fn = os.path.join(d, "strings-appname.xml")
         node = None
@@ -187,7 +187,7 @@ class AndroidGenerator(Generator):
     def generate_icons(self, base):
         icon = self._project.icon('android')
         if icon is None:
-            print("Warning: no icon supplied!")
+            logger.warning("no icon supplied!")
             return
 
         res_dir = os.path.join(base, 'deps', self.REPO, 'res')
@@ -203,19 +203,20 @@ class AndroidGenerator(Generator):
             cmd = cmd_tmpl % (dimen, dimen, icon, os.path.join(
                 res_dir, mipmap_dir, "ic_launcher_keyboard.png"))
 
-            print("Creating '%s' at size %dx%d" % (mipmap_dir, dimen, dimen))
+            logger.info("Creating '%s' at size %dx%d" % (mipmap_dir, dimen, dimen))
             process = subprocess.Popen(cmd, shell=True,
                     stderr=subprocess.PIPE, stdout=subprocess.PIPE)
             out, err = process.communicate()
             if process.returncode != 0:
-                print(err.decode())
-                print("Application ended with error code %s." % process.returncode)
+                logger.error(err.decode())
+                logger.error("Application ended with error code %s." % process.returncode)
+                # TODO throw exception instead.
                 sys.exit(process.returncode)
 
 
     def build(self, base, release_mode=True):
         # TODO normal build
-        print("Building...")
+        logger.info("Building...")
         process = subprocess.Popen(['ant', 'release' if release_mode else 'debug'],
                     cwd=os.path.join(base, 'deps', self.REPO))
         process.wait()
@@ -227,16 +228,16 @@ class AndroidGenerator(Generator):
             # TODO other release shi
         path = os.path.join(base, 'deps', self.REPO, 'bin')
 
-        print("Copying '%s' to build/ directory..." % fn)
+        logger.info("Copying '%s' to build/ directory..." % fn)
         os.makedirs(os.path.join(base, 'build'), exist_ok=True)
         shutil.copy(os.path.join(path, fn), os.path.join(base, 'build'))
 
-        print("Done!")
+        logger.info("Done!")
 
     def _str_xml(self, val_dir, name, subtype):
         os.makedirs(val_dir, exist_ok=True)
         fn = os.path.join(val_dir, 'strings.xml')
-        print("Updating '%s'..." % fn)
+        logger.info("Updating '%s'..." % fn)
 
         if not os.path.exists(fn):
             root = etree.XML("<resources/>")
@@ -284,7 +285,7 @@ class AndroidGenerator(Generator):
         base_layouts = layouts[None]
         del layouts[None]
 
-        print("Updating 'res/xml/method.xml'...")
+        logger.info("Updating 'res/xml/method.xml'...")
         path = os.path.join(base, 'deps', self.REPO, 'res', '%s')
         fn = os.path.join(path, 'method.xml')
 
@@ -301,7 +302,7 @@ class AndroidGenerator(Generator):
 
         for api_ver, kbds in layouts.items():
             xmlv = "xml-v%s" % api_ver
-            print("Updating 'res/%s/method.xml'..." % xmlv)
+            logger.info("Updating 'res/%s/method.xml'..." % xmlv)
             os.makedirs(path % xmlv, exist_ok=True)
             with open(fn % xmlv, 'w') as f:
                 f.write(self.gen_method_xml(kbds, copy.deepcopy(tree)))
@@ -310,7 +311,7 @@ class AndroidGenerator(Generator):
         fn = os.path.join(base, 'deps', self.REPO)
         for k, v in files:
             with open(os.path.join(fn, k), 'w') as f:
-                print("Creating '%s'..." % k)
+                logger.info("Creating '%s'..." % k)
                 f.write(v)
 
     def get_source_tree(self, base, sdk_base):
@@ -324,7 +325,7 @@ class AndroidGenerator(Generator):
         deps_dir = os.path.join(base, 'deps')
         os.makedirs(deps_dir, exist_ok=True)
 
-        print("Preparing dependencies...")
+        logger.info("Preparing dependencies...")
 
         repo_dir = os.path.join(deps_dir, self.REPO)
 
@@ -333,7 +334,7 @@ class AndroidGenerator(Generator):
         else:
             git_clone(self.repo, repo_dir, self.branch, base)
 
-        print("Create Android project...")
+        logger.info("Create Android project...")
 
         cmd = "%s update project -n %s -t android-19 -p ." % (
             os.path.join(os.path.abspath(sdk_base), 'tools/android'),
@@ -536,7 +537,7 @@ class AndroidGenerator(Generator):
     def detect_unavailable_glyphs_long_press(self, layout, api_ver):
         glyphs = ANDROID_GLYPHS.get(api_ver, None)
         if glyphs is None:
-            print("Warning: no glyphs file found for API %s! Can't detect " +
+            logger.warning("no glyphs file found for API %s! Can't detect " +
                   "missing characters from Android font!" % api_ver)
             return
 
@@ -544,14 +545,15 @@ class AndroidGenerator(Generator):
             for v in vals:
                 for c in v:
                     if glyphs[ord(c)] is False:
-                        print("[%s] Warning: '%s' (codepoint: U+%04X) is not supported by API %s!" % (
+                        logger.warning("[%s] '%s' (codepoint: U+%04X) " +
+                                       "is not supported by API %s!" % (
                             layout.internal_name,
                             c, ord(c), api_ver))
 
     def detect_unavailable_glyphs_keys(self, key, api_ver):
         glyphs = ANDROID_GLYPHS.get(api_ver, None)
         if glyphs is None:
-            print("Warning: no glyphs file found for API %s! Can't detect " +
+            logger.warning("no glyphs file found for API %s! Can't detect " +
                   "missing characters from Android font!" % api_ver)
             return
 
