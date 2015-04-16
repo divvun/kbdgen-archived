@@ -36,7 +36,6 @@ class Generator:
         return self._args.get('dry_run', False)
 
 
-# TODO create standard layout as OrderedDict with None's for blanks.
 def mode_iter(layout, key, required=False):
     mode = layout.modes.get(key, None)
     if mode is None:

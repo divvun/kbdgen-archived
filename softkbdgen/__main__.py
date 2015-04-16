@@ -70,7 +70,7 @@ def main():
     except Exception as e:
         if logger.getEffectiveLevel() <= 10:
             raise e
-        print(e, file=sys.stderr)
+        print("Error:", e, file=sys.stderr)
         sys.exit(1)
 
     generator = generators.get(args.target, None)

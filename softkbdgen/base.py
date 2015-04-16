@@ -246,7 +246,7 @@ class Parser:
             except Exception as e:
                 raise Exception(("'%s' in file '%s' is the wrong length. " +
                                  "Got %s, expected %s.") % (
-                    f.name, mode, e.message, len(ISO_KEYS)))
+                    mode, f.name, str(e), len(ISO_KEYS)))
 
         for longpress, strings in tree['longpress'].items():
             tree['longpress'][longpress] = re.split(r"\s+", strings.strip())
