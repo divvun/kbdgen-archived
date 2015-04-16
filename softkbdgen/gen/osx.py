@@ -18,6 +18,7 @@ class OSXGenerator(Generator):
         o = OrderedDict()
 
         for name, layout in self._project.layouts.items():
+            logger.info("Generating '%s'..." % name)
             o[name] = self.generate_xml(layout)
 
         if self.dry_run:
@@ -30,16 +31,20 @@ class OSXGenerator(Generator):
         bundle = os.path.join(self.build_dir,
                  "%s.bundle" % self._project.internal_name)
 
+        logger.info("Creating bundle...")
         bundle_path = self.create_bundle(self.build_dir)
         res_path = os.path.join(bundle_path, "Contents", "Resources")
 
         for name, data in o.items():
             layout = self._project.layouts[name]
             fn = layout.display_names[layout.locale]
+            logger.debug("%s.keylayout -> bundle")
             with open(os.path.join(res_path, "%s.keylayout" % fn), 'w') as f:
                 f.write(data)
 
+        logger.info("Creating installer...")
         self.create_installer(bundle_path)
+        logger.info("Done!")
 
     def create_bundle(self, path):
         bundle_path = os.path.join(path, "%s.bundle" % self._project.internal_name)
