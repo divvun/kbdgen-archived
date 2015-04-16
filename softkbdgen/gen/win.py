@@ -28,7 +28,7 @@ class WindowsGenerator(Generator):
             outputs[self._klc_get_name(layout)] = self.generate_klc(layout)
 
         if self.dry_run:
-            print("Dry run completed.")
+            logger.info("Dry run completed.")
             return
 
         build_dir = os.path.join(base, 'build', 'win',
@@ -194,7 +194,7 @@ class WindowsGenerator(Generator):
                 output = str(output)
 
                 if len(key) != 1 or len(output) != 1:
-                    print(("WARNING: %s%s -> %s is invalid for Windows " +
+                    logger.warning(("%s%s -> %s is invalid for Windows " +
                            "deadkeys; skipping.") % (basekey, key, output))
                     continue
                 buf.write("%s\t%s\t// %s -> %s\n" % (

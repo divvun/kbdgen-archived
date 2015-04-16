@@ -1,15 +1,20 @@
 import io
 
+from .. import get_logger
 from .base import *
 from ..cldr import CP_REGEX
 
+logger = get_logger(__file__)
+
 class XKBGenerator(Generator):
     def generate(self, base='.'):
+        logger.critical("This target is not fully implemented yet!")
+
         for name, layout in self._project.layouts.items():
             print(self.generate_nonsense(name, layout))
 
         if self.dry_run:
-            print("Dry run completed.")
+            logger.info("Dry run completed.")
             return
 
     def generate_nonsense(self, name, layout):

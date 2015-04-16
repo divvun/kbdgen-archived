@@ -330,9 +330,9 @@ class AndroidGenerator(Generator):
         repo_dir = os.path.join(deps_dir, self.REPO)
 
         if os.path.isdir(repo_dir):
-            git_update(repo_dir, self.branch, base)
+            git_update(repo_dir, self.branch, base, logger=logger.info)
         else:
-            git_clone(self.repo, repo_dir, self.branch, base)
+            git_clone(self.repo, repo_dir, self.branch, base, logger=logger.info)
 
         logger.info("Create Android project...")
 

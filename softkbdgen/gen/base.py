@@ -77,19 +77,9 @@ def mode_dict(layout, key, required=False, space=False):
     mode['A03'] = sp
     return mode
 
-def git_clone(src, dst, branch, cwd='.'):
-    print("Cloning repository '%s' to '%s'..." % (src, dst))
-
-    cmd = ['git', 'clone', src, dst]
-
-    process = subprocess.Popen(cmd, cwd=cwd)
-    process.wait()
-
-    git_update(dst, branch, cwd)
-
-
-def git_update(dst, branch, cwd='.'):
-    print("Updating repository '%s'..." % dst)
+def git_update(dst, branch, cwd='.', logger=print):
+    msg = "Updating repository '%s'..." % dst
+    logger(msg)
 
     cmd = """git reset --hard;
              git checkout %s;
@@ -100,6 +90,18 @@ def git_update(dst, branch, cwd='.'):
 
     process = subprocess.Popen(cmd, cwd=cwd, shell=True)
     process.wait()
+
+def git_clone(src, dst, branch, cwd='.', logger=print):
+    msg = "Cloning repository '%s' to '%s'..." % (src, dst)
+    logger(msg)
+
+    cmd = ['git', 'clone', src, dst]
+
+    process = subprocess.Popen(cmd, cwd=cwd)
+    process.wait()
+
+    # Silence logger for update.
+    git_update(dst, branch, cwd, logger=lambda x: None)
 
 def iterable_set(iterable):
     return {i for i in itertools.chain.from_iterable(iterable)}

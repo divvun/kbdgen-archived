@@ -4,8 +4,11 @@ import subprocess
 
 from textwrap import indent, dedent
 
+from .. import get_logger
 from .base import *
 from .osxutil import *
+
+logger = get_logger(__file__)
 
 class OSXGenerator(Generator):
     def generate(self, base='.'):
@@ -18,7 +21,7 @@ class OSXGenerator(Generator):
             o[name] = self.generate_xml(layout)
 
         if self.dry_run:
-            print("Dry run completed.")
+            logger.info("Dry run completed.")
             return
 
         if os.path.exists(self.build_dir):
@@ -100,8 +103,8 @@ class OSXGenerator(Generator):
         out, err = process.communicate()
 
         if process.returncode != 0:
-            print(err.decode())
-            print("Application ended with error code %s." % process.returncode)
+            logger.error(err.decode())
+            logger.error("Application ended with error code %s." % process.returncode)
             sys.exit(process.returncode)
 
     def generate_xml(self, layout):
@@ -113,7 +116,7 @@ class OSXGenerator(Generator):
             # TODO throw on null
             mode = layout.modes.get(mode_name, None)
             if mode is None:
-                print("WARNING: layout '%s' has no mode '%s'" % (
+                logger.warning("layout '%s' has no mode '%s'" % (
                     layout.internal_name, mode_name))
                 continue
 
@@ -158,7 +161,7 @@ class OSXGenerator(Generator):
             base_id = "Key %s Pressed" % base
             for trans_key, output in o.items():
                 if len(decode_u(str(trans_key))) > 1:
-                    print("WARNING: '%s' has len longer than 1; not supported yet." % trans_key)
+                    logger.warning("'%s' has len longer than 1; not supported yet." % trans_key)
                     continue
                 key_id = "Key %s Pressed" % trans_key
                 out.add_transform(key_id, base_id, output=output)

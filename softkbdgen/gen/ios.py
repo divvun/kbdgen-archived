@@ -1,24 +1,28 @@
 import plistlib
 from textwrap import dedent, indent
 
+from .. import get_logger
 from .base import *
 from .osxutil import *
+
+logger = get_logger(__file__)
 
 class AppleiOSGenerator(Generator):
     def generate(self, base='.'):
         # TODO sanity checks
 
         if self.dry_run:
-            print("Dry run completed.")
+            logger.info("Dry run completed.")
             return
 
         build_dir = os.path.join(base, 'build',
                 'ios', self._project.target('ios')['packageId'])
 
         if os.path.isdir(build_dir):
-            git_update(build_dir, self.branch, base)
+            git_update(build_dir, self.branch, base, logger=logger.info)
         else:
-            git_clone(self.repo, build_dir, self.branch, base)
+            git_clone(self.repo, build_dir, self.branch, base,
+                    logger=logger.info)
 
         path = os.path.join(build_dir,
             'TastyImitationKeyboard.xcodeproj', 'project.pbxproj')
@@ -81,7 +85,7 @@ class AppleiOSGenerator(Generator):
         if self.is_release:
             self.build_release(base, build_dir)
         else:
-            print("You may now open TastyImitationKeyboard.xcodeproj in '%s'." %\
+            logger.info("You may now open TastyImitationKeyboard.xcodeproj in '%s'." %\
                     build_dir)
 
     def build_release(self, base_dir, build_dir):
@@ -127,18 +131,18 @@ class AppleiOSGenerator(Generator):
                 (cmd2, "Building .ipa and signing..."),
                 ):
 
-            print(msg)
+            logger.info(msg)
             process = subprocess.Popen(cmd, cwd=build_dir, shell=True,
                     stderr=subprocess.PIPE, stdout=subprocess.PIPE)
             out, err = process.communicate()
             if process.returncode != 0:
-                print(err.decode())
-                print("Application ended with error code %s." % process.returncode)
+                logger.error(err.decode())
+                logger.error("Application ended with error code %s." % process.returncode)
                 sys.exit(process.returncode)
 
         if os.path.exists(xcarchive):
             shutil.rmtree(xcarchive)
-        print("Done! -> %s" % ipa)
+        logger.info("Done! -> %s" % ipa)
 
     def _tostring(self, tree):
         return etree.tostring(tree, pretty_print=True,
@@ -146,7 +150,7 @@ class AppleiOSGenerator(Generator):
 
     def gen_hosting_app_icons(self, build_dir):
         if self._project.icon('ios') is None:
-            print("Warning: no icon supplied!")
+            logger.warning("no icon supplied!")
             return
 
         path = os.path.join(build_dir, 'HostingApp',
@@ -168,13 +172,15 @@ class AppleiOSGenerator(Generator):
             obj['filename'] = fn
             cmd = cmd_tmpl % (w, h, icon, os.path.join(path, fn))
 
-            print("Creating '%s' from '%s'..." % (fn, icon))
+            logger.info("Creating '%s' from '%s'..." % (fn, icon))
+
+            # TODO create generic `launch_process` util func
             process = subprocess.Popen(cmd, shell=True,
                     stderr=subprocess.PIPE, stdout=subprocess.PIPE)
             out, err = process.communicate()
             if process.returncode != 0:
-                print(err.decode())
-                print("Application ended with error code %s." % process.returncode)
+                logger.error(err.decode())
+                logger.error("Application ended with error code %s." % process.returncode)
                 sys.exit(process.returncode)
 
         with open(os.path.join(path, "Contents.json"), 'w') as f:

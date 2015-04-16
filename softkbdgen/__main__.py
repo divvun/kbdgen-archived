@@ -73,8 +73,10 @@ def main():
     generator = generators.get(args.target, None)
 
     if generator is None:
-        print("Error: '%s' is not a valid target." % args.target)
-        print("Valid targets: %s" % ", ".join(generators))
+        print("Error: '%s' is not a valid target." % args.target,
+                file=sys.stderr)
+        print("Valid targets: %s" % ", ".join(generators),
+                file=sys.stderr)
         sys.exit(1)
 
     x = generator(project, dict(args._get_kwargs()))
@@ -82,7 +84,7 @@ def main():
     try:
         x.generate()
     except gen.MissingApplicationException as e:
-        print(e)
+        print(e, file=sys.stderr)
 
 if __name__ == "__main__":
     main()
