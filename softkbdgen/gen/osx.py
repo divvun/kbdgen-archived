@@ -38,7 +38,7 @@ class OSXGenerator(Generator):
         for name, data in o.items():
             layout = self._project.layouts[name]
             fn = layout.display_names[layout.locale]
-            logger.debug("%s.keylayout -> bundle")
+            logger.debug("%s.keylayout -> bundle" % fn)
             with open(os.path.join(res_path, "%s.keylayout" % fn), 'w') as f:
                 f.write(data)
 
