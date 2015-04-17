@@ -62,15 +62,15 @@ def main():
                                  args.cfg_pairs)
 
     except yaml.scanner.ScannerError as e:
-        print("Error parsing project:\n%s\n%s" % (
-                e.problem,
-                e.problem_mark
-            ), file=sys.stderr)
+        logger.critical("Error parsing project:\n%s %s" % (
+                str(e.problem).strip(),
+                str(e.problem_mark).strip()
+            ))
         sys.exit(1)
     except Exception as e:
-        if logger.getEffectiveLevel() <= 10:
+        if logger.getEffectiveLevel() < 10:
             raise e
-        print("Error:", e, file=sys.stderr)
+        logger.critical(e)
         sys.exit(1)
 
     generator = generators.get(args.target, None)

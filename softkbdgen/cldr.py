@@ -122,13 +122,17 @@ def to_xml(yaml_tree):
         else:
             node = SubElement(tree, 'keyMap', modifiers=mod)
 
+        deadkey_set = { x for x in itertools.chain.from_iterable(
+                        yaml_tree['deadKeys'].values()) }
+
         if isinstance(key_map, dict):
             for k, v in sorted(key_map.items(), key=key_cmp):
                 key_node = SubElement(node, 'map', iso=k, to=v)
 
                 # TODO make this more optimal, chaining all lists and only
                 # assigning when it makes sense to do so
-                if v not in yaml_tree['deadKeys'].get(mode, {}):
+                if v in deadkey_set and\
+                        v not in yaml_tree['deadKeys'].get(mode, {}):
                     key_node.attrib['transform'] = 'no'
         else:
             chain = itertools.chain(
@@ -139,7 +143,8 @@ def to_xml(yaml_tree):
             for iso, to in zip(chain, re.split(r"[\s\n]+", key_map)):
                 key_node = SubElement(node, 'map', iso=iso, to=to)
 
-                if to not in yaml_tree['deadKeys'].get(mode, {}):
+                if to in deadkey_set and\
+                        to not in yaml_tree['deadKeys'].get(mode, {}):
                     key_node.attrib['transform'] = 'no'
 
         # Space special case!
@@ -154,7 +159,8 @@ def to_xml(yaml_tree):
             n.attrib['from'] = "%s%s" % (base, tr_from)
             n.attrib['to'] = tr_to
 
-    out = lxml.etree.tostring(tree, encoding='utf-8', pretty_print=True).decode()
+    out = lxml.etree.tostring(tree, xml_declaration=True, encoding='utf-8',
+            pretty_print=True).decode()
     return ENTITY_REGEX.sub(lambda x: "\\u{%s}" % hex(int(x.group(1)))[2:].upper(), out)
 
 
@@ -285,7 +291,7 @@ class CLDRKeyboard:
         if len(self._deadkeys) > 0:
             x.write("\ndeadKeys:\n")
             for mode, keys in self._deadkeys.items():
-                x.write(('  %s: ["%s"]\n' % (mode, '", "'.join(keys))).replace(
+                x.write(('  %s: ["%s"]\n' % (mode, '", "'.join(sorted(keys)))).replace(
                     "\\", r"\\"))
 
         if len(self._transforms) > 0:
@@ -387,6 +393,35 @@ def cldr2kbdgen_main():
 
     args.kbdgen_yaml.write(CLDRKeyboard.from_file(args.cldr_xml).as_yaml())
 
+def kbdgen2cldr_main():
+    import argparse, sys
+    from . import orderedyaml
+
+    p = argparse.ArgumentParser(prog="kbdgen2cldr")
+    #p.add_argument('--osx', action='store_true',
+    #               help="Force detection of XML file as an OS X keyboard.")
+    p.add_argument('kbdgen_yaml', type=argparse.FileType('r'),
+                   default=sys.stdout)
+    p.add_argument('cldr_xml', type=argparse.FileType('w'),
+                   default=sys.stdin)
+    args = p.parse_args()
+
+    parsed = orderedyaml.load(args.kbdgen_yaml)
+    args.cldr_xml.write(to_xml(parsed))
+
 if __name__ == "__main__":
-    kbd2yaml_main()
+    import sys
+
+    if len(sys.argv) < 2:
+        print("cldr2kbdgen or kbdgen2cldr required as first param.")
+        sys.exit(1)
+    app = sys.argv.pop(1)
+
+    if app == "cldr2kbdgen":
+        cldr2kbdgen_main()
+    elif app == "kbdgen2cldr":
+        kbdgen2cldr_main()
+    else:
+        print("cldr2kbdgen or kbdgen2cldr required as first param.")
+        sys.exit(1)
 

@@ -22,6 +22,8 @@ class SVGGenerator(Generator):
 
         files = []
 
+        logger.info("Several warnings may fire about XML incompatible strings. " +
+                    "Incompatible strings are currently just ignored.")
         for name, layout in self._project.layouts.items():
             files.append(("%s.svg" % name,
                     layout.display_names[layout.locale],
@@ -99,13 +101,13 @@ class SVGGenerator(Generator):
         try:
             p.text = primary
         except Exception as e:
-            logger.warning(e)
+            logger.warning('For char 0x%04x: %s' % (ord(primary), e))
         s = SubElement(g, 'text', **{"dy": "-.4em",
                          "y": "32", "x": "32", "class": "key-text-secondary"})
         try:
             s.text = secondary
         except Exception as e:
-            logger.warning(e)
+            logger.warning('For char 0x%04x: %s' % (ord(secondary), e))
         return (g, p, s)
 
     def generate_svg(self, layout, root):

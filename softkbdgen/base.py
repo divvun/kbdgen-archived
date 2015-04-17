@@ -208,10 +208,6 @@ class Parser:
         return orderedyaml.load(cfg_file)
 
     def _parse_layout(self, data):
-        if isinstance(data, list):
-            raise Exception("UNSUPPORTED: %s is a list. " +
-                            "Use a string block ('%s: |')" % (mode, mode))
-
         if isinstance(data, dict):
             o = OrderedDict()
             for key in ISO_KEYS:
@@ -241,6 +237,9 @@ class Parser:
             tree['longpress'] = {}
 
         for mode in list(tree['modes'].keys()):
+            if isinstance(tree['modes'][mode], list):
+                raise Exception(("'%s' in '%s' must be defined as a string using" +
+                                 " block string format, not a list.") % (mode, f.name))
             try:
                 tree['modes'][mode] = self._parse_layout(tree['modes'][mode])
             except Exception as e:
