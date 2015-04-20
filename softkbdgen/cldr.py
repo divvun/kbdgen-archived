@@ -67,13 +67,14 @@ def is_relevant_cell(x):
     if ch == 'E':
         return 0 <= n <= 12
     if ch == 'D':
-        return 1 <= n <= 13
+        return 1 <= n <= 12
     if ch == 'C':
-        return 1 <= n <= 11
+        return 1 <= n <= 12
     if ch == 'B':
         return 0 <= n <= 10
     return False
 
+# TODO verify where this is used
 def is_full_layout(o):
     """Strictly not accurate, as D13 is considered C12 for convenience."""
 
@@ -95,7 +96,10 @@ def is_full_layout(o):
 def filtered(v):
     if v == '"':
         return r'"\""'
-    if v in r" |\-?:,[]{}#&*!>'%@`~=":
+    if v == "\\":
+        # TODO check if this is necessary in practice
+        return r'"\\"'
+    if v in r" |-?:,[]{}#&*!>'%@`~=":
         return '"%s"' % v
     return encode_u(v)
 
@@ -213,11 +217,15 @@ class CLDRKeyboard:
 
         for keymap in tree.xpath("keyMap"):
             mode = keymap.attrib.get('modifiers', 'default')
+            print(CLDRMode(mode).kbdgen)
             new_mode = self.modes.get(mode, '??? %s' % mode)
             o = {}
             for key in keymap.xpath('map'):
                 iso_key = key.attrib['iso']
-                if not is_relevant_cell(iso_key):
+                # Special case for layout differences.
+                if iso_key == "D13":
+                    iso_key = "C12"
+                elif not is_relevant_cell(iso_key):
                     if iso_key == "A03" and key.attrib['to'] != " ":
                         self._space[new_mode] = process_value(key.attrib['to'])
                     continue
@@ -349,7 +357,7 @@ class CLDRMode:
 
             known_token = TOKENS.get(tok, None)
             if known_token is None:
-                return ModeToken(known_token)
+                return ModeToken(known_token, None, None)
 
             direction = Both
             if is_l: direction = Left
@@ -361,12 +369,26 @@ class CLDRMode:
 
     def _init_kbdgen(self):
         out = []
-        phrases = self._raw.split(" ")
-        for ph in phrases:
-            tokens = self._parse_tokens(ph.split("+"))
-            out.append(tokens)
+        ph = self._raw.split(" ")[0]
 
-        return tuple(out)
+        # Special case: "default"
+        if ph == "default":
+            return "iso-default"
+
+        tokens = self._parse_tokens(ph.split("+"))
+        clean = tuple(tok[0] for tok in tokens if tok.required is True)
+
+        prefix = "iso"
+        if OSXCommand in clean:
+            prefix = "osx"
+
+        def mm(x):
+            if x == "alt": return 0
+            if x == "ctrl": return 1
+            if x == "shift": return 2
+            return 99
+
+        return "%s-%s" % (prefix, "+".join(sorted(clean, key=mm)))
 
     @property
     def kbdgen(self):
