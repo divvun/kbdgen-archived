@@ -33,6 +33,19 @@ ISO_KEYS = ( "E00",
     "B00", "B01", "B02", "B03", "B04", "B05",
     "B06", "B07", "B08", "B09", "B10" )
 
+def parse_layout(data):
+    if isinstance(data, dict):
+        o = OrderedDict()
+        for key in ISO_KEYS:
+            o[key] = data.get(key, None)
+        return o
+    elif isinstance(data, str):
+        data = re.sub(r"[\r\n\s]+", " ", data.strip()).split(" ")
+        if len(data) != len(ISO_KEYS):
+            raise Exception(len(data))
+        return OrderedDict(zip(ISO_KEYS, data))
+
+
 class Project:
     def __init__(self, tree):
         self._tree = tree
@@ -207,18 +220,6 @@ class Parser:
                     os.path.join(os.path.dirname(__file__), "global.yaml"))
         return orderedyaml.load(cfg_file)
 
-    def _parse_layout(self, data):
-        if isinstance(data, dict):
-            o = OrderedDict()
-            for key in ISO_KEYS:
-                o[key] = data.get(key, None)
-            return o
-        elif isinstance(data, str):
-            data = re.sub(r"[\r\n\s]+", " ", data.strip()).split(" ")
-            if len(data) != len(ISO_KEYS):
-                raise Exception(len(data))
-            return OrderedDict(zip(ISO_KEYS, data))
-
     def _parse_keyboard_descriptor(self, f):
         tree = orderedyaml.load(f)
 
@@ -241,7 +242,7 @@ class Parser:
                 raise Exception(("'%s' in '%s' must be defined as a string using" +
                                  " block string format, not a list.") % (mode, f.name))
             try:
-                tree['modes'][mode] = self._parse_layout(tree['modes'][mode])
+                tree['modes'][mode] = parse_layout(tree['modes'][mode])
             except Exception as e:
                 raise Exception(("'%s' in file '%s' is the wrong length. " +
                                  "Got %s, expected %s.") % (

@@ -115,13 +115,13 @@ class SVGGenerator(Generator):
         shift = mode_dict(layout, 'iso-shift')
 
         caps = mode_dict(layout, 'iso-caps')
-        caps_shift = mode_dict(layout, 'iso-shift+caps')
+        caps_shift = mode_dict(layout, 'iso-caps+shift')
 
         alts = mode_dict(layout, 'iso-alt')
         alts_shift = mode_dict(layout, 'iso-alt+shift')
 
-        alt_caps = mode_dict(layout, 'iso-alt+caps')
-        alt_caps_shift = mode_dict(layout, 'iso-alt+shift+caps')
+        alt_caps = mode_dict(layout, 'iso-caps+alt')
+        alt_caps_shift = mode_dict(layout, 'iso-caps+alt+shift')
 
         for k in itertools.chain(ISO_KEYS, ('A03',)):
             groups = []
@@ -136,11 +136,11 @@ class SVGGenerator(Generator):
 
             ack = decode_u(alt_caps.get(k, "")) or None
             ack_dead = ack is not None and alt_caps[k] in\
-                    layout.dead_keys.get('iso-alt+caps', {})
+                    layout.dead_keys.get('iso-caps+alt', {})
 
             acsk = decode_u(alt_caps_shift.get(k, "")) or None
             acsk_dead = acsk is not None and alt_caps_shift[k] in\
-                    layout.dead_keys.get('iso-alt+shift+caps', {})
+                    layout.dead_keys.get('iso-caps+alt+shift', {})
 
             ak = decode_u(alts.get(k, "")) or None
             ak_dead = ak is not None and alts[k] in\
@@ -156,7 +156,7 @@ class SVGGenerator(Generator):
 
             csk = decode_u(caps_shift.get(k, "")) or None
             csk_dead = csk is not None and caps_shift[k] in\
-                    layout.dead_keys.get('iso-shift+caps', {})
+                    layout.dead_keys.get('iso-caps+shift', {})
 
             g = root.xpath("//*[contains(@class,'%s')]" % k.lower())[0]
 

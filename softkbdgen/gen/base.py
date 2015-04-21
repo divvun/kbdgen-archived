@@ -35,7 +35,6 @@ class Generator:
     def dry_run(self):
         return self._args.get('dry_run', False)
 
-
 def mode_iter(layout, key, required=False):
     mode = layout.modes.get(key, None)
     if mode is None:

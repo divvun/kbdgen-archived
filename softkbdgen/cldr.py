@@ -169,20 +169,6 @@ def to_xml(yaml_tree):
 
 
 class CLDRKeyboard:
-    modes = {
-        "default": "iso-default",
-        "shift": "iso-shift",
-        "shift+caps?": "iso-shift",
-        "opt": "iso-alt",
-        "caps": "iso-caps",
-        "caps+shift": "iso-shift+caps",
-        "opt+shift+cmd?": "iso-alt+shift",
-        "opt+caps": "iso-alt+caps",
-        "opt+caps?": "iso-alt",
-        "opt+shift+caps?": "iso-alt+shift",
-        "opt+caps+shift": "iso-alt+shift+caps"
-    }
-
     @classmethod
     def from_file(cls, f):
         return cls(f.read(), filename=os.path.basename(f.name))
@@ -201,6 +187,8 @@ class CLDRKeyboard:
         # Deadkey layouts
         self._deadkeys = OrderedDict()
 
+        self._comments = {}
+
         self._space = OrderedDict()
 
         tree = lxml.etree.fromstring(data)
@@ -216,9 +204,9 @@ class CLDRKeyboard:
         is_osx = self._internal_name.endswith('osx')
 
         for keymap in tree.xpath("keyMap"):
-            mode = keymap.attrib.get('modifiers', 'default')
-            print(CLDRMode(mode).kbdgen)
-            new_mode = self.modes.get(mode, '??? %s' % mode)
+            mode = CLDRMode(keymap.attrib.get('modifiers', 'default'))
+            new_mode = mode.kbdgen[0]
+            self._comments[new_mode] = mode.cldr
             o = {}
             for key in keymap.xpath('map'):
                 iso_key = key.attrib['iso']
@@ -282,6 +270,8 @@ class CLDRKeyboard:
         x.write("modes:\n")
         for mode, o in self._modes.items():
             if is_full_layout(o):
+                if mode in self._comments:
+                    x.write('  # %s\n' % self._comments[mode])
                 x.write('  %s: |' % mode)
                 cur = None
                 for iso_key, value in o.items():
@@ -369,26 +359,34 @@ class CLDRMode:
 
     def _init_kbdgen(self):
         out = []
-        ph = self._raw.split(" ")[0]
+        phrases = self._raw.split(" ")
 
-        # Special case: "default"
-        if ph == "default":
-            return "iso-default"
+        for ph in phrases:
+            # Special case: "default"
+            if ph == "default":
+                if 'iso-default' not in out:
+                    out.append('iso-default')
+                continue
 
-        tokens = self._parse_tokens(ph.split("+"))
-        clean = tuple(tok[0] for tok in tokens if tok.required is True)
+            tokens = self._parse_tokens(ph.split("+"))
+            clean = tuple(tok[0] for tok in tokens if tok.required is True)
 
-        prefix = "iso"
-        if OSXCommand in clean:
-            prefix = "osx"
+            prefix = "iso"
+            if OSXCommand in clean:
+                prefix = "osx"
 
-        def mm(x):
-            if x == "alt": return 0
-            if x == "ctrl": return 1
-            if x == "shift": return 2
-            return 99
+            def mm(x):
+                if x == "cmd": return 0
+                if x == "ctrl": return 5
+                if x == "caps": return 10
+                if x == "alt": return 20
+                if x == "shift": return 30
+                return 99
+            v = "%s-%s" % (prefix, "+".join(sorted(clean, key=mm)))
+            if v not in out:
+                out.append(v)
 
-        return "%s-%s" % (prefix, "+".join(sorted(clean, key=mm)))
+        return tuple(out)
 
     @property
     def kbdgen(self):

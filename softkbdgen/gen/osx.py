@@ -109,12 +109,18 @@ class OSXGenerator(Generator):
 
         if process.returncode != 0:
             logger.error(err.decode())
-            logger.error("Application ended with error code %s." % process.returncode)
+            logger.error("Application ended with error code %s." % (
+                    process.returncode))
             sys.exit(process.returncode)
 
     def generate_xml(self, layout):
         name = layout.display_names[layout.locale]
         out = OSXKeyLayout(name, random_id())
+
+        if 'osx-cmd' not in layout.modes:
+            layout.modes['osx-cmd'] = OSXKeyLayout.DEFAULT_CMD
+        if 'osx-cmd+shift' not in layout.modes:
+            layout.modes['osx-cmd+shift'] = OSXKeyLayout.DEFAULT_CMD_SHIFT
 
         # Naively add all keys
         for mode_name in OSXKeyLayout.modes:
@@ -159,13 +165,12 @@ class OSXGenerator(Generator):
             for key_id, key in OSX_HARDCODED.items():
                 out.set_key(mode_name, key, key_id)
 
-            # TODO Generate default cmd pages!
-
         # Generate remaining transforms
         for base, o in layout.transforms.items():
             base_id = "Key %s Pressed" % base
             for trans_key, output in o.items():
                 if len(decode_u(str(trans_key))) > 1:
+                    # TODO implement support for transforms with variant laneghts
                     logger.warning("'%s' has len longer than 1; not supported yet." % trans_key)
                     continue
                 key_id = "Key %s Pressed" % trans_key

@@ -6,8 +6,9 @@ import uuid
 from lxml import etree
 from lxml.etree import Element, SubElement
 
-from .base import *
+from .. import parse_layout
 from ..cldr import CP_REGEX, cldr_sub, decode_u, encode_u
+from .base import *
 
 OSX_KEYMAP = OrderedDict((
     ('C01', '0'),
@@ -465,12 +466,12 @@ class OSXKeyLayout:
         ('iso-default', ('command?', 'anyShift? caps? command')),
         ('iso-shift', ('anyShift caps?',)),
         ('iso-caps', ('caps',)),
-        ('iso-shift+caps', ('anyShift caps',)),
+        ('iso-caps+shift', ('anyShift caps',)),
         ('iso-alt', ('anyOption', 'caps? anyOption command')),
         ('iso-alt+shift', ('anyShift anyOption',
                            'anyShift caps? anyOption command')),
-        ('iso-alt+caps', ('caps anyOption',)),
-        ('iso-alt+shift+caps', ('anyShift anyOption caps',)),
+        ('iso-caps+alt', ('caps anyOption',)),
+        ('iso-caps+alt+shift', ('anyShift anyOption caps',)),
         ('iso-ctrl', (
             "anyShift? caps? anyOption? anyControl",
             "anyShift? anyOption? command? anyControl",
@@ -480,8 +481,24 @@ class OSXKeyLayout:
             "anyShift caps anyOption command control",
             "anyShift caps option? command anyControl",
             "shift? caps anyOption command anyControl",
-            "caps? anyOption? command? anyControl"))
-        ))
+            "caps? anyOption? command? anyControl")),
+        ('osx-cmd', ('command anyOption? caps?',)),
+        ('osx-cmd+shift', ('command anyShift anyOption? caps?',))
+    ))
+
+    DEFAULT_CMD = parse_layout(r"""
+        § 1 2 3 4 5 6 7 8 9 0 - =
+        q w e r t y u i o p [ ]
+        a s d f g h j k l ; ' \
+        ` z x c v b n m , . /
+    """)
+
+    DEFAULT_CMD_SHIFT = parse_layout(r"""
+        ± ! @ # $ % ^ & * ( ) _ +
+        Q W E R T Y U I O P { }
+        A S D F G H J K L : " |
+        ~ Z X C V B N M < > ?
+    """)
 
     def __bytes__(self):
         """XML almost; still encode the control chars. Death to standards!"""

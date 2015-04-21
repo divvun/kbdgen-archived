@@ -20,14 +20,14 @@ Windows 7 and later.
 - **iso-default**: Base keyboard
 - **iso-shift**: Shift pressed
 - **iso-alt**: AltGr (or Ctrl+Alt if keyboard missing AltGr) pressed
-- **iso-alt+caps**: AltGr plus caps lock
 - **iso-alt+shift**: AltGr plus shift
+- **iso-caps+alt**: AltGr plus caps lock
 - **iso-ctrl**: Ctrl pressed (mostly will not work due to OS-level key combinations overriding this layer)
 
 Two special cases with limitations listed below:
 
 - **iso-caps**: Caps lock enabled
-- **iso-shift+caps**: Caps lock and shift pressed
+- **iso-caps+shift**: Caps lock and shift pressed
 
 If both of the above modes are found, some limitations will apply as described
 in the section below.
