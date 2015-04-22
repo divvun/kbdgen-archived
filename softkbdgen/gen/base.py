@@ -35,6 +35,17 @@ class Generator:
     def dry_run(self):
         return self._args.get('dry_run', False)
 
+class PhysicalGenerator(Generator):
+    @classmethod
+    def validate_layout(cls, data):
+        # TODO finish cls-based validate_layout
+        pass
+
+class TouchGenerator(Generator):
+    @classmethod
+    def validate_layout(cls, data):
+        return True
+
 def mode_iter(layout, key, required=False):
     mode = layout.modes.get(key, None)
     if mode is None:

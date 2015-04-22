@@ -74,6 +74,23 @@ def is_relevant_cell(x):
         return 0 <= n <= 10
     return False
 
+class UnknownNgramException(Exception): pass
+
+def split_for_set(s, string):
+    o = []
+    i = len(string)
+    while len(string) > 0:
+        in_set = string[:i] in s
+        if in_set:
+            o.append(string[:i])
+            string = string[i:]
+            i = len(string)
+        elif i == 1:
+            raise UnknownNgramException("'%s' not found in set." % string)
+        else:
+            i -= 1
+    return tuple(o)
+
 # TODO verify where this is used
 def is_full_layout(o):
     """Strictly not accurate, as D13 is considered C12 for convenience."""
@@ -181,6 +198,9 @@ class CLDRKeyboard:
         # Actual transforms themselves
         self._transforms = OrderedDict()
 
+        # Key set
+        self._key_set = set()
+
         # Known deadkey glyphs
         self._deadkey_set = set()
 
@@ -197,8 +217,14 @@ class CLDRKeyboard:
         self._locale = self._internal_name.split('-')[0]
         self._name = tree.xpath('names/name')[0].attrib['value']
 
+        self._generate_keyset(tree)
         self._parse_transforms(tree)
         self._parse_keymaps(tree)
+
+    def _generate_keyset(self, tree):
+        self._key_set = { decode_u(n.attrib['to'])\
+                for n in tree.xpath("keyMap/map") }
+        self._key_set.add(' ')
 
     def _parse_keymaps(self, tree):
         is_osx = self._internal_name.endswith('osx')
@@ -219,6 +245,7 @@ class CLDRKeyboard:
                     continue
 
                 o[iso_key] = process_value(key.attrib['to'])
+
                 if o[iso_key] in self._deadkey_set and \
                         key.attrib.get('transform', None) != "no":
                     self._deadkeys.setdefault(new_mode, set()).add(o[iso_key])
@@ -245,15 +272,38 @@ class CLDRKeyboard:
             self._modes[new_mode] = OrderedDict(sorted(o.items(), key=key_cmp))
 
     def _parse_transforms(self, tree):
-        # TODO this whole method needs to be rewritten. It is just crap.
+        o = OrderedDict()
+        def o_add(ng, v):
+            last = o
+            for k in ng[:-1]:
+                last.setdefault(k, OrderedDict())
+                last = last[k]
+            last[ng[-1]] = v
+
         for transform in tree.xpath("transforms[@type='simple']/transform"):
-            from_ = decode_u(transform.attrib['from'])
-            self._deadkey_set.add(process_value(from_[0]))
-            self._transforms.setdefault(
-                    from_[0], OrderedDict())[from_[1:]] = process_value(transform.attrib['to'])
+            ngrams = split_for_set(self._key_set,
+                    decode_u(transform.attrib['from']))
+            self._deadkey_set.add(ngrams[0])
+            o_add(ngrams, decode_u(transform.attrib['to']))
+
+        self._transforms = o
+
 
     def keys(self, mode):
         return self._modes[mode]
+
+    def _as_yaml_transforms(self, x):
+        x.write("\ntransforms:\n")
+
+        def mm(n, it):
+            for k, v in it.items():
+                if isinstance(v, str):
+                    x.write("%s%s: %s\n" % (" " * n, filtered(k), filtered(v)))
+                elif isinstance(v, dict):
+                    x.write("%s%s:\n" % (" " * n, filtered(k)))
+                    mm(n + 2, v)
+
+        mm(2, self._transforms)
 
     def as_yaml(self):
         x = StringIO()
@@ -269,9 +319,9 @@ class CLDRKeyboard:
 
         x.write("modes:\n")
         for mode, o in self._modes.items():
+            if mode in self._comments:
+                x.write('  # %s\n' % self._comments[mode])
             if is_full_layout(o):
-                if mode in self._comments:
-                    x.write('  # %s\n' % self._comments[mode])
                 x.write('  %s: |' % mode)
                 cur = None
                 for iso_key, value in o.items():
@@ -293,11 +343,7 @@ class CLDRKeyboard:
                     "\\", r"\\"))
 
         if len(self._transforms) > 0:
-            x.write("\ntransforms:\n")
-            for base_ch, o in self._transforms.items():
-                x.write('  %s:\n' % filtered(base_ch))
-                for ch, v in o.items():
-                    x.write('    %s: %s\n' % (filtered(ch), filtered(v)))
+            self._as_yaml_transforms(x)
 
         if len(self._space) > 0:
             x.write("\nspecial:\n  space:\n")

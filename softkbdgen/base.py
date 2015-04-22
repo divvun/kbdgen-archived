@@ -241,6 +241,8 @@ class Parser:
             if isinstance(tree['modes'][mode], list):
                 raise Exception(("'%s' in '%s' must be defined as a string using" +
                                  " block string format, not a list.") % (mode, f.name))
+            # TODO make this parse blindly into a list, always.
+            # Software keyboards don't care about our opinions.
             try:
                 tree['modes'][mode] = parse_layout(tree['modes'][mode])
             except Exception as e:
