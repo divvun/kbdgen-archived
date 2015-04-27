@@ -433,7 +433,9 @@ class CLDRMode:
             if v not in out:
                 out.append(v)
 
-        return tuple(out)
+        # Sorted to bring shortest priority to the front
+        # eg ('iso-caps+alt', 'iso-alt', 'osx-cmd+alt') from cs is wrong.
+        return tuple(sorted(out))
 
     @property
     def kbdgen(self):

@@ -124,7 +124,7 @@ class OSXGenerator(Generator):
 
         action_keys = set()
         for x in DictWalker(layout.transforms):
-            for i in x[:-1]:
+            for i in x[0] + (x[1],):
                 action_keys.add(str(i))
 
         # Naively add all keys
