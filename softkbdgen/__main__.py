@@ -1,17 +1,19 @@
 import argparse
 import yaml
 import sys
+from collections import OrderedDict
 
 from . import VERSION, Parser, gen, logger
 
-generators = {
-    "android": gen.AndroidGenerator,
-    "ios": gen.AppleiOSGenerator,
-    "osx": gen.OSXGenerator,
-    "svg": gen.SVGGenerator,
-    "win": gen.WindowsGenerator,
-    "x11": gen.XKBGenerator
-}
+# TODO move into base?
+generators = OrderedDict((
+    ("win", gen.WindowsGenerator),
+    ("osx", gen.OSXGenerator),
+    ("x11", gen.XKBGenerator),
+    ("svg", gen.SVGGenerator),
+    ("android", gen.AndroidGenerator),
+    ("ios", gen.AppleiOSGenerator),
+))
 
 def parse_args():
     def logging_type(string):

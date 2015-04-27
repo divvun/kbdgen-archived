@@ -99,3 +99,28 @@ def iterable_set(iterable):
 def random_id():
     return str(-random.randrange(1, 32768))
 
+class DictWalker:
+    def on_branch(self, base, branch):
+        return base, branch
+    def on_leaf(self, base, branch, leaf):
+        return base, branch, leaf
+    def __init__(self, dict_):
+        self._dict = dict_
+    def __iter__(self):
+        def walk(dict_, buf):
+            for k, v in dict_.items():
+                if isinstance(v, dict):
+                    yield self.on_branch(tuple(buf), k)
+                    nbuf = buf[:]
+                    nbuf.append(k)
+                    for vv in walk(v, nbuf):
+                        yield vv
+                elif isinstance(v, (int, str)):
+                    yield self.on_leaf(tuple(buf), k, v)
+                else:
+                    raise TypeError(v)
+        for v in walk(self._dict, []):
+            yield v
+    def __call__(self):
+        # Run iterator to death
+        for _ in self: pass

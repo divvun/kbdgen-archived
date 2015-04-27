@@ -37,7 +37,8 @@ def parse_layout(data):
     if isinstance(data, dict):
         o = OrderedDict()
         for key in ISO_KEYS:
-            o[key] = data.get(key, None)
+            v = data.get(key, None)
+            o[key] = str(v) if v is not None else None
         return o
     elif isinstance(data, str):
         data = re.sub(r"[\r\n\s]+", " ", data.strip()).split(" ")
@@ -201,7 +202,7 @@ class Parser:
 
             for chunk in chunks:
                 if node.get(chunk, None) is None:
-                    node[chunk] = {}
+                    node[chunk] = OrderedDict()
                 node = node[chunk]
             node[last] = v
 
@@ -220,9 +221,8 @@ class Parser:
                     os.path.join(os.path.dirname(__file__), "global.yaml"))
         return orderedyaml.load(cfg_file)
 
-    def _parse_keyboard_descriptor(self, f):
-        tree = orderedyaml.load(f)
-
+    @classmethod
+    def _parse_keyboard_descriptor(cls, tree):
         for key in ['locale', 'displayNames', 'internalName', 'modes']:
             if key not in tree:
                 raise Exception("%s key missing from file." % key)
@@ -235,7 +235,7 @@ class Parser:
             tree['modifiers'] = []
 
         if 'longpress' not in tree or tree.get('longpress', None) is None:
-            tree['longpress'] = {}
+            tree['longpress'] = OrderedDict()
 
         for mode in list(tree['modes'].keys()):
             if isinstance(tree['modes'][mode], list):
@@ -246,9 +246,9 @@ class Parser:
             try:
                 tree['modes'][mode] = parse_layout(tree['modes'][mode])
             except Exception as e:
-                raise Exception(("'%s' in file '%s' is the wrong length. " +
+                raise Exception(("'%s' is the wrong length. " +
                                  "Got %s, expected %s.") % (
-                    mode, f.name, str(e), len(ISO_KEYS)))
+                    mode, str(e), len(ISO_KEYS)))
 
         for longpress, strings in tree['longpress'].items():
             tree['longpress'][longpress] = re.split(r"\s+", strings.strip())
@@ -265,11 +265,12 @@ class Parser:
             if key not in tree:
                 raise Exception("%s key missing from file." % key)
 
-        layouts = {}
+        layouts = OrderedDict()
 
         for layout in tree['layouts']:
             with open("%s.yaml" % layout) as f:
-                l = self._parse_keyboard_descriptor(f)
+                kbdtree = orderedyaml.load(f)
+                l = self._parse_keyboard_descriptor(kbdtree)
                 layouts[l.internal_name] = l
 
         tree['layouts'] = layouts

@@ -1,3 +1,4 @@
+import io
 from collections import OrderedDict
 
 import yaml
@@ -41,4 +42,7 @@ class OrderedDictYAMLLoader(yaml.Loader):
 
 def load(f):
     return yaml.load(f, OrderedDictYAMLLoader)
+
+def loads(string):
+    return yaml.load(io.StringIO(string), OrderedDictYAMLLoader)
 

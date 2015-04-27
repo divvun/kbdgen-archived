@@ -122,6 +122,11 @@ class OSXGenerator(Generator):
         if 'osx-cmd+shift' not in layout.modes:
             layout.modes['osx-cmd+shift'] = OSXKeyLayout.DEFAULT_CMD_SHIFT
 
+        action_keys = set()
+        for x in DictWalker(layout.transforms):
+            for i in x[:-1]:
+                action_keys.add(str(i))
+
         # Naively add all keys
         for mode_name in OSXKeyLayout.modes:
             # TODO throw on null
@@ -138,12 +143,9 @@ class OSXGenerator(Generator):
                 keyiter = mode_iter(layout, mode_name)
             else:
                 keyiter = itertools.chain.from_iterable(mode)
-            action_keys = { str(i) for j in layout.transforms.keys()
-                             for i in layout.transforms[j] }
             for (iso, key) in zip(ISO_KEYS, keyiter):
                 if key is None:
                     continue
-
                 key_id = OSX_KEYMAP[iso]
 
                 if key in layout.dead_keys.get(mode_name, []):
@@ -165,16 +167,39 @@ class OSXGenerator(Generator):
             for key_id, key in OSX_HARDCODED.items():
                 out.set_key(mode_name, key, key_id)
 
-        # Generate remaining transforms
-        for base, o in layout.transforms.items():
-            base_id = "Key %s Pressed" % base
-            for trans_key, output in o.items():
-                if len(decode_u(str(trans_key))) > 1:
-                    # TODO implement support for transforms with variant laneghts
-                    logger.warning("'%s' has len longer than 1; not supported yet." % trans_key)
-                    continue
-                key_id = "Key %s Pressed" % trans_key
-                out.add_transform(key_id, base_id, output=output)
+        class TransformWalker(DictWalker):
+            def on_branch(self, base, branch):
+                action_id = "Key %s" % branch
+
+                if base == ():
+                    when_state = "none"
+                    next_state = "State %s" % branch
+                else:
+                    when_state = "State %s" % "".join(base)
+                    next_state = "%s%s" % (when_state, branch)
+
+                logger.trace("Branch: %r" % ((action_id, when_state, next_state),))
+
+                try:
+                    out.add_transform(action_id, when_state, next=next_state)
+                except Exception as e:
+                    logger.error("[%s] Error while adding transform:\n%s\n%r" % (
+                        layout.internal_name, e,
+                        (action_id, when_state, next_state)))
+
+            def on_leaf(self, base, branch, leaf):
+                action_id = "Key %s" % branch
+                when_state = "State %s" % "".join(base)
+
+                logger.trace("Leaf: %r" % ((action_id, when_state, leaf),))
+                try:
+                    out.add_transform(action_id, when_state,
+                                      output=str(leaf))
+                except Exception as e:
+                    logger.error("[%s] Error while adding transform:\n%s\n%r" % (
+                        layout.internal_name, e, (action_id, when_state, leaf)))
+
+        TransformWalker(layout.transforms)()
 
         return bytes(out).decode('utf-8')
 

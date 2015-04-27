@@ -147,7 +147,7 @@ class Pbxproj:
 
     @property
     def main_group(self):
-        return self.objects[self.root['mainGroup']]
+        return self.objects[self.root['mainState']]
 
     def find_resource_build_phase(self, target_name):
         targets = [self.objects[t] for t in self.root['targets']]
@@ -183,7 +183,7 @@ class Pbxproj:
 
     def create_plist_string_variant(self, variants):
         o = {
-            "isa": "PBXVariantGroup",
+            "isa": "PBXVariantState",
             "children": variants,
             "name": "InfoPlist.strings",
             "sourceTree": "<group>"
@@ -214,7 +214,7 @@ class Pbxproj:
 
     def find_variant_group(self, target):
         for o in self.objects.values():
-            if o.get('isa', None) == 'PBXVariantGroup' and\
+            if o.get('isa', None) == 'PBXVariantState' and\
                     o.get('name', None) == target:
                 break
         else:
@@ -288,7 +288,7 @@ class Pbxproj:
 
                 o = {
                     "children": [],
-                    "isa": "PBXGroup",
+                    "isa": "PBXState",
                     "path": name,
                     "sourceTree": "<group>"
                 }
@@ -400,7 +400,7 @@ class Pbxproj:
             raise Exception("No src found.")
 
         for o in self.objects.values():
-            if o.get('isa', None) == 'PBXGroup' and\
+            if o.get('isa', None) == 'PBXState' and\
                     o.get('name', None) == "Products":
                 break
         else:
@@ -468,7 +468,7 @@ class OSXKeyLayout:
         ('iso-caps', ('caps',)),
         ('iso-caps+shift', ('anyShift caps',)),
         ('iso-alt', ('anyOption', 'caps? anyOption command')),
-        ('iso-alt+shift', ('anyShift anyOption',
+        ('iso-alt+shift', ('anyShift caps? anyOption',
                            'anyShift caps? anyOption command')),
         ('iso-caps+alt', ('caps anyOption',)),
         ('iso-caps+alt+shift', ('anyShift anyOption caps',)),
@@ -505,7 +505,14 @@ class OSXKeyLayout:
 
         # Convert
         v = CP_REGEX.sub(lambda x: "&#x%04X;" % int(x.group(1), 16), str(self))
-        return ('<?xml version="1.0" encoding="UTF-8"?>\n%s' % v).encode('utf-8')
+        v = re.sub(r"&(quot|amp|apos|lt|gt);", lambda x: {
+            "&quot;": "&#x0022;",
+            "&amp;": "&#x0026;",
+            "&apos;": "&#x0027;",
+            "&lt;": "&#x003C;",
+            "&gt;": "&#x003E;"
+        }[x.group(0)], v)
+        return ('<?xml version="1.1" encoding="UTF-8"?>\n%s' % v).encode('utf-8')
 
     def __str__(self):
         return etree.tostring(self.elements['root'], encoding='unicode',
@@ -581,8 +588,9 @@ class OSXKeyLayout:
             if node.attrib.get('action', None):
                 del node.attrib['action']
 
-    def _set_default_action(self, action_id):
-        pressed_id = "%s Pressed" % action_id
+    def _set_default_action(self, key):
+        action_id = "Key %s" % key
+        pressed_id = "State %s" % key
         action = self.action_cache.get(action_id, None)
 
         if action is None:
@@ -590,12 +598,12 @@ class OSXKeyLayout:
                      id=action_id)
             self.action_cache[action_id] = action
 
-        if len(action.xpath('when[@state="none"]')) == 0:
-            SubElement(action, 'when', state='none', next=pressed_id)
+        #if len(action.xpath('when[@state="none"]')) == 0:
+        #    SubElement(action, 'when', state='none', next=pressed_id)
 
     def _set_terminator(self, action_id, output):
         termin = self.elements['terminators'].xpath(
-                        'when[@state="%s"]' % action_id)
+                        'when[@state="%s"]' % action_id.replace('"', r'&quot;'))
 
         if len(termin) == 0:
             SubElement(self.elements['terminators'], 'when', state=action_id,
@@ -619,22 +627,22 @@ class OSXKeyLayout:
     def set_deadkey(self, mode, key, key_id, output):
         """output is the output when the deadkey is followed by an invalid"""
         action_id = "Key %s" % key
-        pressed_id = "%s Pressed" % action_id
+        pressed_id = "State %s" % key
 
         self._set_key(mode, key, key_id, action=action_id)
 
         # Create default action (set to pressed state)
-        self._set_default_action(action_id)
+        self._set_default_action(key)
         self._set_terminator(pressed_id, output)
 
     def set_transform_key(self, mode, key, key_id):
         action_id = "Key %s" % key
-        pressed_id = "%s Pressed" % action_id
+        pressed_id = "State %s" % key
 
-        self._set_key(mode, key, key_id, action=pressed_id)
+        self._set_key(mode, key, key_id, action=action_id)
 
         # Find action, add none state (move the output)
-        self._set_default_transform(pressed_id, key)
+        self._set_default_transform(action_id, key)
 
     def add_transform(self, action_id, state, output=None, next=None):
         action = self.action_cache.get(action_id, None)
@@ -642,8 +650,8 @@ class OSXKeyLayout:
         if action is None:
             raise Exception("'%s' was not a found action_id." % action_id)
 
-        if state is not None and next is not None:
-            raise Exception("State and next cannot be simultaneously defined.")
+        if output is not None and next is not None:
+            raise Exception("Output and next cannot be simultaneously defined.")
 
         if output is not None:
             SubElement(action, 'when', state=state, output=output)

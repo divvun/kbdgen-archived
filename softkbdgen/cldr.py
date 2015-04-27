@@ -112,7 +112,7 @@ def is_full_layout(o):
 
 def filtered(v):
     if v == '"':
-        return r'"\""'
+        return "'\"'"
     if v == "\\":
         # TODO check if this is necessary in practice
         return r'"\\"'
@@ -339,7 +339,8 @@ class CLDRKeyboard:
         if len(self._deadkeys) > 0:
             x.write("\ndeadKeys:\n")
             for mode, keys in self._deadkeys.items():
-                x.write(('  %s: ["%s"]\n' % (mode, '", "'.join(sorted(keys)))).replace(
+                output = list(sorted(keys))
+                x.write(('  %s: %r\n' % (mode, output)).replace(
                     "\\", r"\\"))
 
         if len(self._transforms) > 0:

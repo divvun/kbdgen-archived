@@ -2,8 +2,11 @@ import io
 import os
 import os.path
 
+from .. import get_logger
 from .base import *
 from ..cldr import decode_u
+
+logger = get_logger(__file__)
 
 # SC 53 is decimal, 39 is space
 WIN_VK_MAP = bind_iso_keys((
@@ -148,6 +151,14 @@ class WindowsGenerator(Generator):
             buf.write("\t// %s %s %s %s %s\n" % (c0, c1, c2, c6, c7))
 
             if cap_mode == "SGCap":
+                if cap is not None and len(win_ligature(cap)) > 1:
+                    cap = None
+                    logger.warning("Caps key '%s' too long for Caps Mode.")
+
+                if scap is not None and len(win_ligature(scap)) > 1:
+                    scap = None
+                    logger.warning("Caps+Shift key '%s' too long for Caps Mode.")
+
                 buf.write("-1\t-1\t\t0\t%s\t%s\t\t\t\t// %s %s\n" % (
                     win_filter(cap, scap) + (cap, scap)))
 
@@ -161,8 +172,8 @@ class WindowsGenerator(Generator):
                     o.get('iso-default', '0020'),
                     o.get('iso-shift', '0020'),
                     o.get('iso-ctrl', '0020'),
-                    o.get('iso-alt', '-1'),
-                    o.get('iso-alt+shift', '-1')
+                    o.get('iso-alt', None),
+                    o.get('iso-alt+shift', None)
                 ))
 
         # Decimal key on keypad.
@@ -185,6 +196,11 @@ class WindowsGenerator(Generator):
 
         # Deadkeys!
         for basekey, o in layout.transforms.items():
+            if len(basekey) != 1:
+                logger.warning(("Base key '%s' invalid for Windows " +
+                       "deadkeys; skipping.") % basekey)
+                continue
+
             buf.write("DEADKEY\t%s\n\n" % win_filter(basekey))
             for key, output in o.items():
                 if key == ' ':
