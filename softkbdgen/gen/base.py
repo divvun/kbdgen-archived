@@ -99,6 +99,9 @@ def iterable_set(iterable):
 def random_id():
     return str(-random.randrange(1, 32768))
 
+def filepath(fp, *args):
+    return os.path.join(os.path.dirname(fp), *args)
+
 class DictWalker:
     def on_branch(self, base, branch):
         return base, branch
