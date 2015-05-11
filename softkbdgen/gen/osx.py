@@ -49,11 +49,26 @@ class OSXGenerator(Generator):
             with open(os.path.join(res_path, "%s.keylayout" % fn), 'w') as f:
                 f.write(data)
 
+            self.write_icon(res_path, layout)
+
         self.write_localisations(res_path, translations)
 
         logger.info("Creating installer...")
         self.create_installer(bundle_path)
         logger.info("Done!")
+
+    def write_icon(self, res_path, layout):
+        icon = layout.target('osx').get('icon', None)
+        if icon is None:
+            logger.warning("no icon for layout '%s'." % layout.internal_name)
+            return
+
+        fn = "%s.icns" % layout.display_names[layout.locale]
+        try:
+            shutil.copyfile(icon, os.path.join(res_path, fn))
+        except FileNotFoundError:
+            logger.error("Icon '%s' for layout '%s' not found!" % (
+                icon, layout.internal_name))
 
     def write_localisations(self, res_path, translations):
         for locale, o in translations.items():
