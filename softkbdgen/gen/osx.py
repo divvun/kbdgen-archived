@@ -2,6 +2,7 @@ import os.path
 import shutil
 import subprocess
 
+from collections import defaultdict
 from textwrap import indent, dedent
 
 from .. import get_logger
@@ -35,16 +36,33 @@ class OSXGenerator(Generator):
         bundle_path = self.create_bundle(self.build_dir)
         res_path = os.path.join(bundle_path, "Contents", "Resources")
 
+        translations = defaultdict(dict)
+
         for name, data in o.items():
             layout = self._project.layouts[name]
             fn = layout.display_names[layout.locale]
+
+            for locale, lname in layout.display_names.items():
+                translations[locale][fn] = lname
+
             logger.debug("%s.keylayout -> bundle" % fn)
             with open(os.path.join(res_path, "%s.keylayout" % fn), 'w') as f:
                 f.write(data)
 
+        self.write_localisations(res_path, translations)
+
         logger.info("Creating installer...")
         self.create_installer(bundle_path)
         logger.info("Done!")
+
+    def write_localisations(self, res_path, translations):
+        for locale, o in translations.items():
+            path = os.path.join(res_path, "%s.lproj" % locale)
+            os.makedirs(path)
+
+            with open(os.path.join(path, "InfoPlist.strings"), 'w') as f:
+                for name, lname in o.items():
+                    f.write('"%s" = "%s";\n' % (name, lname))
 
     def create_bundle(self, path):
         bundle_path = os.path.join(path, "%s.bundle" % self._project.internal_name)
