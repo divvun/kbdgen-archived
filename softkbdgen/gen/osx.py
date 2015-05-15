@@ -150,11 +150,7 @@ class OSXGenerator(Generator):
         name = layout.display_names[layout.locale]
         out = OSXKeyLayout(name, random_id())
 
-        if 'osx-cmd' not in layout.modes:
-            layout.modes['osx-cmd'] = OSXKeyLayout.DEFAULT_CMD
-        if 'osx-cmd+shift' not in layout.modes:
-            layout.modes['osx-cmd+shift'] = OSXKeyLayout.DEFAULT_CMD_SHIFT
-
+        dead_keys = set(itertools.chain.from_iterable(layout.dead_keys.values()))
         action_keys = set()
         for x in DictWalker(layout.transforms):
             for i in x[0] + (x[1],):
@@ -165,8 +161,12 @@ class OSXGenerator(Generator):
             # TODO throw on null
             mode = layout.modes.get(mode_name, None)
             if mode is None:
-                logger.warning("layout '%s' has no mode '%s'" % (
-                    layout.internal_name, mode_name))
+                msg = "layout '%s' has no mode '%s'" % (
+                    layout.internal_name, mode_name)
+                if mode_name.startswith('osx-'):
+                    logger.debug(msg)
+                else:
+                    logger.warning(msg)
                 continue
 
             # All keymaps must include a code 0
@@ -176,6 +176,7 @@ class OSXGenerator(Generator):
                 keyiter = mode_iter(layout, mode_name)
             else:
                 keyiter = itertools.chain.from_iterable(mode)
+
             for (iso, key) in zip(ISO_KEYS, keyiter):
                 if key is None:
                     continue
@@ -188,7 +189,7 @@ class OSXGenerator(Generator):
                     out.set_key(mode_name, key, key_id)
 
                 # Now cater for transforms too
-                if key in action_keys:
+                if key in action_keys and key not in dead_keys:
                     out.set_transform_key(mode_name, key, key_id)
 
             # Space bar special case

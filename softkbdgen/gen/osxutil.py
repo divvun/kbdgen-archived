@@ -6,9 +6,11 @@ import uuid
 from lxml import etree
 from lxml.etree import Element, SubElement
 
-from .. import parse_layout
+from .. import parse_layout, get_logger
 from ..cldr import CP_REGEX, cldr_sub, decode_u, encode_u
 from .base import *
+
+logger = get_logger(__file__)
 
 OSX_KEYMAP = OrderedDict((
     ('C01', '0'),
@@ -458,33 +460,51 @@ class Pbxproj:
         self.root['targets'].append(base_ref)
 
 
+def generate_osx_mods():
+    conv = OrderedDict((
+        ("cmd", "command"),
+        ("caps", "caps"),
+        ("alt", "anyOption"),
+        ("shift", "anyShift")
+    ))
+
+    def gen_conv(tpl):
+        tplo = []
+        for t, v in conv.items():
+            if t not in tpl:
+                v += "?"
+            tplo.append(v)
+        return tuple(tplo)
+
+    m = ('caps', 'alt', 'shift')
+    mods = (x for i in range(len(m)) for x in itertools.combinations(m, i))
+
+    o = OrderedDict()
+    for mod in mods:
+        mod = ("cmd",) + mod
+        o["osx-%s" % "+".join(mod)] = (" ".join(gen_conv(mod)),)
+    return o
+
 class OSXKeyLayout:
     doctype = '<!DOCTYPE keyboard PUBLIC "" ' +\
               '"file://localhost/System/Library/DTDs/KeyboardLayout.dtd">'
-
     modes = OrderedDict((
-        ('iso-default', ('command?', 'anyShift? caps? command')),
-        ('iso-shift', ('anyShift caps?',)),
+        ('iso-default', ('command?',)),
+        ('iso-shift', ('anyShift caps? command?',)),
         ('iso-caps', ('caps',)),
-        ('iso-caps+shift', ('anyShift caps',)),
-        ('iso-alt', ('anyOption', 'caps? anyOption command')),
-        ('iso-alt+shift', ('anyShift caps? anyOption',
-                           'anyShift caps? anyOption command')),
-        ('iso-caps+alt', ('caps anyOption',)),
-        ('iso-caps+alt+shift', ('anyShift anyOption caps',)),
-        ('iso-ctrl', (
-            "anyShift? caps? anyOption? anyControl",
-            "anyShift? anyOption? command? anyControl",
-            "anyShift caps anyOption command rightControl",
-            "anyShift caps rightOption? command anyControl",
-            "rightShift? caps anyOption command anyControl",
-            "anyShift caps anyOption command control",
-            "anyShift caps option? command anyControl",
-            "shift? caps anyOption command anyControl",
-            "caps? anyOption? command? anyControl")),
-        ('osx-cmd', ('command anyOption? caps?',)),
-        ('osx-cmd+shift', ('command anyShift anyOption? caps?',))
+        ('iso-caps+shift', ('caps anyShift')),
+        ('iso-alt', ('anyOption command?',)),
+        ('iso-alt+shift', ('anyOption anyShift caps? command?',)),
+        ('iso-caps+alt', ('caps anyOption command?',)),
+        ('iso-caps+alt+shift', ('caps anyOption anyShift command?',)),
+        ('iso-ctrl', ('anyShift? caps? anyOption? anyControl',)),
+        ('osx-cmd', ('command',)),
+        ('osx-cmd+shift', ('command anyShift',))
     ))
+    modes.update(generate_osx_mods())
+
+    # TODO unused
+    required = ('iso-default', 'iso-shift', 'iso-caps')
 
     DEFAULT_CMD = parse_layout(r"""
         § 1 2 3 4 5 6 7 8 9 0 - =
@@ -553,7 +573,9 @@ class OSXKeyLayout:
         kms = self.elements['keyMapSet']
 
         node = SubElement(mm, 'keyMapSelect', mapIndex=str(self._n))
-        for mod in self.modes[mode]:
+
+        mods = self.modes.get(mode, None)
+        for mod in mods:
             SubElement(node, 'modifier', keys=mod)
 
         self.kmap_cache[mode] = SubElement(kms, 'keyMap', index=str(self._n))
@@ -619,13 +641,15 @@ class OSXKeyLayout:
             self.action_cache[action_id] = action
 
         if len(action.xpath('when[@state="none"]')) == 0:
-            SubElement(action, 'when', state='none', output=output)
+            el = SubElement(action, 'when', state='none', output=output)
+            logger.trace("%r" % el)
 
     def set_key(self, mode, key, key_id):
         self._set_key(mode, key, key_id, output=key)
 
     def set_deadkey(self, mode, key, key_id, output):
         """output is the output when the deadkey is followed by an invalid"""
+        logger.trace("%r %r %r %r" % (mode, key, key_id, output))
         action_id = "Key %s" % key
         pressed_id = "State %s" % key
 
@@ -654,7 +678,8 @@ class OSXKeyLayout:
             raise Exception("Output and next cannot be simultaneously defined.")
 
         if output is not None:
-            SubElement(action, 'when', state=state, output=output)
+            el = SubElement(action, 'when', state=state, output=output)
         elif next is not None:
-            SubElement(action, 'when', state=state, next=next)
+            el = SubElement(action, 'when', state=state, next=next)
+        logger.trace("%r" % el)
 
