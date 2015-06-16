@@ -6,21 +6,21 @@ There are several parts to a keyboard project. A project will have a project fil
 
 A target is the build output. Currently supported targets are:
 
-* *android*: Android
-* *ios*: iOS 8+
-* *osx*: OS X
-* *svg*: Scalable Vector Graphics output
-* *win*: Windows 7+ (not mobile)
-* *x11*: X11 format (*EXPERIMENTAL*)
+* **android**: Android
+* **ios**: iOS 8+
+* **osx**: OS X
+* **svg**: Scalable Vector Graphics output
+* **win**: Windows 7+ (not mobile)
+* **x11**: X11 format (**EXPERIMENTAL**)
 
 ## Project layout
 
-In general, you will have a single *project* file `project.yaml` with several other *keyboard descriptors*:
+In general, you will have a single **project** file `project.yaml` with several other **keyboard descriptors**:
 
-> project.yaml
-> sjd.yaml
-> sme.yaml
-> swe.yaml
+    project.yaml
+    sjd.yaml
+    sme.yaml
+    swe.yaml
 
 ### Project file
 
