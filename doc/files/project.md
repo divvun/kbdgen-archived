@@ -1,6 +1,6 @@
 ## Required keys
 
-* **internal_name**: `/[A-Za-z0-9\_]+/` only. Used in various places internally and for file names in some targets.
+* **internalName**: `/[A-Za-z0-9\_]+/` only. Used in various places internally and for file names in some targets.
 * **locales**: at least the `en` locale must be defined. It is a map of `name` and `description`, eg:
 
 ```yaml
