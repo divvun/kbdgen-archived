@@ -18,13 +18,13 @@ You will need:
 4. As root: `port install apache-ant python3.4 py34-pip imagemagick`
 5. As root: `pip3.4 install pycountry lxml PyYAML`
 6. As root and in this repo's directory: `pip3.4 install .`. Ensure that the path `pip` installs the `softkbdgen` binary to is in your `$PATH`.
-7. Run: `export ANDROID_SDK="~/sdks/android-sdk-macosx"`, replacing the string with where you put the directory.
-8. Run: `$ANDROID_SDK/tools/android update sdk -u -t "tools,platform-tools,build-tools-19.1.0,extra-android-support,android-19"`. Say yes to all the EULAs.
+7. Run: `export ANDROID_HOME="~/sdks/android-sdk-macosx"`, replacing the string with where you put the directory.
+8. Run: `$ANDROID_HOME/tools/android update sdk -u -t "tools,platform-tools,build-tools-19.1.0,extra-android-support,android-19"`. Say yes to all the EULAs.
 9. Done!
 
 # Running
 
-1. Run `export ANDROID_SDK="~/sdks/android-sdk-macosx"`, replacing the string with where you put the directory.
+1. Run `export ANDROID_HOME="~/sdks/android-sdk-macosx"`, replacing the string with where you put the directory.
 2. Run `softkbdgen.py --help` to see the help text.
 
 An example: `softkbdgen --repo local/path/to/giella-ime --target android project.yaml`
@@ -35,7 +35,7 @@ application will automatically check it out for you.
 # Testing on a device
 
 1. Plug your Android device in.
-2. Run `ANDROID_SDK/platform-tools/adb install -r <path to apk>`
+2. Run `$ANDROID_HOME/platform-tools/adb install -r <path to apk>`
 
 If it spits errors, uninstall the package off your device first.
 
@@ -142,16 +142,14 @@ Currently supported modes are `default` and `shift`. `default` is required.
 
 ```yaml
 modes:
-  default: [
-    á š e r t y u i o p ŋ,
-    a s d f g h j k l đ ŧ,
+  default: |
+    á š e r t y u i o p ŋ
+    a s d f g h j k l đ ŧ
     ž z č c v b n m w
-  ]
-  shift: [
-    Á Š E R T Y U I O P Ŋ,
-    A S D F G H J K L Đ Ŧ,
+  shift: |
+    Á Š E R T Y U I O P Ŋ
+    A S D F G H J K L Đ Ŧ
     Ž Z Č C V B N M W
-  ]
 ```
 
 `longpress` allows one to determine which keys appear in the long press menu,

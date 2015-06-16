@@ -57,7 +57,7 @@ class AndroidGenerator(Generator):
             xml_declaration=True, encoding='utf-8').decode()
 
     def generate(self, base='.', sdk_base='./sdk'):
-        sdk_base = os.getenv("ANDROID_SDK", sdk_base)
+        sdk_base = os.getenv("ANDROID_HOME", sdk_base)
 
         if not self.sanity_checks():
             return
@@ -320,7 +320,7 @@ class AndroidGenerator(Generator):
             raise MissingApplicationException(
                     "Error: Could not find the Android SDK. " +\
                     "Ensure your environment is configured correctly, " +\
-                    "specifically the ANDROID_SDK env variable.")
+                    "specifically the ANDROID_HOME env variable.")
 
         deps_dir = os.path.join(base, 'deps')
         os.makedirs(deps_dir, exist_ok=True)
