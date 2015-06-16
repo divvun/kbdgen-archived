@@ -149,7 +149,7 @@ class Pbxproj:
 
     @property
     def main_group(self):
-        return self.objects[self.root['mainState']]
+        return self.objects[self.root['mainGroup']]
 
     def find_resource_build_phase(self, target_name):
         targets = [self.objects[t] for t in self.root['targets']]
@@ -185,7 +185,7 @@ class Pbxproj:
 
     def create_plist_string_variant(self, variants):
         o = {
-            "isa": "PBXVariantState",
+            "isa": "PBXVariantGroup",
             "children": variants,
             "name": "InfoPlist.strings",
             "sourceTree": "<group>"
@@ -216,7 +216,8 @@ class Pbxproj:
 
     def find_variant_group(self, target):
         for o in self.objects.values():
-            if o.get('isa', None) == 'PBXVariantState' and\
+            print(o['isa'], o.get('name', None))
+            if o.get('isa', None) == 'PBXVariantGroup' and\
                     o.get('name', None) == target:
                 break
         else:
@@ -290,7 +291,7 @@ class Pbxproj:
 
                 o = {
                     "children": [],
-                    "isa": "PBXState",
+                    "isa": "PBXGroup",
                     "path": name,
                     "sourceTree": "<group>"
                 }
@@ -402,7 +403,7 @@ class Pbxproj:
             raise Exception("No src found.")
 
         for o in self.objects.values():
-            if o.get('isa', None) == 'PBXState' and\
+            if o.get('isa', None) == 'PBXGroup' and\
                     o.get('name', None) == "Products":
                 break
         else:

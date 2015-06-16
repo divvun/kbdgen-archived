@@ -33,7 +33,7 @@ ISO_KEYS = ( "E00",
     "B00", "B01", "B02", "B03", "B04", "B05",
     "B06", "B07", "B08", "B09", "B10" )
 
-def parse_layout(data):
+def parse_layout(data, length_check=True):
     if isinstance(data, dict):
         o = OrderedDict()
         for key in ISO_KEYS:
@@ -42,7 +42,7 @@ def parse_layout(data):
         return o
     elif isinstance(data, str):
         data = re.sub(r"[\r\n\s]+", " ", data.strip()).split(" ")
-        if len(data) != len(ISO_KEYS):
+        if length_check and len(data) != len(ISO_KEYS):
             raise Exception(len(data))
         return OrderedDict(zip(ISO_KEYS, data))
 
@@ -244,7 +244,8 @@ class Parser:
             # TODO make this parse blindly into a list, always.
             # Software keyboards don't care about our opinions.
             try:
-                tree['modes'][mode] = parse_layout(tree['modes'][mode])
+                length_check = mode not in ['default', 'shift', 'caps']
+                tree['modes'][mode] = parse_layout(tree['modes'][mode], length_check)
             except Exception as e:
                 raise Exception(("'%s' is the wrong length. " +
                                  "Got %s, expected %s.") % (
