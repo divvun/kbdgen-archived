@@ -148,7 +148,7 @@ def to_xml(yaml_tree):
 
         if isinstance(key_map, dict):
             for k, v in sorted(key_map.items(), key=key_cmp):
-                key_node = SubElement(node, 'map', iso=k, to=v)
+                key_node = SubElement(node, 'map', iso=str(k), to=str(v))
 
                 # TODO make this more optimal, chaining all lists and only
                 # assigning when it makes sense to do so
@@ -169,7 +169,7 @@ def to_xml(yaml_tree):
                     key_node.attrib['transform'] = 'no'
 
         # Space special case!
-        space = yaml_tree['special']['space'].get(mode, " ")
+        space = yaml_tree.get('special', {}).get('space', {}).get(mode, " ")
         SubElement(node, 'map', iso='A03', to=space)
 
     transforms = SubElement(tree, 'transforms', type="simple")
