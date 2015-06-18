@@ -107,4 +107,3 @@ A single keyboard descriptor can contain all modes for both physical and touch k
 All common modes are documented in the format documentation.
 
 Each documentation target breaks down the relevant properties of the keyboard descriptor files.
-
