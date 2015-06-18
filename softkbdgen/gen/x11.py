@@ -27,14 +27,18 @@ with open(filepath(__file__, 'bin', 'keysym.tsv')) as f:
 
 class XKBGenerator(Generator):
     def generate(self, base='.'):
-        logger.critical("This target is not fully implemented yet!")
-
-        for name, layout in self._project.layouts.items():
-            print(self.generate_nonsense(name, layout))
+        self.build_dir = os.path.abspath(os.path.join(base, 'build',
+            'x11')
+        os.makedirs(self.build_dir, exist_ok=True)
 
         if self.dry_run:
             logger.info("Dry run completed.")
             return
+
+        with open(os.path.join(self.build_dir, "%s.xkb" % (
+            self._project.internal_name)), 'w') as f:
+            for name, layout in self._project.layouts.items():
+                f.write(self.generate_nonsense(name, layout))
 
     def generate_nonsense(self, name, layout):
         buf = io.StringIO()
@@ -77,6 +81,6 @@ class XKBGenerator(Generator):
             cols = ", ".join("%10s" % x for x in xkb_filter(c0, c1, c2, c3))
             buf.write("    key <A%s> { [ %s ] };\n" % (iso, cols))
 
-        buf.write('\n    include "level3(ralt_switch)"\n};')
+        buf.write('\n    include "level3(ralt_switch)"\n};\n\n')
         return buf.getvalue()
 
