@@ -1,3 +1,8 @@
+# Introduction
+
+The `android` target customises a fork of the Google Android LatinIME to add the necessary
+localisation magic and integrate your chosen keyboard layouts.
+
 # Prerequisites
 
 You will need:

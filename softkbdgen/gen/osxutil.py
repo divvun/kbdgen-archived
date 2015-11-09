@@ -216,7 +216,6 @@ class Pbxproj:
 
     def find_variant_group(self, target):
         for o in self.objects.values():
-            print(o['isa'], o.get('name', None))
             if o.get('isa', None) == 'PBXVariantGroup' and\
                     o.get('name', None) == target:
                 break

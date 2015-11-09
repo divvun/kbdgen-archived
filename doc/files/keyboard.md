@@ -1,3 +1,10 @@
+## Unicode escaping
+
+Sometimes you want to use a key that either can't be seen in a text editor, or
+will mangle your text editor (like zero width spacing).
+
+Escaping is quite simple. Use `\u{}` notation for `U+xxxx` codepoints. For example, non-breaking space `0x00A0` can be represented as `\u{0a}`.
+
 ## Required keys
 
 * **internalName**: internal name for the keyboard.
@@ -67,6 +74,18 @@ A handy reference keyboard image with the ISO keys listed can be found below.
 
 
 ## Conditional keys
+
+### Touch layouts
+
+* **longPress**: a map of keys and a space-separated list of characters to appear in the long press popout.
+
+```yaml
+longPress:
+  a: å à ä
+  o: ø ö
+```
+
+### Physical layouts
 
 * **deadKeys**: a map of lists of keys from a mode where the key should behave as a deadkey.
 

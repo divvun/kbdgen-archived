@@ -5,6 +5,7 @@ The `osx` target generates a `.pkg` file, optionally codesigned, that installs a
 # Dependencies
 
 * This target can only be generated on an OS X system.
+* lxml
 
 # Target-specific configuration
 

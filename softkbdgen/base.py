@@ -46,6 +46,8 @@ def parse_layout(data, length_check=True):
             raise Exception(len(data))
         return OrderedDict(zip(ISO_KEYS, data))
 
+def parse_touch_layout(data):
+    return [re.split(r'\s+', x.strip()) for x in data.strip().split('\n')]
 
 class Project:
     def __init__(self, tree):
@@ -241,11 +243,12 @@ class Parser:
             if isinstance(tree['modes'][mode], list):
                 raise Exception(("'%s' in '%s' must be defined as a string using" +
                                  " block string format, not a list.") % (mode, f.name))
-            # TODO make this parse blindly into a list, always.
-            # Software keyboards don't care about our opinions.
             try:
-                length_check = mode not in ['default', 'shift', 'caps']
-                tree['modes'][mode] = parse_layout(tree['modes'][mode], length_check)
+                # Soft layouts are special cased.
+                if mode in ['default', 'shift']:
+                    tree['modes'][mode] = parse_touch_layout(tree['modes'][mode])
+                else:
+                    tree['modes'][mode] = parse_layout(tree['modes'][mode])
             except Exception as e:
                 raise Exception(("'%s' is the wrong length. " +
                                  "Got %s, expected %s.") % (
