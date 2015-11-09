@@ -1,4 +1,5 @@
 import plistlib
+import sys
 from textwrap import dedent, indent
 
 from .. import get_logger
@@ -366,10 +367,10 @@ class AppleiOSGenerator(Generator):
         key_loop = indent(dedent("""\
         for key in ["%s"] {
             var model = Key(.Character)
-            if let lp = longPresses[key]? {
+            if let lp = longPresses[key] {
                 model.setUppercaseLongPress(lp)
             }
-            if let lp = longPresses[key.lowercaseString]? {
+            if let lp = longPresses[key.lowercaseString] {
                 model.setLowercaseLongPress(lp)
             }
             model.setLetter(key)

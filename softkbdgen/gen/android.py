@@ -131,7 +131,7 @@ class AndroidGenerator(Generator):
                 if dn_locale in ['zz', kbd.locale]:
                     continue
                 try:
-                    pycountry.languages.get(alpha2=dn_locale)
+                    pycountry.languages.get(iso639_1_code=dn_locale)
                 except KeyError:
                     sane = False
                     logger.error(("[%s] '%s' is not a supported locale. " +\
@@ -556,4 +556,3 @@ class AndroidGenerator(Generator):
             logger.warning("no glyphs file found for API %s! Can't detect " +
                   "missing characters from Android font!" % api_ver)
             return
-
