@@ -1,6 +1,7 @@
 import copy
 import os.path
 import shutil
+import sys
 from collections import defaultdict
 from textwrap import dedent, indent
 
@@ -30,7 +31,7 @@ class AndroidGenerator(Generator):
     def _element(self, *args, **kwargs):
         o = {}
         for k, v in kwargs.items():
-            if k in ['keyLabel', 'additionalMoreKeys', 'keyHintLabel'] and\
+            if k in ['keySpec', 'additionalMoreKeys', 'keyHintLabel'] and\
                     v in ['#', '@']:
                 v = '\\' + v
             o["{%s}%s" % (self.NS, k)] = v
@@ -39,7 +40,7 @@ class AndroidGenerator(Generator):
     def _android_subelement(self, *args, **kwargs):
         o = {}
         for k, v in kwargs.items():
-            if k == 'keyLabel' and v in ['#', '@']:
+            if k == 'keySpec' and v in ['#', '@']:
                 v = '\\' + v
             o["{%s}%s" % (self.ANDROID_NS, k)] = v
         return SubElement(*args, **o)
@@ -47,7 +48,7 @@ class AndroidGenerator(Generator):
     def _subelement(self, *args, **kwargs):
         o = {}
         for k, v in kwargs.items():
-            if k == 'keyLabel' and v in ['#', '@']:
+            if k == 'keySpec' and v in ['#', '@']:
                 v = '\\' + v
             o["{%s}%s" % (self.NS, k)] = v
         return SubElement(*args, **o)
@@ -199,7 +200,7 @@ class AndroidGenerator(Generator):
                 ('mdpi', 48),
                 ('xhdpi', 96),
                 ('xxhdpi', 144)):
-            mipmap_dir = "mipmap-%s" % suffix
+            mipmap_dir = "drawable-%s" % suffix
             cmd = cmd_tmpl % (dimen, dimen, icon, os.path.join(
                 res_dir, mipmap_dir, "ic_launcher_keyboard.png"))
 
@@ -336,7 +337,7 @@ class AndroidGenerator(Generator):
 
         logger.info("Create Android project...")
 
-        cmd = "%s update project -n %s -t android-19 -p ." % (
+        cmd = "%s update project -n %s -t android-23 -p ." % (
             os.path.join(os.path.abspath(sdk_base), 'tools/android'),
             self._project.internal_name)
         process = subprocess.Popen(cmd, cwd=os.path.join(deps_dir, self.REPO),
@@ -345,37 +346,26 @@ class AndroidGenerator(Generator):
         if process.returncode != 0:
             raise Exception("Application ended with error code %s." % process.returncode)
 
-        rules_fn = os.path.join(deps_dir, self.REPO, 'custom_rules.xml')
-        with open(rules_fn) as f:
-            x = f.read()
-        with open(rules_fn, 'w') as f:
-            f.write(x.replace('GiellaIME', self._project.internal_name))
+        #rules_fn = os.path.join(deps_dir, self.REPO, 'custom_rules.xml')
+        #with open(rules_fn) as f:
+        #    x = f.read()
+        #with open(rules_fn, 'w') as f:
+        #    f.write(x.replace('GiellaIME', self._project.internal_name))
 
     def create_ant_properties(self, release_mode=False):
+        o = OrderedDict()
+
         if release_mode:
-            data = dedent("""\
-            package.name=%s
-            key.store=%s
-            key.alias=%s
-            version.code=%s
-            version.name=%s
-            """ % (
-                self._project.target('android')['packageId'],
-                os.path.abspath(self._project.target('android')['keyStore']),
-                self._project.target('android')['keyAlias'],
-                self._project.build,
-                self._project.version
-            ))
-        else:
-            data = dedent("""\
-            package.name=%s
-            version.code=%s
-            version.name=%s
-            """ % (
-                self._project.target('android')['packageId'],
-                self._project.build,
-                self._project.version
-            ))
+            o['key.store'] = os.path.abspath(self._project.target('android')['keyStore'])
+            o['key.alias'] = self._project.target('android')['keyAlias']
+
+        o['package.name'] = self._project.target('android')['packageId']
+        o['version.code'] = self._project.build
+        o['version.name'] = self._project.version
+        o['java.source'] = 7
+        o['java.target'] = 7
+
+        data = "\n".join(["%s=%s" % (k, v) for k, v in o.items()])
 
         return ('ant.properties', data)
 
@@ -513,7 +503,7 @@ class AndroidGenerator(Generator):
         for key in values:
             more_keys = kbd.get_longpress(key)
 
-            node = self._subelement(out, "Key", keyLabel=key)
+            node = self._subelement(out, "Key", keySpec=key)
             if n == 1:
                 if i > 0 and i <= 10:
                     if i == 10:
