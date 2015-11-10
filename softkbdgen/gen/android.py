@@ -67,9 +67,9 @@ class AndroidGenerator(Generator):
             logger.info("Dry run completed.")
             return
 
-        self.native_locale_workaround()
-
         self.get_source_tree(base, sdk_base)
+
+        self.native_locale_workaround(base)
 
         styles = [
             ('phone', 'xml'),
@@ -112,12 +112,25 @@ class AndroidGenerator(Generator):
 
         self.build(base, self.is_release)
 
-    def native_locale_workaround(self):
+    def native_locale_workaround(self, base):
         for name, kbd in self._project.layouts.items():
-            n = kbd.display_names.get(kbd.locale, None)
-            if n is not None:
-                kbd.display_names['zz'] = n
-                del kbd.display_names[kbd.locale]
+            try:
+                pycountry.languages.get(iso639_1_code=kbd.locale)
+                continue
+            except KeyError:
+                pass
+
+            locale = 'zz_%s' % kbd.locale
+            kbd.display_names[locale] = kbd.display_names[kbd.locale]
+            kbd._tree['locale'] = locale
+
+            self.update_locale_exception(kbd, base)
+
+        #for name, kbd in self._project.layouts.items():
+        #    n = kbd.display_names.get(kbd.locale, None)
+        #    if n is not None:
+        #        kbd.display_names['zz'] = n
+        #        del kbd.display_names[kbd.locale]
 
     def sanity_checks(self):
         sane = True
@@ -254,17 +267,44 @@ class AndroidGenerator(Generator):
         with open(fn, 'w') as f:
             f.write(self._tostring(root))
 
+    def update_locale_exception(self, kbd, base):
+        res_dir = os.path.join(base, 'deps', self.REPO, 'res')
+        fn = os.path.join(res_dir, 'values', 'donottranslate.xml')
+
+        logger.info("Adding '%s' to '%s'..." % (kbd.locale, fn))
+
+        with open(fn) as f:
+            tree = etree.parse(f)
+
+        # Add to exception keys
+        node = tree.xpath("string-array[@name='subtype_locale_exception_keys']")[0]
+        SubElement(node, 'item').text = kbd.locale
+
+        node = tree.xpath("string-array[@name='subtype_locale_displayed_in_root_locale']")[0]
+        SubElement(node, 'item').text = kbd.locale
+
+        SubElement(tree.getroot(), 'string', name="subtype_in_root_locale_%s" % kbd.locale).text = kbd.display_names[kbd.locale]
+
+        with open(fn, 'w') as f:
+            f.write(self._tostring(tree.getroot()))
+
     def update_strings_xml(self, kbd, base):
         # TODO sanity check for non-existence directories
         # TODO run this only once preferably
         res_dir = os.path.join(base, 'deps', self.REPO, 'res')
 
         for locale, name in kbd.display_names.items():
+            try:
+                pycountry.languages.get(iso639_1_code=locale)
+            except:
+                continue
+
             if locale == "en":
                 val_dir = os.path.join(res_dir, 'values')
             else:
                 val_dir = os.path.join(res_dir, 'values-%s' % locale)
             self._str_xml(val_dir, name, kbd.internal_name)
+
 
     def gen_method_xml(self, kbds, tree):
         root = tree.getroot()
@@ -278,7 +318,6 @@ class AndroidGenerator(Generator):
                 imeSubtypeExtraValue="KeyboardLayoutSet=%s,AsciiCapable,EmojiCapable" % kbd.internal_name)
 
         return self._tostring(tree)
-
 
     def update_method_xmls(self, layouts, base):
         # TODO run this only once preferably
