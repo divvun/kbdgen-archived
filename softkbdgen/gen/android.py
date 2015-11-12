@@ -320,8 +320,7 @@ class AndroidGenerator(Generator):
         return self._tostring(tree)
 
     def update_method_xmls(self, layouts, base):
-        # TODO run this only once preferably
-
+        # None because no API version specified (nor needed)
         base_layouts = layouts[None]
         del layouts[None]
 
@@ -331,6 +330,10 @@ class AndroidGenerator(Generator):
 
         with open(fn % 'xml') as f:
             tree = etree.parse(f)
+            root = tree.getroot()
+            # Empty the method.xml file
+            for child in root:
+                root.remove(child)
         with open(fn % 'xml', 'w') as f:
             f.write(self.gen_method_xml(base_layouts, tree))
 
