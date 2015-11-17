@@ -74,7 +74,10 @@ def git_update(dst, branch, cwd='.', logger=print):
     cmd = """git reset --hard;
              git checkout %s;
              git clean -fdx;
-             git pull;""" % branch
+             git pull;
+             git submodule init;
+             git submodule sync;
+             git submodule update;""" % branch
 
     cwd = os.path.join(cwd, dst)
 

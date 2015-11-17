@@ -57,8 +57,9 @@ class AndroidGenerator(Generator):
         return etree.tostring(tree, pretty_print=True,
             xml_declaration=True, encoding='utf-8').decode()
 
-    def generate(self, base='.', sdk_base='./sdk'):
+    def generate(self, base='.', sdk_base='./sdk', ndk_base='./ndk'):
         sdk_base = os.getenv("ANDROID_HOME", sdk_base)
+        ndk_base = os.getenv("NDK_HOME", ndk_base)
 
         if not self.sanity_checks():
             return
@@ -67,7 +68,7 @@ class AndroidGenerator(Generator):
             logger.info("Dry run completed.")
             return
 
-        self.get_source_tree(base, sdk_base)
+        self.get_source_tree(base, sdk_base, ndk_base)
 
         self.native_locale_workaround(base)
 
@@ -102,7 +103,7 @@ class AndroidGenerator(Generator):
 
         self.update_method_xmls(layouts, base)
 
-        files.append(self.create_ant_properties(self.is_release))
+        files.append(self.create_ant_properties(ndk_base, self.is_release))
 
         self.save_files(files, base)
 
@@ -357,13 +358,19 @@ class AndroidGenerator(Generator):
                 logger.info("Creating '%s'..." % k)
                 f.write(v)
 
-    def get_source_tree(self, base, sdk_base):
+    def get_source_tree(self, base, sdk_base, ndk_base):
         if not os.path.exists(os.path.join(
             os.path.abspath(sdk_base), 'tools', 'android')):
             raise MissingApplicationException(
                     "Error: Could not find the Android SDK. " +\
                     "Ensure your environment is configured correctly, " +\
                     "specifically the ANDROID_HOME env variable.")
+
+        if not os.path.exists(os.path.abspath(ndk_base)):
+            raise MissingApplicationException(
+                    "Error: Could not find the Android NDK. " +\
+                    "Ensure your environment is configured correctly, " +\
+                    "specifically the NDK_HOME env variable.")
 
         deps_dir = os.path.join(base, 'deps')
         os.makedirs(deps_dir, exist_ok=True)
@@ -394,13 +401,15 @@ class AndroidGenerator(Generator):
         #with open(rules_fn, 'w') as f:
         #    f.write(x.replace('GiellaIME', self._project.internal_name))
 
-    def create_ant_properties(self, release_mode=False):
+    def create_ant_properties(self, ndk_dir, release_mode=False):
         o = OrderedDict()
 
         if release_mode:
             o['key.store'] = os.path.abspath(self._project.target('android')['keyStore'])
             o['key.alias'] = self._project.target('android')['keyAlias']
 
+        # We do this here because Android Tools doesn't handle it.
+        o['ndk.dir'] = ndk_dir
         o['package.name'] = self._project.target('android')['packageId']
         o['version.code'] = self._project.build
         o['version.name'] = self._project.version
