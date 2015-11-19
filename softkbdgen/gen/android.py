@@ -256,6 +256,10 @@ class AndroidGenerator(Generator):
                     cwd=os.path.join(base, 'deps', self.REPO))
         process.wait()
 
+        if process.returncode != 0:
+            raise Exception("Application ended with error code %s." % process.returncode)
+            sys.exit(process.returncode)
+
         if not release_mode:
             fn = self._project.internal_name + "-debug.apk"
         else:
