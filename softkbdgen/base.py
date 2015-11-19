@@ -241,8 +241,8 @@ class Parser:
 
         for mode in list(tree['modes'].keys()):
             if isinstance(tree['modes'][mode], list):
-                raise Exception(("'%s' in '%s' must be defined as a string using" +
-                                 " block string format, not a list.") % (mode, f.name))
+                raise Exception(("'%s' must be defined as a string using" +
+                                 " block string format, not a list.") % mode)
             try:
                 # Soft layouts are special cased.
                 if mode in ['default', 'shift']:
@@ -289,4 +289,3 @@ class Parser:
         if cfg_pairs is not None:
             self._overrides(project._tree, self._parse_cfg_pairs(cfg_pairs))
         return project
-

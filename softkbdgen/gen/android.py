@@ -210,10 +210,11 @@ class AndroidGenerator(Generator):
         cmd_tmpl = "convert -resize %dx%d %s %s"
 
         for suffix, dimen in (
-                ('hdpi', 72),
                 ('mdpi', 48),
+                ('hdpi', 72),
                 ('xhdpi', 96),
-                ('xxhdpi', 144)):
+                ('xxhdpi', 144),
+                ('xxxhdpi', 192)):
             mipmap_dir = "drawable-%s" % suffix
             cmd = cmd_tmpl % (dimen, dimen, icon, os.path.join(
                 res_dir, mipmap_dir, "ic_launcher_keyboard.png"))

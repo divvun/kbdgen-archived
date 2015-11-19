@@ -1,5 +1,6 @@
 import plistlib
 import sys
+import shutil
 from textwrap import dedent, indent
 
 from .. import get_logger
