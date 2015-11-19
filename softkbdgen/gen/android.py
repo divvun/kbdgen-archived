@@ -61,7 +61,7 @@ class AndroidGenerator(Generator):
         sdk_base = os.getenv("ANDROID_HOME", sdk_base)
         ndk_base = os.getenv("NDK_HOME", ndk_base)
 
-        if not self.sanity_checks():
+        if not self.sanity_checks(sdk_base, ndk_base):
             return
 
         if self.dry_run:
@@ -133,8 +133,21 @@ class AndroidGenerator(Generator):
         #        kbd.display_names['zz'] = n
         #        del kbd.display_names[kbd.locale]
 
-    def sanity_checks(self):
+    def sanity_checks(self, sdk_base, ndk_base):
         sane = True
+
+        if not os.path.exists(os.path.join(
+            os.path.abspath(sdk_base), 'tools', 'android')):
+            raise MissingApplicationException(
+                    "Error: Could not find the Android SDK. " +\
+                    "Ensure your environment is configured correctly, " +\
+                    "specifically the ANDROID_HOME env variable.")
+
+        if not os.path.exists(os.path.abspath(ndk_base)):
+            raise MissingApplicationException(
+                    "Error: Could not find the Android NDK. " +\
+                    "Ensure your environment is configured correctly, " +\
+                    "specifically the NDK_HOME env variable.")
 
         pid = self._project.target('android').get('packageId')
         if pid is None:
@@ -366,19 +379,6 @@ class AndroidGenerator(Generator):
                 f.write(v)
 
     def get_source_tree(self, base, sdk_base, ndk_base):
-        if not os.path.exists(os.path.join(
-            os.path.abspath(sdk_base), 'tools', 'android')):
-            raise MissingApplicationException(
-                    "Error: Could not find the Android SDK. " +\
-                    "Ensure your environment is configured correctly, " +\
-                    "specifically the ANDROID_HOME env variable.")
-
-        if not os.path.exists(os.path.abspath(ndk_base)):
-            raise MissingApplicationException(
-                    "Error: Could not find the Android NDK. " +\
-                    "Ensure your environment is configured correctly, " +\
-                    "specifically the NDK_HOME env variable.")
-
         deps_dir = os.path.join(base, 'deps')
         os.makedirs(deps_dir, exist_ok=True)
 
