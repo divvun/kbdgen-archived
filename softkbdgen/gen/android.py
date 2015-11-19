@@ -139,19 +139,25 @@ class AndroidGenerator(Generator):
         pid = self._project.target('android').get('packageId')
         if pid is None:
             sane = False
-            logger.error("no package ID provided for Android target.")
+            logger.error("No package ID provided for Android target.")
 
         for name, kbd in self._project.layouts.items():
+            dropped_locales = []
+
             for dn_locale in kbd.display_names:
                 if dn_locale in ['zz', kbd.locale]:
                     continue
                 try:
                     pycountry.languages.get(iso639_1_code=dn_locale)
                 except KeyError:
-                    sane = False
-                    logger.error(("[%s] '%s' is not a supported locale. " +\
+                    logger.warning(("[%s] '%s' is not a supported locale. " +\
                           "You should provide the code in ISO 639-1 " +\
-                          "format, if possible.") % (name, dn_locale))
+                          "format, if possible. Pruning from project.") % (name, dn_locale))
+                    dropped_locales.append(dn_locale)
+
+            for locale in dropped_locales:
+                logger.debug("Pruning locale '%s'" % locale)
+                del kbd.display_names[locale]
 
             for mode, rows in kbd.modes.items():
                 for n, row in enumerate(rows):
