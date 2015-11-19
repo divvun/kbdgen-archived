@@ -410,10 +410,6 @@ class AppleiOSGenerator(Generator):
             buf.write(key_loop % ('", "'.join(row), row_count))
             row_count += 1
 
-        # There's this awful bug with the Swift parser where any sufficiently
-        # long static literal dictionary of arrays causes the indexer to
-        # freak out and die. Xcode 800% CPU anyone?
-        # Workaround is to generate it slowly.
         buf.write(indent(dedent("""\
             if isPad {
                 var returnKey = Key(.Return)
@@ -447,6 +443,10 @@ class AppleiOSGenerator(Generator):
             var lps = [String: [String]]()
         """), ' ' * 4))
 
+        # There's this awful bug with the Swift parser where any sufficiently
+        # long static literal dictionary of arrays causes the indexer to
+        # freak out and die. Xcode 800% CPU anyone?
+        # Workaround is to generate it slowly.
         for k, v in layout.longpress.items():
             buf.write(indent(dedent("""\
                 lps["%s"] = %s
