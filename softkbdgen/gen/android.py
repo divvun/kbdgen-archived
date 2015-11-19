@@ -16,9 +16,7 @@ logger = get_logger(__file__)
 
 ANDROID_GLYPHS = {}
 
-for api in range(16, 21+1):
-    if api in (17, 18, 20):
-        continue
+for api in (16, 19, 21, 23):
     with open(os.path.join(os.path.dirname(__file__), 'bin',
             "android-glyphs-api%s.bin" % api), 'rb') as f:
         ANDROID_GLYPHS[api] = boolmap.BoolMap(f.read())
