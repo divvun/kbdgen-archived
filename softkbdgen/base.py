@@ -278,7 +278,7 @@ class Parser:
                     l = self._parse_keyboard_descriptor(kbdtree)
                     layouts[l.internal_name] = l
                 except Exception as e:
-                    logger("There was an error for file '%s.yaml':" % layout)
+                    logger.error("There was an error for file '%s.yaml':" % layout)
                     raise e
 
         tree['layouts'] = layouts
