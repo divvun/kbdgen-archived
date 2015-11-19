@@ -587,8 +587,8 @@ class AndroidGenerator(Generator):
             for v in vals:
                 for c in v:
                     if glyphs[ord(c)] is False:
-                        logger.warning("[%s] '%s' (codepoint: U+%04X) " +
-                                       "is not supported by API %s!" % (
+                        logger.warning(("[%s] '%s' (codepoint: U+%04X) " +
+                                       "is not supported by API %s!") % (
                             layout.internal_name,
                             c, ord(c), api_ver))
 
