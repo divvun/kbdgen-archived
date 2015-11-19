@@ -331,8 +331,8 @@ class AppleiOSGenerator(Generator):
 
         l10n_name = layout.display_names.get(layout.locale, None)
         if l10n_name is None:
-            raise Exception("Keyboard '%s' requires localisation " +
-                            "into its own locale." % layout.internal_name)
+            raise Exception(("Keyboard '%s' requires localisation " +
+                            "into its own locale.") % layout.internal_name)
 
         buf.write(dedent("""\
         // GENERATED FILE: DO NOT EDIT.
