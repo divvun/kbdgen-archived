@@ -138,7 +138,8 @@ class AppleiOSGenerator(Generator):
                     stderr=subprocess.PIPE, stdout=subprocess.PIPE)
             out, err = process.communicate()
             if process.returncode != 0:
-                logger.error(err.decode())
+                logger.error(err.decode().strip())
+                logger.error("Please try quitting Xcode entirely before running again.")
                 logger.error("Application ended with error code %s." % process.returncode)
                 sys.exit(process.returncode)
 
