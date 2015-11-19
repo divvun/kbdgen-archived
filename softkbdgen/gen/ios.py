@@ -381,7 +381,6 @@ class AppleiOSGenerator(Generator):
         """), ' ' * 8)
 
         for row in layout.modes['shift']:
-            logger.critical(row)
             buf.write(key_loop % ('", "'.join(row), row_count))
             row_count += 1
 
