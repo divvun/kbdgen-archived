@@ -579,8 +579,8 @@ class AndroidGenerator(Generator):
     def detect_unavailable_glyphs_long_press(self, layout, api_ver):
         glyphs = ANDROID_GLYPHS.get(api_ver, None)
         if glyphs is None:
-            logger.warning("no glyphs file found for API %s! Can't detect " +
-                  "missing characters from Android font!" % api_ver)
+            logger.warning(("no glyphs file found for API %s! Can't detect " +
+                  "missing characters from Android font!") % api_ver)
             return
 
         for vals in layout.longpress.values():
