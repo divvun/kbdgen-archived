@@ -257,7 +257,7 @@ class AndroidGenerator(Generator):
         process.wait()
 
         if process.returncode != 0:
-            raise Exception("Application ended with error code %s." % process.returncode)
+            logger.error("Application ended with error code %s." % process.returncode)
             sys.exit(process.returncode)
 
         if not release_mode:
