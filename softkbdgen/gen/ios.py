@@ -1,5 +1,6 @@
 import plistlib
 import sys
+import re
 import shutil
 from textwrap import dedent, indent
 
@@ -9,9 +10,12 @@ from .osxutil import *
 
 logger = get_logger(__file__)
 
+VERSION_RE = re.compile(r'Xcode (\d+)\.(\d+)')
+
 class AppleiOSGenerator(Generator):
     def generate(self, base='.'):
-        # TODO sanity checks
+        if not self.ensure_xcode_version():
+            return
 
         if self.dry_run:
             logger.info("Dry run completed.")
@@ -89,6 +93,27 @@ class AppleiOSGenerator(Generator):
         else:
             logger.info("You may now open TastyImitationKeyboard.xcodeproj in '%s'." %\
                     build_dir)
+
+    def ensure_xcode_version(self):
+        process = subprocess.Popen(['xcodebuild', '-version'],
+                stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        out, err = process.communicate()
+        if process.returncode != 0:
+            logger.error(err.decode().strip())
+            logger.error("Application ended with error code %s." % process.returncode)
+            sys.exit(process.returncode)
+
+        v = VERSION_RE.match(out.decode().split('\n')[0].strip())
+        major = int(v.groups()[0])
+        minor = int(v.groups()[1])
+
+        logger.debug("Xcode version: %s.%s" % (major, minor))
+
+        if major >= 8 or (major == 7 and minor >= 1):
+            return True
+
+        logger.error("Your version of Xcode is too old. You need 7.1 or later.")
+        return False
 
     def build_release(self, base_dir, build_dir):
         # TODO check signing ID exists in advance (in sanity checks)
