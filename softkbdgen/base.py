@@ -273,9 +273,13 @@ class Parser:
 
         for layout in tree['layouts']:
             with open("%s.yaml" % layout) as f:
-                kbdtree = orderedyaml.load(f)
-                l = self._parse_keyboard_descriptor(kbdtree)
-                layouts[l.internal_name] = l
+                try:
+                    kbdtree = orderedyaml.load(f)
+                    l = self._parse_keyboard_descriptor(kbdtree)
+                    layouts[l.internal_name] = l
+                except Exception as e:
+                    logger("There was an error for file '%s.yaml':" % layout)
+                    raise e
 
         tree['layouts'] = layouts
 
