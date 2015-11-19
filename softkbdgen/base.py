@@ -33,6 +33,31 @@ ISO_KEYS = ( "E00",
     "B00", "B01", "B02", "B03", "B04", "B05",
     "B06", "B07", "B08", "B09", "B10" )
 
+MODE_LIST_ERROR = """\
+'%s' must be defined as a string using block string format, not a list.
+
+For example, if your keyboard.yaml looks like:
+
+```
+modes:
+  default: [
+    q w e r t y u i o p å,
+    a s d f g h j k l ö æ,
+      z x c v b n m ï
+  ]
+```
+
+Convert that to:
+
+```
+modes:
+  default: |
+    q w e r t y u i o p å
+    a s d f g h j k l ö æ
+      z x c v b n m ï
+```
+"""
+
 def parse_layout(data, length_check=True):
     if isinstance(data, dict):
         o = OrderedDict()
@@ -241,8 +266,7 @@ class Parser:
 
         for mode in list(tree['modes'].keys()):
             if isinstance(tree['modes'][mode], list):
-                raise Exception(("'%s' must be defined as a string using" +
-                                 " block string format, not a list.") % mode)
+                raise Exception(MODE_LIST_ERROR % mode)
             try:
                 # Soft layouts are special cased.
                 if mode in ['default', 'shift']:
