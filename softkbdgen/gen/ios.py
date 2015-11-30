@@ -69,6 +69,8 @@ class AppleiOSGenerator(Generator):
             ref = pbxproj.add_plist_file('Info.plist')
             pbxproj.add_ref_to_group(ref, ['Generated', name])
 
+            pbxproj.add_appex_to_target_dependencies(name, "HostingApp")
+
         # Hosting app plist
         with open(os.path.join(build_dir, 'HostingApp',
                     'Info.plist'), 'rb') as f:
@@ -107,7 +109,7 @@ class AppleiOSGenerator(Generator):
             logger.error("'xcodebuild' could not be found on your PATH. Please " +
                 "ensure Xcode and its associated command line tools are installed.")
             return False
-            
+
         process = subprocess.Popen(['xcodebuild', '-version'],
                 stderr=subprocess.PIPE, stdout=subprocess.PIPE)
         out, err = process.communicate()
@@ -142,7 +144,7 @@ class AppleiOSGenerator(Generator):
         return True
 
     def build_debug(self, base_dir, build_dir):
-        process = subprocess.Popen('xcodebuild -configuration Debug -scheme HostingApp',
+        process = subprocess.Popen('xcodebuild -configuration Debug -target HostingApp',
                     cwd=os.path.join(build_dir), shell=True)
         process.wait()
 

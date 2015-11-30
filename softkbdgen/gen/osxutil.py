@@ -151,6 +151,13 @@ class Pbxproj:
     def main_group(self):
         return self.objects[self.root['mainGroup']]
 
+    def find_ref_for_name(self, name, isa=None):
+        for ref, o in self.objects.items():
+            if o.get('name', None) == name and \
+                    (isa is None or o.get('isa', None) == isa):
+                return ref
+        return None
+
     def find_resource_build_phase(self, target_name):
         targets = [self.objects[t] for t in self.root['targets']]
         target = None
@@ -327,6 +334,61 @@ class Pbxproj:
             raise Exception("No src found.")
 
         o['files'] = []
+
+    def create_container_item_proxy(self, container_portal, remote_ref, info):
+        ref = Pbxproj.gen_key()
+
+        self.objects[ref] = {
+            "isa": "PBXContainerItemProxy",
+            "containerPortal": container_portal,
+            "proxyType": "1",
+            "remoteGlobalIDString": remote_ref,
+            "remoteInfo": info
+        }
+
+        logger.debug(self.objects[ref])
+
+        return ref
+
+    def create_target_dependency(self, proxy_ref, dep_ref):
+        ref = Pbxproj.gen_key()
+
+        self.objects[ref] = {
+            "isa": "PBXTargetDependency",
+            "targetProxy": proxy_ref,
+            "target": dep_ref
+        }
+        logger.debug(self.objects[ref])
+
+        return ref
+
+    def add_dependency_to_target(self, target_ref, dep_ref):
+        target = self.objects[target_ref]
+
+        if target.get('dependencies', None) is None:
+            target['dependencies'] = []
+
+        target['dependencies'].append(dep_ref)
+        logger.debug(target)
+
+    def add_appex_to_target_dependencies(self, appex, target):
+        logger.debug("%s %s" % (appex, target))
+        # Find target
+        appex_ref = self.find_ref_for_name(appex, isa='PBXNativeTarget')
+        logger.debug("Appex ref: " + appex_ref)
+
+        # Create container proxy
+        proxy_ref = self.create_container_item_proxy(self._proj['rootObject'], appex_ref, appex)
+        logger.debug('Proxy ref: ' + proxy_ref)
+
+        # Create target dependency
+        dep_ref = self.create_target_dependency(proxy_ref, appex_ref)
+        logger.debug('Target dep ref: ' + dep_ref)
+
+        # Add to deps
+        target_ref = self.find_ref_for_name(target, isa="PBXNativeTarget")
+        logger.debug(target_ref)
+        self.add_dependency_to_target(target_ref, dep_ref)
 
     def add_appex_to_target_embedded_binaries(self, appex, target):
         for appex_ref, o in self.objects.items():
