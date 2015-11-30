@@ -18,6 +18,9 @@ class AppleiOSGenerator(Generator):
         if not self.ensure_xcode_version():
             return
 
+        if not self.ensure_ios_autotools():
+            return
+
         if self.dry_run:
             logger.info("Dry run completed.")
             return
@@ -100,6 +103,11 @@ class AppleiOSGenerator(Generator):
                     build_dir)
 
     def ensure_xcode_version(self):
+        if shutil.which('xcodebuild') is None:
+            logger.error("'xcodebuild' could not be found on your PATH. Please " +
+                "ensure Xcode and its associated command line tools are installed.")
+            return False
+            
         process = subprocess.Popen(['xcodebuild', '-version'],
                 stderr=subprocess.PIPE, stdout=subprocess.PIPE)
         out, err = process.communicate()
@@ -119,6 +127,19 @@ class AppleiOSGenerator(Generator):
 
         logger.error("Your version of Xcode is too old. You need 7.1 or later.")
         return False
+
+    def ensure_ios_autotools(self):
+        msg = "'%s' could not be found on your PATH. Please ensure bbqsrc/ios-autotools is installed."
+
+        if shutil.which('iconfigure') is None:
+            logger.error(msg % 'iconfigure')
+            return False
+
+        if shutil.which('autoframework') is None:
+            logger.error(msg % 'autoframework')
+            return False
+
+        return True
 
     def build_debug(self, base_dir, build_dir):
         process = subprocess.Popen('xcodebuild -configuration Debug -scheme HostingApp',
