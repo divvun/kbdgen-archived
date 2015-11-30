@@ -80,6 +80,10 @@ class Project:
 
     # TODO properties should never throw.
     @property
+    def path(self):
+        return self._tree['_path']
+
+    @property
     def locales(self):
         return self._tree['locales']
 
@@ -312,6 +316,9 @@ class Parser:
     def parse(self, data, cfg_pairs=None, cfg_file=None):
         tree = self._parse_global(cfg_file)
         tree.update(orderedyaml.load(data))
+
+        tree['_path'] = os.path.dirname(os.path.abspath(data.name))
+        logger.info(tree['_path'])
 
         project = self._parse_project(tree)
         if cfg_pairs is not None:

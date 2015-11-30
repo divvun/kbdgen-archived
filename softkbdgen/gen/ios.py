@@ -2,6 +2,7 @@ import plistlib
 import sys
 import re
 import shutil
+import glob
 from textwrap import dedent, indent
 
 from .. import get_logger
@@ -25,9 +26,9 @@ class AppleiOSGenerator(Generator):
                 'ios', self._project.target('ios')['packageId'])
 
         if os.path.isdir(build_dir):
-            git_update(build_dir, self.branch, base, logger=logger.info)
+            git_update(build_dir, self.branch, False, base, logger=logger.info)
         else:
-            git_clone(self.repo, build_dir, self.branch, base,
+            git_clone(self.repo, build_dir, self.branch, False, base,
                     logger=logger.info)
 
         path = os.path.join(build_dir,
@@ -78,6 +79,9 @@ class AppleiOSGenerator(Generator):
         self.localise_hosting_app(pbxproj, build_dir)
         self.create_locales(build_dir)
 
+        # Add zhfst files if found
+        self.add_zhfst_files(build_dir)
+
         # Stops the original keyboard being built.
         pbxproj.remove_target("Keyboard")
 
@@ -91,6 +95,7 @@ class AppleiOSGenerator(Generator):
         if self.is_release:
             self.build_release(base, build_dir)
         else:
+            self.build_debug(base, build_dir)
             logger.info("You may now open TastyImitationKeyboard.xcodeproj in '%s'." %\
                     build_dir)
 
@@ -114,6 +119,15 @@ class AppleiOSGenerator(Generator):
 
         logger.error("Your version of Xcode is too old. You need 7.1 or later.")
         return False
+
+    def build_debug(self, base_dir, build_dir):
+        process = subprocess.Popen('xcodebuild -configuration Debug -scheme HostingApp',
+                    cwd=os.path.join(build_dir), shell=True)
+        process.wait()
+
+        if process.returncode != 0:
+            logger.error("Application ended with error code %s." % process.returncode)
+            sys.exit(process.returncode)
 
     def build_release(self, base_dir, build_dir):
         # TODO check signing ID exists in advance (in sanity checks)
@@ -175,6 +189,23 @@ class AppleiOSGenerator(Generator):
     def _tostring(self, tree):
         return etree.tostring(tree, pretty_print=True,
             xml_declaration=True, encoding='utf-8').decode()
+
+    def add_zhfst_files(self, build_dir):
+        nm = 'dicts.bundle'
+        path = os.path.join(build_dir, nm)
+        if os.path.exists(path):
+            shutil.rmtree(path)
+        os.makedirs(path, exist_ok=True)
+
+        files = glob.glob(os.path.join(self._project.path, '*.zhfst'))
+        if len(files) == 0:
+            logger.warning("No ZHFST files found.")
+            return
+
+        for fn in files:
+            bfn = os.path.basename(fn)
+            logger.info("Adding '%s' to '%s'…" % (bfn, nm))
+            shutil.copyfile(fn, os.path.join(path, bfn))
 
     def gen_hosting_app_icons(self, build_dir):
         if self._project.icon('ios') is None:

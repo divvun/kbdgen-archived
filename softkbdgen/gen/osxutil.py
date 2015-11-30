@@ -452,8 +452,8 @@ class Pbxproj:
         appex_clone['path'] = "%s.appex" % dst_name
         base_clone['productReference'] = appex_ref
 
-        # HACK: have to generate PBXContainerItemProxy etc for this to work
-        base_clone['dependencies'] = []
+        # PBXContainerItemProxy etc seem unaffected by leaving dependencies in
+        #base_clone['dependencies'] = []
 
         self.add_ref_to_group(appex_ref, ['Products'])
 
@@ -682,4 +682,3 @@ class OSXKeyLayout:
         elif next is not None:
             el = SubElement(action, 'when', state=state, next=next)
         logger.trace("%r" % el)
-
