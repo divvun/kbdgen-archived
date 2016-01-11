@@ -3,6 +3,7 @@ import sys
 import re
 import shutil
 import glob
+import multiprocessing
 from textwrap import dedent, indent
 
 from .. import get_logger
@@ -144,7 +145,10 @@ class AppleiOSGenerator(Generator):
         return True
 
     def build_debug(self, base_dir, build_dir):
-        process = subprocess.Popen('xcodebuild -configuration Debug -target HostingApp',
+        cmd = 'xcodebuild -configuration Debug -target HostingApp ' + \
+              '-jobs %s ' % multiprocessing.cpu_count() + \
+              'CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO'
+        process = subprocess.Popen(cmd,
                     cwd=os.path.join(build_dir), shell=True)
         process.wait()
 
@@ -180,9 +184,10 @@ class AppleiOSGenerator(Generator):
                 'provisioningProfileId', '')
 
         cmd0 = """/usr/bin/osascript -e %s""" % applescript
-        cmd1 = """xcodebuild -configuration Release -scheme HostingApp archive
-        -archivePath "%s" CODE_SIGN_IDENTITY="%s" """.replace("\n", ' ') % (
-                xcarchive, code_sign_id)
+        cmd1 = 'xcodebuild -configuration Release -scheme HostingApp ' + \
+                'archive -archivePath "%s" ' % xcarchive + \
+                '-jobs %s ' % multiprocessing.cpu_count() + \
+                'CODE_SIGN_IDENTITY="%s"' % code_sign_id
         cmd2 = """xcodebuild -exportArchive -exportFormat ipa
         -archivePath "%s" -exportPath "%s"
         -exportProvisioningProfile "%s"
