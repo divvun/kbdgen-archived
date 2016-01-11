@@ -9,6 +9,7 @@ setup(name='softkbdgen',
       license='MIT',
       packages=['softkbdgen'],
       include_package_data=True,
+      install_requires=['pyyaml', 'tornado', 'pycountry'],
       entry_points = {
           'console_scripts': [
               'softkbdgen=softkbdgen.__main__:main',
