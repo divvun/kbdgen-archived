@@ -72,6 +72,7 @@ def git_update(dst, branch, clean, cwd='.', logger=print):
     logger(msg)
 
     cmd = """git reset --hard;
+             git fetch --all;
              git checkout %s;
              %s
              git pull;
