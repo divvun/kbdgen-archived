@@ -50,7 +50,7 @@ def mode_iter(layout, key, required=False):
     mode = layout.modes.get(key, None)
     if mode is None:
         if required:
-            raise Exception("'%s' has a required mode." % key)
+            raise Exception("Layout '%s' has a required mode: '%s'." % (layout, key))
         return itertools.repeat(None)
 
     return mode.values()
@@ -59,7 +59,7 @@ def mode_dict(layout, key, required=False, space=False):
     mode = layout.modes.get(key, None)
     if mode is None:
         if required:
-            raise Exception("'%s' has a required mode." % key)
+            raise Exception("Layout '%s' has a required mode: '%s'." % (layout, key))
         return OrderedDict(zip(ISO_KEYS, itertools.repeat(None)))
 
     if space:
