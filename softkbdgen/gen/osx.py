@@ -183,8 +183,13 @@ class OSXGenerator(Generator):
                 key_id = OSX_KEYMAP[iso]
 
                 if key in layout.dead_keys.get(mode_name, []):
-                    out.set_deadkey(mode_name, key, key_id,
-                            layout.transforms[key].get(' ', key))
+                    if key in layout.transforms:
+                        out.set_deadkey(mode_name, key, key_id,
+                                layout.transforms[key].get(' ', key))
+                    else:
+                        logger.warning("Dead key '%s' not found in mode '%s'; "
+                                       "Build will continue, but please fix.")
+                        out.set_key(mode_name, key, key_id)
                 else:
                     out.set_key(mode_name, key, key_id)
 
@@ -236,4 +241,3 @@ class OSXGenerator(Generator):
         TransformWalker(layout.transforms)()
 
         return bytes(out).decode('utf-8')
-
