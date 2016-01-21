@@ -46,13 +46,38 @@ class SVGGenerator(Generator):
                 <title>Keyboards for %s</title>
             </head>
             <body>
-                <p><strong>Legend (ø/dead):</strong></p>
-                <ul>
-                    <li><strong>Default:</strong> black/green</li>
-                    <li><strong>AltGr/Option:</strong> red/orange</li>
-                    <li><strong>Caps Lock (Mode Switch):</strong> blue/pink</li>
-                    <li><strong>Caps Lock + AltGr/Option:</strong> purple/green</li>
-                </ul>
+                <p><strong>Legend:</strong></p>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Mode</th>
+                      <th>Standard</th>
+                      <th>Dead</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                        <th>Default</th>
+                        <td>black</td>
+                        <td>green</td>
+                    </tr>
+                    <tr>
+                        <th>AltGr/Option</th>
+                        <td>red</td>
+                        <td>orange</td>
+                    </tr>
+                    <tr>
+                        <th>Caps Lock (Mode Switch)</th>
+                        <td>blue</td>
+                        <td>pink</td>
+                    </tr>
+                    <tr>
+                        <th>Caps Lock + AltGr/Option:</th>
+                        <td>purple</td>
+                        <td>green</td>
+                    </tr>
+                  </tbody>
+                </table>
             """) % (self._project.internal_name))
 
             for fn, name, _ in sorted(files):
@@ -214,5 +239,3 @@ class SVGGenerator(Generator):
 
         return etree.tostring(root, encoding='utf-8', xml_declaration=True,
                 pretty_print=True)
-
-
