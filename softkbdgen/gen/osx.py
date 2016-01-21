@@ -81,6 +81,12 @@ class OSXGenerator(Generator):
 
     def create_bundle(self, path):
         bundle_path = os.path.join(path, "%s.bundle" % self._project.internal_name)
+        bundle_name = self._project.target('osx').get('bundleName', None)
+
+        if bundle_name is None:
+            raise Exception("Target 'osx' has no 'bundleName' property. "
+                "Please fix your project YAML file.")
+
         os.makedirs(os.path.join(bundle_path, 'Contents', 'Resources'),
             exist_ok=True)
 
@@ -122,7 +128,7 @@ class OSXGenerator(Generator):
 </plist>
                 """) % (
                     bundle_id,
-                    self._project.target('osx')['bundleName'],
+                    bundle_name,
                     self._project.build,
                     '\n'.join(targets)
                 )
