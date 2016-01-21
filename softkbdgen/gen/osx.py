@@ -188,7 +188,9 @@ class OSXGenerator(Generator):
                                 layout.transforms[key].get(' ', key))
                     else:
                         logger.warning("Dead key '%s' not found in mode '%s'; "
-                                       "Build will continue, but please fix.")
+                            "build will continue, but please fix." % (
+                                key, mode_name
+                            ))
                         out.set_key(mode_name, key, key_id)
                 else:
                     out.set_key(mode_name, key, key_id)
