@@ -46,24 +46,24 @@ class TouchGenerator(Generator):
     def validate_layout(cls, data):
         return True
 
-def mode_iter(layout, key, required=False):
-    mode = layout.modes.get(key, None)
+def mode_iter(keyboard, key, required=False):
+    mode = keyboard.modes.get(key, None)
     if mode is None:
         if required:
-            raise Exception("Layout '%s' has a required mode: '%s'." % (layout, key))
+            raise Exception("Layout '%s' has a required mode: '%s'." % (keyboard.internal_name, key))
         return itertools.repeat(None)
 
     return mode.values()
 
-def mode_dict(layout, key, required=False, space=False):
-    mode = layout.modes.get(key, None)
+def mode_dict(keyboard, key, required=False, space=False):
+    mode = keyboard.modes.get(key, None)
     if mode is None:
         if required:
-            raise Exception("Layout '%s' has a required mode: '%s'." % (layout, key))
+            raise Exception("Layout '%s' has a required mode: '%s'." % (keyboard.internal_name, key))
         return OrderedDict(zip(ISO_KEYS, itertools.repeat(None)))
 
     if space:
-        sp = layout.special.get('space', {}).get(key, " ")
+        sp = keyboard.special.get('space', {}).get(key, " ")
         mode['A03'] = sp
     return mode
 
