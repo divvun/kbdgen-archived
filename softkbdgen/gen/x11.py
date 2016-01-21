@@ -67,7 +67,8 @@ class XKBGenerator(Generator):
                 if len(v) > 1:
                     # X11 still doesn't seem to support ligatures on a single key!!
                     #return "{ %s }" % ", ".join(["U%04X" % ord(x) for x in v])
-                    raise Exception("Ligatures not supported in X11.")
+                    raise Exception("Unicode ligatures not supported in X11. "
+                        "Triggered by: '%s'" % v)
 
                 o = ord(v)
                 return keysym_to_str.get(o, "U%04X" % ord(v))
@@ -83,4 +84,3 @@ class XKBGenerator(Generator):
 
         buf.write('\n    include "level3(ralt_switch)"\n};\n\n')
         return buf.getvalue()
-
