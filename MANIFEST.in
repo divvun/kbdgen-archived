@@ -2,3 +2,6 @@ include doc/*.md
 include softkbdgen/*.bin
 include softkbdgen/*.yaml
 include softkbdgen/gen/bin/*
+include requirements.txt
+include LICENSE
+include CHANGELOG.md

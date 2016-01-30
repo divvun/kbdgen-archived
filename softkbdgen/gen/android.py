@@ -2,6 +2,7 @@ import copy
 import os.path
 import shutil
 import sys
+import glob
 from collections import defaultdict
 from textwrap import dedent, indent
 
@@ -105,6 +106,9 @@ class AndroidGenerator(Generator):
 
         self.save_files(files, base)
 
+        # Add zhfst files if found
+        self.add_zhfst_files(base)
+
         self.update_localisation(base)
 
         self.generate_icons(base)
@@ -124,12 +128,6 @@ class AndroidGenerator(Generator):
             kbd._tree['locale'] = locale
 
             self.update_locale_exception(kbd, base)
-
-        #for name, kbd in self._project.layouts.items():
-        #    n = kbd.display_names.get(kbd.locale, None)
-        #    if n is not None:
-        #        kbd.display_names['zz'] = n
-        #        del kbd.display_names[kbd.locale]
 
     def sanity_checks(self, sdk_base, ndk_base):
         sane = True
@@ -181,6 +179,47 @@ class AndroidGenerator(Generator):
             self.detect_unavailable_glyphs_long_press(kbd, 19)
             self.detect_unavailable_glyphs_long_press(kbd, 21)
         return sane
+
+    def add_zhfst_files(self, build_dir):
+        nm = 'assets/dicts'
+        dict_path = os.path.join(build_dir, 'deps', self.REPO, nm)
+        if os.path.exists(dict_path):
+            shutil.rmtree(dict_path)
+        os.makedirs(dict_path, exist_ok=True)
+
+        files = glob.glob(os.path.join(self._project.path, '*.zhfst'))
+        if len(files) == 0:
+            logger.warning("No ZHFST files found.")
+            return
+
+        path = os.path.join(build_dir, 'deps', self.REPO, 'res',
+            'xml', 'spellchecker.xml')
+
+        with open(path) as f:
+            tree = etree.parse(f)
+        root = tree.getroot()
+        # Empty the file
+        for child in root:
+            root.remove(child)
+
+        for fn in files:
+            bfn = os.path.basename(fn)
+            logger.info("Adding '%s' to '%s'…" % (bfn, nm))
+            shutil.copyfile(fn, os.path.join(dict_path, bfn))
+
+            lang, _ = os.path.splitext(os.path.basename(fn))
+            try:
+                # Will exception on failure
+                pycountry.languages.get(iso639_1_code=lang)
+            except KeyError:
+                lang = "zz_%s" % lang.upper()
+
+            self._android_subelement(root, 'subtype',
+                label="@string/subtype_generic",
+                subtypeLocale=lang)
+
+        with open(path, 'w') as f:
+            f.write(self._tostring(tree))
 
     def _upd_locale(self, d, values):
         logger.info("Updating localisation for %s..." % d)

@@ -7,7 +7,6 @@ from ..cldr import CP_REGEX
 logger = get_logger(__file__)
 
 keysym_to_str = {}
-#str_to_keysym = {}
 
 with open(filepath(__file__, 'bin', 'keysym.tsv')) as f:
     line = f.readline()
@@ -21,7 +20,6 @@ with open(filepath(__file__, 'bin', 'keysym.tsv')) as f:
         string, keysymstr = line.strip().split('\t')
         keysym = int(keysymstr, 16)
 
-        #str_to_keysym[string] = keysym
         keysym_to_str[keysym] = string
         line = f.readline()
 
@@ -35,13 +33,44 @@ class XKBGenerator(Generator):
             logger.info("Dry run completed.")
             return
 
-        with open(os.path.join(self.build_dir, "%s.xkb" % (
-            self._project.internal_name)), 'w') as f:
-            for name, layout in self._project.layouts.items():
-                f.write(self.generate_nonsense(name, layout))
+        xkb_fn = os.path.join(self.build_dir, "%s.xkb" % (
+            self._project.internal_name))
+        xcompose_fn = os.path.join(self.build_dir, "%s.xcompose" % (
+            self._project.internal_name))
 
-    def generate_nonsense(self, name, layout):
-        buf = io.StringIO()
+        self.surrogate = 0xF0000
+        self.xkb = open(xkb_fn, 'w')
+        self.xcompose = open(xcompose_fn, 'w')
+
+        for name, layout in self._project.layouts.items():
+            self.write_nonsense(name, layout)
+
+        self.xkb.close()
+        self.xcompose.close()
+
+    def filter_xkb_keysyms(self, v):
+        """actual filter function"""
+        if v is None:
+            return ''
+
+        v = CP_REGEX.sub(lambda x: chr(int(x.group(1), 16)), v)
+
+        if len(v) > 1:
+            cps = " ".join(["U%04X" % ord(x) for x in v])
+            self.xcompose.write("<U%X> : %s # %s\n" % (self.surrogate, cps, v))
+            o = self.surrogate
+            self.surrogate += 1
+        else:
+            o = ord(v)
+        return keysym_to_str.get(o, "U%04X" % o)
+
+    def write_nonsense(self, name, layout):
+        # First char in Supplemental Private Use Area-A
+
+        buf = self.xkb
+        ligs = self.xcompose
+
+        ligs.write("# %s\n" % name)
 
         buf.write("default partial alphanumeric_keys\n")
         buf.write('xkb_symbols "basic" {\n\n')
@@ -53,34 +82,15 @@ class XKBGenerator(Generator):
         col2 = mode_iter(layout, 'iso-alt')
         col3 = mode_iter(layout, 'iso-alt+shift')
 
-        def xkb_filter(*args):
-            def xf(v):
-                """actual filter function"""
-                if v is None:
-                    return ''
-
-                v = CP_REGEX.sub(lambda x: chr(int(x.group(1), 16)), v)
-                # check for anything outsize A-Za-z range
-                #if re.match("^[A-Za-z]$", v):
-                #    return v
-
-                if len(v) > 1:
-                    # X11 still doesn't seem to support ligatures on a single key!!
-                    #return "{ %s }" % ", ".join(["U%04X" % ord(x) for x in v])
-                    raise Exception("Unicode ligatures not supported in X11. "
-                        "Triggered by: '%s'" % v)
-
-                o = ord(v)
-                return keysym_to_str.get(o, "U%04X" % ord(v))
-
-            o = [xf(i) for i in args]
-            while len(o) > 0 and o[-1] == '':
-                o.pop()
-            return tuple(o)
+        def xkb_filter(self, *args):
+            out = [self.filter_xkb_keysyms(i) for i in args]
+            while len(out) > 0 and out[-1] == '':
+                out.pop()
+            return tuple(out)
 
         for (iso, c0, c1, c2, c3) in zip(ISO_KEYS, col0, col1, col2, col3):
-            cols = ", ".join("%10s" % x for x in xkb_filter(c0, c1, c2, c3))
+            cols = ", ".join("%10s" % x for x in xkb_filter(self, c0, c1, c2, c3))
             buf.write("    key <A%s> { [ %s ] };\n" % (iso, cols))
 
         buf.write('\n    include "level3(ralt_switch)"\n};\n\n')
-        return buf.getvalue()
+        ligs.write('\n')
