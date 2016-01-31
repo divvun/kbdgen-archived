@@ -1,7 +1,7 @@
 include doc/*.md
-include softkbdgen/*.bin
-include softkbdgen/*.yaml
-include softkbdgen/gen/bin/*
+include kbdgen/*.bin
+include kbdgen/*.yaml
+include kbdgen/gen/bin/*
 include requirements.txt
 include LICENSE
 include CHANGELOG.md
