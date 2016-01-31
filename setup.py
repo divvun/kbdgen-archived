@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 from kbdgen import __version__
 
 with open('README.rst') as f:
@@ -12,19 +12,14 @@ setup(name='kbdgen',
       author='Brendan Molloy',
       author_email='brendan+pypi@bbqsrc.net',
       license='Apache-2.0',
-      packages=['kbdgen'],
+      packages=find_packages(),
       keywords=['keyboard', 'generator', 'cldr'],
       include_package_data=True,
       install_requires=['PyYAML', 'pycountry', 'lxml'],
       classifiers=[
         "Development Status :: 4 - Beta",
         "License :: OSI Approved :: Apache Software License",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.6",
-        "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.2",
-        "Programming Language :: Python :: 3.3",
         "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5"
       ],
