@@ -5,7 +5,7 @@
 
 ## Usage
 
-Just run `softkbdgen` with `--target win` to generate the MS Keyboard Layout
+Just run `kbdgen` with `--target win` to generate the MS Keyboard Layout
 Creator `.klc` files for your project.
 
 The generated files will be found in `build/win/<internalName>/<layout>.klc`.

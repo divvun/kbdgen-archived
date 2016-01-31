@@ -16,7 +16,7 @@ You will need:
 
 Use the same command line options as you would for generating any other target, but use the `--repo` flag to supply the correct repository for generation.
 
-Example: `softkbdgen --repo local/path/to/tasty --target ios project.yaml`
+Example: `kbdgen --repo local/path/to/tasty --target ios project.yaml`
 
 The output will be found in the `build/ios/` directory. Open the `.xcodeproj` in Xcode to package the result.
 

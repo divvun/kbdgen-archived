@@ -20,7 +20,7 @@ targets:
   android:
     packageId: so.brendan.keyboards.sami
     icon: sami-icon.pdf
-    keyStore: /Users/brendan/git/softkbdgen/sami_keyboard.keystore
+    keyStore: /Users/brendan/git/kbdgen/sami_keyboard.keystore
     keyAlias: sami_keyboard
 
   ios:
