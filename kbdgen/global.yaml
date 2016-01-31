@@ -6,11 +6,11 @@ appStrings:
         instructionsTitle: "How to enable the keyboards:"
         instructions: |
             1. In Settings, go to General > Keyboard > Keyboards > Add New Keyboard...
-            2. Under «Third-Party Keyboards», choose this keyboard.
-            3. A list of keyboard layouts will appear. Enable the keyboards you wish to use, and press «Done».
+            2. Under "Third-Party Keyboards", choose this keyboard.
+            3. A list of keyboard layouts will appear. Enable the keyboards you wish to use, and press "Done".
 
             You may now access these keyboards by pressing the globe icon next to the spacebar.
-        imageSource: 'Background image: «Mountains outside Narvik» by Alexander Cahlenstein (CC BY)'
+        imageSource: 'Background image: "Mountains outside Narvik" by Alexander Cahlenstein (CC BY)'
 
     nb:
         testText: "Skriv tekst her for å teste"
