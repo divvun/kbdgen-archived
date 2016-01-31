@@ -14,7 +14,7 @@ setup(name='kbdgen',
       packages=['kbdgen'],
       keywords=['keyboard', 'generator', 'cldr'],
       include_package_data=True,
-      install_requires=['PyYAML', 'tornado', 'pycountry'],
+      install_requires=['PyYAML', 'pycountry'],
       classifiers=[
         "Development Status :: 4 - Beta",
         "License :: OSI Approved :: Apache Software License",

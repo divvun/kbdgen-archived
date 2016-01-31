@@ -1,7 +1,9 @@
 # LogFormatter taken straight from
 # https://github.com/tornadoweb/tornado/blob/dcd1ef81df68ba928e6bbeb1cf194f1ff694ec49/tornado/log.py
+# Other bits mangled to support Python 3 only and remove deps.
 #
 # Copyright 2012 Facebook
+# Copyright 2016 Brendan Molloy <brendan@bbqsrc.net>
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -18,16 +20,16 @@
 # Modified by Brendan Molloy (c) 2015
 #
 
-"""Logging support for Tornado.
+"""Logging support for kbdgen.
 
-Tornado uses three logger streams:
+kbdgen uses three logger streams:
 
-* ``tornado.access``: Per-request logging for Tornado's HTTP servers (and
+* ``tornado.access``: Per-request logging for kbdgen's HTTP servers (and
   potentially other servers in the future)
 * ``tornado.application``: Logging of errors from application code (i.e.
   uncaught exceptions from callbacks)
 * ``tornado.general``: General-purpose logging, including any errors
-  or warnings from Tornado itself.
+  or warnings from kbdgen itself.
 
 These streams may be configured independently using the standard library's
 `logging` module.  For example, you may wish to send ``tornado.access`` logs
@@ -39,8 +41,19 @@ import logging
 import logging.handlers
 import sys
 
-from tornado.escape import _unicode
-from tornado.util import unicode_type, basestring_type
+def to_unicode(value):
+    """Converts a string argument to a unicode string.
+
+    If the argument is already a unicode string or None, it is returned
+    unchanged.  Otherwise it must be a byte string and is decoded as utf8.
+    """
+    if isinstance(value, (str, type(None))):
+        return value
+    if not isinstance(value, bytes):
+        raise TypeError(
+            "Expected bytes, unicode, or None; got %r" % type(value)
+        )
+    return value.decode("utf-8")
 
 try:
     import curses
@@ -48,9 +61,9 @@ except ImportError:
     curses = None
 
 # Logger objects for internal tornado use
-access_log = logging.getLogger("tornado.access")
-app_log = logging.getLogger("tornado.application")
-gen_log = logging.getLogger("tornado.general")
+access_log = logging.getLogger("kbdgen.access")
+app_log = logging.getLogger("kbdgen.application")
+gen_log = logging.getLogger("kbdgen.general")
 
 
 def _stderr_supports_color():
@@ -67,23 +80,19 @@ def _stderr_supports_color():
 
 def _safe_unicode(s):
     try:
-        return _unicode(s)
+        return to_unicode(s)
     except UnicodeDecodeError:
         return repr(s)
 
 
 class LogFormatter(logging.Formatter):
-    """Log formatter used in Tornado.
+    """Log formatter used in kbdgen.
 
     Key features of this formatter are:
 
     * Color support when logging to a terminal that supports it.
     * Timestamps on every log line.
     * Robust against str/bytes encoding problems.
-
-    This formatter is enabled automatically by
-    `tornado.options.parse_command_line` (unless ``--logging=none`` is
-    used).
     """
     DEFAULT_FORMAT = '%(color)s[%(levelname)1.1s %(asctime)s %(module)s:%(lineno)d]%(end_color)s %(message)s'
     DEFAULT_DATE_FORMAT = '%y%m%d %H:%M:%S'
@@ -127,18 +136,18 @@ class LogFormatter(logging.Formatter):
             fg_color = (curses.tigetstr("setaf") or
                         curses.tigetstr("setf") or "")
             if (3, 0) < sys.version_info < (3, 2, 3):
-                fg_color = unicode_type(fg_color, "ascii")
+                fg_color = str(fg_color, "ascii")
 
             for levelno, code in colors.items():
-                self._colors[levelno] = unicode_type(curses.tparm(fg_color, code), "ascii")
-            self._normal = unicode_type(curses.tigetstr("sgr0"), "ascii")
+                self._colors[levelno] = str(curses.tparm(fg_color, code), "ascii")
+            self._normal = str(curses.tigetstr("sgr0"), "ascii")
         else:
             self._normal = ''
 
     def format(self, record):
         try:
             message = record.getMessage()
-            assert isinstance(message, basestring_type)  # guaranteed by logging
+            assert isinstance(message, str)  # guaranteed by logging
             # Encoding notes:  The logging module prefers to work with character
             # strings, but only enforces that log messages are instances of
             # basestring.  In python 2, non-ascii bytestrings will make
@@ -181,36 +190,17 @@ class LogFormatter(logging.Formatter):
             formatted = '\n'.join(lines)
         return formatted.replace("\n", "\n    ")
 
-
 def enable_pretty_logging(options=None, logger=None, fmt=None):
-    """Turns on formatted logging output as configured.
-
-    This is called automatically by `tornado.options.parse_command_line`
-    and `tornado.options.parse_config_file`.
-    """
-    if options is None:
-        from tornado.options import options
-    if options.logging is None or options.logging.lower() == 'none':
-        return
+    """Turns on formatted logging output as configured."""
     if logger is None:
         logger = logging.getLogger()
-    logger.setLevel(getattr(logging, options.logging.upper()))
-    if options.log_file_prefix:
-        channel = logging.handlers.RotatingFileHandler(
-            filename=options.log_file_prefix,
-            maxBytes=options.log_file_max_size,
-            backupCount=options.log_file_num_backups)
-        channel.setFormatter(LogFormatter(color=False))
-        logger.addHandler(channel)
 
-    if (options.log_to_stderr or
-            (options.log_to_stderr is None and not logger.handlers)):
-        # Set up color if we are in a tty and curses is installed
-        channel = logging.StreamHandler()
-        channel.setFormatter(LogFormatter(fmt=fmt))
-        logger.addHandler(channel)
+    # Set up color if we are in a tty and curses is installed
+    channel = logging.StreamHandler()
+    channel.setFormatter(LogFormatter(fmt=fmt))
+    logger.addHandler(channel)
 
-
+'''
 def define_logging_options(options=None):
     """Add logging-related flags to ``options``.
 
@@ -242,6 +232,7 @@ def define_logging_options(options=None):
                    help="number of log files to keep")
 
     options.add_parse_callback(lambda: enable_pretty_logging(options))
+'''
 
 def monkey_patch_trace_logging():
     setattr(logging, 'TRACE', 5)
@@ -255,4 +246,3 @@ def monkey_patch_trace_logging():
     logging.Logger.trace = trace
 
     LogFormatter.DEFAULT_COLORS[logging.TRACE] = 5
-
