@@ -7,9 +7,10 @@ import subprocess
 
 from collections import OrderedDict
 
-from ..base import ISO_KEYS
+from ..base import ISO_KEYS, KbdgenException
 
-class MissingApplicationException(Exception): pass
+class MissingApplicationException(KbdgenException): pass
+class GenerationError(KbdgenException): pass
 
 def bind_iso_keys(other):
     return OrderedDict(((k, v) for k, v in zip(ISO_KEYS, other)))
@@ -46,11 +47,13 @@ class TouchGenerator(Generator):
     def validate_layout(cls, data):
         return True
 
+MSG_LAYOUT_MISSING = "Layout '%s' is missing a required mode: '%s'."
+
 def mode_iter(keyboard, key, required=False):
     mode = keyboard.modes.get(key, None)
     if mode is None:
         if required:
-            raise Exception("Layout '%s' has a required mode: '%s'." % (keyboard.internal_name, key))
+            raise GenerationError(MSG_LAYOUT_MISSING % (keyboard.internal_name, key))
         return itertools.repeat(None)
 
     return mode.values()
@@ -59,7 +62,7 @@ def mode_dict(keyboard, key, required=False, space=False):
     mode = keyboard.modes.get(key, None)
     if mode is None:
         if required:
-            raise Exception("Layout '%s' has a required mode: '%s'." % (keyboard.internal_name, key))
+            raise GenerationError(MSG_LAYOUT_MISSING % (keyboard.internal_name, key))
         return OrderedDict(zip(ISO_KEYS, itertools.repeat(None)))
 
     if space:

@@ -8,6 +8,8 @@ from collections import OrderedDict, namedtuple
 
 from . import orderedyaml, log
 
+class KbdgenException(Exception): pass
+
 log.monkey_patch_trace_logging()
 
 def get_logger(path):
@@ -295,10 +297,12 @@ class Parser:
             if key not in tree:
                 raise Exception("%s key missing from file." % key)
 
+        tree_path = tree['_path']
+
         layouts = OrderedDict()
 
         for layout in tree['layouts']:
-            with open("%s.yaml" % layout) as f:
+            with open(os.path.join(tree_path, "%s.yaml" % layout)) as f:
                 try:
                     kbdtree = orderedyaml.load(f)
                     l = self._parse_keyboard_descriptor(kbdtree)
@@ -316,7 +320,6 @@ class Parser:
         tree.update(orderedyaml.load(data))
 
         tree['_path'] = os.path.dirname(os.path.abspath(data.name))
-        logger.info(tree['_path'])
 
         project = self._parse_project(tree)
         if cfg_pairs is not None:

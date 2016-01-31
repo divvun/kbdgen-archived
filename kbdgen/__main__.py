@@ -3,7 +3,7 @@ import yaml
 import sys
 from collections import OrderedDict
 
-from . import __version__, Parser, gen, logger
+from . import __version__, KbdgenException, Parser, gen, logger
 
 # TODO move into base?
 generators = OrderedDict((
@@ -86,8 +86,8 @@ def main():
 
     try:
         x.generate()
-    except gen.MissingApplicationException as e:
-        print(e, file=sys.stderr)
+    except KbdgenException as e:
+        logger.error(e)
 
 if __name__ == "__main__":
     sys.exit(main())
