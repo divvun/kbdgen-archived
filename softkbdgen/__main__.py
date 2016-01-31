@@ -31,7 +31,7 @@ def parse_args():
         return n
 
     epilog = "Available targets: %s" % ", ".join(sorted(generators))
-    p = argparse.ArgumentParser(prog="softkbdgen", epilog=epilog)
+    p = argparse.ArgumentParser(prog="kbdgen", epilog=epilog)
     p.add_argument('--version', action='version',
             version="%(prog)s " + VERSION)
     p.add_argument('--logging', type=logging_type, default=20,
