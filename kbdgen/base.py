@@ -19,8 +19,6 @@ log.enable_pretty_logging(
 
 logger = logging.getLogger()
 
-VERSION = "0.2a1"
-
 Action = namedtuple("Action", ['row', 'position', 'width'])
 
 ISO_KEYS = ( "E00",

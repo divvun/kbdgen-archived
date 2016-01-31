@@ -1,10 +1,11 @@
 from setuptools import setup
+from kbdgen import __version__
 
 with open('README.rst') as f:
     desc = f.read()
 
 setup(name='kbdgen',
-      version='0.2.0a1',
+      version=__version__,
       description='Generate soft keyboards for mobile OSes and layouts for Windows, OS X and X11.',
       long_description=desc,
       url='https://github.com/bbqsrc/kbdgen',
