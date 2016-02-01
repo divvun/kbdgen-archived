@@ -74,20 +74,22 @@ def git_update(dst, branch, clean, cwd='.', logger=print):
     msg = "Updating repository '%s'..." % dst
     logger(msg)
 
-    cmd = """git reset --hard;
-             git fetch --all;
-             git checkout %s;
+    cmd = """git reset --hard &&
+             git fetch --all &&
+             git checkout %s &&
              %s
-             git pull;
-             git submodule init;
-             git submodule sync;
-             git submodule update;""" % (
+             git pull &&
+             git submodule init &&
+             git submodule sync &&
+             git submodule update""" % (
                 branch,
-                "git clean -fdx;" if clean else ""
+                "git clean -fdx &&" if clean else ""
             )
+    cmd = cmd.replace('\n', ' ')
 
     cwd = os.path.join(cwd, dst)
 
+    # TODO error checking
     process = subprocess.Popen(cmd, cwd=cwd, shell=True)
     process.wait()
 
@@ -97,6 +99,7 @@ def git_clone(src, dst, branch, clean, cwd='.', logger=print):
 
     cmd = ['git', 'clone', src, dst]
 
+    # TODO error checking
     process = subprocess.Popen(cmd, cwd=cwd)
     process.wait()
 

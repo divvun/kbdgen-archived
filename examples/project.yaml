@@ -19,7 +19,7 @@ build: "1"
 targets:
   android:
     packageId: so.brendan.keyboards.sami
-    icon: sami-icon.pdf
+    #icon: sami-icon.pdf
     keyStore: /Users/brendan/git/kbdgen/sami_keyboard.keystore
     keyAlias: sami_keyboard
 
@@ -27,7 +27,7 @@ targets:
     codeSignId: "iOS Development"
     provisioningProfileId: Test
     packageId: so.brendan.keyboards.sami
-    icon:
-        90: sami-icon-small.png
-        150: sami-icon.png
+    #icon:
+    #    90: sami-icon-small.png
+    #    150: sami-icon.png
     bundleName: *bundleName

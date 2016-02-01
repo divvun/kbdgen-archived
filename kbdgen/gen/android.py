@@ -109,6 +109,8 @@ class AndroidGenerator(Generator):
         # Add zhfst files if found
         self.add_zhfst_files(base)
 
+        self.update_dict_authority(base)
+
         self.update_localisation(base)
 
         self.generate_icons(base)
@@ -178,7 +180,44 @@ class AndroidGenerator(Generator):
             self.detect_unavailable_glyphs_long_press(kbd, 16)
             self.detect_unavailable_glyphs_long_press(kbd, 19)
             self.detect_unavailable_glyphs_long_press(kbd, 21)
+            self.detect_unavailable_glyphs_long_press(kbd, 23)
         return sane
+
+    def _update_dict_auth_xml(self, auth, base):
+        path = os.path.join(base, 'deps', self.REPO, 'res/values/dictionary-pack.xml')
+        with open(path) as f:
+            tree = etree.parse(f)
+
+        nodes = tree.xpath("string[@name='authority']")
+        if len(nodes) == 0:
+            logger.error("No authority string found in XML!")
+            return
+
+        nodes[0].text = auth
+
+        with open(path, 'w') as f:
+            f.write(self._tostring(tree))
+
+    def _update_dict_auth_java(self, auth, base):
+        # ಠ_ಠ
+        target = "com.android.inputmethod.dictionarypack.aosp"
+
+        # (╯°□°）╯︵ ┻━┻
+        src_path = "src/com/android/inputmethod/dictionarypack/DictionaryPackConstants.java"
+        path = os.path.join(base, 'deps', self.REPO, src_path)
+
+        # (┛◉Д◉)┛彡┻━┻
+        with open(path) as f:
+            o = f.read().replace(target, auth)
+        with open(path, 'w') as f:
+            f.write(o)
+
+    def update_dict_authority(self, base):
+        auth = "%s.dictionarypack" % self._project.target('android')['packageId']
+        logger.info("Updating dict authority string to '%s'..." % auth)
+        
+        self._update_dict_auth_xml(auth, base)
+        self._update_dict_auth_java(auth, base)
 
     def add_zhfst_files(self, build_dir):
         nm = 'assets/dicts'
