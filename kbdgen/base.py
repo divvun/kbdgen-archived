@@ -259,7 +259,7 @@ class Parser:
                 raise Exception("%s key missing from file." % key)
 
         # TODO move this to android and ios generators
-        #if 'default' not in tree['modes']:
+        #if 'mobile-default' not in tree['modes']:
         #    raise Exception("No default mode supplied in file.")
 
         if 'modifiers' not in tree or tree.get('modifiers', None) is None:
@@ -273,7 +273,7 @@ class Parser:
                 raise Exception(MODE_LIST_ERROR % mode)
             try:
                 # Soft layouts are special cased.
-                if mode in ['default', 'shift']:
+                if mode in ['mobile-default', 'mobile-shift']:
                     tree['modes'][mode] = parse_touch_layout(tree['modes'][mode])
                 else:
                     tree['modes'][mode] = parse_layout(tree['modes'][mode])

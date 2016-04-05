@@ -215,7 +215,7 @@ class AndroidGenerator(Generator):
     def update_dict_authority(self, base):
         auth = "%s.dictionarypack" % self._project.target('android')['packageId']
         logger.info("Updating dict authority string to '%s'..." % auth)
-        
+
         self._update_dict_auth_xml(auth, base)
         self._update_dict_auth_java(auth, base)
 
@@ -542,7 +542,7 @@ class AndroidGenerator(Generator):
 
         self._subelement(out, "include", keyboardLayout="@xml/key_styles_common")
 
-        for n, values in enumerate(kbd.modes['default']):
+        for n, values in enumerate(kbd.modes['mobile-default']):
             n += 1
 
             row = self._subelement(out, "Row")
@@ -561,7 +561,7 @@ class AndroidGenerator(Generator):
 
     def gen_key_width(self, kbd, style):
         m = 0
-        for row in kbd.modes['default']:
+        for row in kbd.modes['mobile-default']:
             r = len(row)
             if r > m:
                m = r
@@ -584,7 +584,7 @@ class AndroidGenerator(Generator):
 
     def rowkeys(self, kbd, style):
         # TODO check that lengths of both modes are the same
-        for n in range(1, len(kbd.modes['default'])+1):
+        for n in range(1, len(kbd.modes['mobile-default'])+1):
             merge = Element('merge', nsmap={"latin": self.NS})
             switch = self._subelement(merge, 'switch')
 
@@ -592,11 +592,11 @@ class AndroidGenerator(Generator):
                 keyboardLayoutSetElement="alphabetManualShifted|alphabetShiftLocked|" +
                                          "alphabetShiftLockShifted")
 
-            self.add_rows(kbd, n, kbd.modes['shift'][n-1], style, case)
+            self.add_rows(kbd, n, kbd.modes['mobile-shift'][n-1], style, case)
 
             default = self._subelement(switch, 'default')
 
-            self.add_rows(kbd, n, kbd.modes['default'][n-1], style, default)
+            self.add_rows(kbd, n, kbd.modes['mobile-default'][n-1], style, default)
 
             yield ('rowkeys_%s%s.xml' % (kbd.internal_name, n), self._tostring(merge))
 

@@ -465,7 +465,7 @@ class AppleiOSGenerator(Generator):
 
         """), ' ' * 8)
 
-        for row in layout.modes['shift']:
+        for row in layout.modes['mobile-shift']:
             buf.write(key_loop % ('", "'.join(row), row_count))
             row_count += 1
 
