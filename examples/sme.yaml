@@ -8,11 +8,11 @@ displayNames:
 locale: se
 
 modes:
-  default: |
+  mobile-default: |
     á š e r t y u i o p ŋ
     a s d f g h j k l đ ŧ
     ž z č c v b n m w
-  shift: |
+  mobile-shift: |
     Á Š E R T Y U I O P Ŋ
     A S D F G H J K L Đ Ŧ
     Ž Z Č C V B N M W
@@ -44,9 +44,9 @@ styles:
       shift: [3, left, fill]
       backspace: [3, right, fill]
 
-targets:
-  android:
-    minimumSdk: 21
+#targets:
+#  android:
+#    minimumSdk: 21
 
 strings:
   space: gaske
