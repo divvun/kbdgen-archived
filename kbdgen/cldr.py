@@ -493,4 +493,3 @@ if __name__ == "__main__":
     else:
         print("cldr2kbdgen or kbdgen2cldr required as first param.")
         sys.exit(1)
-
