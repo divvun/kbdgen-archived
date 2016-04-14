@@ -429,13 +429,14 @@ class CLDRMode:
                 if x == "alt": return 20
                 if x == "shift": return 30
                 return 99
+
             v = "%s-%s" % (prefix, "+".join(sorted(clean, key=mm)))
             if v not in out:
                 out.append(v)
 
         # Sorted to bring shortest priority to the front
         # eg ('iso-caps+alt', 'iso-alt', 'osx-cmd+alt') from cs is wrong.
-        return tuple(sorted(out))
+        return tuple(sorted(out, key=lambda x: x.count('+')))
 
     @property
     def kbdgen(self):
