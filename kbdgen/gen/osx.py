@@ -106,7 +106,7 @@ class OSXGenerator(Generator):
 
         targets = []
         for name, layout in self._project.layouts.items():
-            name = layout.display_names[layout.locale]
+            name = layout.internal_name#layout.display_names[layout.locale]
             bundle_chunk = name.lower().replace(' ', '')
             targets.append(target_tmpl % (name, bundle_id, bundle_chunk,
                 layout.locale))
