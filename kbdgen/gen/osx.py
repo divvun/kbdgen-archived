@@ -40,7 +40,7 @@ class OSXGenerator(Generator):
 
         for name, data in o.items():
             layout = self._project.layouts[name]
-            fn = layout.display_names[layout.locale]
+            fn = layout.internal_name#layout.display_names[layout.locale]
 
             for locale, lname in layout.display_names.items():
                 translations[locale][fn] = lname
