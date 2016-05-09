@@ -153,7 +153,8 @@ class OSXGenerator(Generator):
             sys.exit(process.returncode)
 
     def generate_xml(self, layout):
-        name = layout.display_names[layout.locale]
+        #name = layout.display_names[layout.locale]
+        name = layout.internal_name
         out = OSXKeyLayout(name, random_id())
 
         dead_keys = set(itertools.chain.from_iterable(layout.dead_keys.values()))
