@@ -3,7 +3,7 @@
 Sometimes you want to use a key that either can't be seen in a text editor, or
 will mangle your text editor (like zero width spacing).
 
-Escaping is quite simple. Use `\u{}` notation for `U+xxxx` codepoints. For example, non-breaking space `0x00A0` can be represented as `\u{0a}`.
+Escaping is quite simple. Use `\u{}` notation for `U+xxxx` codepoints. For example, non-breaking space `0x00A0` can be represented as `\u{a0}`.
 
 ## Required keys
 
