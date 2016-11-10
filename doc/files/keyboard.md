@@ -107,6 +107,7 @@ transforms:
     b:
       ' ': b
       c: OUTPUT
+```
 
 * **decimal**: specify the decimal point value (basically just for numpads on Windows). Usually a `.` or `,`.
 * **special**: a map of special cases for various keys. Supported keys are:
