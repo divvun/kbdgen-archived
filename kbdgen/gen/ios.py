@@ -26,7 +26,7 @@ class AppleiOSGenerator(Generator):
             logger.info("Dry run completed.")
             return
 
-        build_dir = os.path.join(base, 'build',
+        build_dir = os.path.join(base,
                 'ios', self._project.target('ios')['packageId'])
 
         if os.path.isdir(build_dir):
