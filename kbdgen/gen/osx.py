@@ -213,13 +213,15 @@ class OSXGenerator(Generator):
 
         class TransformWalker(DictWalker):
             def on_branch(self, base, branch):
-                action_id = "Key %s" % branch
+                action_id = out.actions.get(branch) # "Key %s" % branch
 
-                if base == ():
+                if base == () and len(out.action_cache[action_id].xpath('when[@state="none"]')) > 0:
+                    return
+                elif base == ():
                     when_state = "none"
-                    next_state = "State %s" % branch
+                    next_state = out.states.get(branch) # "State %s" % branch
                 else:
-                    when_state = "State %s" % "".join(base)
+                    when_state = out.states.get("".join(base)) # "State %s" % "".join(base)
                     next_state = "%s%s" % (when_state, branch)
 
                 logger.trace("Branch: %r" % ((action_id, when_state, next_state),))
@@ -232,8 +234,8 @@ class OSXGenerator(Generator):
                         (action_id, when_state, next_state)))
 
             def on_leaf(self, base, branch, leaf):
-                action_id = "Key %s" % branch
-                when_state = "State %s" % "".join(base)
+                action_id = out.actions.get(branch) # "Key %s" % branch
+                when_state = out.states.get("".join(base)) # "State %s" % "".join(base)
 
                 logger.trace("Leaf: %r" % ((action_id, when_state, leaf),))
                 try:

@@ -597,7 +597,7 @@ class OSXKeyLayout:
         return ('<?xml version="1.1" encoding="UTF-8"?>\n%s' % v).encode('utf-8')
 
     def __str__(self):
-        return etree.tostring(root, encoding='unicode',
+        return etree.tostring(self.elements['root'], encoding='unicode',
                            doctype=self.doctype, pretty_print=True)
 
     def __init__(self, name, id_):
@@ -627,6 +627,20 @@ class OSXKeyLayout:
         self.key_cache = {}
         self.kmap_cache = {}
         self.action_cache = {}
+
+        class KeyIncrementer:
+            def __init__(self, prefix):
+                self.prefix = prefix
+                self.data = {}
+                self.c = 0
+            def get(self, key):
+                if self.data.get(key, None) is None:
+                    self.data[key] = self.c
+                    self.c += 1
+                return "%s%03d" % (self.prefix, self.data[key])
+
+        self.states = KeyIncrementer("s")
+        self.actions = KeyIncrementer("a")
 
         self._n = 0
 
@@ -673,8 +687,8 @@ class OSXKeyLayout:
                 del node.attrib['action']
 
     def _set_default_action(self, key):
-        action_id = "Key %s" % key
-        pressed_id = "State %s" % key
+        action_id = self.actions.get(key) # "Key %s" % key
+        pressed_id = self.states.get(key) # "State %s" % key
         action = self.action_cache.get(action_id, None)
 
         if action is None:
@@ -682,16 +696,14 @@ class OSXKeyLayout:
                      id=action_id)
             self.action_cache[action_id] = action
 
-        #if len(action.xpath('when[@state="none"]')) == 0:
-        #    SubElement(action, 'when', state='none', next=pressed_id)
-
     def _set_terminator(self, action_id, output):
         termin = self.elements['terminators'].xpath(
                         'when[@state="%s"]' % action_id.replace('"', r'&quot;'))
 
         if len(termin) == 0:
-            SubElement(self.elements['terminators'], 'when', state=action_id,
-                    output=output)
+            el = SubElement(self.elements['terminators'], 'when')
+            el.set("state", action_id)
+            el.set("output", output)
 
     def _set_default_transform(self, action_id, output):
         action = self.action_cache.get(action_id, None)
@@ -703,7 +715,9 @@ class OSXKeyLayout:
             self.action_cache[action_id] = action
 
         if len(action.xpath('when[@state="none"]')) == 0:
-            el = SubElement(action, 'when', state='none', output=output)
+            el = SubElement(action, 'when')
+            el.set("state", "none")
+            el.set("output", output)
             logger.trace("%r" % el)
 
     def set_key(self, mode, key, key_id):
@@ -712,8 +726,8 @@ class OSXKeyLayout:
     def set_deadkey(self, mode, key, key_id, output):
         """output is the output when the deadkey is followed by an invalid"""
         logger.trace("%r %r %r %r" % (mode, key, key_id, output))
-        action_id = "Key %s" % key
-        pressed_id = "State %s" % key
+        action_id = self.actions.get(key) # "Key %s" % key
+        pressed_id = self.states.get(key) # "State %s" % key
 
         self._set_key(mode, key, key_id, action=action_id)
 
@@ -722,8 +736,8 @@ class OSXKeyLayout:
         self._set_terminator(pressed_id, output)
 
     def set_transform_key(self, mode, key, key_id):
-        action_id = "Key %s" % key
-        pressed_id = "State %s" % key
+        action_id = self.actions.get(key) # "Key %s" % key
+        pressed_id = self.states.get(key) # "State %s" % key
 
         self._set_key(mode, key, key_id, action=action_id)
 
@@ -740,7 +754,11 @@ class OSXKeyLayout:
             raise Exception("Output and next cannot be simultaneously defined.")
 
         if output is not None:
-            el = SubElement(action, 'when', state=state, output=output)
+            el = SubElement(action, 'when')
+            el.set("state", state)
+            el.set("output", output)
         elif next is not None:
-            el = SubElement(action, 'when', state=state, next=next)
+            el = SubElement(action, 'when')
+            el.set("state", state)
+            el.set("next", next)
         logger.trace("%r" % el)
