@@ -44,14 +44,14 @@ Targets
 
 The following targets are currently supported by ``kbdgen``:
 
--  Android (built on Linux or OS X)
--  iOS (built on OS X)
+-  Android (built on Linux or macOS)
+-  iOS (built on macOS)
 -  Windows 7 and later (source generated on any OS, built on Windows)
--  OS X (built on OS X)
+-  macOS (built on macOS)
 -  X11 (built on any OS)
 -  SVG (built on any OS)
 
-The code is known to run well on OS X and Linux. Different generators
+The code is known to run well on macOS and Linux. Different generators
 have different OS requirements as specified in their documentation.
 
 Patches to extend support more broadly and add further targets are
