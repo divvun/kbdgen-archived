@@ -424,10 +424,10 @@ class CLDRMode:
 
             def mm(x):
                 if x == "cmd": return 0
-                if x == "ctrl": return 5
-                if x == "caps": return 10
+                if x == "caps": return 5
+                if x == "ctrl": return 10
                 if x == "alt": return 20
-                if x == "shift": return 30
+                if x == "shift": return 40
                 return 99
 
             v = "%s-%s" % (prefix, "+".join(sorted(clean, key=mm)))

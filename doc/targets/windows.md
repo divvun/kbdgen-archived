@@ -47,7 +47,7 @@ again.
 
 * Windows does not support Unicode ligatures in deadkeys, but does support
   them as ordinary keys.
-* Using `iso-caps` and `iso-shift+caps` with Windows is limited to single
+* Using `iso-caps` and `iso-caps+shift` with Windows is limited to single
   codepoints, as the ligature limitation also applies here.
 * Windows keyboard identifiers must be unique, are 8 characters long and
   begin with `kbd`. The next 5 characters are generated from the next 5

@@ -75,10 +75,10 @@ class WindowsGenerator(Generator):
         alt_caps = mode_iter(layout, 'iso-alt+caps')
 
         caps = mode_iter(layout, 'iso-caps')
-        caps_shift = mode_iter(layout, 'iso-shift+caps')
+        caps_shift = mode_iter(layout, 'iso-caps+shift')
 
         # Cannot be supported. :(
-        #alt_caps_shift = mode_iter(layout, 'iso-alt+shift+caps')
+        #alt_caps_shift = mode_iter(layout, 'iso-caps+alt+shift')
 
         def win_filter(*args, force=False):
             def wf(v):
