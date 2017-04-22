@@ -36,6 +36,10 @@ class Generator:
     def dry_run(self):
         return self._args.get('dry_run', False)
 
+    @property
+    def output_dir(self):
+        return self._args.get("output", ".")
+
 class PhysicalGenerator(Generator):
     @classmethod
     def validate_layout(cls, data):

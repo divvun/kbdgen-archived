@@ -49,6 +49,8 @@ def parse_args():
                    help='Git branch (default: stable)')
     p.add_argument('-t', '--target', required=True, choices=generators.keys(),
                    help="Target output.")
+    p.add_argument('-o', '--output', default=".",
+                   help="Output directory (default: current working directory)")
     p.add_argument('project', help="Keyboard generation project (yaml)",
                    type=argparse.FileType('r'),
                    default=sys.stdin)
@@ -85,7 +87,7 @@ def main():
     x = generator(project, dict(args._get_kwargs()))
 
     try:
-        x.generate()
+        x.generate(x.output_dir)
     except KbdgenException as e:
         logger.error(e)
     except KeyboardInterrupt:

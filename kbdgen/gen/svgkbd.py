@@ -29,8 +29,7 @@ class SVGGenerator(Generator):
                     layout.display_names[layout.locale],
                     self.generate_svg(layout, copy.deepcopy(root))))
 
-        out_dir = os.path.join(base, 'build', 'svg',
-                self._project.internal_name)
+        out_dir = os.path.abspath(base)
         os.makedirs(out_dir, exist_ok=True)
 
         for fn, _, data in files:

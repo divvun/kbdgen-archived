@@ -26,8 +26,7 @@ class AppleiOSGenerator(Generator):
             logger.info("Dry run completed.")
             return
 
-        build_dir = os.path.join(base, 'build',
-                'ios', self._project.target('ios')['packageId'])
+        build_dir = os.path.abspath(base)
 
         if os.path.isdir(build_dir):
             git_update(build_dir, self.branch, False, base, logger=logger.info)

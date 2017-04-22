@@ -343,9 +343,9 @@ class AndroidGenerator(Generator):
             # TODO other release shi
         path = os.path.join(base, 'deps', self.REPO, 'bin')
 
-        logger.info("Copying '%s' to build/ directory..." % fn)
-        os.makedirs(os.path.join(base, 'build'), exist_ok=True)
-        shutil.copy(os.path.join(path, fn), os.path.join(base, 'build'))
+        logger.info("Copying '%s' to build directory..." % fn)
+        os.makedirs(base, exist_ok=True)
+        shutil.copy(os.path.join(path, fn), base)
 
         logger.info("Done!")
 

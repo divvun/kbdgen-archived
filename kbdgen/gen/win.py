@@ -34,8 +34,7 @@ class WindowsGenerator(Generator):
             logger.info("Dry run completed.")
             return
 
-        build_dir = os.path.join(base, 'build', 'win',
-                self._project.internal_name)
+        build_dir = os.path.abspath(base)
         os.makedirs(build_dir, exist_ok=True)
 
         for name, data in outputs.items():

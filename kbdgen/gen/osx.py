@@ -2,7 +2,7 @@ import os.path
 import shutil
 import subprocess
 
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from textwrap import indent, dedent
 
 from .. import get_logger
@@ -13,8 +13,7 @@ logger = get_logger(__file__)
 
 class OSXGenerator(Generator):
     def generate(self, base='.'):
-        self.build_dir = os.path.abspath(os.path.join(base, 'build',
-                'osx', self._project.internal_name))
+        self.build_dir = os.path.abspath(base)
 
         o = OrderedDict()
 
@@ -28,9 +27,6 @@ class OSXGenerator(Generator):
 
         if os.path.exists(self.build_dir):
             shutil.rmtree(self.build_dir)
-
-        bundle = os.path.join(self.build_dir,
-                 "%s.bundle" % self._project.internal_name)
 
         logger.info("Creating bundle...")
         bundle_path = self.create_bundle(self.build_dir)

@@ -597,7 +597,7 @@ class OSXKeyLayout:
         return ('<?xml version="1.1" encoding="UTF-8"?>\n%s' % v).encode('utf-8')
 
     def __str__(self):
-        return etree.tostring(self.elements['root'], encoding='unicode',
+        return etree.tostring(root, encoding='unicode',
                            doctype=self.doctype, pretty_print=True)
 
     def __init__(self, name, id_):
