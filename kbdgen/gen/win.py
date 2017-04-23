@@ -1,6 +1,8 @@
 import io
 import os
 import os.path
+import icu
+import unicodedata
 
 from .. import get_logger
 from .base import *
@@ -22,6 +24,117 @@ WIN_KEYMAP = bind_iso_keys((
     "17", "18", "19", "1a", "1b", "1e", "1f", "20", "21", "22",
     "23", "24", "25", "26", "27", "28", "2b", "56", "2c", "2d",
     "2e", "2f", "30", "31", "32", "33", "34", "35"))
+
+DEFAULT_KEYNAMES = """\
+KEYNAME
+
+01	Esc
+0e	Backspace
+0f	Tab
+1c	Enter
+1d	Ctrl
+2a	Shift
+36	"Right Shift"
+37	"Num *"
+38	Alt
+39	Space
+3a	"Caps Lock"
+3b	F1
+3c	F2
+3d	F3
+3e	F4
+3f	F5
+40	F6
+41	F7
+42	F8
+43	F9
+44	F10
+45	Pause
+46	"Scroll Lock"
+47	"Num 7"
+48	"Num 8"
+49	"Num 9"
+4a	"Num -"
+4b	"Num 4"
+4c	"Num 5"
+4d	"Num 6"
+4e	"Num +"
+4f	"Num 1"
+50	"Num 2"
+51	"Num 3"
+52	"Num 0"
+53	"Num Del"
+54	"Sys Req"
+57	F11
+58	F12
+7c	F13
+7d	F14
+7e	F15
+7f	F16
+80	F17
+81	F18
+82	F19
+83	F20
+84	F21
+85	F22
+86	F23
+87	F24
+
+KEYNAME_EXT
+
+1c	"Num Enter"
+1d	"Right Ctrl"
+35	"Num /"
+37	"Prnt Scrn"
+38	"Right Alt"
+45	"Num Lock"
+46	Break
+47	Home
+48	Up
+49	"Page Up"
+4b	Left
+4d	Right
+4f	End
+50	Down
+51	"Page Down"
+52	Insert
+53	Delete
+54	<00>
+56	Help
+5b	"Left Windows"
+5c	"Right Windows"
+5d	Application
+
+"""
+
+def win_filter(*args, force=False):
+    def wf(v):
+        """actual filter function"""
+        if v is None:
+            return '-1'
+
+        v = str(v)
+        if re.match(r"^\d{4}$", v):
+            return v
+
+        v = decode_u(v)
+
+        if v == '\0':
+            return '-1'
+
+        # check for anything outsize A-Za-z range
+        if not force and re.match("^[A-Za-z]$", v):
+            return v
+
+        return "%04x" % ord(v)
+
+    return tuple(wf(i) for i in args)
+
+def win_ligature(v):
+    o = tuple('%04x' % ord(c) for c in decode_u(v))
+    if len(o) > 4:
+        raise Exception('Ligatures cannot be longer than 4 codepoints.')
+    return o
 
 class WindowsGenerator(Generator):
     def generate(self, base='.'):
@@ -71,43 +184,9 @@ class WindowsGenerator(Generator):
         col2 = mode_iter(layout, 'iso-ctrl')
         col6 = mode_iter(layout, 'iso-alt')
         col7 = mode_iter(layout, 'iso-alt+shift')
-
         alt_caps = mode_iter(layout, 'iso-alt+caps')
-
         caps = mode_iter(layout, 'iso-caps')
         caps_shift = mode_iter(layout, 'iso-caps+shift')
-
-        # Cannot be supported. :(
-        #alt_caps_shift = mode_iter(layout, 'iso-caps+alt+shift')
-
-        def win_filter(*args, force=False):
-            def wf(v):
-                """actual filter function"""
-                if v is None:
-                    return '-1'
-
-                v = str(v)
-                if re.match(r"^\d{4}$", v):
-                    return v
-
-                v = decode_u(v)
-
-                if v == '\0':
-                    return '-1'
-
-                # check for anything outsize A-Za-z range
-                if not force and re.match("^[A-Za-z]$", v):
-                    return v
-
-                return "%04x" % ord(v)
-
-            return tuple(wf(i) for i in args)
-
-        def win_ligature(v):
-            o = tuple('%04x' % ord(c) for c in decode_u(v))
-            if len(o) > 4:
-                raise Exception('Ligatures cannot be longer than 4 codepoints.')
-            return o
 
         # Hold all the ligatures
         ligatures = []
@@ -219,15 +298,49 @@ class WindowsGenerator(Generator):
             output = o.get(' ', basekey)
             buf.write("0020\t%s\t//   -> %s\n\n" % (
                 win_filter(output)[0], output))
+    
+    def _klc_write_deadkey_names(self, layout, buf):
+        buf.write("KEYNAME_DEAD\n\n")
 
+        for basekey, o in layout.transforms.items():
+            if len(basekey) != 1:
+                logger.warning(("Base key '%s' invalid for Windows " +
+                       "deadkeys; skipping.") % basekey)
+                continue
+            
+            buf.write('%s\t"%s"\n' % (win_filter(basekey)[0], unicodedata.name(basekey)))
+
+    def _klc_write_footer(self, layout, buf):
+        out = []
+
+        for locale_code, name in layout.display_names.items():
+            locale = icu.Locale(locale_code)
+            language_name = locale.getDisplayName()
+            lcid = locale.getLCID()
+
+            if language_name == locale_code or lcid == 0:
+                continue
+
+            out.append((lcid, language_name, name))
+
+        buf.write("\nDESCRIPTIONS\n\n")
+        for item in out:
+            buf.write("%04d\t%s\n" % (item[0], item[2]))
+
+        buf.write("\nLANGUAGENAMES\n\n")
+        for item in out:
+            buf.write("%04d\t%s\n" % (item[0], item[1]))
+        
+        buf.write("ENDKBD\n")
 
     def generate_klc(self, layout):
         buf = io.StringIO()
 
         self._klc_write_headers(layout, buf)
         self._klc_write_keys(layout, buf)
-
-        buf.write("ENDKBD\n")
+        buf.write(DEFAULT_KEYNAMES)
+        self._klc_write_deadkey_names(layout, buf)
+        self._klc_write_footer(layout, buf)
 
         return buf.getvalue()
 
