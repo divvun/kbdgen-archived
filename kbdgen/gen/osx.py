@@ -59,7 +59,7 @@ class OSXGenerator(Generator):
             logger.warning("no icon for layout '%s'." % layout.internal_name)
             return
 
-        fn = "%s.icns" % layout.display_names[layout.locale]
+        fn = "%s.icns" % layout.internal_name
         try:
             shutil.copyfile(icon, os.path.join(res_path, fn))
         except FileNotFoundError:
