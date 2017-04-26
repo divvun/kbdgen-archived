@@ -26,73 +26,49 @@ class AppleiOSGenerator(Generator):
             logger.info("Dry run completed.")
             return
 
-        build_dir = os.path.abspath(base)
+        build_dir = os.path.abspath(
+            os.path.join(base, self._project.target('ios')['packageId']))
+        os.makedirs(build_dir, exist_ok=True)
 
-        if os.path.isdir(build_dir):
-            git_update(build_dir, self.branch, False, base, logger=logger.info)
-        else:
-            git_clone(self.repo, build_dir, self.branch, False, base,
-                    logger=logger.info)
+        #if os.path.isdir(build_dir):
+        #    git_update(build_dir, self.branch, False, base, logger=logger.info)
+        #else:
+        git_clone(self.repo, build_dir, self.branch, False, base,
+                  logger=logger.info)
 
         path = os.path.join(build_dir,
-            'TastyImitationKeyboard.xcodeproj', 'project.pbxproj')
+                            'GiellaKeyboard.xcodeproj', 
+                            'project.pbxproj')
         pbxproj = Pbxproj(path)
 
-        pbxproj.clear_target_dependencies("HostingApp")
-        pbxproj.clear_target_embedded_binaries("HostingApp")
-
         # Keyboard plist
-        with open(os.path.join(build_dir, 'Keyboard',
-                    'Info.plist'), 'rb') as f:
-            plist = plistlib.load(f, dict_type=OrderedDict)
+        # with open(os.path.join(build_dir, 'Keyboard', 'Info.plist'), 'rb') as f:
+        #     plist = plistlib.load(f, dict_type=OrderedDict)
 
+        layouts = []
         for name, layout in self._project.layouts.items():
-            out_dir = os.path.join(build_dir, 'Generated', name)
-            os.makedirs(out_dir, exist_ok=True)
+            layouts.append(self.generate_json_layout(name, layout))
 
-            # Generate target
-            pbxproj.duplicate_target('Keyboard',
-                    name, os.path.relpath(os.path.join(out_dir, 'Info.plist'), build_dir))
-            pbxproj.add_appex_to_target_embedded_binaries("%s.appex" % name, "HostingApp")
-
-            # Generated swift file
-            fn = os.path.join(out_dir, 'KeyboardLayout_%s.swift' % name)
-            with open(fn, 'w') as f:
-                f.write(self.generate_file(layout))
-            pbxproj.add_path(['Generated', name])
-            ref = pbxproj.add_swift_file(os.path.basename(fn))
-            pbxproj.add_ref_to_group(ref, ['Generated', name])
-            pbxproj.add_source_ref_to_build_phase(ref, name)
-
-            with open(os.path.join(out_dir, 'Info.plist'), 'wb') as f:
-                self.update_kbd_plist(plist.copy(), layout, f)
-            ref = pbxproj.add_plist_file('Info.plist')
-            pbxproj.add_ref_to_group(ref, ['Generated', name])
-
-            pbxproj.add_appex_to_target_dependencies(name, "HostingApp")
+        fn = os.path.join(build_dir, "Keyboard", "KeyboardDefinitions.json")
+        with open(fn, 'w') as f:
+            json.dump(layouts, f, indent=2)
 
         # Hosting app plist
-        with open(os.path.join(build_dir, 'HostingApp',
-                    'Info.plist'), 'rb') as f:
-            plist = plistlib.load(f, dict_type=OrderedDict)
+        # with open(os.path.join(build_dir, 'HostingApp',
+        #                        'Info.plist'), 'rb') as f:
+        #     plist = plistlib.load(f, dict_type=OrderedDict)
 
-        with open(os.path.join(build_dir, 'HostingApp',
-                    'Info.plist'), 'wb') as f:
-            self.update_plist(plist, f)
+        # with open(os.path.join(build_dir, 'HostingApp',
+        #                        'Info.plist'), 'wb') as f:
+        #     self.update_plist(plist, f)
 
         # Create locale strings
-        self.localise_hosting_app(pbxproj, build_dir)
-        self.create_locales(build_dir)
-
-        # Add zhfst files if found
-        self.add_zhfst_files(build_dir)
-
-        # Stops the original keyboard being built.
-        pbxproj.remove_target("Keyboard")
+        # self.localise_hosting_app(pbxproj, build_dir)
+        # self.create_locales(build_dir)
 
         # Update pbxproj with locales
-        with open(path, 'w') as f:
-            self.update_pbxproj(pbxproj, f)
+        #with open(path, 'w') as f:
+        #    self.update_pbxproj(pbxproj, f)
 
         # Generate icons for hosting app
         self.gen_hosting_app_icons(build_dir)
@@ -101,7 +77,7 @@ class AppleiOSGenerator(Generator):
             self.build_release(base, build_dir)
         else:
             self.build_debug(base, build_dir)
-            logger.info("You may now open TastyImitationKeyboard.xcodeproj in '%s'." %\
+            logger.info("You may now open GiellaKeyboard.xcodeproj in '%s'." %\
                     build_dir)
 
     def ensure_xcode_version(self):
@@ -403,6 +379,24 @@ class AppleiOSGenerator(Generator):
         plist['CFBundleVersion'] = self._project.build
 
         plistlib.dump(plist, f)
+
+    def generate_json_layout(self, name, layout):
+        local_name = layout.display_names.get(layout.locale, None)
+        if local_name is None:
+            raise Exception(("Keyboard '%s' requires localisation " +
+                            "into its own locale.") % layout.internal_name)
+        
+        out = OrderedDict()
+
+        out['name'] = local_name
+        out['internalName'] = name
+        out["return"] = layout.strings.get('return', 'return')
+        out["space"] = layout.strings.get('space', 'space')
+        out["longPress"] = layout.longpress
+        out["normal"] = layout.modes['mobile-default']
+        out["shifted"] = layout.modes['mobile-shift']
+
+        return out
 
     def generate_file(self, layout):
         buf = io.StringIO()
