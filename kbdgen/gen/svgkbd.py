@@ -36,7 +36,7 @@ class SVGGenerator(Generator):
             with open(os.path.join(out_dir, fn), 'wb') as f:
                 f.write(data)
 
-        with open(os.path.join(out_dir, "index.html"), 'w') as f:
+        with open(os.path.join(out_dir, "layout.html"), 'w') as f:
             f.write(dedent("""\
             <!doctype html>
             <html>
