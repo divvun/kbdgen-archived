@@ -81,10 +81,10 @@ class SVGGenerator(Generator):
 
             for fn, name, _ in sorted(files):
                 f.write("    <h2>%s</h2>\n" % name)
-                #f.write('    <object type="image/svg+xml"')
-                #f.write('data="%s" width="960" height="320"></object><br>\n' % fn)
-                f.write('    <iframe style="border:none" ')
-                f.write('src="%s" width="960" height="320"></iframe><br>\n' % fn)
+                f.write('    <object type="image/svg+xml"')
+                f.write('data="%s" width="960" height="320"></object><br>\n' % fn)
+                #f.write('    <iframe style="border:none" ')
+                #f.write('src="%s" width="960" height="320"></iframe><br>\n' % fn)
 
             f.write(dedent("""\
                 <script>
