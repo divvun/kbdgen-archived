@@ -42,7 +42,7 @@ class SVGGenerator(Generator):
             <html>
             <head>
                 <meta charset='utf-8'>
-                <title>Keyboards for %s</title>
+                <title>Layouts for the %s</title>
             </head>
             <body>
                 <p><strong>Legend:</strong></p>
@@ -77,7 +77,7 @@ class SVGGenerator(Generator):
                     </tr>
                   </tbody>
                 </table>
-            """) % (self._project.internal_name))
+            """) % (self._project.locales['en']['name']))
 
             for fn, name, _ in sorted(files):
                 f.write("    <h2>%s</h2>\n" % name)
