@@ -42,7 +42,7 @@ class SVGGenerator(Generator):
             <html>
             <head>
                 <meta charset='utf-8'>
-                <title>Layouts for the %s</title>
+                <title>Layout(s) for the %s</title>
             </head>
             <body>
                 <p><strong>Legend:</strong></p>
