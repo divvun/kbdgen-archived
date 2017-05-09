@@ -143,14 +143,14 @@ class Project:
         if val is None:
             return None
         if isinstance(val, str):
-            return val
+            return self.relpath(val)
         if size is None:
             # Find largest
             m = -1
             for k in val:
                 if k > m:
                     m = k
-            return val[m]
+            return self.relpath(val[m])
         else:
             lrg = -1
             m = sys.maxsize
@@ -160,8 +160,8 @@ class Project:
                 if k >= size and k < m:
                     m = k
             if m == sys.maxsize:
-                return val[lrg]
-            return val[m]
+                return self.relpath(val[lrg])
+            return self.relpath(val[m])
 
 class Keyboard:
     def __init__(self, tree):

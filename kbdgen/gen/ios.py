@@ -221,7 +221,7 @@ class AppleiOSGenerator(Generator):
         with open(os.path.join(path, "Contents.json")) as f:
             contents = json.load(f, object_pairs_hook=OrderedDict)
 
-        cmd_tmpl = "convert -background white -alpha remove -resize %dx%d %s %s"
+        cmd_tmpl = "convert -resize {h}x{w} -background white -alpha remove -gravity center -extent {h}x{w} {src} {out}"
 
         for obj in contents['images']:
             scale = int(obj['scale'][:-1])
@@ -232,7 +232,7 @@ class AppleiOSGenerator(Generator):
             icon = self._project.icon('ios', w)
             fn = "%s-%s@%s.png" % (obj['idiom'], obj['size'], obj['scale'])
             obj['filename'] = fn
-            cmd = cmd_tmpl % (w, h, icon, os.path.join(path, fn))
+            cmd = cmd_tmpl.format(h=h, w=w, src=icon, out=os.path.join(path, fn))
 
             logger.info("Creating '%s' from '%s'..." % (fn, icon))
 
