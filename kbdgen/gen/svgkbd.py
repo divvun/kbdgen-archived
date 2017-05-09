@@ -36,6 +36,9 @@ class SVGGenerator(Generator):
             with open(os.path.join(out_dir, fn), 'wb') as f:
                 f.write(data)
 
+        # Get English name, or fallback to internal name
+        kbd_name = self._project.locales.get('en', {}).get('name', self._project.internal_name)
+
         with open(os.path.join(out_dir, "layout.html"), 'w') as f:
             f.write(dedent("""\
             <!doctype html>
@@ -77,7 +80,7 @@ class SVGGenerator(Generator):
                     </tr>
                   </tbody>
                 </table>
-            """) % (self._project.locales['en']['name']))
+            """) % kbd_name)
 
             for fn, name, _ in sorted(files):
                 f.write("    <h2>%s</h2>\n" % name)
