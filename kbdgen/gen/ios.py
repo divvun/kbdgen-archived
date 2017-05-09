@@ -19,21 +19,20 @@ class AppleiOSGenerator(Generator):
         if not self.ensure_xcode_version():
             return
 
-        if not self.ensure_ios_autotools():
-            return
+        #if not self.ensure_ios_autotools():
+        #    return
 
         if self.dry_run:
             logger.info("Dry run completed.")
             return
 
-        build_dir = os.path.abspath(
-            os.path.join(base, self._project.target('ios')['packageId']))
+        build_dir = os.path.abspath(base)
         os.makedirs(build_dir, exist_ok=True)
 
-        #if os.path.isdir(build_dir):
-        #    git_update(build_dir, self.branch, False, base, logger=logger.info)
-        #else:
-        git_clone(self.repo, build_dir, self.branch, False, base,
+        if os.path.isdir(build_dir):
+            git_update(build_dir, self.branch, False, base, logger=logger.info)
+        else:
+            git_clone(self.repo, build_dir, self.branch, False, base,
                   logger=logger.info)
 
         path = os.path.join(build_dir,
@@ -134,9 +133,11 @@ class AppleiOSGenerator(Generator):
     def build_release(self, base_dir, build_dir):
         # TODO check signing ID exists in advance (in sanity checks)
 
-        xcarchive = os.path.abspath(os.path.join(base_dir, 'build', "%s.xcarchive" %\
+
+        xcarchive = os.path.abspath(os.path.join(build_dir, "%s.xcarchive" %\
                 self._project.internal_name))
-        ipa = os.path.abspath(os.path.join(base_dir, 'build', "%s.ipa" %\
+        plist = os.path.join(build_dir, 'opts.plist')
+        ipa = os.path.abspath(os.path.join(build_dir, "%s.ipa" %\
                 self._project.internal_name))
 
         if os.path.exists(xcarchive):
@@ -147,41 +148,37 @@ class AppleiOSGenerator(Generator):
         projpath = ":".join(os.path.abspath(os.path.join(build_dir,
             'GiellaKeyboard.xcodeproj'))[1:].split(os.sep))
 
-        applescript = dedent("""'
-        tell application "Xcode"
-            open "%s"
-
-        end tell
-        '""") % projpath
-
         code_sign_id = self._project.target('ios').get('codeSignId', '')
+        logger.debug(code_sign_id)
         provisioning_profile_id = self._project.target('ios').get(
                 'provisioningProfileId', '')
 
-        cmd0 = """/usr/bin/osascript -e %s""" % applescript
+        cmd0 = """echo "{\\"method\\":\\"app-store\\"}" | plutil -convert xml1 -o \"%s\" -- -""" % os.path.abspath(plist)
         cmd1 = 'xcodebuild -configuration Release -scheme HostingApp ' + \
                 'archive -archivePath "%s" ' % xcarchive + \
                 '-jobs %s ' % multiprocessing.cpu_count() + \
                 'CODE_SIGN_IDENTITY="%s"' % code_sign_id
-        cmd2 = """xcodebuild -exportArchive -exportFormat ipa
+
+        cmd2 = """xcodebuild -exportArchive
         -archivePath "%s" -exportPath "%s"
-        -exportProvisioningProfile "%s"
+        -exportOptionsPlist "%s"
+        PROVISIONING_PROFILE_SPECIFIER="%s"
         """.replace('\n', ' ') % (
-                xcarchive, ipa, provisioning_profile_id)
+                xcarchive, ipa, plist, provisioning_profile_id)
 
         for cmd, msg in (
-                (cmd0, "Generating schemes..."),
                 (cmd1, "Building .xcarchive..."),
+                (cmd0, "Generating opts.plist..."),
                 (cmd2, "Building .ipa and signing..."),
-                ):
+            ):
 
             logger.info(msg)
             process = subprocess.Popen(cmd, cwd=build_dir, shell=True,
                     stderr=subprocess.PIPE, stdout=subprocess.PIPE)
             out, err = process.communicate()
             if process.returncode != 0:
+                logger.error(out.decode().strip())
                 logger.error(err.decode().strip())
-                logger.error("Please try quitting Xcode entirely before running again.")
                 logger.error("Application ended with error code %s." % process.returncode)
                 sys.exit(process.returncode)
 
