@@ -175,7 +175,7 @@ class OSXGenerator(Generator):
         return bundle_path
 
     def create_installer(self, bundle):
-        pkg_name = "%s.pkg" % self._project.internal_name
+        pkg_name = "%s.unsigned.pkg" % self._project.internal_name
 
         cmd = ['productbuild', '--component',
                 bundle, '/Library/Keyboard Layouts',
@@ -195,7 +195,7 @@ class OSXGenerator(Generator):
         return os.path.join(self.build_dir, pkg_name)
     
     def sign_installer(self, pkg_path):
-        signed_path = "%s.signed%s" % os.path.splitext(pkg_path)
+        signed_path = "%s.pkg" % self._project.internal_name
 
         sign_id = self._project.target('osx').get("codeSignId", None)
 
