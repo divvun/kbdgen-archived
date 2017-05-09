@@ -26,7 +26,7 @@ class Generator:
 
     @property
     def branch(self):
-        return self._args.get('branch', 'stable')
+        return self._args.get('branch', 'master')
 
     @property
     def is_release(self):

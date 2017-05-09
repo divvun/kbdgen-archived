@@ -45,8 +45,8 @@ def parse_args():
     p.add_argument('-G', '--global', type=argparse.FileType('r'),
                    help="Override the global.yaml file")
     p.add_argument('-r', '--repo', help='Git repo to generate output from')
-    p.add_argument('-b', '--branch', default='stable',
-                   help='Git branch (default: stable)')
+    p.add_argument('-b', '--branch', default='master',
+                   help='Git branch (default: master)')
     p.add_argument('-t', '--target', required=True, choices=generators.keys(),
                    help="Target output.")
     p.add_argument('-o', '--output', default=".",
