@@ -145,7 +145,7 @@ class AppleiOSGenerator(Generator):
             os.remove(ipa)
 
         projpath = ":".join(os.path.abspath(os.path.join(build_dir,
-            'TastyImitationKeyboard.xcodeproj'))[1:].split(os.sep))
+            'GiellaKeyboard.xcodeproj'))[1:].split(os.sep))
 
         applescript = dedent("""'
         tell application "Xcode"
