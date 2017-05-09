@@ -29,7 +29,7 @@ def cldr_sub(value, repl, ignore_space=False):
 def decode_u(v, newlines=True):
     def chk(x):
         vv = chr(int(x.group(1), 16))
-        if newlines == False and vv in ('\n', '\r'):
+        if not newlines and vv in ('\n', '\r'):
             return x.group(0)
         return vv
 
@@ -91,22 +91,21 @@ def split_for_set(s, string):
             i -= 1
     return tuple(o)
 
-# TODO verify where this is used
-def is_full_layout(o):
-    """Strictly not accurate, as D13 is considered C12 for convenience."""
-
-    chain = itertools.chain(
+def keyboard_range():
+    return itertools.chain(
         cell_range('E', 0, 12),
         cell_range('D', 1, 12),
         cell_range('C', 1, 12),
         cell_range('B', 0, 10))
 
-    for n, v in enumerate(chain):
+def is_full_layout(o):
+    """Strictly not accurate, as D13 is considered C12 for convenience."""
+
+    chain = keyboard_range()
+
+    for v in chain:
         if v not in o:
             return False
-
-    #if len(o) != n:
-    #    return False
 
     return True
 
@@ -156,12 +155,12 @@ def to_xml(yaml_tree):
                         v not in yaml_tree['deadKeys'].get(mode, {}):
                     key_node.attrib['transform'] = 'no'
         else:
-            chain = itertools.chain(
-                    cell_range('E', 0, 12),
-                    cell_range('D', 1, 12),
-                    cell_range('C', 1, 12),
-                    cell_range('B', 0, 10))
+            chain = keyboard_range()
             for iso, to in zip(chain, re.split(r"[\s\n]+", key_map)):
+                # Ignore nulls
+                if to == r"\u{0}":
+                    continue
+
                 key_node = SubElement(node, 'map', iso=iso, to=to)
 
                 if to in deadkey_set and\
@@ -321,20 +320,15 @@ class CLDRKeyboard:
         for mode, o in self._modes.items():
             if mode in self._comments:
                 x.write('  # %s\n' % self._comments[mode])
-            if is_full_layout(o):
                 x.write('  %s: |' % mode)
                 cur = None
-                for iso_key, value in o.items():
+                for iso_key in keyboard_range():
                     if cur != iso_key[0]:
                         x.write('\n   ')
                         cur = iso_key[0]
                     x.write(' ')
-                    x.write(value)
+                    x.write(o.get(iso_key, r"\u{0}"))
                 x.write('\n')
-            else:
-                x.write('  %s:\n' % mode)
-                for iso_key, value in o.items():
-                    x.write('    %s: %s\n' % (iso_key, filtered(value)))
 
         if len(self._deadkeys) > 0:
             x.write("\ndeadKeys:\n")

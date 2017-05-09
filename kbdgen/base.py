@@ -69,7 +69,12 @@ def parse_layout(data, length_check=True):
         data = re.sub(r"[\r\n\s]+", " ", data.strip()).split(" ")
         if length_check and len(data) != len(ISO_KEYS):
             raise Exception(len(data))
-        return OrderedDict(zip(ISO_KEYS, data))
+        o = OrderedDict(zip(ISO_KEYS, data))
+        # Remove nulls
+        for k in ISO_KEYS:
+            if o[k] == r"\u{0}":
+                del o[k]
+        return o
 
 def parse_touch_layout(data):
     return [re.split(r'\s+', x.strip()) for x in data.strip().split('\n')]
