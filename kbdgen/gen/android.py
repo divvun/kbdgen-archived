@@ -6,7 +6,6 @@ import glob
 from collections import defaultdict
 from textwrap import dedent, indent
 
-import pycountry
 from lxml import etree
 from lxml.etree import Element, SubElement
 
@@ -83,18 +82,18 @@ class AndroidGenerator(Generator):
         for name, kbd in self._project.layouts.items():
 
             files += [
-                ('res/xml/keyboard_layout_set_%s.xml' % name, self.kbd_layout_set(kbd)),
-                ('res/xml/kbd_%s.xml' % name, self.keyboard(kbd))
+                ('app/src/main/res/xml/keyboard_layout_set_%s.xml' % name, self.kbd_layout_set(kbd)),
+                ('app/src/main/res/xml/kbd_%s.xml' % name, self.keyboard(kbd))
             ]
 
             for style, prefix in styles:
                 self.gen_key_width(kbd, style)
 
-                files.append(("res/%s/rows_%s.xml" % (prefix, name),
+                files.append(("app/src/main/res/%s/rows_%s.xml" % (prefix, name),
                     self.rows(kbd, style)))
 
                 for row in self.rowkeys(kbd, style):
-                    row = ("res/%s/%s" % (prefix, row[0]), row[1])
+                    row = ("app/src/main/res/%s/%s" % (prefix, row[0]), row[1])
                     files.append(row)
 
             layouts[kbd.target("android").get("minimumSdk", None)].append(kbd)
@@ -102,7 +101,7 @@ class AndroidGenerator(Generator):
 
         self.update_method_xmls(layouts, base)
 
-        files.append(self.create_ant_properties(ndk_base, self.is_release))
+        files.append(self.create_gradle_properties(ndk_base, self.is_release))
 
         self.save_files(files, base)
 
@@ -119,11 +118,8 @@ class AndroidGenerator(Generator):
 
     def native_locale_workaround(self, base):
         for name, kbd in self._project.layouts.items():
-            try:
-                pycountry.languages.get(iso639_1_code=kbd.locale)
+            if len(name) <= 2:
                 continue
-            except KeyError:
-                pass
 
             locale = 'zz_%s' % kbd.locale
             kbd.display_names[locale] = kbd.display_names[kbd.locale]
@@ -158,13 +154,6 @@ class AndroidGenerator(Generator):
             for dn_locale in kbd.display_names:
                 if dn_locale in ['zz', kbd.locale]:
                     continue
-                try:
-                    pycountry.languages.get(iso639_1_code=dn_locale)
-                except KeyError:
-                    logger.warning(("[%s] '%s' is not a supported locale. " +\
-                          "You should provide the code in ISO 639-1 " +\
-                          "format, if possible. Pruning from project.") % (name, dn_locale))
-                    dropped_locales.append(dn_locale)
 
             for locale in dropped_locales:
                 logger.debug("Pruning locale '%s'" % locale)
@@ -184,7 +173,7 @@ class AndroidGenerator(Generator):
         return sane
 
     def _update_dict_auth_xml(self, auth, base):
-        path = os.path.join(base, 'deps', self.REPO, 'res/values/dictionary-pack.xml')
+        path = os.path.join(base, 'deps', self.REPO, 'app/src/main/res/values/dictionary-pack.xml')
         with open(path) as f:
             tree = etree.parse(f)
 
@@ -203,7 +192,7 @@ class AndroidGenerator(Generator):
         target = "com.android.inputmethod.dictionarypack.aosp"
 
         # (╯°□°）╯︵ ┻━┻
-        src_path = "src/com/android/inputmethod/dictionarypack/DictionaryPackConstants.java"
+        src_path = "app/src/main/java/com/android/inputmethod/dictionarypack/DictionaryPackConstants.java"
         path = os.path.join(base, 'deps', self.REPO, src_path)
 
         # (┛◉Д◉)┛彡┻━┻
@@ -231,7 +220,7 @@ class AndroidGenerator(Generator):
             logger.warning("No ZHFST files found.")
             return
 
-        path = os.path.join(build_dir, 'deps', self.REPO, 'res',
+        path = os.path.join(build_dir, 'deps', self.REPO, 'app/src/main/res',
             'xml', 'spellchecker.xml')
 
         with open(path) as f:
@@ -247,10 +236,8 @@ class AndroidGenerator(Generator):
             shutil.copyfile(fn, os.path.join(dict_path, bfn))
 
             lang, _ = os.path.splitext(os.path.basename(fn))
-            try:
-                # Will exception on failure
-                pycountry.languages.get(iso639_1_code=lang)
-            except KeyError:
+
+            if len(lang) > 2:
                 lang = "zz_%s" % lang.upper()
 
             self._android_subelement(root, 'subtype',
@@ -284,7 +271,7 @@ class AndroidGenerator(Generator):
             f.write(self._tostring(tree))
 
     def update_localisation(self, base):
-        res_dir = os.path.join(base, 'deps', self.REPO, 'res')
+        res_dir = os.path.join(base, 'deps', self.REPO, "app/src/main/res")
 
         self._upd_locale(os.path.join(res_dir, "values"),
             self._project.locales['en'])
@@ -300,7 +287,7 @@ class AndroidGenerator(Generator):
             logger.warning("no icon supplied!")
             return
 
-        res_dir = os.path.join(base, 'deps', self.REPO, 'res')
+        res_dir = os.path.join(base, 'deps', self.REPO, "app/src/main/res")
 
         cmd_tmpl = "convert -resize %dx%d %s %s"
 
@@ -326,10 +313,9 @@ class AndroidGenerator(Generator):
 
 
     def build(self, base, release_mode=True):
-        # TODO normal build
         logger.info("Building...")
-        process = subprocess.Popen(['ant', 'release' if release_mode else 'debug'],
-                    cwd=os.path.join(base, 'deps', self.REPO))
+        cmd = ['./gradlew', 'clean', 'assembleRelease' if release_mode else 'assembleDebug']
+        process = subprocess.Popen(cmd, cwd=os.path.join(base, 'deps', self.REPO))
         process.wait()
 
         if process.returncode != 0:
@@ -337,15 +323,19 @@ class AndroidGenerator(Generator):
             sys.exit(process.returncode)
 
         if not release_mode:
-            fn = self._project.internal_name + "-debug.apk"
+            suffix = "debug.apk"
         else:
-            fn = self._project.internal_name + "-release.apk"
-            # TODO other release shi
-        path = os.path.join(base, 'deps', self.REPO, 'bin')
+            suffix = "release.apk"
 
-        logger.info("Copying '%s' to build directory..." % fn)
+        path = os.path.join(base, 'deps', self.REPO, 'app/build/outputs/apk')
+        fn = "app-%s" % suffix
+        out_fn = os.path.join(base, "%s-%s_%s" % (
+            self._project.internal_name, self._project.version, suffix))
+
+        logger.info("Copying '%s' -> '%s'..." % (fn, out_fn))
         os.makedirs(base, exist_ok=True)
-        shutil.copy(os.path.join(path, fn), base)
+
+        shutil.copy(os.path.join(path, fn), out_fn)
 
         logger.info("Done!")
 
@@ -369,7 +359,7 @@ class AndroidGenerator(Generator):
             f.write(self._tostring(root))
 
     def update_locale_exception(self, kbd, base):
-        res_dir = os.path.join(base, 'deps', self.REPO, 'res')
+        res_dir = os.path.join(base, 'deps', self.REPO, "app/src/main/res")
         fn = os.path.join(res_dir, 'values', 'donottranslate.xml')
 
         logger.info("Adding '%s' to '%s'..." % (kbd.locale, fn))
@@ -392,12 +382,10 @@ class AndroidGenerator(Generator):
     def update_strings_xml(self, kbd, base):
         # TODO sanity check for non-existence directories
         # TODO run this only once preferably
-        res_dir = os.path.join(base, 'deps', self.REPO, 'res')
+        res_dir = os.path.join(base, 'deps', self.REPO, "app/src/main/res")
 
         for locale, name in kbd.display_names.items():
-            try:
-                pycountry.languages.get(iso639_1_code=locale)
-            except:
+            if len(locale) > 2:
                 continue
 
             if locale == "en":
@@ -426,7 +414,7 @@ class AndroidGenerator(Generator):
         del layouts[None]
 
         logger.info("Updating 'res/xml/method.xml'...")
-        path = os.path.join(base, 'deps', self.REPO, 'res', '%s')
+        path = os.path.join(base, 'deps', self.REPO, "app/src/main/res", '%s')
         fn = os.path.join(path, 'method.xml')
 
         with open(fn % 'xml') as f:
@@ -471,41 +459,26 @@ class AndroidGenerator(Generator):
         else:
             git_clone(self.repo, repo_dir, self.branch, base, logger=logger.info)
 
-        logger.info("Create Android project...")
-
-        cmd = "%s update project -n %s -t android-23 -p ." % (
-            os.path.join(os.path.abspath(sdk_base), 'tools/android'),
-            self._project.internal_name)
-        process = subprocess.Popen(cmd, cwd=os.path.join(deps_dir, self.REPO),
-                shell=True)
-        process.wait()
-        if process.returncode != 0:
-            raise Exception("Application ended with error code %s." % process.returncode)
-
-        #rules_fn = os.path.join(deps_dir, self.REPO, 'custom_rules.xml')
-        #with open(rules_fn) as f:
-        #    x = f.read()
-        #with open(rules_fn, 'w') as f:
-        #    f.write(x.replace('GiellaIME', self._project.internal_name))
-
-    def create_ant_properties(self, ndk_dir, release_mode=False):
+    def create_gradle_properties(self, ndk_dir, release_mode=False):
         o = OrderedDict()
 
-        if release_mode:
-            o['key.store'] = os.path.abspath(self._project.target('android')['keyStore'])
-            o['key.alias'] = self._project.target('android')['keyAlias']
+        tmpl = """ext.app = [
+            storeFile: "{store_file}",
+            keyAlias: "{key_alias}",
+            packageName: "{pkg_name}",
+            versionCode: {build},
+            versionName: "{version}"
+        ]"""
 
-        # We do this here because Android Tools doesn't handle it.
-        o['ndk.dir'] = ndk_dir
-        o['package.name'] = self._project.target('android')['packageId']
-        o['version.code'] = self._project.build
-        o['version.name'] = self._project.version
-        o['java.source'] = 7
-        o['java.target'] = 7
+        data = tmpl.format(
+            store_file = os.path.abspath(self._project.target('android')['keyStore']),
+            key_alias = self._project.target('android')['keyAlias'],
+            version = self._project.version,
+            build = self._project.build,
+            pkg_name = self._project.target('android')['packageId']
+        )
 
-        data = "\n".join(["%s=%s" % (k, v) for k, v in o.items()])
-
-        return ('ant.properties', data)
+        return ("app/local.gradle", data)
 
     def kbd_layout_set(self, kbd):
         out = Element("KeyboardLayoutSet", nsmap={"latin": self.NS})
