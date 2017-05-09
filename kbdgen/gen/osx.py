@@ -52,7 +52,12 @@ class OSXGenerator(Generator):
         self.write_localisations(res_path, translations)
 
         logger.info("Creating installer...")
-        self.create_installer(bundle_path)
+        pkg_path = self.create_installer(bundle_path)
+
+        if self.is_release:
+            logger.info("Signing installer...")
+            self.sign_installer(pkg_path)
+
         logger.info("Done!")
 
     def generate_iconset(self, icon, output_fn):
@@ -170,10 +175,35 @@ class OSXGenerator(Generator):
         return bundle_path
 
     def create_installer(self, bundle):
+        pkg_name = "%s.pkg" % self._project.internal_name
+
         cmd = ['productbuild', '--component',
                 bundle, '/Library/Keyboard Layouts',
-                "%s.pkg" % self._project.internal_name]
+                pkg_name]
 
+        process = subprocess.Popen(cmd, cwd=self.build_dir,
+                stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+
+        out, err = process.communicate()
+
+        if process.returncode != 0:
+            logger.error(err.decode())
+            logger.error("Application ended with error code %s." % (
+                    process.returncode))
+            sys.exit(process.returncode)
+        
+        return os.path.join(self.build_dir, pkg_name)
+    
+    def sign_installer(self, pkg_path):
+        signed_path = "%s.signed%s" % os.path.splitext(pkg_path)
+
+        sign_id = self._project.target('osx').get("codeSignId", None)
+
+        if sign_id is None:
+            logger.error("No signing identify found; skipping.")
+            return
+
+        cmd = ['productsign', '--sign', sign_id, pkg_path, signed_path]
         process = subprocess.Popen(cmd, cwd=self.build_dir,
                 stderr=subprocess.PIPE, stdout=subprocess.PIPE)
 
