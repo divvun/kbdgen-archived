@@ -1,6 +1,8 @@
 import os.path
 import shutil
 import subprocess
+import tempfile
+import sys
 
 from collections import defaultdict, OrderedDict
 from textwrap import indent, dedent
@@ -53,18 +55,53 @@ class OSXGenerator(Generator):
         self.create_installer(bundle_path)
         logger.info("Done!")
 
+    def generate_iconset(self, icon, output_fn):
+        cmd_tmpl = "convert -resize {d}x{d} -background transparent -gravity center -extent {d}x{d} {src} {out}"
+
+        files = (
+            ("icon_16x16", 16),
+            ("icon_16x16@2x", 32),
+            ("icon_32x32", 32),
+            ("icon_32x32@2x", 64)
+        )
+
+        iconset = tempfile.TemporaryDirectory(suffix=".iconset")
+
+        for name, dimen in files:
+            fn = "%s.png" % name
+            cmd = cmd_tmpl.format(d=dimen, src=icon, out=os.path.join(iconset.name, fn))
+
+            logger.info("Creating '%s.png' at size %dx%d" % (name, dimen, dimen))
+            process = subprocess.Popen(cmd, shell=True,
+                    stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+            out, err = process.communicate()
+            if process.returncode != 0:
+                logger.error(err.decode())
+                logger.error("Application ended with error code %s." % process.returncode)
+                # TODO throw exception instead.
+                sys.exit(process.returncode)
+        
+        process = subprocess.Popen(["iconutil", "--convert", "icns",
+                                    "--output", output_fn, iconset.name],
+                                   stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        
+        out, err = process.communicate()
+        if process.returncode != 0:
+            logger.error(err.decode())
+            logger.error("Application ended with error code %s." % process.returncode)
+            # TODO throw exception instead.
+            sys.exit(process.returncode)
+        
     def write_icon(self, res_path, layout):
-        icon = layout.target('osx').get('icon', None)
+        icon = self._project.target('osx').get('icon', None)
         if icon is None:
             logger.warning("no icon for layout '%s'." % layout.internal_name)
             return
 
-        fn = "%s.icns" % layout.internal_name
-        try:
-            shutil.copyfile(icon, os.path.join(res_path, fn))
-        except FileNotFoundError:
-            logger.error("Icon '%s' for layout '%s' not found!" % (
-                icon, layout.internal_name))
+        iconpath = self._project.relpath(icon)
+
+        fn = os.path.join(res_path, "%s.icns" % layout.internal_name)
+        self.generate_iconset(iconpath, fn)
 
     def write_localisations(self, res_path, translations):
         for locale, o in translations.items():

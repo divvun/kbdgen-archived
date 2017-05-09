@@ -78,6 +78,9 @@ class Project:
     def __init__(self, tree):
         self._tree = tree
 
+    def relpath(self, end):
+        return os.path.abspath(os.path.join(self.path, end))
+
     # TODO properties should never throw.
     @property
     def path(self):
