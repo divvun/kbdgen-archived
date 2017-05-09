@@ -215,6 +215,21 @@ class OSXGenerator(Generator):
                     process.returncode))
             sys.exit(process.returncode)
 
+        cmd = ['pkgutil', '--check-signature', signed_path]
+        process = subprocess.Popen(cmd, cwd=self.build_dir,
+                stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+
+        out, err = process.communicate()
+
+        # TODO: seriously need to deduplicate this popen dance... 
+        if process.returncode != 0:
+            logger.error(err.decode())
+            logger.error("Application ended with error code %s." % (
+                    process.returncode))
+            sys.exit(process.returncode)
+
+        logger.info(out.decode().strip())
+
     def generate_xml(self, layout):
         #name = layout.display_names[layout.locale]
         name = layout.internal_name
