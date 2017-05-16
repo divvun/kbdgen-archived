@@ -13,13 +13,20 @@ from .osxutil import *
 
 logger = get_logger(__file__)
 
-class OSXGenerator(Generator):
+class OSXGenerator(PhysicalGenerator):
     def generate(self, base='.'):
         self.build_dir = os.path.abspath(base)
 
         o = OrderedDict()
 
         for name, layout in self._project.layouts.items():
+            try:
+                self.validate_layout(layout)
+            except Exception as e:
+                logger.error("[%s] Error while validating layout:\n%s" % (
+                        layout.internal_name, e))
+                continue
+
             logger.info("Generating '%s'..." % name)
             o[name] = self.generate_xml(layout)
 
@@ -234,6 +241,7 @@ class OSXGenerator(Generator):
         #name = layout.display_names[layout.locale]
         name = layout.internal_name
         out = OSXKeyLayout(name, random_id())
+        walker_errors = 0
 
         dead_keys = set(itertools.chain.from_iterable(layout.dead_keys.values()))
         action_keys = set()
@@ -243,6 +251,7 @@ class OSXGenerator(Generator):
 
         # Naively add all keys
         for mode_name in OSXKeyLayout.modes:
+            logger.trace("BEGINNING MODE: %r" % mode_name)
             # TODO throw on null
             mode = layout.modes.get(mode_name, None)
             if mode is None:
@@ -262,13 +271,17 @@ class OSXGenerator(Generator):
             else:
                 keyiter = itertools.chain.from_iterable(mode)
 
+            logger.trace("Dead keys - mode:%r keys:%r" % (mode_name, layout.dead_keys.get(mode_name, [])))
             for (iso, key) in zip(ISO_KEYS, keyiter):
                 if key is None:
                     continue
                 key_id = OSX_KEYMAP[iso]
 
                 if key in layout.dead_keys.get(mode_name, []):
+                    logger.trace("Dead key found - mode:%r key:%r" % (mode_name, key))
+                    
                     if key in layout.transforms:
+                        logger.trace("Set deadkey - mode:%r key:%r id:%r" % (mode_name, key, key_id))
                         out.set_deadkey(mode_name, key, key_id,
                                 layout.transforms[key].get(' ', key))
                     else:
@@ -282,6 +295,7 @@ class OSXGenerator(Generator):
 
                 # Now cater for transforms too
                 if key in action_keys and key not in dead_keys:
+                    logger.trace("Transform - mode:%r key:%r id:%r" % (mode_name, key, key_id))
                     out.set_transform_key(mode_name, key, key_id)
 
             # Space bar special case
@@ -295,36 +309,49 @@ class OSXGenerator(Generator):
 
         class TransformWalker(DictWalker):
             def on_branch(self, base, branch):
+                logger.trace("BRANCH: %r" % branch)
+                if branch not in dead_keys or not out.actions.has(branch):
+                    logger.error("Transform %r not supported; is a deadkey missing?" % branch)
+                    return False
+
                 action_id = out.actions.get(branch) # "Key %s" % branch
 
-                if base == () and len(out.action_cache[action_id].xpath('when[@state="none"]')) > 0:
-                    return
-                elif base == ():
+                if base == ():
+                    action = out.action_cache.get(action_id, None)
+                    if action is not None:
+                        if len(action.xpath('when[@state="none"]')) > 0:
+                            return
                     when_state = "none"
                     next_state = out.states.get(branch) # "State %s" % branch
                 else:
                     when_state = out.states.get("".join(base)) # "State %s" % "".join(base)
                     next_state = "%s%s" % (when_state, branch)
 
-                logger.trace("Branch: %r" % ((action_id, when_state, next_state),))
+                logger.trace("Branch: action:%r when:%r next:%r" % (action_id, when_state, next_state))
 
                 try:
                     out.add_transform(action_id, when_state, next=next_state)
                 except Exception as e:
-                    logger.error("[%s] Error while adding transform:\n%s\n%r" % (
+                    w()
+                    logger.error("[%s] Error while adding branch transform:\n%s\n%r" % (
                         layout.internal_name, e,
-                        (action_id, when_state, next_state)))
+                        (branch, action_id, when_state, next_state)))
 
             def on_leaf(self, base, branch, leaf):
+                if not out.actions.has(branch):
+                    logger.debug("Leaf transform %r not supported. Is a deadkey missing?" % branch)
+                    return
+
                 action_id = out.actions.get(branch) # "Key %s" % branch
                 when_state = out.states.get("".join(base)) # "State %s" % "".join(base)
 
-                logger.trace("Leaf: %r" % ((action_id, when_state, leaf),))
+                logger.trace("Leaf: action:%r when:%r leaf:%r" % (action_id, when_state, leaf))
                 try:
                     out.add_transform(action_id, when_state,
                                       output=str(leaf))
                 except Exception as e:
-                    logger.error("[%s] Error while adding transform:\n%s\n%r" % (
+                    w()
+                    logger.error("[%s] Error while adding leaf transform:\n%s\n%r" % (
                         layout.internal_name, e, (action_id, when_state, leaf)))
 
         TransformWalker(layout.transforms)()

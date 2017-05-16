@@ -1,4 +1,5 @@
 import itertools
+import logging
 import os
 import os.path
 import random
@@ -8,6 +9,8 @@ import subprocess
 from collections import OrderedDict
 
 from ..base import ISO_KEYS, KbdgenException
+
+logger = logging.getLogger()
 
 class MissingApplicationException(KbdgenException): pass
 class GenerationError(KbdgenException): pass
@@ -41,15 +44,28 @@ class Generator:
         return self._args.get("output", ".")
 
 class PhysicalGenerator(Generator):
-    @classmethod
-    def validate_layout(cls, data):
+    def validate_layout(self, layout):
         # TODO finish cls-based validate_layout
-        pass
+        mode_keys = set(layout.modes.keys())
+        deadkey_keys = set(layout.dead_keys.keys())
+
+        undefined_modes = deadkey_keys - mode_keys
+        
+        if len(undefined_modes) > 0:
+            raise Exception("Dead key modes are defined for undefined modes: %r" % (list(undefined_modes),))
+
+        for mode, keys in layout.dead_keys.items():
+            dead_keys = set(keys)
+            layer_keys = set(layout.modes[mode].values())
+
+            matched_keys = dead_keys & layer_keys
+
+            if matched_keys != dead_keys:
+                raise Exception("Specified dead keys missing from mode %r: %r" % (mode, list(dead_keys - matched_keys)))
 
 class TouchGenerator(Generator):
-    @classmethod
-    def validate_layout(cls, data):
-        return True
+    def validate_layout(self):
+        pass
 
 MSG_LAYOUT_MISSING = "Layout '%s' is missing a required mode: '%s'."
 
@@ -130,7 +146,9 @@ class DictWalker:
         def walk(dict_, buf):
             for k, v in dict_.items():
                 if isinstance(v, dict):
-                    yield self.on_branch(tuple(buf), k)
+                    c = yield self.on_branch(tuple(buf), k)
+                    if c == False:
+                        continue
                     nbuf = buf[:]
                     nbuf.append(k)
                     for vv in walk(v, nbuf):

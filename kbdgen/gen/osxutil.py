@@ -633,6 +633,8 @@ class OSXKeyLayout:
                 self.prefix = prefix
                 self.data = {}
                 self.c = 0
+            def has(self, key):
+                return key in self.data
             def get(self, key):
                 if self.data.get(key, None) is None:
                     self.data[key] = self.c
@@ -710,15 +712,16 @@ class OSXKeyLayout:
 
         # TODO create a generic create or get method for actions
         if action is None:
+            logger.trace("Create default action - action:%r output:%r" % (action_id, output))
             action = SubElement(self.elements['actions'], 'action',
                      id=action_id)
             self.action_cache[action_id] = action
 
         if len(action.xpath('when[@state="none"]')) == 0:
+            logger.trace("Create 'none' when - action:%r output:%r" % (action_id, output))
             el = SubElement(action, 'when')
             el.set("state", "none")
             el.set("output", output)
-            logger.trace("%r" % el)
 
     def set_key(self, mode, key, key_id):
         self._set_key(mode, key, key_id, output=key)
@@ -761,4 +764,4 @@ class OSXKeyLayout:
             el = SubElement(action, 'when')
             el.set("state", state)
             el.set("next", next)
-        logger.trace("%r" % el)
+        #logger.trace("%r" % el)
