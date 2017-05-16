@@ -34,6 +34,22 @@ in the section below.
 
 Any other modes are ignored by this target.
 
+## Target-specific configuration
+
+### Keyboard identifier
+
+On Windows, keyboards are required to be prefixed with `kbd` and only 5 other characters. By default, the last 5 characters are derived from the layout's `internalName` property. However, sometimes it is desired to be in control of the keyboard identifier that will be generated.
+
+It can be done as below:
+
+```yaml
+targets:
+  win:
+    id: sjd01
+```
+
+If the id is not exactly 5 characters, a warning will be shown on the console. The above example will generate a `kbdsjd01.klc` file, and when built, a `kbdsjd01.dll` file.
+
 ## Testing
 
 You can test the keyboard in MSKLC under `Project > Test Keyboard Layout...`.
