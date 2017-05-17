@@ -12,6 +12,9 @@ Escaping is quite simple. Use `\u{}` notation for `U+xxxx` codepoints. For examp
 * **locale**: the preferred locale for the keyboard. If possible, use the two-character ISO code, as the three-character codes are not universally supported.
 * **modes**: a map of keyboard layouts. See section below to see which keys are supported.
 
+## Optional keys
+* **supportedTargets**: a list of supported targets. If missing, support for all targets is assumed (for backwards compatibility). If a target is not in this list, a project will not attempt to generate it.
+
 ### Modes
 
 ### Valid keys
