@@ -156,9 +156,9 @@ class WindowsGenerator(Generator):
 
     def _klc_get_name(self, layout):
         id_ = layout.target('win').get("id", None)
-        if len(id_) != 5:
-            logger.warning("Keyboard id should be exactly 5 characters, got %d." % len(id_))
         if id_ is not None:
+            if len(id_) != 5:
+                logger.warning("Keyboard id should be exactly 5 characters, got %d." % len(id_))
             return "kbd" + id_
         return "kbd" + re.sub(r'[^A-Za-z0-9]', "", layout.internal_name)[:5]
 
