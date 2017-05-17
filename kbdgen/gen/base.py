@@ -6,6 +6,7 @@ import random
 import re
 import subprocess
 
+from functools import lru_cache
 from collections import OrderedDict
 
 from ..base import ISO_KEYS, KbdgenException
@@ -42,6 +43,16 @@ class Generator:
     @property
     def output_dir(self):
         return self._args.get("output", ".")
+
+    @property
+    @lru_cache(maxsize=1)
+    def supported_layouts(self):
+        t = self._args["target"]
+        o = OrderedDict()
+        for k, v in self._project.layouts.items():
+            if v.supported_target(t):
+                o[k] = v
+        return o
 
 class PhysicalGenerator(Generator):
     def validate_layout(self, layout):

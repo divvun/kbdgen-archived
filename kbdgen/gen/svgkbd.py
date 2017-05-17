@@ -24,7 +24,7 @@ class SVGGenerator(Generator):
 
         logger.info("Several warnings may fire about XML incompatible strings. " +
                     "Incompatible strings are currently just ignored.")
-        for name, layout in self._project.layouts.items():
+        for name, layout in self.supported_layouts.items():
             files.append(("%s.svg" % name,
                     layout.display_names[layout.locale],
                     self.generate_svg(layout, copy.deepcopy(root))))

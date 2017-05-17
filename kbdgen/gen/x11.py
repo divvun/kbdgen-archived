@@ -41,7 +41,7 @@ class XKBGenerator(Generator):
         self.xkb = open(xkb_fn, 'w')
         self.xcompose = open(xcompose_fn, 'w')
 
-        for name, layout in self._project.layouts.items():
+        for name, layout in self.supported_layouts.items():
             self.write_nonsense(name, layout)
 
         self.xkb.close()

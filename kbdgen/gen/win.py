@@ -140,7 +140,7 @@ class WindowsGenerator(Generator):
     def generate(self, base='.'):
         outputs = OrderedDict()
 
-        for layout in self._project.layouts.values():
+        for layout in self.supported_layouts.values():
             outputs[self._klc_get_name(layout)] = self.generate_klc(layout)
 
         if self.dry_run:

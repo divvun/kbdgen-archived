@@ -79,8 +79,7 @@ class AndroidGenerator(Generator):
 
         layouts = defaultdict(list)
 
-        for name, kbd in self._project.layouts.items():
-
+        for name, kbd in self.supported_layouts.items():
             files += [
                 ('app/src/main/res/xml/keyboard_layout_set_%s.xml' % name, self.kbd_layout_set(kbd)),
                 ('app/src/main/res/xml/kbd_%s.xml' % name, self.keyboard(kbd))
@@ -117,7 +116,7 @@ class AndroidGenerator(Generator):
         self.build(base, self.is_release)
 
     def native_locale_workaround(self, base):
-        for name, kbd in self._project.layouts.items():
+        for name, kbd in self.supported_layouts.items():
             if len(name) <= 2:
                 continue
 
@@ -148,7 +147,7 @@ class AndroidGenerator(Generator):
             sane = False
             logger.error("No package ID provided for Android target.")
 
-        for name, kbd in self._project.layouts.items():
+        for name, kbd in self.supported_layouts.items():
             dropped_locales = []
 
             for dn_locale in kbd.display_names:

@@ -227,6 +227,15 @@ class Keyboard:
     def get_longpress(self, key):
         return self._tree['longpress'].get(key, None)
 
+    @property
+    def supported_targets(self):
+        return self._tree.get('supportedTargets', None)
+
+    def supported_target(self, target):
+        targets = self.supported_targets
+        if targets is None:
+            return True
+        return target in targets
 
 class Parser:
     def __init__(self):

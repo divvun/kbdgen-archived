@@ -19,7 +19,7 @@ class OSXGenerator(PhysicalGenerator):
 
         o = OrderedDict()
 
-        for name, layout in self._project.layouts.items():
+        for name, layout in self.supported_layouts.items():
             try:
                 self.validate_layout(layout)
             except Exception as e:
@@ -44,7 +44,7 @@ class OSXGenerator(PhysicalGenerator):
         translations = defaultdict(dict)
 
         for name, data in o.items():
-            layout = self._project.layouts[name]
+            layout = self.supported_layouts[name]
             fn = layout.internal_name
 
             for locale, lname in layout.display_names.items():
@@ -150,7 +150,7 @@ class OSXGenerator(PhysicalGenerator):
 </dict>"""), "        ")
 
         targets = []
-        for name, layout in self._project.layouts.items():
+        for name, layout in self.supported_layouts.items():
             name = layout.internal_name
             bundle_chunk = name.lower().replace(' ', '')
             targets.append(target_tmpl % (name, bundle_id, bundle_chunk,

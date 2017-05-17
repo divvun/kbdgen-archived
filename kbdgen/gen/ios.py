@@ -45,7 +45,7 @@ class AppleiOSGenerator(Generator):
         #     plist = plistlib.load(f, dict_type=OrderedDict)
 
         layouts = []
-        for name, layout in self._project.layouts.items():
+        for name, layout in self.supported_layouts.items():
             layouts.append(self.generate_json_layout(name, layout))
 
         fn = os.path.join(build_dir, "Keyboard", "KeyboardDefinitions.json")
@@ -306,7 +306,7 @@ class AppleiOSGenerator(Generator):
                 self.write_l10n_str(f, 'CFBundleName', attrs['name'])
                 self.write_l10n_str(f, 'CFBundleDisplayName', attrs['name'])
 
-        for name, layout in self._project.layouts.items():
+        for name, layout in self.supported_layouts.items():
             for locale, lname in layout.display_names.items():
                 lproj_dir = locale if locale != "en" else "Base"
                 lproj = os.path.join(gen_dir, 'Generated', name, '%s.lproj' % lproj_dir)
@@ -332,7 +332,7 @@ class AppleiOSGenerator(Generator):
     def get_all_locales(self):
         o = self.get_project_locales()
 
-        for layout in self._project.layouts.values():
+        for layout in self.supported_layouts.values():
             o |= self.get_layout_locales(layout)
 
         return sorted(list(o))
@@ -344,7 +344,7 @@ class AppleiOSGenerator(Generator):
                 self.get_project_locales(), "HostingApp")
         pbxproj.add_ref_to_group(ref, ["HostingApp", "Supporting Files"])
 
-        for name, layout in self._project.layouts.items():
+        for name, layout in self.supported_layouts.items():
             ref = pbxproj.add_plist_strings_to_build_phase(
                     self.get_layout_locales(layout), name)
             pbxproj.add_ref_to_group(ref, ["Generated", name])
