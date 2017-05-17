@@ -18,8 +18,8 @@ Escaping is quite simple. Use `\u{}` notation for `U+xxxx` codepoints. For examp
 
 For touch keyboards, there are two modes:
 
-* **default**: default keyboard layout
-* **shift**: shifted keyboard layout
+* **mobile-default**: default keyboard layout
+* **mobile-shift**: shifted keyboard layout
 
 The format is unrestricted, but nominally, unless you have a good reason to do so, you should not have more than 3 rows, and no more than 12 keys on the top two rows, and 10 on the bottom row.
 
