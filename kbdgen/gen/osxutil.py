@@ -554,7 +554,7 @@ class OSXKeyLayout:
         ('iso-default', ('command?',)),
         ('iso-shift', ('anyShift caps? command?',)),
         ('iso-caps', ('caps',)),
-        ('iso-caps+shift', ('caps anyShift')),
+        ('iso-caps+shift', ('caps anyShift',)),
         ('iso-alt', ('anyOption command?',)),
         ('iso-alt+shift', ('anyOption anyShift caps? command?',)),
         ('iso-caps+alt', ('caps anyOption command?',)),
