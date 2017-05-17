@@ -681,11 +681,11 @@ class OSXKeyLayout:
 
         if action is not None:
             node.attrib['action'] = str(action)
-            if node.attrib.get('output', None):
+            if node.attrib.get('output', None) is not None:
                 del node.attrib['output']
         elif output is not None:
             node.attrib['output'] = str(output)
-            if node.attrib.get('action', None):
+            if node.attrib.get('action', None) is not None:
                 del node.attrib['action']
 
     def _set_default_action(self, key):

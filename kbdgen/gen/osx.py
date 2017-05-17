@@ -266,15 +266,12 @@ class OSXGenerator(PhysicalGenerator):
             # All keymaps must include a code 0
             out.set_key(mode_name, '', '0')
 
-            if isinstance(mode, dict):
-                keyiter = mode_iter(layout, mode_name)
-            else:
-                keyiter = itertools.chain.from_iterable(mode)
-
             logger.trace("Dead keys - mode:%r keys:%r" % (mode_name, layout.dead_keys.get(mode_name, [])))
-            for (iso, key) in zip(ISO_KEYS, keyiter):
+            
+            for iso, key in mode.items():
                 if key is None:
-                    continue
+                    key = ""
+
                 key_id = OSX_KEYMAP[iso]
 
                 if key in layout.dead_keys.get(mode_name, []):

@@ -73,7 +73,7 @@ def parse_layout(data, length_check=True):
         # Remove nulls
         for k in ISO_KEYS:
             if o[k] == r"\u{0}":
-                del o[k]
+                o[k] = None
         return o
 
 def parse_touch_layout(data):
