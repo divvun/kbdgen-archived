@@ -183,9 +183,16 @@ class OSXGenerator(PhysicalGenerator):
 
     def create_installer(self, bundle):
         pkg_name = "%s.unsigned.pkg" % self._project.internal_name
+        
+        version = self._project.target("osx").get("version", None)
+
+        if version is None:
+            logger.warn("No version for installer specified; defaulting to '0.0.0'.")
+            version = "0.0.0"
 
         cmd = ['productbuild', '--component',
                 bundle, '/Library/Keyboard Layouts',
+                '--version', version,
                 pkg_name]
 
         process = subprocess.Popen(cmd, cwd=self.build_dir,
