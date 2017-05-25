@@ -3,13 +3,16 @@ import shutil
 import subprocess
 import tempfile
 import sys
+import lxml.etree
 
+from lxml.etree import Element, SubElement
 from collections import defaultdict, OrderedDict
 from textwrap import indent, dedent
 
 from .. import get_logger
 from .base import *
 from .osxutil import *
+from os import listdir
 
 logger = get_logger(__file__)
 
@@ -126,7 +129,8 @@ class OSXGenerator(PhysicalGenerator):
                     f.write('"%s" = "%s";\n' % (name, lname))
 
     def create_bundle(self, path):
-        bundle_path = os.path.join(path, "%s.bundle" % self._project.internal_name)
+        bundle_id = self._project.target('osx')['packageId']
+        bundle_path = os.path.join(path, "%s.bundle" % bundle_id)
         bundle_name = self._project.target('osx').get('bundleName', None)
 
         if bundle_name is None:
@@ -135,11 +139,6 @@ class OSXGenerator(PhysicalGenerator):
 
         os.makedirs(os.path.join(bundle_path, 'Contents', 'Resources'),
             exist_ok=True)
-
-        bundle_id = "%s.keyboardlayout.%s" % (
-                self._project.target('osx')['packageId'],
-                self._project.internal_name
-            )
 
         target_tmpl = indent(dedent("""\
 <key>KLInfo_%s</key>
@@ -169,44 +168,113 @@ class OSXGenerator(PhysicalGenerator):
         <string>%s</string>
         <key>CFBundleVersion</key>
         <string>%s</string>
+        <key>CFBundleShortVersionString</key>
+        <string>%s</string>
 %s
     </dict>
 </plist>
                 """) % (
                     bundle_id,
                     bundle_name,
-                    self._project.build,
+                    self._project.target("osx").get("build", "1"),
+                    self._project.target("osx").get("version", "0.0.0"),
                     '\n'.join(targets)
                 )
             )
 
         return bundle_path
 
-    def create_installer(self, bundle):
-        pkg_name = "%s.unsigned.pkg" % self._project.internal_name
+    def generate_distribution_xml(self, component_fn, resources_fn, working_dir):
+        dist_fn = os.path.join(working_dir.name, "distribution.xml")
+        bundle_name = self._project.target('osx').get('bundleName', None)
+        bundle_id = self._project.target('osx')['packageId']
         
+        root = etree.fromstring("""<installer-gui-script minSpecVersion="2" />""") #tree.getroot()
+
+        SubElement(root, "title").text = bundle_name
+        SubElement(root, "options", customize="never", rootVolumeOnly="true")
+
+        choices_outline = SubElement(root, "choices-outline")
+        line = SubElement(choices_outline, "line", choice="default")
+        SubElement(line, "line", choice=bundle_id)
+
+        SubElement(root, "choice", id="default")
+        choice = SubElement(root, "choice", id=bundle_id, visible="false")
+        SubElement(choice, "pkg-ref", id=bundle_id)
+
+        SubElement(root, "pkg-ref", id=bundle_id, version="0", auth="root").text = os.path.basename(component_fn)
+
+        if resources_fn is not None:
+            dir_fns = listdir(resources_fn)
+
+            # Add background if exists
+            if "background.png" in dir_fns:
+                SubElement(root, "background", file="background.png")
+            elif "background.jpg" in dir_fns:
+                SubElement(root, "background", file="background.jpg")
+
+            # Add files if exist
+            for key in ("license", "welcome", "readme", "conclusion"):
+                for fn in dir_fns:
+                    if fn.lower().startswith(key):
+                        SubElement(root, key, file=fn)
+                        break
+
+        with open(dist_fn, 'wb') as f:
+            f.write(etree.tostring(root, 
+                xml_declaration=True,
+                encoding='utf-8',
+                pretty_print=True))
+        
+        return dist_fn
+
+    def create_component_pkg(self, bundle, version, working_dir):
+        pkg_name = "%s.pkg" % self._project.target('osx')['packageId']
+        pkg_path = os.path.join(working_dir.name, pkg_name)
+
+        cmd = ['pkgbuild', 
+               '--component', os.path.join(working_dir.name, bundle),
+               '--ownership', 'recommended',
+               "--install-location", '/Library/Keyboard Layouts',
+               "--version", version,
+               pkg_path]
+
+        out, err = run_process(cmd, self.build_dir)
+
+        return pkg_path
+
+    def create_installer(self, bundle):
+        working_dir = tempfile.TemporaryDirectory()
         version = self._project.target("osx").get("version", None)
 
         if version is None:
             logger.warn("No version for installer specified; defaulting to '0.0.0'.")
             version = "0.0.0"
 
-        cmd = ['productbuild', '--component',
-                bundle, '/Library/Keyboard Layouts',
-                '--version', version,
-                pkg_name]
-
-        process = subprocess.Popen(cmd, cwd=self.build_dir,
-                stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-
-        out, err = process.communicate()
-
-        if process.returncode != 0:
-            logger.error(err.decode())
-            logger.error("Application ended with error code %s." % (
-                    process.returncode))
-            sys.exit(process.returncode)
+        component_pkg_path = self.create_component_pkg(bundle, version, working_dir)
         
+        resources = self._project.target("osx").get("resources", None)
+        if resources is not None:
+            resources = self._project.relpath(resources)
+
+        dist_xml_path = self.generate_distribution_xml(
+            component_pkg_path, resources, working_dir)
+
+        pkg_name = "%s.unsigned.pkg" % self._project.internal_name
+
+        cmd = ['productbuild',
+               "--distribution", dist_xml_path,
+               "--version", version,
+               '--package-path', working_dir.name]
+        
+        if resources is not None:
+            cmd += ["--resources", resources]
+               
+        cmd += [pkg_name]
+
+        run_process(cmd, self.build_dir)
+
+        working_dir.cleanup()
         return os.path.join(self.build_dir, pkg_name)
     
     def sign_installer(self, pkg_path):
