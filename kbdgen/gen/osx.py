@@ -13,6 +13,20 @@ from .osxutil import *
 
 logger = get_logger(__file__)
 
+def run_process(cmd, cwd=None):
+    process = subprocess.Popen(cmd, cwd=cwd,
+                stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+
+    out, err = process.communicate()
+
+    if process.returncode != 0:
+        logger.error(err.decode())
+        logger.error("Application ended with error code %s." % (
+                process.returncode))
+        sys.exit(process.returncode)
+    
+    return out, err
+
 class OSXGenerator(PhysicalGenerator):
     def generate(self, base='.'):
         self.build_dir = os.path.abspath(base)
@@ -68,7 +82,7 @@ class OSXGenerator(PhysicalGenerator):
         logger.info("Done!")
 
     def generate_iconset(self, icon, output_fn):
-        cmd_tmpl = "convert -resize {d}x{d} -background transparent -gravity center -extent {d}x{d} {src} {out}"
+        cmd_tmpl = "convert -resize {d}x{d} -background transparent -gravity center -extent {d}x{d}"
 
         files = (
             ("icon_16x16", 16),
@@ -81,28 +95,15 @@ class OSXGenerator(PhysicalGenerator):
 
         for name, dimen in files:
             fn = "%s.png" % name
-            cmd = cmd_tmpl.format(d=dimen, src=icon, out=os.path.join(iconset.name, fn))
-
+            cmd = cmd_tmpl.format(d=dimen).split(" ") + [icon, os.path.join(iconset.name, fn)]
             logger.info("Creating '%s.png' at size %dx%d" % (name, dimen, dimen))
-            process = subprocess.Popen(cmd, shell=True,
-                    stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-            out, err = process.communicate()
-            if process.returncode != 0:
-                logger.error(err.decode())
-                logger.error("Application ended with error code %s." % process.returncode)
-                # TODO throw exception instead.
-                sys.exit(process.returncode)
+            run_process(cmd)
         
-        process = subprocess.Popen(["iconutil", "--convert", "icns",
-                                    "--output", output_fn, iconset.name],
-                                   stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-        
-        out, err = process.communicate()
-        if process.returncode != 0:
-            logger.error(err.decode())
-            logger.error("Application ended with error code %s." % process.returncode)
-            # TODO throw exception instead.
-            sys.exit(process.returncode)
+        cmd = ["iconutil", "--convert", "icns",
+               "--output", output_fn, iconset.name]
+        run_process(cmd)
+
+        iconset.cleanup()
         
     def write_icon(self, res_path, layout):
         icon = self._project.target('osx').get('icon', None)
@@ -218,29 +219,10 @@ class OSXGenerator(PhysicalGenerator):
             return
 
         cmd = ['productsign', '--sign', sign_id, pkg_path, signed_path]
-        process = subprocess.Popen(cmd, cwd=self.build_dir,
-                stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-
-        out, err = process.communicate()
-
-        if process.returncode != 0:
-            logger.error(err.decode())
-            logger.error("Application ended with error code %s." % (
-                    process.returncode))
-            sys.exit(process.returncode)
+        run_process(cmd, self.build_dir)
 
         cmd = ['pkgutil', '--check-signature', signed_path]
-        process = subprocess.Popen(cmd, cwd=self.build_dir,
-                stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-
-        out, err = process.communicate()
-
-        # TODO: seriously need to deduplicate this popen dance... 
-        if process.returncode != 0:
-            logger.error(err.decode())
-            logger.error("Application ended with error code %s." % (
-                    process.returncode))
-            sys.exit(process.returncode)
+        out, err = run_process(cmd, self.build_dir)
 
         logger.info(out.decode().strip())
 
