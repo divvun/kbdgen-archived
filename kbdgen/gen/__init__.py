@@ -6,3 +6,4 @@ from .win import WindowsGenerator
 from .osx import OSXGenerator
 from .x11 import XKBGenerator
 from .svgkbd import SVGGenerator
+from .json import JSONGenerator

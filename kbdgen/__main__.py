@@ -13,6 +13,7 @@ generators = OrderedDict((
     ("svg", gen.SVGGenerator),
     ("android", gen.AndroidGenerator),
     ("ios", gen.AppleiOSGenerator),
+    ("json", gen.JSONGenerator)
 ))
 
 def parse_args():
