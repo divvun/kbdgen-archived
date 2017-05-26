@@ -209,9 +209,9 @@ class OSXGenerator(PhysicalGenerator):
 
             # Add background if exists
             if "background.png" in dir_fns:
-                SubElement(root, "background", file="background.png")
+                SubElement(root, "background", file="background.png", alignment="bottomleft")
             elif "background.jpg" in dir_fns:
-                SubElement(root, "background", file="background.jpg")
+                SubElement(root, "background", file="background.jpg", alignment="bottomleft")
 
             # Add files if exist
             for key in ("license", "welcome", "readme", "conclusion"):
