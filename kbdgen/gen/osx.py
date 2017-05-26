@@ -208,16 +208,18 @@ class OSXGenerator(PhysicalGenerator):
             dir_fns = listdir(resources_fn)
 
             # Add background if exists
+            attdict = { 'alignment': 'bottomleft', 'mime-type': 'image/png' }
             if "background.png" in dir_fns:
-                SubElement(root, "background", file="background.png", alignment="bottomleft", 'mime-type'="image/png")
+                SubElement(root, "background", attdict, file="background.png")
             elif "background.jpg" in dir_fns:
-                SubElement(root, "background", file="background.jpg", alignment="bottomleft", 'mime-type'="image/png")
+                SubElement(root, "background", attdict, file="background.jpg")
 
             # Add files if exist
             for key in ("license", "welcome", "readme", "conclusion"):
                 for fn in dir_fns:
+                    attdict = { 'mime-type': 'text/html' }
                     if fn.lower().startswith(key):
-                        SubElement(root, key, file=fn, 'mime-type'="text/html")
+                        SubElement(root, key, attdict, file=fn)
                         break
 
         with open(dist_fn, 'wb') as f:
