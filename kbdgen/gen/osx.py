@@ -184,11 +184,11 @@ class OSXGenerator(PhysicalGenerator):
 
         return bundle_path
 
-    def generate_distribution_xml(self, component_fn, resources_fn, working_dir):
+    def generate_distribution_xml(self, component_fn, working_dir):
         dist_fn = os.path.join(working_dir.name, "distribution.xml")
         bundle_name = self._project.target('osx').get('bundleName', None)
         bundle_id = self._project.target('osx')['packageId']
-        
+
         root = etree.fromstring("""<installer-gui-script minSpecVersion="2" />""") #tree.getroot()
 
         SubElement(root, "title").text = bundle_name
@@ -204,23 +204,16 @@ class OSXGenerator(PhysicalGenerator):
 
         SubElement(root, "pkg-ref", id=bundle_id, version="0", auth="root").text = os.path.basename(component_fn)
 
-        if resources_fn is not None:
-            dir_fns = listdir(resources_fn)
+        target = self._project.target('osx')
 
-            # Add background if exists
-            attdict = { 'alignment': 'bottomleft', 'mime-type': 'image/png' }
-            if "background.png" in dir_fns:
-                SubElement(root, "background", attdict, file="background.png")
-            elif "background.jpg" in dir_fns:
-                SubElement(root, "background", attdict, file="background.jpg")
+        bg = target.get('background', None)
+        if bg is not None:
+            SubElement(root, 'background', file=bg, alignment="bottomleft")
 
-            # Add files if exist
-            for key in ("license", "welcome", "readme", "conclusion"):
-                for fn in dir_fns:
-                    attdict = { 'mime-type': 'text/html' }
-                    if fn.lower().startswith(key):
-                        SubElement(root, key, attdict, file=fn)
-                        break
+        for key in ("license", "welcome", "readme", "conclusion"):
+            fn = target.get(key, None)
+            if fn is not None:
+                SubElement(root, key, file=fn)
 
         with open(dist_fn, 'wb') as f:
             f.write(etree.tostring(root, 
@@ -260,7 +253,7 @@ class OSXGenerator(PhysicalGenerator):
             resources = self._project.relpath(resources)
 
         dist_xml_path = self.generate_distribution_xml(
-            component_pkg_path, resources, working_dir)
+            component_pkg_path, working_dir)
 
         pkg_name = "%s.unsigned.pkg" % self._project.internal_name
 
