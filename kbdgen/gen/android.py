@@ -55,18 +55,15 @@ class AndroidGenerator(Generator):
         return etree.tostring(tree, pretty_print=True,
             xml_declaration=True, encoding='utf-8').decode()
 
-    def generate(self, base='.', sdk_base='./sdk', ndk_base='./ndk'):
-        sdk_base = os.getenv("ANDROID_HOME", sdk_base)
-        ndk_base = os.getenv("NDK_HOME", ndk_base)
-
-        if not self.sanity_checks(sdk_base, ndk_base):
+    def generate(self, base='.'):
+        if not self.sanity_checks():
             return
 
         if self.dry_run:
             logger.info("Dry run completed.")
             return
 
-        self.get_source_tree(base, sdk_base, ndk_base)
+        self.get_source_tree(base)
 
         self.native_locale_workaround(base)
 
@@ -100,7 +97,7 @@ class AndroidGenerator(Generator):
 
         self.update_method_xmls(layouts, base)
 
-        files.append(self.create_gradle_properties(ndk_base, self.is_release))
+        files.append(self.create_gradle_properties(self.is_release))
 
         self.save_files(files, base)
 
@@ -126,21 +123,8 @@ class AndroidGenerator(Generator):
 
             self.update_locale_exception(kbd, base)
 
-    def sanity_checks(self, sdk_base, ndk_base):
+    def sanity_checks(self):
         sane = True
-
-        if not os.path.exists(os.path.join(
-            os.path.abspath(sdk_base), 'tools', 'android')):
-            raise MissingApplicationException(
-                    "Error: Could not find the Android SDK. " +\
-                    "Ensure your environment is configured correctly, " +\
-                    "specifically the ANDROID_HOME env variable.")
-
-        if not os.path.exists(os.path.abspath(ndk_base)):
-            raise MissingApplicationException(
-                    "Error: Could not find the Android NDK. " +\
-                    "Ensure your environment is configured correctly, " +\
-                    "specifically the NDK_HOME env variable.")
 
         pid = self._project.target('android').get('packageId')
         if pid is None:
@@ -445,7 +429,7 @@ class AndroidGenerator(Generator):
                 logger.info("Creating '%s'..." % k)
                 f.write(v)
 
-    def get_source_tree(self, base, sdk_base, ndk_base):
+    def get_source_tree(self, base):
         deps_dir = os.path.join(base, 'deps')
         os.makedirs(deps_dir, exist_ok=True)
 
@@ -458,7 +442,7 @@ class AndroidGenerator(Generator):
         else:
             git_clone(self.repo, repo_dir, self.branch, base, logger=logger.info)
 
-    def create_gradle_properties(self, ndk_dir, release_mode=False):
+    def create_gradle_properties(self, release_mode=False):
         o = OrderedDict()
 
         tmpl = """ext.app = [
