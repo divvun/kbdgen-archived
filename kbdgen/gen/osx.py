@@ -109,7 +109,12 @@ class OSXGenerator(PhysicalGenerator):
         iconset.cleanup()
         
     def write_icon(self, res_path, layout):
-        icon = self._project.target('osx').get('icon', None)
+        icon = layout.target('osx').get('icon', None)
+
+        # Get base icon
+        if icon is None:
+            icon = self._project.target('osx').get('icon', None)
+
         if icon is None:
             logger.warning("no icon for layout '%s'." % layout.internal_name)
             return
