@@ -121,11 +121,11 @@ class Project:
 
     @property
     def version(self):
-        return self._tree['version']
+        return str(self._tree['version'])
 
     @property
     def build(self):
-        return self._tree['build']
+        return str(self._tree['build'])
 
     @property
     def copyright(self):

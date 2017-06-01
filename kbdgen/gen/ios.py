@@ -27,15 +27,16 @@ class AppleiOSGenerator(Generator):
             return
 
         build_dir = os.path.abspath(base)
+        deps_dir = os.path.join(build_dir, "ios-build")
         os.makedirs(build_dir, exist_ok=True)
 
-        if os.path.isdir(build_dir):
-            git_update(build_dir, self.branch, False, base, logger=logger.info)
+        if os.path.isdir(deps_dir):
+            git_update(deps_dir, self.branch, False, base, logger=logger.info)
         else:
-            git_clone(self.repo, build_dir, self.branch, False, base,
+            git_clone(self.repo, deps_dir, self.branch, False, base,
                   logger=logger.info)
 
-        path = os.path.join(build_dir,
+        path = os.path.join(deps_dir,
                             'GiellaKeyboard.xcodeproj', 
                             'project.pbxproj')
         pbxproj = Pbxproj(path)
@@ -48,18 +49,25 @@ class AppleiOSGenerator(Generator):
         for name, layout in self.supported_layouts.items():
             layouts.append(self.generate_json_layout(name, layout))
 
-        fn = os.path.join(build_dir, "Keyboard", "KeyboardDefinitions.json")
+        fn = os.path.join(deps_dir, "Keyboard", "KeyboardDefinitions.json")
         with open(fn, 'w') as f:
             json.dump(layouts, f, indent=2)
 
-        # Hosting app plist
-        # with open(os.path.join(build_dir, 'HostingApp',
-        #                        'Info.plist'), 'rb') as f:
-        #     plist = plistlib.load(f, dict_type=OrderedDict)
+        plist_path = os.path.join(deps_dir, 'HostingApp', 'Info.plist')
 
-        # with open(os.path.join(build_dir, 'HostingApp',
-        #                        'Info.plist'), 'wb') as f:
-        #     self.update_plist(plist, f)
+        # Hosting app plist
+        with open(plist_path, 'rb') as f:
+            plist = plistlib.load(f, dict_type=OrderedDict)
+        with open(plist_path, 'wb') as f:
+            self.update_plist(plist, f)
+
+        kbd_plist_path = os.path.join(deps_dir, 'Keyboard', 'Info.plist')
+        
+        # Keyboard plist
+        with open(kbd_plist_path, 'rb') as f:
+            kbd_plist = plistlib.load(f, dict_type=OrderedDict)
+        with open(kbd_plist_path, 'wb') as f:
+            self.update_kbd_plist(kbd_plist, f)
 
         # Create locale strings
         # self.localise_hosting_app(pbxproj, build_dir)
@@ -70,14 +78,14 @@ class AppleiOSGenerator(Generator):
         #    self.update_pbxproj(pbxproj, f)
 
         # Generate icons for hosting app
-        self.gen_hosting_app_icons(build_dir)
+        self.gen_hosting_app_icons(deps_dir)
 
         if self.is_release:
-            self.build_release(base, build_dir)
+            self.build_release(base, deps_dir, build_dir)
         else:
-            self.build_debug(base, build_dir)
-            logger.info("You may now open GiellaKeyboard.xcodeproj in '%s'." %\
-                    build_dir)
+            self.build_debug(base, deps_dir)
+            logger.info("You may now open '%s/GiellaKeyboard.xcodeproj'." %\
+                    deps_dir)
 
     def ensure_xcode_version(self):
         if shutil.which('xcodebuild') is None:
@@ -118,22 +126,20 @@ class AppleiOSGenerator(Generator):
 
         return True
 
-    def build_debug(self, base_dir, build_dir):
+    def build_debug(self, base_dir, deps_dir):
         cmd = 'xcodebuild -configuration Debug -target HostingApp ' + \
               '-jobs %s ' % multiprocessing.cpu_count() + \
               'CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO'
         process = subprocess.Popen(cmd,
-                    cwd=os.path.join(build_dir), shell=True)
+                    cwd=os.path.join(deps_dir), shell=True)
         process.wait()
 
         if process.returncode != 0:
             logger.error("Application ended with error code %s." % process.returncode)
             sys.exit(process.returncode)
 
-    def build_release(self, base_dir, build_dir):
+    def build_release(self, base_dir, deps_dir, build_dir):
         # TODO check signing ID exists in advance (in sanity checks)
-
-
         xcarchive = os.path.abspath(os.path.join(build_dir, "%s.xcarchive" %\
                 self._project.internal_name))
         plist = os.path.join(build_dir, 'opts.plist')
@@ -145,7 +151,7 @@ class AppleiOSGenerator(Generator):
         if os.path.exists(ipa):
             os.remove(ipa)
 
-        projpath = ":".join(os.path.abspath(os.path.join(build_dir,
+        projpath = ":".join(os.path.abspath(os.path.join(deps_dir,
             'GiellaKeyboard.xcodeproj'))[1:].split(os.sep))
 
         code_sign_id = self._project.target('ios').get('codeSignId', '')
@@ -173,7 +179,7 @@ class AppleiOSGenerator(Generator):
             ):
 
             logger.info(msg)
-            process = subprocess.Popen(cmd, cwd=build_dir, shell=True,
+            process = subprocess.Popen(cmd, cwd=deps_dir, shell=True,
                     stderr=subprocess.PIPE, stdout=subprocess.PIPE)
             out, err = process.communicate()
             if process.returncode != 0:
@@ -221,10 +227,10 @@ class AppleiOSGenerator(Generator):
         cmd_tmpl = "convert -resize {h}x{w} -background white -alpha remove -gravity center -extent {h}x{w} {src} {out}"
 
         for obj in contents['images']:
-            scale = int(obj['scale'][:-1])
+            scale = float(obj['scale'][:-1])
             h, w = obj['size'].split('x')
-            h = int(h) * scale
-            w = int(w) * scale
+            h = float(h) * scale
+            w = float(w) * scale
 
             icon = self._project.icon('ios', w)
             fn = "%s-%s@%s.png" % (obj['idiom'], obj['size'], obj['scale'])
@@ -351,17 +357,11 @@ class AppleiOSGenerator(Generator):
 
         f.write(str(pbxproj))
 
-    def update_kbd_plist(self, plist, layout, f):
-        bundle_id = "%s.%s" % (
-                self._project.target('ios')['packageId'],
-                layout.internal_name.replace("_", "-"))
-
-        plist['CFBundleName'] = layout.display_names['en']
-        plist['CFBundleDisplayName'] = layout.display_names['en']
-        plist['NSExtension']['NSExtensionAttributes']['PrimaryLanguage'] =\
-                layout.locale
-        plist['NSExtension']['NSExtensionPrincipalClass'] =\
-                "${PRODUCT_MODULE_NAME}.%s" % layout.internal_name
+    def update_kbd_plist(self, plist, f):
+        bundle_id = "%s.keyboard" % self._project.target('ios')['packageId']
+        
+        plist['CFBundleName'] = self._project.target('ios')['bundleName']
+        plist['CFBundleDisplayName'] = self._project.target('ios')['bundleName']
         plist['CFBundleIdentifier'] = bundle_id
         plist['CFBundleShortVersionString'] = self._project.version
         plist['CFBundleVersion'] = self._project.build
