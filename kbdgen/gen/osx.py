@@ -134,7 +134,12 @@ class OSXGenerator(PhysicalGenerator):
                     f.write('"%s" = "%s";\n' % (name, lname))
 
     def create_bundle(self, path):
-        bundle_id = self._project.target('osx')['packageId']
+        # Bundle ID must contain be in format *.keyboardlayout.<name>
+        # Failure to do so and the bundle will not be detected as a keyboard bundle
+        bundle_id = "%s.keyboardlayout.%s" % (
+                self._project.target('osx')['packageId'],
+                self._project.internal_name
+            )
         bundle_path = os.path.join(path, "%s.bundle" % bundle_id)
         bundle_name = self._project.target('osx').get('bundleName', None)
 
