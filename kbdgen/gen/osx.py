@@ -31,11 +31,18 @@ def run_process(cmd, cwd=None):
     return out, err
 
 class OSXGenerator(PhysicalGenerator):
+    @property
+    def disable_transforms(self):
+        return "disable-transforms" in self._args["flags"]
+
     def generate(self, base='.'):
         self.build_dir = os.path.abspath(base)
 
-        o = OrderedDict()
+        if self.disable_transforms:
+            logger.critical("Dead keys and transforms will not be generated (disable-transforms)")
 
+        o = OrderedDict()
+            
         for name, layout in self.supported_layouts.items():
             try:
                 self.validate_layout(layout)
@@ -314,7 +321,7 @@ class OSXGenerator(PhysicalGenerator):
         # Naively add all keys
         for mode_name in OSXKeyLayout.modes:
             logger.trace("BEGINNING MODE: %r" % mode_name)
-            # TODO throw on null
+            
             mode = layout.modes.get(mode_name, None)
             if mode is None:
                 msg = "layout '%s' has no mode '%s'" % (
@@ -329,12 +336,16 @@ class OSXGenerator(PhysicalGenerator):
             out.set_key(mode_name, '', '0')
 
             logger.trace("Dead keys - mode:%r keys:%r" % (mode_name, layout.dead_keys.get(mode_name, [])))
-            
+
             for iso, key in mode.items():
                 if key is None:
                     key = ""
 
                 key_id = OSX_KEYMAP[iso]
+
+                if self.disable_transforms:
+                    out.set_key(mode_name, key, key_id)
+                    continue
 
                 if key in layout.dead_keys.get(mode_name, []):
                     logger.trace("Dead key found - mode:%r key:%r" % (mode_name, key))
@@ -360,7 +371,8 @@ class OSXGenerator(PhysicalGenerator):
             # Space bar special case
             sp = layout.special.get('space', {}).get(mode_name, " ")
             out.set_key(mode_name, sp, "49")
-            out.set_transform_key(mode_name, sp, "49")
+            if not self.disable_transforms:
+                out.set_transform_key(mode_name, sp, "49")
 
             # Add hardcoded keyboard bits
             for key_id, key in OSX_HARDCODED.items():
@@ -412,7 +424,8 @@ class OSXGenerator(PhysicalGenerator):
                     w()
                     logger.error("[%s] Error while adding leaf transform:\n%s\n%r" % (
                         layout.internal_name, e, (action_id, when_state, leaf)))
-
-        TransformWalker(layout.transforms)()
+        
+        if not self.disable_transforms:
+            TransformWalker(layout.transforms)()
 
         return bytes(out).decode('utf-8')
