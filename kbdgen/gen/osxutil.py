@@ -597,7 +597,17 @@ class OSXKeyLayout:
         return ('<?xml version="1.1" encoding="UTF-8"?>\n%s' % v).encode('utf-8')
 
     def __str__(self):
-        return etree.tostring(self.elements['root'], encoding='unicode',
+        root = copy.deepcopy(self.elements['root'])
+
+        actions = root.xpath("actions")[0]
+        terminators = root.xpath("terminators")[0]
+
+        if len(actions) == 0:
+            root.remove(actions)
+        if len(terminators) == 0:
+            root.remove(terminators)
+
+        return etree.tostring(root, encoding='unicode',
                            doctype=self.doctype, pretty_print=True)
 
     def __init__(self, name, id_):
