@@ -55,6 +55,9 @@ def parse_args():
     p.add_argument('project', help="Keyboard generation project (yaml)",
                    type=argparse.FileType('r'),
                    default=sys.stdin)
+    p.add_argument('-f', '--flag', nargs="*", dest="flags",
+                   help="Generator-specific flags (for debugging)",
+                   default=[])
 
     return p.parse_args()
 
