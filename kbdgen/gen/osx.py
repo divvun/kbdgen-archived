@@ -290,6 +290,12 @@ class OSXGenerator(PhysicalGenerator):
         return os.path.join(self.build_dir, pkg_name)
     
     def sign_installer(self, pkg_path):
+        version = self._project.target("osx").get("version", None)
+
+        if version is None:
+            logger.critical("A version must be defined for a signed package. Add a version property to targets.osx in your project.yaml.")
+            sys.exit(1)
+
         signed_path = "%s %s.pkg" % (self._project.target('osx')['bundleName'], version)
 
         sign_id = self._project.target('osx').get("codeSignId", None)
