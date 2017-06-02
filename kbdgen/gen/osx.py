@@ -272,7 +272,7 @@ class OSXGenerator(PhysicalGenerator):
         dist_xml_path = self.generate_distribution_xml(
             component_pkg_path, working_dir)
 
-        pkg_name = "%s.unsigned.pkg" % self._project.internal_name
+        pkg_name = "%s %s.unsigned.pkg" % (self._project.target('osx')['bundleName'], version)
 
         cmd = ['productbuild',
                "--distribution", dist_xml_path,
@@ -290,7 +290,7 @@ class OSXGenerator(PhysicalGenerator):
         return os.path.join(self.build_dir, pkg_name)
     
     def sign_installer(self, pkg_path):
-        signed_path = "%s.pkg" % self._project.internal_name
+        signed_path = "%s %s.pkg" % (self._project.target('osx')['bundleName'], version)
 
         sign_id = self._project.target('osx').get("codeSignId", None)
 
