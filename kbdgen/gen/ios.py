@@ -22,6 +22,10 @@ class AppleiOSGenerator(Generator):
         #if not self.ensure_ios_autotools():
         #    return
 
+        if self.repo is None:
+            logger.error("No repository provided. Use the `-r` flag to provide a path to giellakbd-ios.")
+            sys.exit(1)
+
         if self.dry_run:
             logger.info("Dry run completed.")
             return
