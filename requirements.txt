@@ -1,4 +1,3 @@
 lxml
-pycountry
 PyICU
 PyYAML
