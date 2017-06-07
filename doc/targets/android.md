@@ -7,32 +7,24 @@ localisation magic and integrate your chosen keyboard layouts.
 
 You will need:
 
-* This codebase somewhere on your hard drive.
-* Xcode (at least the command line tools)
-* MacPorts: https://guide.macports.org/chunked/installing.macports.html
-* JDK 7: http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html
-* Android SDK (click "VIEW ALL DOWNLOADS AND SIZES" and choose from "SDK Tools Only"): https://developer.android.com/sdk/index.html?hl=i
-* GiellaIME checked out somewhere (https://github.com/bbqsrc/giella-ime)
-* Imagemagick (for converting icons to their correct sizes)
+* [JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
+* [Android SDK CLI Tools](https://developer.android.com/studio/index.html#command-tools)
 
 # Installation
 
-1. Install MacPorts.
-2. Install JDK 7.
-3. Unzip the Android SDK somewhere. I will assume you unzipped it to `~/sdks`
-4. As root: `port install apache-ant python3.4 py34-pip imagemagick`
-5. As root: `pip3.4 install pycountry lxml PyYAML`
-6. As root and in this repo's directory: `pip3.4 install .`. Ensure that the path `pip` installs the `kbdgen` binary to is in your `$PATH`.
-7. Run: `export ANDROID_HOME="~/sdks/android-sdk-macosx"`, replacing the string with where you put the directory.
-8. Run: `$ANDROID_HOME/tools/android update sdk -u -t "tools,platform-tools,build-tools-19.1.0,extra-android-support,android-19"`. Say yes to all the EULAs.
-9. Done!
+**Warning:** you will need about 2.6GB of free space to install the Android SDK dependencies.
 
-# Running
+1. Create a directory to host your Android SDK.
+2. Export `ANDROID_HOME` to point to this directory.
+3. Unzip the Android SDK CLI tools into `$ANDROID_HOME` (so you have `$ANDROID_HOME/tools`).
+4. Run `yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses` to accept the licenses.
+5. Run `$ANDROID_HOME/tools/bin/sdkmanager tools "build-tools;25.0.3" "extras;android;m2repository" ndk-bundle "platforms;android-25"` to install the required dependencies. This may take a long time, and will not show any progress of any kind.
 
-1. Run `export ANDROID_HOME="~/sdks/android-sdk-macosx"`, replacing the string with where you put the directory.
-2. Run `kbdgen.py --help` to see the help text.
+You should save the `ANDROID_HOME` export into your `.profile` so the variable is set when your shell loads.
 
-An example: `kbdgen --repo local/path/to/giella-ime --target android project.yaml`
+# Generating the keyboard APK
+
+Run `kbdgen -t android -r path/to/giella-ime project.yaml`.
 
 You can also substitute a local path to a git repo to the remote path and the
 application will automatically check it out for you.
@@ -46,12 +38,11 @@ If it spits errors, uninstall the package off your device first.
 
 ## Build files
 
-Files will be placed in the `build/` directory. In debug mode, a file by the
-name of `<project internalName>-debug.apk` will appear, while in release mode
-(when provided with `-R` flag), `<project internalName>-release.apk` will
+Files will be placed in the directory specified by the `-o` flag or the current 
+working directory. In debug mode, a file by the name of `<project internalName>-<version>_debug.apk` will appear, while in release mode (when provided with `-R` flag), `<project internalName>-<version>_release.apk` will
 appear.
 
-The release APK can be used to be uploaded to the Play Store.
+In order for the release build to be generated, signing keys must be provided (described in the configuration section below). The release APK can then be uploaded to the Play Store if desired.
 
 # Examples
 
@@ -65,7 +56,6 @@ See the `project.yaml` file for an example of project files.
 
 Your project files must have at least the following properties: `author`,
 `email`, `locales`, `layouts`, and in most cases, `targets`.
-
 
 `author` and `email` are pretty straight forward:
 
@@ -128,8 +118,16 @@ also include `longpress` and `styles`.
 purposes. Please use lower case ASCII characters and underscores eg
 `some_name` to avoid any issues during compilation.
 
+It is considered best practice to keep the internal name short and relevant,
+such as using the locale name only, and extending it for variants.
+
+For example, several keyboards relating to `sme` might be named:
+
 ```yaml
-internalName: my_keyboard
+internalName: sme
+internalName: sme-no
+internalName: sme-sv
+internalName: sme-extended
 ```
 
 `displayNames` is a map of localised display names for your keyboard. These
