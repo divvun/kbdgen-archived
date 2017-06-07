@@ -7,8 +7,8 @@ There are several parts to a keyboard project. A project will have a project fil
 A target is the build output. Currently supported targets are:
 
 * **android**: Android
-* **ios**: iOS 8+
-* **osx**: OS X
+* **ios**: iOS 9+
+* **osx**: macOS
 * **svg**: Scalable Vector Graphics output
 * **win**: Windows 7+ (not mobile)
 * **x11**: X11 format (**EXPERIMENTAL**)
