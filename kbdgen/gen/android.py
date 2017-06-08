@@ -453,6 +453,8 @@ class AndroidGenerator(Generator):
     def create_gradle_properties(self, release_mode=False):
         o = OrderedDict()
 
+        key_store = self._project.relpath(self._project.target('android')['keyStore'])
+
         tmpl = """ext.app = [
             storeFile: "{store_file}",
             keyAlias: "{key_alias}",
@@ -462,7 +464,7 @@ class AndroidGenerator(Generator):
         ]"""
 
         data = tmpl.format(
-            store_file = os.path.abspath(self._project.target('android')['keyStore']),
+            store_file = os.path.abspath(key_store),
             key_alias = self._project.target('android')['keyAlias'],
             version = self._project.version,
             build = self._project.build,
