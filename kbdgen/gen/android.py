@@ -126,6 +126,14 @@ class AndroidGenerator(Generator):
     def sanity_checks(self):
         sane = True
 
+        if self.is_release:
+            store_pw = os.environ.get("STORE_PW", None)
+            key_pw = os.environ.get("KEY_PW", None)
+
+            if store_pw is None or key_pw is None:
+                logger.error("STORE_PW and KEY_PW must be set for a release build.")
+                return False
+
         pid = self._project.target('android').get('packageId')
         if pid is None:
             sane = False
