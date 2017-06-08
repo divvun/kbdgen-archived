@@ -156,11 +156,9 @@ class AndroidGenerator(Generator):
                         logger.warning(("[%s] row %s has %s keys. It is " +\
                                "recommended to have less than 12 keys per " +\
                                "row.") % (name, n+1, len(row)))
-
-            self.detect_unavailable_glyphs_long_press(kbd, 16)
-            self.detect_unavailable_glyphs_long_press(kbd, 19)
-            self.detect_unavailable_glyphs_long_press(kbd, 21)
-            self.detect_unavailable_glyphs_long_press(kbd, 23)
+            for api_v in [16, 19, 21, 23]:
+                self.detect_unavailable_glyphs_long_press(kbd, api_v)
+        
         return sane
 
     def _update_dict_auth_xml(self, auth, base):
