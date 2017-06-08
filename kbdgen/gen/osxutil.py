@@ -176,20 +176,7 @@ class Pbxproj:
                 return phase
 
         return None
-
-    def create_plist_string_file(self, locale, name="InfoPlist.strings"):
-        o = {
-            "isa": "PBXFileReference",
-            "lastKnownFileType": "text.plist.strings",
-            "name": locale,
-            "path": "%s.lproj/%s" % (locale, name),
-            "sourceTree": "<group>"
-        }
-
-        k = Pbxproj.gen_key()
-        self.objects[k] = o
-        return k
-
+    
     def create_plist_string_variant(self, variants):
         o = {
             "isa": "PBXVariantGroup",
@@ -230,6 +217,11 @@ class Pbxproj:
             raise Exception("No src found.")
         return o
 
+    def add_file_ref_to_variant_group(self, file_ref, variant_name):
+        variant = self.find_variant_group(variant_name)
+        variant['children'].append(file_ref)
+        return variant
+
     def add_plist_strings_to_variant_group(self, locales, variant_name, target_name):
         variant = self.find_variant_group(variant_name)
         o = []
@@ -260,27 +252,26 @@ class Pbxproj:
         o['children'].append(ref)
         return True
 
-    def add_file(self, fmt, path, **kwargs):
-        ref = Pbxproj.gen_key()
-
+    def create_file_reference(self, file_type, locale, name, **kwargs):
         o = {
-            'isa': "PBXFileReference",
-            "lastKnownFileType": fmt,
-            "path": path,
+            "isa": "PBXFileReference",
+            "lastKnownFileType": file_type,
+            "name": locale,
+            "path": "%s.lproj/%s" % (locale, name),
             "sourceTree": "<group>"
         }
 
         o.update(kwargs)
 
-        self.objects[ref] = o
+        k = Pbxproj.gen_key()
+        self.objects[k] = o
+        return k
 
-        return ref
+    def create_plist_string_file(self, locale, name="InfoPlist.strings"):
+        return self.create_file_reference("text.plist.strings", locale, name)
 
-    def add_plist_file(self, path):
-        return self.add_file("text.plist.xml", path)
-
-    def add_swift_file(self, path):
-        return self.add_file("sourcecode.swift", path, fileEncoding=4)
+    def create_text_file(self, locale, name):
+        return self.create_file_reference("text", locale, name)
 
     def add_path(self, path_list, target=None):
         if target is None:

@@ -70,8 +70,7 @@ class AppleiOSGenerator(Generator):
             self.update_kbd_plist(kbd_plist, f)
 
         # Create locale strings
-        self.localise_hosting_app(pbxproj, deps_dir)
-        self.create_locales(deps_dir)
+        self.create_locales(pbxproj, deps_dir)
 
         # Update pbxproj with locales
         with open(path, 'w') as f:
@@ -275,33 +274,19 @@ class AppleiOSGenerator(Generator):
 
         return o
 
-    def localise_hosting_app(self, pbxproj, gen_dir):
-        base_dir = os.path.join(gen_dir, "HostingApp")
-        # xml_fn = os.path.join(base_dir, "Base.lproj", "Main.storyboard")
-
-        # trans_pairs = self.get_translatables_from_storyboard(xml_fn)
-
-        # for locale, o in self._project.app_strings.items():
-        #     lproj_dir = "%s.lproj" % locale
-        #     path = os.path.join(base_dir, lproj_dir)
-        #     os.makedirs(path, exist_ok=True)
-
-        #     with open(os.path.join(path, 'Main.strings'), 'ab') as f:
-        #         for oid_path, key in trans_pairs:
-        #             if key in o:
-        #                 self.write_l10n_str(f, oid_path, o[key])
-        #             else:
-        #                 f.write(("/* Missing translation: %s */\n" %
-        #                     key).encode('utf-8'))
-
-        # ref = pbxproj.add_plist_strings_to_variant_group(
-        #         self._project.app_strings.keys(), "Main.storyboard", "Main.strings")
-
     def write_l10n_str(self, f, key, value):
         f.write(('"%s" = %s;\n' % (
             key, json.dumps(value, ensure_ascii=False))).encode('utf-8'))
 
-    def create_locales(self, gen_dir):
+    def create_locales(self, pbxproj, gen_dir):
+        about_dir = self._project.target("ios").get("aboutDir", None)
+        about_locales = []
+
+        # If aboutDir is set, get the supported locales
+        if about_dir is not None:
+            about_dir = self._project.relpath(about_dir)
+            about_locales = [os.path.splitext(x)[0] for x in os.listdir(about_dir) if x.endswith(".txt")]
+        
         for locale, attrs in self._project.locales.items():
             lproj_dir = locale if locale != "en" else "Base"
             lproj = os.path.join(gen_dir, 'HostingApp', '%s.lproj' % lproj_dir)
@@ -310,16 +295,15 @@ class AppleiOSGenerator(Generator):
             with open(os.path.join(lproj, 'InfoPlist.strings'), 'ab') as f:
                 self.write_l10n_str(f, 'CFBundleName', attrs['name'])
                 self.write_l10n_str(f, 'CFBundleDisplayName', attrs['name'])
+            
+            # Add About.txt to the lproj if exists
+            if locale in about_locales:
+                about_file = os.path.join(about_dir, "%s.txt" % locale)
+                shutil.copyfile(about_file, os.path.join(lproj, "About.txt"))
 
-        # for name, layout in self.supported_layouts.items():
-        #     for locale, lname in layout.display_names.items():
-        #         lproj_dir = locale if locale != "en" else "Base"
-        #         lproj = os.path.join(gen_dir, 'Generated', name, '%s.lproj' % lproj_dir)
-        #         os.makedirs(lproj, exist_ok=True)
-
-        #         with open(os.path.join(lproj, 'InfoPlist.strings'), 'ab') as f:
-        #             self.write_l10n_str(f, 'CFBundleName', lname)
-        #             self.write_l10n_str(f, 'CFBundleDisplayName', lname)
+                if lproj_dir != "Base":
+                    file_ref = pbxproj.create_text_file(locale, "About.txt")
+                    pbxproj.add_file_ref_to_variant_group(file_ref, "About.txt")
 
     def get_layout_locales(self, layout):
         locales = set(layout.display_names.keys())
