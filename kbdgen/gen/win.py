@@ -380,13 +380,13 @@ Name: "{group}\\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
             run_scr.write('Filename: "{app}\\kbdi.exe"; Parameters: "install')
             run_scr.write(' -i ""%s""' % language_code)
             run_scr.write(" -d %s" % dll_name)
-            run_scr.write(' -g ""{%s}""' % guid_str)
+            run_scr.write(' -g ""{%s""' % guid_str)
             run_scr.write(' -l ""%s""' % language_name)
             run_scr.write(' -n ""%s""' % layout.native_display_name)
             run_scr.write('"; Flags: runhidden waituntilterminated\n')
 
             uninst_scr.write('Filename: "{app}\\kbdi.exe"; Parameters: "uninstall ')
-            uninst_scr.write(' -g ""{%s}"""; Flags: runhidden waituntilterminated\n' % guid_str)
+            uninst_scr.write(' -g ""{%s"""; Flags: runhidden waituntilterminated\n' % guid_str)
         
         # TODO: , uninst_scr.getvalue()))
         script = "\n\n".join((script, run_scr.getvalue()))
