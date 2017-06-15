@@ -341,6 +341,7 @@ Compression=lzma
 SolidCompression=yes
 ArchitecturesInstallIn64BitMode=x64
 AlwaysRestart=yes
+UninstallRestartComputer=yes
 
 [Languages]
 %s
