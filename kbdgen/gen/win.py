@@ -249,19 +249,21 @@ class WindowsGenerator(Generator):
         out = []
         target = self._project.target('win')
         
+        license_format = target.get("licenseFormat", "txt")
         app_license_path = target.get('licensePath', None)
         license_locales = []
         if app_license_path is not None:
             app_license_path = self._project.relpath(app_license_path)
-            license_locales = [os.path.splitext(x)[0] for x in os.listdir(app_license_path) if x.endswith(".txt")]
-            en_license = self._wine_path(os.path.join(app_license_path, "en.txt"))
+            license_locales = [os.path.splitext(x)[0] for x in os.listdir(app_license_path) if x.endswith(".%s" % license_format)]
+            en_license = self._wine_path(os.path.join(app_license_path, "en.%s" % license_format))
 
+        readme_format = target.get("readmeFormat", "txt")
         app_readme_path = target.get('readmePath', None)
         readme_locales = []
         if app_readme_path is not None:
             app_readme_path = self._project.relpath(app_readme_path)
-            readme_locales = [os.path.splitext(x)[0] for x in os.listdir(app_readme_path) if x.endswith(".txt")]
-            en_readme = self._wine_path(os.path.join(app_readme_path, "en.txt"))
+            readme_locales = [os.path.splitext(x)[0] for x in os.listdir(app_readme_path) if x.endswith(".%s" % readme_format)]
+            en_readme = self._wine_path(os.path.join(app_readme_path, "en.%s" % readme_format))
 
         for locale, attrs in self._project.locales.items():
             if locale not in inno_langs:
@@ -279,16 +281,16 @@ class WindowsGenerator(Generator):
                 ))
             
             if locale in license_locales:
-                p = self._wine_path(os.path.join(app_license_path, "%s.txt" % locale))
+                p = self._wine_path(os.path.join(app_license_path, "%s.%s" % (locale, license_format)))
                 buf.write('; LicenseFile: "%s"' % p)
             elif app_license_path is not None:
                 buf.write('; LicenseFile: "%s"' % en_license)
             
             if locale in readme_locales:
-                p = self._wine_path(os.path.join(app_readme_path, "%s.txt" % locale))
+                p = self._wine_path(os.path.join(app_readme_path, "%s.%s" % (locale, readme_format)))
                 buf.write('; InfoBeforeFile: "%s"' % p)
             elif app_readme_path is not None:
-                buf.write('; LicenseFile: "%s"' % en_readme)
+                buf.write('; InfoBeforeFile: "%s"' % en_readme)
 
             out.append(buf.getvalue())
 
