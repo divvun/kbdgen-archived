@@ -270,8 +270,6 @@ class WindowsGenerator(Generator):
                 logger.warn("'%s' not supported by setup script; skipping.")
                 continue
 
-            self._wine_path(os.path.join(app_license_path, "%s.txt" % locale))
-
             buf = io.StringIO()
             if locale == "en":
                 buf.write('Name: "english"; MessagesFile: "compiler:Default.isl"')
@@ -323,7 +321,6 @@ class WindowsGenerator(Generator):
 #define MyAppPublisher "%s"
 #define MyAppURL "%s"
 #define MyAppUUID "%s"
-#define MyAppLicense "%s"
 #define BuildDir "%s"
 
 [Setup]
@@ -362,7 +359,6 @@ Name: "{group}\\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
             app_publisher,
             app_url,
             app_uuid,
-            self._wine_path(app_license_path),
             self._wine_path(build_dir),
             self._generate_inno_languages()
         )
