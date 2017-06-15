@@ -395,7 +395,7 @@ Name: "{group}\\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
         # TODO: , uninst_scr.getvalue()))
         script = "\n\n".join((script, run_scr.getvalue()))
 
-        with open(os.path.join(build_dir, "install.iss"), 'w', encoding='utf-8', newline='\r\n') as f:
+        with open(os.path.join(build_dir, "install.iss"), 'w', encoding='utf-8-sig', newline='\r\n') as f:
             f.write(script)
 
     def build_installer(self, build_dir):
