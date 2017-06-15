@@ -5,6 +5,7 @@ import os.path
 import random
 import re
 import subprocess
+import sys
 
 from functools import lru_cache
 from collections import OrderedDict
@@ -173,3 +174,17 @@ class DictWalker:
     def __call__(self):
         # Run iterator to death
         for _ in self: pass
+
+def run_process(cmd, cwd=None):
+    process = subprocess.Popen(cmd, cwd=cwd,
+                stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+
+    out, err = process.communicate()
+
+    if process.returncode != 0:
+        logger.error(err.decode())
+        logger.error("Application ended with error code %s." % (
+                process.returncode))
+        sys.exit(process.returncode)
+    
+    return out, err

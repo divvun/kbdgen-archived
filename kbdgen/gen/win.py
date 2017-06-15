@@ -1,14 +1,23 @@
 import io
 import os
 import os.path
+import ntpath
 import icu
 import unicodedata
+import shutil
+import concurrent.futures
+import uuid
 
 from .. import get_logger
 from .base import *
 from ..cldr import decode_u
 
 logger = get_logger(__file__)
+
+KBDGEN_NAMESPACE = uuid.uuid5(uuid.NAMESPACE_DNS, "divvun.no")
+
+def guid(kbd_id):
+    return uuid.uuid5(KBDGEN_NAMESPACE, kbd_id)
 
 # SC 53 is decimal, 39 is space
 WIN_VK_MAP = bind_iso_keys((
@@ -136,9 +145,17 @@ def win_ligature(v):
         raise Exception('Ligatures cannot be longer than 4 codepoints.')
     return o
 
+inno_langs = {
+    "en": "English",
+    "nb": "Norwegian"
+}
+
 class WindowsGenerator(Generator):
     def generate(self, base='.'):
         outputs = OrderedDict()
+
+        if not self.sanity_check():
+            return
 
         for layout in self.supported_layouts.values():
             outputs[self._klc_get_name(layout)] = self.generate_klc(layout)
@@ -150,9 +167,251 @@ class WindowsGenerator(Generator):
         build_dir = os.path.abspath(base)
         os.makedirs(build_dir, exist_ok=True)
 
+        executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
+        futures = []
+
         for name, data in outputs.items():
-            with open(os.path.join(build_dir, "%s.klc" % name), 'w') as f:
-                f.write(data.replace('\n', '\r\n'))
+            klc_path = os.path.join(build_dir, "%s.klc" % name)
+            self.write_klc_file(klc_path, data)
+
+            if self.is_release:
+                futures.append(executor.submit(self.build_dll, name, "i386", klc_path, build_dir))
+                futures.append(executor.submit(self.build_dll, name, "amd64", klc_path, build_dir))
+                futures.append(executor.submit(self.build_dll, name, "wow64", klc_path, build_dir))
+        
+        for future in futures:
+            future.result()
+
+        executor.shutdown()
+
+        if self.is_release:
+            shutil.copyfile(os.environ["KBDI"], os.path.join(build_dir, "kbdi.exe"))
+            self.generate_inno_script(build_dir)
+            self.build_installer(build_dir)
+    
+    def write_klc_file(self, filepath, data):
+        logger.info("Writing '%s'…" % filepath)
+        with open(filepath, 'w', encoding='utf-16-le', newline='\r\n') as f:
+            f.write('\ufeff')
+            f.write(data)
+
+    def sanity_check(self):
+        if not self.is_release:
+            return True
+
+        # Check for wine
+        if not shutil.which("wine"):
+            logger.error("`wine` must exist on your PATH to build keyboard DLLs.")
+            return False
+
+        # Check for KBDI
+        if os.environ.get("KBDI", None) is None:
+            logger.error("KBDI environment variable must point to the kbdi.exe executable.")
+            return False
+
+        # Check for INNO_PATH
+        if os.environ.get("INNO_PATH", None) is None:
+            logger.error("INNO_PATH environment variable must point to the Inno Setup 5 directory.")
+            return False
+        
+        # Check for MSKLC_PATH
+        if os.environ.get("MSKLC_PATH", None) is None:
+            logger.error("MSKLC_PATH environment variable must point to the MSKLC directory.")
+            return False
+
+        return True
+
+    def _wine_path(self, thing):
+        return "Z:%s" % ntpath.abspath(thing)
+
+    @property
+    def _kbdutool(self):
+        return "%s/bin/i386/kbdutool.exe" % os.environ["MSKLC_PATH"]
+
+    def build_dll(self, name, arch, klc_path, build_dir):
+        # x86, x64, wow64
+        flags = {
+            "i386": "-x",
+            "amd64": "-m",
+            "wow64": "-o" 
+        }
+
+        flag = flags[arch]
+
+        out_path = os.path.join(build_dir, arch)
+        os.makedirs(out_path, exist_ok=True)
+
+        logger.info("Building '%s' for %s…" % (name, arch))
+        cmd = ["wine", self._kbdutool, "-n", flag, "-u", self._wine_path(klc_path)]
+        run_process(cmd, cwd=out_path)
+
+    def _generate_inno_languages(self):
+        out = []
+        target = self._project.target('win')
+        
+        app_license_path = target.get('licensePath', None)
+        license_locales = []
+        if app_license_path is not None:
+            app_license_path = self._project.relpath(app_license_path)
+            license_locales = [os.path.splitext(x)[0] for x in os.listdir(app_license_path) if x.endswith(".txt")]
+            en_license = self._wine_path(os.path.join(app_license_path, "en.txt"))
+
+        app_readme_path = target.get('readmePath', None)
+        readme_locales = []
+        if app_readme_path is not None:
+            app_readme_path = self._project.relpath(app_readme_path)
+            readme_locales = [os.path.splitext(x)[0] for x in os.listdir(app_readme_path) if x.endswith(".txt")]
+            en_readme = self._wine_path(os.path.join(app_readme_path, "en.txt"))
+
+        for locale, attrs in self._project.locales.items():
+            if locale not in inno_langs:
+                logger.warn("'%s' not supported by setup script; skipping.")
+                continue
+
+            self._wine_path(os.path.join(app_license_path, "%s.txt" % locale))
+
+            buf = io.StringIO()
+            if locale == "en":
+                buf.write('Name: "english"; MessagesFile: "compiler:Default.isl"')
+            else:
+                buf.write('Name: "%s"; MessagesFile: "compiler:Languages\\%s.isl"' % (
+                    inno_langs[locale].lower(), inno_langs[locale]
+                ))
+            
+            if locale in license_locales:
+                p = self._wine_path(os.path.join(app_license_path, "%s.txt" % locale))
+                buf.write('; LicenseFile: "%s"' % p)
+            elif app_license_path is not None:
+                buf.write('; LicenseFile: "%s"' % en_license)
+            
+            if locale in readme_locales:
+                p = self._wine_path(os.path.join(app_readme_path, "%s.txt" % locale))
+                buf.write('; InfoBeforeFile: "%s"' % p)
+            elif app_readme_path is not None:
+                buf.write('; LicenseFile: "%s"' % en_readme)
+
+            out.append(buf.getvalue())
+
+        return "\n".join(out)
+
+    def generate_inno_script(self, build_dir):
+        logger.info("Generating Inno Setup script…")
+        target = self._project.target('win')
+        try:
+            app_name = target['appName']
+            app_version = target['version']
+            app_publisher = self._project.organisation
+            app_url = target['url']
+            app_uuid = target['uuid']
+        except KeyError as e:
+            logger.error("%s not defined for target" % e)
+            sys.exit(1)
+
+        app_license_path = target.get('licensePath', None)
+        if app_license_path is not None:
+             app_license_path = self._project.relpath(app_license_path)
+
+        app_readme_path = target.get('readmePath', None)
+        if app_readme_path is not None:
+             app_readme_path = self._project.relpath(app_readme_path)
+
+        script = """\
+#define MyAppName "%s"
+#define MyAppVersion "%s"
+#define MyAppPublisher "%s"
+#define MyAppURL "%s"
+#define MyAppUUID "%s"
+#define MyAppLicense "%s"
+#define BuildDir "%s"
+
+[Setup]
+AppId={#MyAppUUID}
+AppName={#MyAppName}
+AppVersion={#MyAppVersion}
+AppPublisher={#MyAppPublisher}
+AppPublisherURL={#MyAppURL}
+AppSupportURL={#MyAppURL}
+AppUpdatesURL={#MyAppURL}
+DefaultDirName={pf}/{#MyAppName}
+DisableDirPage=no
+DefaultGroupName={#MyAppName}
+AllowNoIcons=yes
+OutputBaseFilename=install
+Compression=lzma
+SolidCompression=yes
+ArchitecturesInstallIn64BitMode=x64
+AlwaysRestart=yes
+
+[Languages]
+%s
+
+[Files]
+Source: "{#BuildDir}\\kbdi.exe"; DestDir: "{app}"
+Source: "{#BuildDir}\\i386\\*"; DestDir: "{sys}"; Check: not Is64BitInstallMode; Flags: restartreplace uninsrestartdelete
+Source: "{#BuildDir}\\amd64\\*"; DestDir: "{sys}"; Check: Is64BitInstallMode; Flags: restartreplace uninsrestartdelete
+Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMode; Flags: restartreplace uninsrestartdelete
+
+[Icons]
+Name: "{group}\\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
+        """.strip() % (
+            app_name,
+            app_version,
+            app_publisher,
+            app_url,
+            app_uuid,
+            self._wine_path(app_license_path),
+            self._wine_path(build_dir),
+            self._generate_inno_languages()
+        )
+
+        # Add Run section
+        run_scr = io.StringIO()
+        run_scr.write("[Run]\n")
+        uninst_scr = io.StringIO()
+        uninst_scr.write("[UninstallRun]\n")
+
+        for layout in self.supported_layouts.values():
+            kbd_id = self._klc_get_name(layout)
+            dll_name = "%s.dll" % kbd_id
+            language_code = layout.target("win").get("locale", layout.locale)
+            locale = icu.Locale(layout.locale)
+            language_name = layout.target("win").get("languageName", locale.getDisplayName())
+            guid_str = "{%s}" % str(guid(kbd_id))
+
+            run_scr.write('Filename: "{app}\\kbdi.exe"; Parameters: "install')
+            run_scr.write(' -i ""%s""' % language_code)
+            run_scr.write(" -d %s" % dll_name)
+            run_scr.write(' -g ""{%s}""' % guid_str)
+            run_scr.write(' -l ""%s""' % language_name)
+            run_scr.write(' -n ""%s""' % layout.native_display_name)
+            run_scr.write('"; Flags: runhidden waituntilterminated\n')
+
+            uninst_scr.write('Filename: "{app}\\kbdi.exe"; Parameters: "uninstall ')
+            uninst_scr.write(' -g ""{%s}"""; Flags: runhidden waituntilterminated\n' % guid_str)
+        
+        # TODO: , uninst_scr.getvalue()))
+        script = "\n\n".join((script, run_scr.getvalue()))
+
+        with open(os.path.join(build_dir, "install.iss"), 'w', encoding='utf-8', newline='\r\n') as f:
+            f.write(script)
+
+    def build_installer(self, build_dir):
+        logger.info("Building installer…")
+        iscc = os.path.join(os.environ["INNO_PATH"], "ISCC.exe")
+        output_path = self._wine_path(build_dir)
+        script_path = self._wine_path(os.path.join(build_dir, "install.iss"))
+        
+        name = self._project.target('win')['appName']
+        version = self._project.target('win')['version']
+
+        cmd = ["wine", iscc, '/O%s' % output_path, script_path]
+        run_process(cmd, cwd=build_dir)
+
+        fn = "%s %s.exe" % (name, version)
+        shutil.move(os.path.join(build_dir, "install.exe"), os.path.join(build_dir, fn))
+
+        logger.info("Installer generated at '%s'." % 
+            os.path.join(build_dir, fn))
 
     def _klc_get_name(self, layout):
         id_ = layout.target('win').get("id", None)
@@ -167,14 +426,22 @@ class WindowsGenerator(Generator):
             self._klc_get_name(layout),
             layout.display_names[layout.locale]))
 
-        copyright = self._project.copyright
+        copyright_ = self._project.copyright
         organisation = self._project.organisation
+        locale = layout.target('win').get("locale", layout.locale)
 
-        buf.write('COPYRIGHT\t"%s"\n\n' % copyright)
+        buf.write('COPYRIGHT\t"%s"\n\n' % copyright_)
         buf.write('COMPANY\t"%s"\n\n' % organisation)
-        buf.write('LOCALENAME\t"%s"\n\n' % layout.locale)
+        buf.write('LOCALENAME\t"%s"\n\n' % locale)
+
+        lcid = icu.Locale(locale).getLCID()
+        if lcid != 0:
+            locale_id = "0000%04x" % lcid
+        else:
+            locale_id = "00001000"
+
         # Use fallback ID in every case (MS-LCID)
-        buf.write('LOCALEID\t"00001000"\n\n')
+        buf.write('LOCALEID\t"%s"\n\n' % locale_id)
         buf.write('VERSION\t1.0\n\n')
         # 0: default, 1: shift, 2: ctrl, 6: altGr/ctrl+alt, 7: shift+6
         buf.write('SHIFTSTATE\n\n0\n1\n2\n6\n7\n\n')
@@ -318,7 +585,19 @@ class WindowsGenerator(Generator):
     def _klc_write_footer(self, layout, buf):
         out = []
 
+        # Check native name
+        native_locale = icu.Locale(layout.locale)
+
+        out.append((0x0c00, native_locale.getDisplayName(), layout.native_display_name))
+        out.append((0x1000, native_locale.getDisplayName(), layout.native_display_name))
+
+        if native_locale.getLCID() != 0:
+            out.append((native_locale.getLCID(), native_locale.getDisplayName(), layout.native_display_name))
+
         for locale_code, name in layout.display_names.items():
+            if locale_code == layout.locale:
+                continue
+
             locale = icu.Locale(locale_code)
             language_name = locale.getDisplayName()
             lcid = locale.getLCID()
@@ -330,11 +609,11 @@ class WindowsGenerator(Generator):
 
         buf.write("\nDESCRIPTIONS\n\n")
         for item in out:
-            buf.write("%04d\t%s\n" % (item[0], item[2]))
+            buf.write("%04x\t%s\n" % (item[0], item[2]))
 
         buf.write("\nLANGUAGENAMES\n\n")
         for item in out:
-            buf.write("%04d\t%s\n" % (item[0], item[1]))
+            buf.write("%04x\t%s\n" % (item[0], item[1]))
         
         buf.write("ENDKBD\n")
 

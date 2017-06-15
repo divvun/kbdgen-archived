@@ -16,20 +16,6 @@ from os import listdir
 
 logger = get_logger(__file__)
 
-def run_process(cmd, cwd=None):
-    process = subprocess.Popen(cmd, cwd=cwd,
-                stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-
-    out, err = process.communicate()
-
-    if process.returncode != 0:
-        logger.error(err.decode())
-        logger.error("Application ended with error code %s." % (
-                process.returncode))
-        sys.exit(process.returncode)
-    
-    return out, err
-
 class OSXGenerator(PhysicalGenerator):
     @property
     def disable_transforms(self):

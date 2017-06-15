@@ -172,6 +172,10 @@ class Keyboard:
         return self._tree['internalName']
 
     @property
+    def native_display_name(self):
+        return self.display_names[self.locale]
+
+    @property
     def display_names(self):
         return self._tree['displayNames']
 
