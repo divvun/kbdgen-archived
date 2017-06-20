@@ -204,6 +204,12 @@ class WindowsGenerator(Generator):
             logger.error("`wine` must exist on your PATH to build keyboard DLLs.")
             return False
 
+        # Check wine version
+        out, err = subprocess.Popen(["wine", "--version"], stdout=subprocess.PIPE).communicate()
+        v_chunks = [int(x) for x in out.decode().split("-").pop().split(".")]
+        if v_chunks[0] < 2 or (v_chunks[0] == 2 and v_chunks[1]) < 10:
+            logger.warn("Builds are not known to succeed with Wine versions less than 2.10; here be dragons.")
+
         # Check for KBDI
         if os.environ.get("KBDI", None) is None:
             logger.error("KBDI environment variable must point to the kbdi.exe executable.")
