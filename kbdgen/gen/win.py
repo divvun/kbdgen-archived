@@ -267,7 +267,7 @@ class WindowsGenerator(Generator):
 
         for locale, attrs in self._project.locales.items():
             if locale not in inno_langs:
-                logger.warn("'%s' not supported by setup script; skipping.")
+                logger.warn("'%s' not supported by setup script; skipping." % locale)
                 continue
 
             buf = io.StringIO()
