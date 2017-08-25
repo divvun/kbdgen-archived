@@ -9,6 +9,7 @@ import concurrent.futures
 import uuid
 
 from distutils.dir_util import copy_tree
+from textwrap import dedent
 
 from .. import get_logger
 from .base import *
@@ -210,6 +211,19 @@ class WindowsGenerator(Generator):
             f.write(data)
 
     def sanity_check(self):
+        for layout in self.supported_layouts.values():
+            native_locale = icu.Locale(layout.locale)
+            if native_locale.getLCID() == 0 and layout.target("win").get("locale", None) is None:
+                logger.error(dedent("""\
+                Layout '%s' specifies a locale not recognised by Windows.
+                To solve this issue, provide the ISO 639-3 code plus the written script of the language in BCP 47 format:
+
+                targets:
+                  win:
+                    locale: xyz-Latn
+                """) % layout.internal_name)
+                return False
+
         if not self.is_release:
             return True
 
@@ -287,7 +301,7 @@ class WindowsGenerator(Generator):
 
         for locale, attrs in self._project.locales.items():
             if locale not in inno_langs:
-                logger.warn("'%s' not supported by setup script; skipping." % locale)
+                logger.info("'%s' not supported by setup script; skipping." % locale)
                 continue
 
             buf = io.StringIO()
@@ -412,8 +426,9 @@ Name: "{group}\\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
             kbd_id = self._klc_get_name(layout)
             dll_name = "%s.dll" % kbd_id
             language_code = layout.target("win").get("locale", layout.locale)
-            locale = icu.Locale(layout.locale)
+            locale = icu.Locale(language_code)
             language_name = layout.target("win").get("languageName", locale.getDisplayName())
+            logger.info("Using language name '%s' for layout '%s'" % (language_name, layout.internal_name))
             guid_str = "{%s}" % str(guid(kbd_id))
 
             run_scr.write('Filename: "{app}\\kbdi.exe"; Parameters: "install')
@@ -425,8 +440,8 @@ Name: "{group}\\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
             run_scr.write('"; Flags: runhidden waituntilterminated\n')
 
             uninst_scr.write('Filename: "{app}\\kbdi.exe"; Parameters: "uninstall ')
-            uninst_scr.write(' -g ""{%s"""; Flags: runhidden waituntilterminated\n' % guid_str)
-        
+            uninst_scr.write(' -g ""{%s"""; Flags: runhidden waituntilterminated\n' % guid_str)      
+
         # TODO: , uninst_scr.getvalue()))
         script = "\n\n".join((script, run_scr.getvalue()))
 
@@ -470,7 +485,7 @@ Name: "{group}\\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 
         buf.write('COPYRIGHT\t"%s"\n\n' % copyright_)
         buf.write('COMPANY\t"%s"\n\n' % organisation)
-        buf.write('LOCALENAME\t"%s"\n\n' % locale)
+        buf.write('LOCALENAME\t"%s"\n\n' % layout.locale)
 
         lcid = icu.Locale(locale).getLCID()
         if lcid != 0:
