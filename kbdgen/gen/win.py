@@ -8,6 +8,8 @@ import shutil
 import concurrent.futures
 import uuid
 
+from distutils.dir_util import copy_tree
+
 from .. import get_logger
 from .base import *
 from ..cldr import decode_u
@@ -187,8 +189,20 @@ class WindowsGenerator(Generator):
         if self.is_release:
             shutil.copyfile(os.environ["KBDI"], os.path.join(build_dir, "kbdi.exe"))
             self.generate_inno_script(build_dir)
+            self.copy_nlp_files(build_dir)
             self.build_installer(build_dir)
     
+    def copy_nlp_files(self, build_dir):
+        target = self._project.target('win')
+        src_path = target.get("customLocales", None)
+        if src_path is None:
+            return
+
+        src_path = self._project.relpath(src_path)
+
+        nlp_path = os.path.join(build_dir, "nlp")
+        copy_tree(src_path, nlp_path)
+
     def write_klc_file(self, filepath, data):
         logger.info("Writing '%s'…" % filepath)
         with open(filepath, 'w', encoding='utf-16-le', newline='\r\n') as f:
@@ -368,6 +382,25 @@ Name: "{group}\\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
             self._wine_path(build_dir),
             self._generate_inno_languages()
         )
+        
+        custom_locales = target.get("customLocales", None)
+
+        if custom_locales is not None:
+            custom_locales_path = self._project.relpath(custom_locales)
+            locales = [os.path.splitext(x)[0] for x in os.listdir(custom_locales_path) if x.endswith(".nlp")]
+            reg = []
+
+            for l in locales:
+                o = dedent("""
+                Root: HKLM; Subkey: "SYSTEM\\CurrentControlSet\\Control\\Nls\\CustomLocale";
+                ValueType: string; ValueName: "{locale}"; ValueData: "{locale}"; Flags: uninsdeletevalue
+                """).strip().replace("\n", " ").format(locale=l)
+                reg.append(o)
+
+            script += """Source: "{#BuildDir}\\nlp\\*"; DestDir: "{win}\\Globalization"; Flags: restartreplace uninsrestartdelete\n"""
+            script += "\n[Registry]\n"
+            script += "\n".join(reg)
+            script += "\n"      
 
         # Add Run section
         run_scr = io.StringIO()
