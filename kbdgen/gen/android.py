@@ -114,12 +114,12 @@ class AndroidGenerator(Generator):
 
     def native_locale_workaround(self, base):
         for name, kbd in self.supported_layouts.items():
-            if len(name) <= 2:
+            if len(kbd.locale) <= 2:
                 continue
 
-            locale = 'zz_%s' % kbd.locale
-            kbd.display_names[locale] = kbd.display_names[kbd.locale]
-            kbd._tree['locale'] = locale
+            # locale = 'zz_%s' % kbd.locale
+            # kbd.display_names[locale] = kbd.display_names[kbd.locale]
+            # kbd._tree['locale'] = locale
 
             self.update_locale_exception(kbd, base)
 
