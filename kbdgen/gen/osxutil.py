@@ -217,6 +217,14 @@ class Pbxproj:
             raise Exception("No src found.")
         return o
 
+    def set_target_package_id(self, target, new_id):
+        o = self.find_target(target)
+        build_cfg_list = self.objects[o["buildConfigurationList"]]
+        build_cfgs = [self.objects[x] for x in build_cfg_list["buildConfigurations"]]
+
+        for cfg in build_cfgs:
+            cfg["buildSettings"]["PRODUCT_BUNDLE_IDENTIFIER"] = new_id
+
     def add_file_ref_to_variant_group(self, file_ref, variant_name):
         variant = self.find_variant_group(variant_name)
         variant['children'].append(file_ref)
@@ -414,15 +422,17 @@ class Pbxproj:
 
         o['files'].append(ref)
 
-    def add_source_ref_to_build_phase(self, ref, target):
+    def find_target(self, target):
         for o in self.objects.values():
             if o.get('isa', None) == 'PBXNativeTarget' and\
                     o.get('name', None) == target:
-                break
+                return o
         else:
             raise Exception("No src found.")
 
-        target_o = o
+    def add_source_ref_to_build_phase(self, ref, target):
+        target_o = self.find_target(target)
+
         for o in [self.objects[x] for x in target_o['buildPhases']]:
             if o.get('isa', None) == 'PBXSourcesBuildPhase':
                 break

@@ -43,6 +43,9 @@ class AppleiOSGenerator(Generator):
         path = os.path.join(deps_dir,
                             'GiellaKeyboard.xcodeproj', 
                             'project.pbxproj')
+        if not os.path.isfile(path):
+            logger.error("No Xcode project found. Did you use the correct repository?")
+            return
         pbxproj = Pbxproj(path)
 
         layouts = []
@@ -72,6 +75,10 @@ class AppleiOSGenerator(Generator):
         # Create locale strings
         self.create_locales(pbxproj, deps_dir)
 
+        # Set package ids properly
+        pbxproj.set_target_package_id("HostingApp", self._project.target('ios')['packageId'])
+        pbxproj.set_target_package_id("Keyboard", "%s.keyboard" % self._project.target('ios')['packageId'])
+
         # Update pbxproj with locales
         with open(path, 'w') as f:
             self.update_pbxproj(pbxproj, f)
@@ -79,12 +86,32 @@ class AppleiOSGenerator(Generator):
         # Generate icons for hosting app
         self.gen_hosting_app_icons(deps_dir)
 
+        # Add correct ids for entitlements
+        self.update_app_group_entitlements(deps_dir)
+
         if self.is_release:
             self.build_release(base, deps_dir, build_dir)
         else:
             self.build_debug(base, deps_dir)
             logger.info("You may now open '%s/GiellaKeyboard.xcodeproj'." %\
                     deps_dir)
+
+    def _update_app_group_entitlements(self, group_id, subpath, deps_dir):
+        plist_path = os.path.join(deps_dir, subpath)
+        with open(plist_path, 'rb') as f:
+            plist = plistlib.load(f, dict_type=OrderedDict)
+            plist["com.apple.security.application-groups"] = [group_id]        
+        with open(plist_path, 'wb') as f:
+            plistlib.dump(plist, f)
+
+    def update_app_group_entitlements(self, deps_dir):
+        group_id = "group.%s" % self._project.target('ios')['packageId']
+        logger.info("Setting app group to %s" % group_id)
+
+        self._update_app_group_entitlements(group_id, 
+            "HostingApp/HostingApp.entitlements", deps_dir)
+        self._update_app_group_entitlements(group_id, 
+            "Keyboard/Keyboard.entitlements", deps_dir)
 
     def ensure_xcode_version(self):
         if shutil.which('xcodebuild') is None:
@@ -341,22 +368,26 @@ class AppleiOSGenerator(Generator):
         f.write(str(pbxproj))
 
     def update_kbd_plist(self, plist, f):
-        bundle_id = "%s.keyboard" % self._project.target('ios')['packageId']
+        pkg_id = self._project.target('ios')['packageId']
+        bundle_id = "%s.keyboard" % pkg_id
         
         plist['CFBundleName'] = self._project.target('ios')['bundleName']
         plist['CFBundleDisplayName'] = self._project.target('ios')['bundleName']
-        plist['CFBundleIdentifier'] = bundle_id
         plist['CFBundleShortVersionString'] = self._project.version
         plist['CFBundleVersion'] = self._project.build
+        plist['LSApplicationQueriesSchemes'][0] = pkg_id
 
         plistlib.dump(plist, f)
 
     def update_plist(self, plist, f):
+        pkg_id = self._project.target('ios')['packageId']
+
         plist['CFBundleName'] = self._project.target('ios')['bundleName']
         plist['CFBundleDisplayName'] = self._project.target('ios')['bundleName']
-        plist['CFBundleIdentifier'] = self._project.target('ios')['packageId']
         plist['CFBundleShortVersionString'] = self._project.version
         plist['CFBundleVersion'] = self._project.build
+        plist['CFBundleURLTypes'][0]['CFBundleURLSchemes'][0] = pkg_id
+        plist['LSApplicationQueriesSchemes'][0] = pkg_id
 
         plistlib.dump(plist, f)
 
