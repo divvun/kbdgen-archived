@@ -67,6 +67,10 @@ class AndroidGenerator(Generator):
 
         self.native_locale_workaround(base)
 
+        dsn = self._project.target('android').get('sentryDsn', None)
+        if dsn is not None:
+            self.add_sentry_dsn(dsn, base)
+
         styles = [
             ('phone', 'xml'),
             ('tablet', 'xml-sw600dp')
@@ -364,6 +368,22 @@ class AndroidGenerator(Generator):
         SubElement(node, 'item').text = kbd.locale
 
         SubElement(tree.getroot(), 'string', name="subtype_in_root_locale_%s" % kbd.locale).text = kbd.display_names[kbd.locale]
+
+        with open(fn, 'w') as f:
+            f.write(self._tostring(tree.getroot()))
+    
+    def add_sentry_dsn(self, dsn, base):
+        res_dir = os.path.join(base, 'deps', self.REPO, "app/src/main/res")
+        fn = os.path.join(res_dir, 'values', 'donottranslate.xml')
+
+        logger.info("Adding Sentry DSN to '%s'..." % f)
+
+        with open(fn) as f:
+            tree = etree.parse(f)
+
+        # Add to exception keys
+        node = tree.xpath("string[@name='sentry_dsn']")[0]
+        node.text = dsn
 
         with open(fn, 'w') as f:
             f.write(self._tostring(tree.getroot()))
