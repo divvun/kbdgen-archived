@@ -376,7 +376,7 @@ class AndroidGenerator(Generator):
         res_dir = os.path.join(base, 'deps', self.REPO, "app/src/main/res")
         fn = os.path.join(res_dir, 'values', 'donottranslate.xml')
 
-        logger.info("Adding Sentry DSN to '%s'..." % f)
+        logger.info("Adding Sentry DSN to '%s'..." % fn)
 
         with open(fn) as f:
             tree = etree.parse(f)
