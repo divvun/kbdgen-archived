@@ -620,26 +620,33 @@ class AndroidGenerator(Generator):
     def add_rows(self, kbd, n, values, style, out):
         i = 1
 
-        self.add_special_buttons(kbd, n, style, values, out, True)
+        show_layout_hints_first = kbd.target("android").get("showNumberHints", False)
 
+        self.add_special_buttons(kbd, n, style, values, out, True)
+        
         for key in values:
             more_keys = kbd.get_longpress(key)
-
             node = self._subelement(out, "Key", keySpec=key)
-            if n == 1:
-                if i > 0 and i <= 10:
-                    if i == 10:
-                        i = 0
-                    self._attrib(node,
-                            keyHintLabel=str(i),
-                            additionalMoreKeys=str(i))
-                    if i > 0:
-                        i += 1
-                elif more_keys is not None:
-                    self._attrib(node, keyHintLabel=more_keys[0])
 
-            elif more_keys is not None:
+            # If top row, and between 0 and 9 keys, show numeric hint
+            is_numeric = n == 1 and i > 0 and i <= 10
+            show_glyph_hint = show_layout_hints_first and more_keys is not None
+            
+            if is_numeric:
+                # Handle 0 being last on a keyboard case
+                if i == 10:
+                    i = 0
+                self._attrib(node,
+                    additionalMoreKeys=str(i))
+
+                if not show_layout_hints_first:
+                    self._attrib(node, keyHintLabel=str(i))
+            
+            if show_glyph_hint:
                 self._attrib(node, keyHintLabel=more_keys[0])
+            
+            if i > 0:
+                i += 1
 
             if more_keys is not None:
                 self._attrib(node, moreKeys=','.join(more_keys))
