@@ -620,7 +620,7 @@ class AndroidGenerator(Generator):
     def add_rows(self, kbd, n, values, style, out):
         i = 1
 
-        show_layout_hints_first = kbd.target("android").get("showNumberHints", False)
+        show_number_hints = kbd.target("android").get("showNumberHints", True)
 
         self.add_special_buttons(kbd, n, style, values, out, True)
         
@@ -630,8 +630,13 @@ class AndroidGenerator(Generator):
 
             # If top row, and between 0 and 9 keys, show numeric hint
             is_numeric = n == 1 and i > 0 and i <= 10
-            show_glyph_hint = show_layout_hints_first and more_keys is not None
+            show_glyph_hint = more_keys is not None
             
+            if show_glyph_hint:
+                self._attrib(node,
+                    keyHintLabel=more_keys[0],
+                    moreKeys=','.join(more_keys))
+
             if is_numeric:
                 # Handle 0 being last on a keyboard case
                 if i == 10:
@@ -639,17 +644,11 @@ class AndroidGenerator(Generator):
                 self._attrib(node,
                     additionalMoreKeys=str(i))
 
-                if not show_layout_hints_first:
+                if show_number_hints:
                     self._attrib(node, keyHintLabel=str(i))
-            
-            if show_glyph_hint:
-                self._attrib(node, keyHintLabel=more_keys[0])
             
             if i > 0:
                 i += 1
-
-            if more_keys is not None:
-                self._attrib(node, moreKeys=','.join(more_keys))
 
         self.add_special_buttons(kbd, n, style, values, out, False)
 
