@@ -216,7 +216,7 @@ class WindowsGenerator(Generator):
             if native_locale.getLCID() == 0 and layout.target("win").get("locale", None) is None:
                 logger.error(dedent("""\
                 Layout '%s' specifies a locale not recognised by Windows.
-                To solve this issue, provide the ISO 639-3 code plus the written script of the language in BCP 47 format:
+                To solve this issue, insert the below into the relevant layout file with the ISO 639-3 code plus the written script of the language in BCP 47 format:
 
                 targets:
                   win:
@@ -425,7 +425,10 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
             language_code = layout.target("win").get("locale", layout.locale)
             locale = icu.Locale(language_code)
             language_name = layout.target("win").get("languageName", locale.getDisplayName())
-            logger.info("Using language name '%s' for layout '%s'" % (language_name, layout.internal_name))
+            if language_name == layout.target("win").get("languageName", None):
+                logger.info("Using language name '%s' for layout '%s'." % (language_name, layout.internal_name))
+            else:
+                logger.info("Using language name '%s' for layout '%s'; this can be overridden by providing a value for targets.win.languageName in the relevant layout file." % (language_name, layout.internal_name))
             guid_str = "{%s}" % str(guid(kbd_id))
 
             run_scr.write('Filename: "{app}\\kbdi.exe"; Parameters: "install')
