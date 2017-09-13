@@ -56,7 +56,7 @@ class AndroidGenerator(Generator):
             xml_declaration=True, encoding='utf-8').decode()
 
     def generate(self, base='.'):
-        if not self.sanity_checks():
+        if not self.sanity_check():
             return
 
         if self.dry_run:
@@ -64,7 +64,6 @@ class AndroidGenerator(Generator):
             return
 
         self.get_source_tree(base)
-
         self.native_locale_workaround(base)
 
         dsn = self._project.target('android').get('sentryDsn', None)
@@ -127,7 +126,10 @@ class AndroidGenerator(Generator):
 
             self.update_locale_exception(kbd, base)
 
-    def sanity_checks(self):
+    def sanity_check(self):
+        if super().sanity_check() is False:
+            return False
+        
         sane = True
 
         if self.is_release:

@@ -211,6 +211,9 @@ class WindowsGenerator(Generator):
             f.write(data)
 
     def sanity_check(self):
+        if super().sanity_check() is False:
+            return False
+        
         for layout in self.supported_layouts.values():
             native_locale = icu.Locale(layout.locale)
             if native_locale.getLCID() == 0 and layout.target("win").get("locale", None) is None:

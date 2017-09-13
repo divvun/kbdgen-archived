@@ -19,6 +19,9 @@ class AppleiOSGenerator(Generator):
         if not self.ensure_xcode_version():
             return
 
+        if not self.sanity_check():
+            return
+
         #if not self.ensure_ios_autotools():
         #    return
 

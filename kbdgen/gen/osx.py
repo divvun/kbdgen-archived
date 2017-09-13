@@ -22,8 +22,12 @@ class OSXGenerator(PhysicalGenerator):
         return "disable-transforms" in self._args["flags"]
 
     def generate(self, base='.'):
+        if not self.sanity_check():
+            return
+        
         self.build_dir = os.path.abspath(base)
 
+        # Flag used for debugging, not for general use and undocumented
         if self.disable_transforms:
             logger.critical("Dead keys and transforms will not be generated (disable-transforms)")
 

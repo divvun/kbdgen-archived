@@ -25,6 +25,9 @@ with open(filepath(__file__, 'bin', 'keysym.tsv')) as f:
 
 class XKBGenerator(Generator):
     def generate(self, base='.'):
+        if not self.sanity_check():
+            return
+        
         self.build_dir = os.path.abspath(base)
         os.makedirs(self.build_dir, exist_ok=True)
 

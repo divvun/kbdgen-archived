@@ -55,6 +55,15 @@ class Generator:
                 o[k] = v
         return o
 
+    def sanity_check(self) -> bool:
+        if len(self.supported_layouts) == 0:
+            logger.error("This project defines no supported layouts for this target.")
+            return False
+        else:
+            logger.debug("Supported layouts: %s" % ", ".join(self.supported_layouts))
+        
+        return True
+
 class PhysicalGenerator(Generator):
     def validate_layout(self, layout):
         # TODO finish cls-based validate_layout
