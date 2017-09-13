@@ -195,21 +195,15 @@ styles:
       backspace: [3, right, fill]
 ```
 
-There is also the ability to supply Android-specific target information in a
-keyboard using the `targets` -> `android` notation. Currently, only the key
-`minimumSdk` is supported, which allows for generating a keyboard only for
-a certain SDK and above.
+### Target-specific configuration
 
-[Click here for Android documentation on API versions compared to OS version](https://source.android.com/source/build-numbers.html)
+Under the `targets.android` tree, the following properties are supported:
+
+- `minimumSdk`: the API level that is the minimum supported for a keyboard. Useful for limiting access to a keyboard where it is known several glyphs are missing on older devices. [Click here for Android documentation on API versions compared to OS version](https://source.android.com/source/build-numbers.html).
+- `showNumberHints`: defines where or not the number hints are shown on the top row of keys. When set to `false`, no number hints will be shown and any long press keys defined will be shown in their place. Defaults to `true`.
 
 Note: the lowest API supported by this keyboard is API 16, but it *may* work
 on older variants.
-
-```yaml
-targets:
-  android:
-    minimumSdk: 21
-```
 
 # Generating keystores
 
