@@ -8,10 +8,12 @@ import shutil
 import concurrent.futures
 import uuid
 
+from pathlib import Path
 from distutils.dir_util import copy_tree
 from textwrap import dedent
 
 from .. import get_logger
+from ..downloader import Downloader
 from .base import *
 from ..cldr import decode_u
 
@@ -154,6 +156,15 @@ inno_langs = {
 }
 
 class WindowsGenerator(Generator):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.cache = Downloader()
+
+    def get_or_download_kbdi(self):
+        kbdi_sha256 = "440209182f9c6015b53616578dba77b83cc1f4a2969d127d8da5d609d297157c"
+        kbdi_url = "https://github.com/bbqsrc/kbdi/releases/download/v0.2.0/kbdi.exe"
+        return self.cache.download(kbdi_url, kbdi_sha256)
+
     def generate(self, base='.'):
         outputs = OrderedDict()
 
@@ -188,7 +199,12 @@ class WindowsGenerator(Generator):
         executor.shutdown()
 
         if self.is_release:
-            shutil.copyfile(os.environ["KBDI"], os.path.join(build_dir, "kbdi.exe"))
+            try:
+                kbdi = self.get_or_download_kbdi()
+            except Exception as e:
+                logger.critical(e)
+                return
+            shutil.copyfile(kbdi, os.path.join(build_dir, "kbdi.exe"))
             self.generate_inno_script(build_dir)
             self.copy_nlp_files(build_dir)
             self.build_installer(build_dir)
@@ -240,11 +256,6 @@ class WindowsGenerator(Generator):
         v_chunks = [int(x) for x in out.decode().split("-").pop().split(".")]
         if v_chunks[0] < 2 or (v_chunks[0] == 2 and v_chunks[1]) < 10:
             logger.warn("Builds are not known to succeed with Wine versions less than 2.10; here be dragons.")
-
-        # Check for KBDI
-        if os.environ.get("KBDI", None) is None:
-            logger.error("KBDI environment variable must point to the kbdi.exe executable.")
-            return False
 
         # Check for INNO_PATH
         if os.environ.get("INNO_PATH", None) is None:
