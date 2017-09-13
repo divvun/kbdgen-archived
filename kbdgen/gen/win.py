@@ -13,7 +13,7 @@ from distutils.dir_util import copy_tree
 from textwrap import dedent
 
 from .. import get_logger
-from ..downloader import Downloader
+from ..filecache import FileCache
 from .base import *
 from ..cldr import decode_u
 
@@ -158,7 +158,7 @@ inno_langs = {
 class WindowsGenerator(Generator):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.cache = Downloader()
+        self.cache = FileCache()
 
     def get_or_download_kbdi(self):
         kbdi_sha256 = "440209182f9c6015b53616578dba77b83cc1f4a2969d127d8da5d609d297157c"

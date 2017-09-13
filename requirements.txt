@@ -3,3 +3,4 @@ PyICU
 PyYAML
 PycURL
 homura
+requests

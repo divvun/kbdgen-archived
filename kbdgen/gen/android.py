@@ -5,11 +5,14 @@ import sys
 import glob
 from collections import defaultdict
 from textwrap import dedent, indent
+from pathlib import Path
 
 from lxml import etree
 from lxml.etree import Element, SubElement
+import tarfile
 
 from .base import *
+from ..filecache import FileCache
 from .. import boolmap, get_logger
 
 logger = get_logger(__file__)
@@ -55,6 +58,10 @@ class AndroidGenerator(Generator):
         return etree.tostring(tree, pretty_print=True,
             xml_declaration=True, encoding='utf-8').decode()
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.cache = FileCache()
+
     def generate(self, base='.'):
         if not self.sanity_check():
             return
@@ -62,6 +69,10 @@ class AndroidGenerator(Generator):
         if self.dry_run:
             logger.info("Dry run completed.")
             return
+
+        deps_dir = os.path.join(base, 'deps')
+        self.repo_dir = Path(os.path.join(deps_dir, self.REPO))
+        os.makedirs(deps_dir, exist_ok=True)
 
         self.get_source_tree(base)
         self.native_locale_workaround(base)
@@ -99,20 +110,14 @@ class AndroidGenerator(Generator):
             self.update_strings_xml(kbd, base)
 
         self.update_method_xmls(layouts, base)
-
         files.append(self.create_gradle_properties(self.is_release))
-
         self.save_files(files, base)
 
         # Add zhfst files if found
         self.add_zhfst_files(base)
-
         self.update_dict_authority(base)
-
         self.update_localisation(base)
-
         self.generate_icons(base)
-
         self.build(base, self.is_release)
 
     def native_locale_workaround(self, base):
@@ -306,16 +311,31 @@ class AndroidGenerator(Generator):
                 # TODO throw exception instead.
                 sys.exit(process.returncode)
 
+    def _gradle(self, *args):
+        run_process(['./gradlew'] + list(args), cwd=self.repo_dir, show_output=True)
 
     def build(self, base, release_mode=True):
-        logger.info("Building...")
-        cmd = ['./gradlew', 'clean', 'assembleRelease' if release_mode else 'assembleDebug']
-        process = subprocess.Popen(cmd, cwd=os.path.join(base, 'deps', self.REPO))
-        process.wait()
+        # TODO: make id unique per sha
+        tree_id = "giella-ime"
+        tree_base = lambda x: "app/build/intermediates/ndkBuild/%s" % x
 
-        if process.returncode != 0:
-            logger.error("Application ended with error code %s." % process.returncode)
-            sys.exit(process.returncode)
+        if release_mode:
+            if not self.cache.inject_directory_tree(tree_id, tree_base("release"), self.repo_dir):
+                logger.info("Building native components…")
+                self._gradle("generateJsonModelRelease", "externalNativeBuildRelease")
+                self.cache.save_directory_tree(tree_id, self.repo_dir, tree_base("release"))
+            else:
+                logger.info("Native components copied from cache.")
+        else:
+            if not self.cache.inject_directory_tree(tree_id, tree_base("debug"), self.repo_dir):
+                logger.info("Building native components…")
+                self._gradle("generateJsonModelDebug", "externalNativeBuildDebug")
+                self.cache.save_directory_tree(tree_id, self.repo_dir, tree_base("debug"))
+            else:
+                logger.info("Native components copied from cache.")
+        
+        logger.info("Building keyboards…")
+        self._gradle('assembleRelease' if release_mode else 'assembleDebug')
 
         if not release_mode:
             suffix = "debug.apk"
@@ -331,8 +351,6 @@ class AndroidGenerator(Generator):
         os.makedirs(base, exist_ok=True)
 
         shutil.copy(os.path.join(path, fn), out_fn)
-
-        logger.info("Done!")
 
     def _str_xml(self, val_dir, name, subtype):
         os.makedirs(val_dir, exist_ok=True)
@@ -457,18 +475,18 @@ class AndroidGenerator(Generator):
                 logger.info("Creating '%s'..." % k)
                 f.write(v)
 
-    def get_source_tree(self, base):
-        deps_dir = os.path.join(base, 'deps')
-        os.makedirs(deps_dir, exist_ok=True)
+    def get_source_tree(self, base, repo="divvun/giella-ime", branch="master"):
+        """Downloads the IME source from Github as a tarball, then extracts to deps dir."""
+        logger.info("Getting source files…")
 
-        logger.info("Preparing dependencies...")
-
-        repo_dir = os.path.join(deps_dir, self.REPO)
-
-        if os.path.isdir(repo_dir):
-            git_update(repo_dir, self.branch, base, logger=logger.info)
-        else:
-            git_clone(self.repo, repo_dir, self.branch, base, logger=logger.info)
+        deps_dir = Path(os.path.join(base, 'deps'))
+        shutil.rmtree(str(deps_dir), ignore_errors=True)
+        deps_dir.mkdir()
+        
+        tarball = self.cache.download_latest_from_github(repo, branch)
+        tarfile.open(tarball).extractall(deps_dir)
+        target = [x for x in deps_dir.iterdir() if x.is_dir()][0]
+        Path(target).rename(deps_dir / self.REPO)
 
     def create_gradle_properties(self, release_mode=False):
         o = OrderedDict()

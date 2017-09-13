@@ -184,16 +184,21 @@ class DictWalker:
         # Run iterator to death
         for _ in self: pass
 
-def run_process(cmd, cwd=None):
+def run_process(cmd, cwd=None, show_output=False):
     process = subprocess.Popen(cmd, cwd=cwd,
-                stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+                stderr=None if show_output else subprocess.PIPE,
+                stdout=None if show_output else subprocess.PIPE)
 
-    out, err = process.communicate()
+    if show_output:
+        process.wait()
+        return None, None
+    else:
+        out, err = process.communicate()
 
-    if process.returncode != 0:
-        logger.error(err.decode())
-        logger.error("Application ended with error code %s." % (
-                process.returncode))
-        sys.exit(process.returncode)
-    
-    return out, err
+        if process.returncode != 0:
+            logger.error(err.decode())
+            logger.error("Application ended with error code %s." % (
+                    process.returncode))
+            sys.exit(process.returncode)
+        
+        return out, err
