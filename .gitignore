@@ -2,3 +2,6 @@ __pycache__
 build
 deps
 *.pyc
+.vscode
+.envrc
+
