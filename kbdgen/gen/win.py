@@ -144,10 +144,12 @@ def win_filter(*args, force=False):
 
     return tuple(wf(i) for i in args)
 
-def win_ligature(v):
+# Grapheme clusters are known as 'ligatures' in Microsoft jargon.
+# This naming is terrible so we're going to use glyphbomb instead.
+def win_glyphbomb(v):
     o = tuple('%04x' % ord(c) for c in decode_u(v))
     if len(o) > 4:
-        raise Exception('Ligatures cannot be longer than 4 codepoints.')
+        raise Exception('Glyphbombs ("grapheme clusters") cannot be longer than 4 codepoints.')
     return o
 
 inno_langs = {
@@ -527,8 +529,8 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
         caps = mode_iter(layout, 'iso-caps')
         caps_shift = mode_iter(layout, 'iso-caps+shift')
 
-        # Hold all the ligatures
-        ligatures = []
+        # Hold all the glyphbombs
+        glyphbombs = []
 
         for (sc, vk, c0, c1, c2, c6, c7, cap, scap, acap) in zip(
                 WIN_KEYMAP.values(), WIN_VK_MAP.values(), col0, col1, col2,
@@ -549,7 +551,7 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
                 vk += "\t"
             buf.write("%s\t%s\t%s" % (sc, vk, cap_mode))
 
-            # n is the col number for ligatures.
+            # n is the col number for glyphbombs.
             for n, mode, key in ((0, 'iso-default', c0),
                                  (1, 'iso-shift', c1),
                                  (2, 'iso-ctrl', c2),
@@ -559,7 +561,7 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
                 filtered = decode_u(key or '')
                 if key is not None and len(filtered) > 1:
                     buf.write("\t%%")
-                    ligatures.append((filtered, (vk, str(n)) + win_ligature(key)))
+                    glyphbombs.append((filtered, (vk, str(n)) + win_glyphbomb(key)))
                 else:
                     buf.write("\t%s" % win_filter(key))
                     if key in layout.dead_keys.get(mode, []):
@@ -568,13 +570,13 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
             buf.write("\t// %s %s %s %s %s\n" % (c0, c1, c2, c6, c7))
 
             if cap_mode == "SGCap":
-                if cap is not None and len(win_ligature(cap)) > 1:
+                if cap is not None and len(win_glyphbomb(cap)) > 1:
                     cap = None
-                    logger.warning("Caps key '%s' too long for Caps Mode.")
+                    logger.error("Caps key '%s' is a glyphbomb and cannot be used in Caps Mode." % cap)
 
-                if scap is not None and len(win_ligature(scap)) > 1:
+                if scap is not None and len(win_glyphbomb(scap)) > 1:
                     scap = None
-                    logger.warning("Caps+Shift key '%s' too long for Caps Mode.")
+                    logger.error("Caps+Shift key '%s' is a glyphbomb and cannot be used in Caps Mode." % cap)
 
                 buf.write("-1\t-1\t\t0\t%s\t%s\t\t\t\t// %s %s\n" % (
                     win_filter(cap, scap) + (cap, scap)))
@@ -598,12 +600,12 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
         buf.write("53\tDECIMAL\t\t0\t%s\t%s\t-1\t-1\t-1\n\n" % win_filter(
             decimal, decimal))
 
-        # Ligatures!
-        if len(ligatures) > 0:
+        # Glyphbombs!
+        if len(glyphbombs) > 0:
             buf.write("LIGATURE\n\n")
             buf.write("//VK_\tMod#\tChr0\tChr1\tChr2\tChr3\n")
             buf.write("//----\t----\t----\t----\t----\t----\n\n")
-            for original, col in ligatures:
+            for original, col in glyphbombs:
                 more_tabs = len(col)-7
                 buf.write("%s\t\t%s%s\t// %s\n" % (col[0],
                     "\t".join(col[1:]),
