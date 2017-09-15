@@ -41,7 +41,7 @@ class OSXGenerator(PhysicalGenerator):
                         layout.internal_name, e))
                 continue
 
-            logger.info("Generating '%s'..." % name)
+            logger.info("Generating '%s'…" % name)
             o[name] = self.generate_xml(layout)
 
         if self.dry_run:
@@ -51,7 +51,7 @@ class OSXGenerator(PhysicalGenerator):
         if os.path.exists(self.build_dir):
             shutil.rmtree(self.build_dir)
 
-        logger.info("Creating bundle...")
+        logger.info("Creating bundle…")
         bundle_path = self.create_bundle(self.build_dir)
         res_path = os.path.join(bundle_path, "Contents", "Resources")
 
@@ -72,11 +72,11 @@ class OSXGenerator(PhysicalGenerator):
 
         self.write_localisations(res_path, translations)
 
-        logger.info("Creating installer...")
+        logger.info("Creating installer…")
         pkg_path = self.create_installer(bundle_path)
 
         if self.is_release:
-            logger.info("Signing installer...")
+            logger.info("Signing installer…")
             self.sign_installer(pkg_path)
 
         logger.info("Done!")

@@ -117,7 +117,7 @@ class AppleiOSGenerator(Generator):
 
     def update_app_group_entitlements(self, deps_dir):
         group_id = "group.%s" % self._project.target('ios')['packageId']
-        logger.info("Setting app group to %s" % group_id)
+        logger.info("Setting app group to '%s'…" % group_id)
 
         self._update_app_group_entitlements(group_id, 
             "HostingApp/HostingApp.entitlements", deps_dir)
@@ -210,9 +210,9 @@ class AppleiOSGenerator(Generator):
                 xcarchive, ipa, plist, provisioning_profile_id)
 
         for cmd, msg in (
-                (cmd1, "Building .xcarchive..."),
-                (cmd0, "Generating opts.plist..."),
-                (cmd2, "Building .ipa and signing..."),
+                (cmd1, "Building .xcarchive…"),
+                (cmd0, "Generating opts.plist…"),
+                (cmd2, "Building .ipa and signing…"),
             ):
 
             logger.info(msg)
@@ -274,7 +274,7 @@ class AppleiOSGenerator(Generator):
             obj['filename'] = fn
             cmd = cmd_tmpl.format(h=h, w=w, src=icon, out=os.path.join(path, fn))
 
-            logger.info("Creating '%s' from '%s'..." % (fn, icon))
+            logger.info("Creating '%s' from '%s'…" % (fn, icon))
 
             # TODO create generic `launch_process` util func
             process = subprocess.Popen(cmd, shell=True,

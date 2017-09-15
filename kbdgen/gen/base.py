@@ -112,7 +112,7 @@ def mode_dict(keyboard, key, required=False, space=False):
     return mode
 
 def git_update(dst, branch, clean, cwd='.', logger=print):
-    msg = "Updating repository '%s'..." % dst
+    msg = "Updating repository '%s'…" % dst
     logger(msg)
 
     cmd = """git reset --hard &&
@@ -135,7 +135,7 @@ def git_update(dst, branch, clean, cwd='.', logger=print):
     process.wait()
 
 def git_clone(src, dst, branch, clean, cwd='.', logger=print):
-    msg = "Cloning repository '%s' to '%s'..." % (src, dst)
+    msg = "Cloning repository '%s' to '%s'…" % (src, dst)
     logger(msg)
 
     cmd = ['git', 'clone', src, dst]

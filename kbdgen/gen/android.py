@@ -203,7 +203,7 @@ class AndroidGenerator(Generator):
 
     def update_dict_authority(self, base):
         auth = "%s.dictionarypack" % self._project.target('android')['packageId']
-        logger.info("Updating dict authority string to '%s'..." % auth)
+        logger.info("Updating dict authority string to '%s'…" % auth)
 
         self._update_dict_auth_xml(auth, base)
         self._update_dict_auth_java(auth, base)
@@ -248,7 +248,7 @@ class AndroidGenerator(Generator):
             f.write(self._tostring(tree))
 
     def _upd_locale(self, d, values):
-        logger.info("Updating localisation for %s..." % d)
+        logger.info("Updating localisation for %s…" % d)
 
         fn = os.path.join(d, "strings-appname.xml")
         node = None
@@ -347,7 +347,7 @@ class AndroidGenerator(Generator):
         out_fn = os.path.join(base, "%s-%s_%s" % (
             self._project.internal_name, self._project.version, suffix))
 
-        logger.info("Copying '%s' -> '%s'..." % (fn, out_fn))
+        logger.info("Copying '%s' -> '%s'…" % (fn, out_fn))
         os.makedirs(base, exist_ok=True)
 
         shutil.copy(os.path.join(path, fn), out_fn)
@@ -355,7 +355,7 @@ class AndroidGenerator(Generator):
     def _str_xml(self, val_dir, name, subtype):
         os.makedirs(val_dir, exist_ok=True)
         fn = os.path.join(val_dir, 'strings.xml')
-        logger.info("Updating '%s'..." % fn)
+        logger.info("Updating '%s'…" % fn)
 
         if not os.path.exists(fn):
             root = etree.XML("<resources/>")
@@ -375,7 +375,7 @@ class AndroidGenerator(Generator):
         res_dir = os.path.join(base, 'deps', self.REPO, "app/src/main/res")
         fn = os.path.join(res_dir, 'values', 'donottranslate.xml')
 
-        logger.info("Adding '%s' to '%s'..." % (kbd.locale, fn))
+        logger.info("Adding '%s' to '%s'…" % (kbd.locale, fn))
 
         with open(fn) as f:
             tree = etree.parse(f)
@@ -396,7 +396,7 @@ class AndroidGenerator(Generator):
         res_dir = os.path.join(base, 'deps', self.REPO, "app/src/main/res")
         fn = os.path.join(res_dir, 'values', 'donottranslate.xml')
 
-        logger.info("Adding Sentry DSN to '%s'..." % fn)
+        logger.info("Adding Sentry DSN to '%s'…" % fn)
 
         with open(fn) as f:
             tree = etree.parse(f)
@@ -442,7 +442,7 @@ class AndroidGenerator(Generator):
         base_layouts = layouts[None]
         del layouts[None]
 
-        logger.info("Updating 'res/xml/method.xml'...")
+        logger.info("Updating 'res/xml/method.xml'…")
         path = os.path.join(base, 'deps', self.REPO, "app/src/main/res", '%s')
         fn = os.path.join(path, 'method.xml')
 
@@ -463,7 +463,7 @@ class AndroidGenerator(Generator):
 
         for api_ver, kbds in layouts.items():
             xmlv = "xml-v%s" % api_ver
-            logger.info("Updating 'res/%s/method.xml'..." % xmlv)
+            logger.info("Updating 'res/%s/method.xml'…" % xmlv)
             os.makedirs(path % xmlv, exist_ok=True)
             with open(fn % xmlv, 'w') as f:
                 f.write(self.gen_method_xml(kbds, copy.deepcopy(tree)))
@@ -472,7 +472,7 @@ class AndroidGenerator(Generator):
         fn = os.path.join(base, 'deps', self.REPO)
         for k, v in files:
             with open(os.path.join(fn, k), 'w') as f:
-                logger.info("Creating '%s'..." % k)
+                logger.info("Creating '%s'…" % k)
                 f.write(v)
 
     def get_source_tree(self, base, repo="divvun/giella-ime", branch="master"):
