@@ -103,11 +103,11 @@ class FileCache:
         filename = "%s-%s.tgz" % (repo.replace("/", "-"), sha)
         candidate = self.cache_dir / filename
         if self.is_cached_valid(filename, None):
-            return candidate
+            return str(candidate)
         download_url = "https://api.github.com/repos/{repo}/tarball/{branch}".format(repo=repo, branch=branch)
         logger.debug("Download URL: %s" % download_url)
         with tempfile.TemporaryDirectory() as tmpdir:
             fp = os.path.join(tmpdir, filename)
             stream_download(download_url, filename, fp)
             Path(fp).rename(candidate)
-        return candidate
+        return str(candidate)
