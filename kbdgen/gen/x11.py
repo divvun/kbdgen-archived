@@ -40,6 +40,7 @@ class XKBGenerator(Generator):
         xcompose_fn = os.path.join(self.build_dir, "%s.xcompose" % (
             self._project.internal_name))
 
+        # First char in Supplemental Private Use Area-A
         self.surrogate = 0xF0000
         self.xkb = open(xkb_fn, 'w')
         self.xcompose = open(xcompose_fn, 'w')
@@ -67,8 +68,6 @@ class XKBGenerator(Generator):
         return keysym_to_str.get(o, "U%04X" % o)
 
     def write_nonsense(self, name, layout):
-        # First char in Supplemental Private Use Area-A
-
         buf = self.xkb
         ligs = self.xcompose
 
