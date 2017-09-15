@@ -33,7 +33,7 @@ class AppleiOSGenerator(Generator):
         tarball = self.cache.download_latest_from_github(repo, branch)
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            tarfile.open(tarball).extractall(tmpdir)
+            tarfile.open(tarball, 'r:gz').extractall(tmpdir)
             target = [x for x in Path(tmpdir).iterdir() if x.is_dir()][0]
             Path(target).rename(deps_dir)
 
