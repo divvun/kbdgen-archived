@@ -64,12 +64,13 @@ class FileCache:
     def save_directory_tree(self, id: str, basepath: str, tree: str):
         src = Path(basepath) / tree
         target = self.cache_dir / id / tree
+        target.mkdir(parents=True, exist_ok=True)
         shutil.rmtree(target, ignore_errors=True)
-        target.mkdir()
         shutil.copytree(src, target)
 
     def inject_directory_tree(self, id: str, tree: str, base_target: str) -> bool:
         src = self.cache_dir / id / tree
+        # TODO: this does not check if the directory has even a single file in it...
         if not src.exists():
             return False
         target = Path(base_target) / Path(tree).parent
