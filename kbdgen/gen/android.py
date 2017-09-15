@@ -64,6 +64,7 @@ class AndroidGenerator(Generator):
 
     def generate(self, base='.'):
         if not self.sanity_check():
+            logger.error("Sanity checks failed; aborting.")
             return
 
         if self.dry_run:
@@ -163,13 +164,14 @@ class AndroidGenerator(Generator):
 
             for mode, rows in kbd.modes.items():
                 for n, row in enumerate(rows):
-                    if len(row) > 11:
+                    if len(row) > 12:
                         logger.warning(("[%s] row %s has %s keys. It is " +\
-                               "recommended to have less than 12 keys per " +\
+                               "recommended to have 12 keys or less per " +\
                                "row.") % (name, n+1, len(row)))
             for api_v in [16, 19, 21, 23]:
-                self.detect_unavailable_glyphs_long_press(kbd, api_v)
-        
+                if not self.detect_unavailable_glyphs(kbd, api_v):
+                    sane = False
+
         return sane
 
     def _update_dict_auth_xml(self, auth, base):
@@ -672,25 +674,36 @@ class AndroidGenerator(Generator):
 
         self.add_special_buttons(kbd, n, style, values, out, False)
 
-    def detect_unavailable_glyphs_long_press(self, layout, api_ver):
+    def detect_unavailable_glyphs(self, layout, api_ver):
+        if layout.target('android').get('minimumSdk', 0) > api_ver:
+            return True
+
         glyphs = ANDROID_GLYPHS.get(api_ver, None)
+        has_error = False
+
         if glyphs is None:
             logger.warning(("no glyphs file found for API %s! Can't detect " +
                   "missing characters from Android font!") % api_ver)
             return
 
+        for mode_name, vals in layout.modes.items():
+            for v in vals:
+                for c in v:
+                    if glyphs[ord(c)] is False:
+                        logger.error(("[%s] Key '%s' (codepoint: U+%04X) "
+                                       "is not supported by API %s! Set minimumSdk "
+                                       "to suppress this error.") % (
+                            layout.internal_name,
+                            c, ord(c), api_ver))
+                        has_error = True
+
         for vals in layout.longpress.values():
             for v in vals:
                 for c in v:
                     if glyphs[ord(c)] is False:
-                        logger.warning(("[%s] '%s' (codepoint: U+%04X) " +
+                        logger.debug(("[%s] Long press key '%s' (codepoint: U+%04X) " +
                                        "is not supported by API %s!") % (
                             layout.internal_name,
                             c, ord(c), api_ver))
-
-    def detect_unavailable_glyphs_keys(self, key, api_ver):
-        glyphs = ANDROID_GLYPHS.get(api_ver, None)
-        if glyphs is None:
-            logger.warning("no glyphs file found for API %s! Can't detect " +
-                  "missing characters from Android font!" % api_ver)
-            return
+        
+        return not has_error
