@@ -43,7 +43,7 @@ class AppleiOSGenerator(Generator):
 
         if not self.sanity_check():
             return
-        
+
         if self.dry_run:
             logger.info("Dry run completed.")
             return
@@ -103,7 +103,7 @@ class AppleiOSGenerator(Generator):
         if self.is_release:
             self.build_release(base, deps_dir, build_dir)
         else:
-            self.build_debug(base, deps_dir)
+            # self.build_debug(base, deps_dir)
             logger.info("You may now open '%s/GiellaKeyboard.xcodeproj'." %\
                     deps_dir)
 
