@@ -1,6 +1,5 @@
 lxml
 PyICU
 PyYAML
-PycURL
-homura
 requests
+humanize

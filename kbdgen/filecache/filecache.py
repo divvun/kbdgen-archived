@@ -2,11 +2,11 @@ import sys
 import os
 import hashlib
 import requests
-from urllib.parse import urlparse
-from pathlib import Path, PosixPath
-from homura import download
 import tempfile
 import shutil
+import humanize
+from urllib.parse import urlparse
+from pathlib import Path, PosixPath
 
 from .. import get_logger
 
@@ -18,6 +18,26 @@ elif sys.platform.startswith("darwin"):
     default_cache_dir = Path(os.getenv("HOME")) / "Library" / "Caches" / "kbdgen"
 else:
     default_cache_dir = Path(os.getenv("HOME")) / ".cache" / "kbdgen"
+
+def stream_download(url: str, fn: str, output_file: str):
+    r = requests.get(url, stream=True)
+
+    with open(output_file, 'wb') as f:
+        max_size_raw = int(r.headers['content-length'])
+        max_size = humanize.naturalsize(max_size_raw)
+        i = 0
+        block_size = 1024
+
+        for block in r.iter_content(block_size):
+            if not block:
+                continue
+            f.write(block)
+            i = min(max_size_raw, i + block_size)
+            cur_size = humanize.naturalsize(i)
+            percent = "%.0f" % min(i / max_size_raw * 100.0, 100.0)
+            sys.stdout.write("%c[2K\r{}: {}/{} {}%%".format(fn, cur_size, max_size, percent) % 27)
+            sys.stdout.flush()
+        print()
 
 class FileCache:
     def __init__(self, cache_dir=default_cache_dir):
@@ -67,7 +87,7 @@ class FileCache:
         if self.is_cached_valid(filename, sha256sum):
             return candidate
         logger.info("Downloading '%s'…" % filename)
-        download(url=raw_url, path=str(candidate))
+        stream_download(raw_url, filename, str(candidate))
         if not self.is_cached_valid(filename, sha256sum):
             raise Exception("Cached file '%s' has failed integrity checks." % filename)
         return candidate
@@ -87,6 +107,6 @@ class FileCache:
         logger.debug("Download URL: %s" % download_url)
         with tempfile.TemporaryDirectory() as tmpdir:
             fp = os.path.join(tmpdir, filename)
-            download(url=download_url, path=fp)
+            stream_download(download_url, filename, fp)
             Path(fp).rename(candidate)
         return candidate
