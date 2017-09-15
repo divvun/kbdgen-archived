@@ -5,6 +5,7 @@ import requests
 from urllib.parse import urlparse
 from pathlib import Path, PosixPath
 from homura import download
+import tempfile
 import shutil
 
 from .. import get_logger
@@ -84,5 +85,8 @@ class FileCache:
             return candidate
         download_url = "https://api.github.com/repos/{repo}/tarball/{branch}".format(repo=repo, branch=branch)
         logger.debug("Download URL: %s" % download_url)
-        download(url=download_url, path=str(candidate))
+        with tempfile.TemporaryDirectory() as tmpdir:
+            fp = os.path.join(tmpdir, filename)
+            download(url=download_url, path=fp)
+            Path(fp).rename(candidate)
         return candidate
