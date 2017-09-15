@@ -4,9 +4,13 @@ import re
 import shutil
 import glob
 import multiprocessing
+import tarfile
+import tempfile
 from textwrap import dedent, indent
+from pathlib import Path
 
 from .. import get_logger
+from ..filecache import FileCache
 from .base import *
 from .osxutil import *
 
@@ -15,33 +19,37 @@ logger = get_logger(__file__)
 VERSION_RE = re.compile(r'Xcode (\d+)\.(\d+)')
 
 class AppleiOSGenerator(Generator):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.cache = FileCache()
+
+    def get_source_tree(self, base, repo="divvun/giellakbd-ios", branch="master"):
+        """Downloads the IME source from Github as a tarball, then extracts to deps dir."""
+        logger.info("Getting source files…")
+
+        deps_dir = Path(os.path.join(base, 'ios-build'))
+        shutil.rmtree(str(deps_dir), ignore_errors=True)
+
+        tarball = self.cache.download_latest_from_github(repo, branch)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tarfile.open(tarball).extractall(tmpdir)
+            target = [x for x in Path(tmpdir).iterdir() if x.is_dir()][0]
+            Path(target).rename(deps_dir)
+
     def generate(self, base='.'):
         if not self.ensure_xcode_version():
             return
 
         if not self.sanity_check():
             return
-
-        #if not self.ensure_ios_autotools():
-        #    return
-
-        if self.repo is None:
-            logger.error("No repository provided. Use the `-r` flag to provide a path to giellakbd-ios.")
-            sys.exit(1)
-
+        
         if self.dry_run:
             logger.info("Dry run completed.")
             return
 
-        build_dir = os.path.abspath(base)
-        deps_dir = os.path.join(build_dir, "ios-build")
-        os.makedirs(build_dir, exist_ok=True)
-
-        if os.path.isdir(deps_dir):
-            git_update(deps_dir, self.branch, False, base, logger=logger.info)
-        else:
-            git_clone(self.repo, deps_dir, self.branch, False, base,
-                  logger=logger.info)
+        self.get_source_tree(base)
+        deps_dir = Path(os.path.join(base, 'ios-build'))
 
         path = os.path.join(deps_dir,
                             'GiellaKeyboard.xcodeproj', 

@@ -54,7 +54,6 @@ class FileCache:
         target = Path(base_target) / Path(tree).parent
         os.makedirs(str(target), exist_ok=True)
         shutil.rmtree(target, ignore_errors=True)
-        #target.mkdir()
         logger.debug("Copying '%s' to '%s'" % (src, target))
         
         shutil.copytree(src, target)
@@ -84,5 +83,6 @@ class FileCache:
         if self.is_cached_valid(filename, None):
             return candidate
         download_url = "https://api.github.com/repos/{repo}/tarball/{branch}".format(repo=repo, branch=branch)
+        logger.debug("Download URL: %s" % download_url)
         download(url=download_url, path=str(candidate))
         return candidate
