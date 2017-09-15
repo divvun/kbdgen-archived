@@ -185,7 +185,7 @@ class DictWalker:
         for _ in self: pass
 
 def run_process(cmd, cwd=None, show_output=False):
-    process = subprocess.Popen(cmd, cwd=cwd,
+    process = subprocess.Popen(cmd, cwd=str(cwd) if cwd is not None else None,
                 stderr=None if show_output else subprocess.PIPE,
                 stdout=None if show_output else subprocess.PIPE)
 
