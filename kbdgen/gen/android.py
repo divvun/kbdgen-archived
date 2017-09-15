@@ -486,7 +486,7 @@ class AndroidGenerator(Generator):
         deps_dir.mkdir()
         
         tarball = self.cache.download_latest_from_github(repo, branch)
-        tarfile.open(tarball, 'r:gz').extractall(deps_dir)
+        tarfile.open(tarball, 'r:gz').extractall(str(deps_dir))
         target = [x for x in deps_dir.iterdir() if x.is_dir()][0]
         Path(target).rename(deps_dir / self.REPO)
 
