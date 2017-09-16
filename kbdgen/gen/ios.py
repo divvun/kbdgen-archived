@@ -49,7 +49,7 @@ class AppleiOSGenerator(Generator):
             return
 
         self.get_source_tree(base)
-        deps_dir = Path(os.path.join(base, 'ios-build'))
+        deps_dir = os.path.join(base, 'ios-build')
 
         path = os.path.join(deps_dir,
                             'GiellaKeyboard.xcodeproj', 
