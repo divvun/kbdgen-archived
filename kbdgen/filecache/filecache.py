@@ -84,11 +84,11 @@ class FileCache:
     def download(self, raw_url: str, sha256sum: str) -> str:
         url = urlparse(raw_url)
         filename = PosixPath(url.path).name
-        candidate = self.cache_dir / filename
+        candidate = str(self.cache_dir / filename)
         if self.is_cached_valid(filename, sha256sum):
             return candidate
         logger.info("Downloading '%s'…" % filename)
-        stream_download(raw_url, filename, str(candidate))
+        stream_download(raw_url, filename, candidate)
         if not self.is_cached_valid(filename, sha256sum):
             raise Exception("Cached file '%s' has failed integrity checks." % filename)
         return candidate
@@ -101,13 +101,13 @@ class FileCache:
 
         sha = repo_meta["sha"]
         filename = "%s-%s.tgz" % (repo.replace("/", "-"), sha)
-        candidate = self.cache_dir / filename
+        candidate = str(self.cache_dir / filename)
         if self.is_cached_valid(filename, None):
-            return str(candidate)
+            return candidate
         download_url = "https://api.github.com/repos/{repo}/tarball/{branch}".format(repo=repo, branch=branch)
         logger.debug("Download URL: %s" % download_url)
         with tempfile.TemporaryDirectory() as tmpdir:
             fp = os.path.join(tmpdir, filename)
             stream_download(download_url, filename, fp)
             Path(fp).rename(candidate)
-        return str(candidate)
+        return candidate
