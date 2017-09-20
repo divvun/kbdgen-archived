@@ -72,7 +72,7 @@ class AndroidGenerator(Generator):
             return
 
         deps_dir = os.path.join(base, 'deps')
-        self.repo_dir = Path(os.path.join(deps_dir, self.REPO))
+        self.repo_dir = os.path.join(deps_dir, self.REPO)
         os.makedirs(deps_dir, exist_ok=True)
 
         self.get_source_tree(base)
