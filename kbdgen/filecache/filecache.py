@@ -59,7 +59,7 @@ class FileCache:
         shutil.rmtree(target, ignore_errors=True)
         logger.debug("Copying '%s' to '%s'" % (src, target))
         
-        shutil.copytree(src, target)
+        shutil.copytree(str(src), str(target))
         return True
 
     def download(self, raw_url: str, sha256sum: str) -> str:
