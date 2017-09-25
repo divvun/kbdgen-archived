@@ -56,7 +56,7 @@ class FileCache:
             return False
         target = Path(base_target) / Path(tree).parent
         os.makedirs(str(target), exist_ok=True)
-        shutil.rmtree(target, ignore_errors=True)
+        shutil.rmtree(str(target), ignore_errors=True)
         logger.debug("Copying '%s' to '%s'" % (src, target))
         
         shutil.copytree(str(src), str(target))
