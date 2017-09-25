@@ -4,6 +4,7 @@ import os
 import os.path
 import re
 import sys
+import unicodedata
 from collections import OrderedDict, namedtuple
 
 from . import orderedyaml, log
@@ -325,7 +326,8 @@ class Parser:
         for layout in tree['layouts']:
             with open(os.path.join(tree_path, "%s.yaml" % layout)) as f:
                 try:
-                    kbdtree = orderedyaml.load(f)
+                    data = unicodedata.normalize("NFC", f.read())
+                    kbdtree = orderedyaml.loads(data)
                     l = self._parse_keyboard_descriptor(kbdtree)
                     layouts[l.internal_name] = l
                 except Exception as e:
@@ -336,11 +338,13 @@ class Parser:
 
         return Project(tree)
 
-    def parse(self, data, cfg_pairs=None, cfg_file=None):
+    def parse(self, f, cfg_pairs=None, cfg_file=None):
         tree = self._parse_global(cfg_file)
-        tree.update(orderedyaml.load(data))
+        # Compose all decomposed unicode codepoints
+        data = unicodedata.normalize("NFC", f.read())
+        tree.update(orderedyaml.loads(data))
 
-        tree['_path'] = os.path.dirname(os.path.abspath(data.name))
+        tree['_path'] = os.path.dirname(os.path.abspath(f.name))
 
         project = self._parse_project(tree)
         if cfg_pairs is not None:
