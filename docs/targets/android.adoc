@@ -1,4 +1,4 @@
-== Android
+=== Android
 
 The Android target uses a fork of the Android Open Source Project's `LatinIME`
 codebase to generate a custom keyboard for Android with the look and feel of the
@@ -8,14 +8,14 @@ The target will automatically download the https://github.com/divvun/giella-ime[
 dependency and cache it for future builds. The cache will automatically be invalidated upon
 an update to the repository.
 
-=== Requirements
+==== Requirements
 
 You will need:
 
 * http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html[JDK 8 or higher]
 * https://developer.android.com/studio/index.html#command-tools[Android SDK CLI Tools]
 
-=== Installation and environment configuration
+==== Installation and environment configuration
 
 WARNING: You will need about 2.6 GB of free space to install the Android SDK dependencies.
 
@@ -28,7 +28,7 @@ WARNING: You will need about 2.6 GB of free space to install the Android SDK dep
 
 You should save the `ANDROID_HOME` export into your `.profile` so the variable is set when your shell loads.
 
-=== Project-level configuration and properties
+==== Project-level configuration and properties
 
 // TODO: link to projects chapter
 As described in the Projects chapter, some targets may require project-level
@@ -79,7 +79,7 @@ targets:
     keyAlias: alias_specified_during_generation
 ----
 
-=== Layout-level configuration and properties
+==== Layout-level configuration and properties
 
 .Android layout properties
 [%autowidth.spread, cols="m,d,d,a", options="header"]
@@ -114,9 +114,9 @@ defined will be shown in their place.
 showNumberHints: true
 |===
 
-=== Testing
+==== Testing
 
-==== Testing on a device
+===== Testing on a device
 
 [NOTE]
 ====
@@ -132,7 +132,7 @@ for your specific device before continuing.
 If you receive an error about the package already being installed or signatures
 not matching, uninstall the package from the device first.
 
-=== Generating keystores
+==== Generating keystores
 
 CAUTION: Use ASCII characters only for your password if you value your sanity.
 

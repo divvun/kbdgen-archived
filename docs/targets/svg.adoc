@@ -1,4 +1,4 @@
-== SVG
+=== SVG
 
 This target exists for the purpose of visualising and debugging keyboard layouts
 during development. An HTML index file is generated, including all SVGs necessary

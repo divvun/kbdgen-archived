@@ -1,4 +1,4 @@
-== macOS
+=== macOS
 
 CAUTION: This section is incomplete.
 
@@ -6,7 +6,7 @@ The `osx` target generates a `.pkg` file, optionally codesigned, that installs a
 
 To sign the package, specify the `-R` flag while building.
 
-=== Requirements
+==== Requirements
 
 WARNING: This target can only be generated on a macOS system.
 
@@ -14,7 +14,7 @@ You need to install:
 
 * ImageMagick
 
-=== Project-level configuration and properties
+==== Project-level configuration and properties
 
 [source,yaml]
 ----
@@ -39,7 +39,7 @@ targets:
 
 Resources can be localised. Place readme, welcome, license and conclusion files into `zz.lproj` directories inside the resources directory, where `zz` represents a supported language code. Place the background image into the root of the resources directory.
 
-=== Layout-level configuration and properties
+==== Layout-level configuration and properties
 
 The macOS target supports a few custom modes to facilitate the differences between macOS keyboards and others. Particularly, the `cmd` key is macOS specific.
 

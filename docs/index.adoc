@@ -5,7 +5,7 @@ Brendan Molloy <brendan@bbqsrc.net>
 :page-layout!:
 :icons: font
 :toc: left
-:toclevels: 2
+:toclevels: 3
 :kbdgenversion: 0.5.0
 :pyversion: 3.4
 :sectlinks:
@@ -33,26 +33,26 @@ Please follow the warnings or errors that the `kbdgen` tool provides, and if som
 an issue on GitHub.
 ====
 
-= Introduction to kbdgen {kbdgenversion}
+== Introduction to kbdgen {kbdgenversion}
 
 include::intro.adoc[]
 
-= Installation
+== Installation
 
 include::install.adoc[]
 
-// = Quickstart
+// == Quickstart
 // include::quickstart.adoc[]
 
-= Projects
+== Projects
 
 include::files/project.adoc[]
 
-= Layouts
+== Layouts
 
 include::files/layout.adoc[]
 
-= Targets
+== Targets
 
 include::targets/android.adoc[]
 

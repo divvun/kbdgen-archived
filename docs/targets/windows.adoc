@@ -1,8 +1,8 @@
-== Windows
+=== Windows
 
-=== Preparing build environment
+==== Preparing build environment
 
-==== Building the Windows target on Unix-like operating systems
+===== Building the Windows target on Unix-like operating systems
 
 You will need to install:
 
@@ -22,7 +22,7 @@ Download and install the following dependencies into your wine prefix:
 
 Now when you generate the release version of the `win` target, an installer will be generated that is fully compatible with Windows systems.
 
-=== Limitations
+==== Limitations
 
 * Windows does not support Unicode glyphbombs ("grapheme clusters") in deadkeys, 
   but does support them as ordinary keys.
@@ -38,7 +38,7 @@ Now when you generate the release version of the `win` target, an installer will
   the file cannot be opened. Please report these files as bugs on GitHub for
   investigation.
 
-=== Mappings between modes in layout files and Windows keyboards
+==== Mappings between modes in layout files and Windows keyboards
 
 .Mappings from kbdgen modes to Windows keyboards
 iso-default:: Base keyboard

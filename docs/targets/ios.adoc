@@ -1,4 +1,4 @@
-== iOS
+=== iOS
 
 The iOS target uses a fork of the https://github.com/archagon/tasty-imitation-keyboard[`tasty-imitation-keyboard`] 
 project to generate a custom keyboard for iOS with the look and feel of the
@@ -8,7 +8,7 @@ The target will automatically download the https://github.com/divvun/giellakbd-i
 dependency and cache it for future builds. The cache will automatically be invalidated upon
 an update to the repository.
 
-=== Requirements
+==== Requirements
 
 You will need:
 
@@ -18,7 +18,7 @@ You will need:
 // TODO: will be needed once hfst-ospell-rust is integrated
 
 
-=== Project-level configuration and properties
+==== Project-level configuration and properties
 
 CAUTION: This section is incomplete. Please check the `examples/` directory in the `kbdgen` git repository
 for guidance.
@@ -36,7 +36,7 @@ properties in order to generate the target.
 
 |===
 
-=== Layout-level configuration and properties
+==== Layout-level configuration and properties
 
 CAUTION: This section is incomplete. Please check the `examples/` directory in the `kbdgen` git repository
 for guidance.
@@ -62,9 +62,9 @@ targets:
     aboutDir: path/to/about/files # Should contain {locale}.txt files
 ----
 
-=== Testing
+==== Testing
 
-==== Testing in a simulator
+===== Testing in a simulator
 
 [WARNING]
 ====

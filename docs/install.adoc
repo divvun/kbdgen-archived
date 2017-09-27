@@ -1,8 +1,8 @@
 WARNING: Each target may have separate requirements for generating and building the output that `kbdgen` provides. Please check the Installation section of your desired target before proceeding.
 
-== From Source
+=== From Source
 
-=== Unix-like (Linux, macOS, etc)
+==== Unix-like (Linux, macOS, etc)
 
 You will need Python {pyversion} or higher installed to continue. Use your operating system's package manager to install the `python3` package or equivalent.
 
@@ -17,7 +17,7 @@ pip install .
 You will also need to install `imagemagick` or icon generation (and therefore the build) will fail for several targets. On 
 macOS, this can be installed with MacPorts or Homebrew. (`brew install imagemagick` or `port install imagemagick`).
 
-=== Windows
+==== Windows
 
 WARNING: Windows support is _experimental_. It may delete everything on your system, eat your cat or empty your bank account. Here be dragons.
 
