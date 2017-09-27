@@ -19,6 +19,14 @@ logger = get_logger(__file__)
 VERSION_RE = re.compile(r'Xcode (\d+)\.(\d+)')
 
 class AppleiOSGenerator(Generator):
+    @property
+    def _version(self):
+        return self._project.target("ios").get("version", self._project.version)
+
+    @property
+    def _build(self):
+        return self._project.target("ios").get("build", self._project.build)
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.cache = FileCache()
@@ -384,8 +392,8 @@ class AppleiOSGenerator(Generator):
         
         plist['CFBundleName'] = self._project.target('ios')['bundleName']
         plist['CFBundleDisplayName'] = self._project.target('ios')['bundleName']
-        plist['CFBundleShortVersionString'] = self._project.version
-        plist['CFBundleVersion'] = self._project.build
+        plist['CFBundleShortVersionString'] = self._version
+        plist['CFBundleVersion'] = self._build
         plist['LSApplicationQueriesSchemes'][0] = pkg_id
 
         plistlib.dump(plist, f)
@@ -395,8 +403,8 @@ class AppleiOSGenerator(Generator):
 
         plist['CFBundleName'] = self._project.target('ios')['bundleName']
         plist['CFBundleDisplayName'] = self._project.target('ios')['bundleName']
-        plist['CFBundleShortVersionString'] = self._project.version
-        plist['CFBundleVersion'] = self._project.build
+        plist['CFBundleShortVersionString'] = self._version
+        plist['CFBundleVersion'] = self._build
         plist['CFBundleURLTypes'][0]['CFBundleURLSchemes'][0] = pkg_id
         plist['LSApplicationQueriesSchemes'][0] = pkg_id
 

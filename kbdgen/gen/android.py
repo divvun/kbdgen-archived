@@ -58,6 +58,14 @@ class AndroidGenerator(Generator):
         return etree.tostring(tree, pretty_print=True,
             xml_declaration=True, encoding='utf-8').decode()
 
+    @property
+    def _version(self):
+        return self._project.target("android").get("version", self._project.version)
+
+    @property
+    def _build(self):
+        return self._project.target("android").get("build", self._project.build)
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.cache = FileCache()
@@ -347,7 +355,7 @@ class AndroidGenerator(Generator):
         path = os.path.join(base, 'deps', self.REPO, 'app/build/outputs/apk')
         fn = "app-%s" % suffix
         out_fn = os.path.join(base, "%s-%s_%s" % (
-            self._project.internal_name, self._project.version, suffix))
+            self._project.internal_name, self._version, suffix))
 
         logger.info("Copying '%s' -> '%s'…" % (fn, out_fn))
         os.makedirs(base, exist_ok=True)
@@ -506,8 +514,8 @@ class AndroidGenerator(Generator):
         data = tmpl.format(
             store_file = os.path.abspath(key_store),
             key_alias = self._project.target('android')['keyAlias'],
-            version = self._project.version,
-            build = self._project.build,
+            version = self._version,
+            build = self._build,
             pkg_name = self._project.target('android')['packageId']
         )
 
