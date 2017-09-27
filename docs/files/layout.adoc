@@ -1,0 +1,622 @@
+== Structure of a layout descriptor file
+
+Layout descriptors, like project descriptors, are defined using YAML.
+
+At the highest level, a layout consists of several modes which define how the
+layout should behave when different layers are enabled. There are distinct modes
+for mobile and desktop keyboards, and the same layout file may incorporate
+both modes if the user desires.
+
+Layouts support a `supportedTargets` property so that a layout may be defined to
+only function with certain targets. This allows the keyboard developer to separate
+Windows layouts from Mac layouts, or separate mobile from desktop layouts, depending
+on the relevant use case for the developer.
+
+Keys and transform outputs may be multi-codepoint. Simply type the output you expect in
+the descriptor and it will be generated correctly, as layout modes are space-delimited only.
+
+If you wish to input a unicode codepoint that causes distortion to the layout descriptor,
+you may use `\u{x}` notation, which is just the `U+xxxx` codepoint written as `\u{xxxx}`. The
+Examples section shows this in use several times.
+
+NOTE: It is of fundamental importance that the `internalName` for each layout is
+unique. While the `kbdgen` generator should have an error in the case of user error,
+it has previously caused undefined behaviour.
+
+== Mobile layouts
+
+Mobile layouts consist of the modes `mobile-default` and `mobile-shift`. These modes
+are currently used with the `android` and `ios` targets.
+
+Mobile layouts support the `longpress` property, which defines a space-delimited set of characters
+to be able to be selected by the user when they long press the defined key.
+
+The `styles` property defines the behaviour of the special keys depending on the size and shape
+of the device. *At the moment this property is required.* You may simply copy and paste this boilerplate
+into your projects.
+
+The `strings` property defines the strings to be shown on the spacebar and return keys. While these are not
+strictly required, it is highly recommended that you set these before deploying into production for the best
+user experience, particularly on iOS.
+
+== Desktop layouts
+
+A desktop layout consists of keys for each mode, dead key definitions (using `deadKeys`) and a transforms map
+(`transforms`) for defining key sequences to output specific glyphs. Transforms may be infinitely nested in this format,
+it is up to the platform to determine how many levels of nesting are considered reasonable.
+
+=== Modes
+
+Modes are defined as a space-delimited and newline-delimited set of characters for use as keys 
+on a keyboard. The expected keyboard layout is the ISO standard keyboard (not the ANSI US keyboard,
+which has one less key).
+
+.The ISO standard keyboard layout showing potential variations in colour
+image::keyboard.svg[]
+
+`kbdgen` supports E00–E12, D01–D12, C01–C12, and B00–10 as per traditional European ISO standard keyboards. In practice, for ANSI keyboards,
+C12 moves to D13, and B00 is simply dropped altogether.
+
+If you forget to add the `|` symbol after the mode key, you will encounter some fun parsing errors. 
+Don't forget the pipe!
+
+Desktop layouts consist of several modes due to the complexity of desktop keyboards:
+
+* iso-default
+* iso-shift
+* iso-caps
+* iso-caps+shift
+* iso-alt
+* iso-alt+shift
+* iso-caps+alt
+* iso-ctrl
+
+There are also a few target-specific modes for macOS due to the addition of the Command key on macOS
+keyboards:
+
+* osx-cmd
+* osx-cmd+shift
+* osx-cmd+alt
+* osx-cmd+alt+shift
+
+It is possible that further modes may be supported in the future if necessary.
+
+== Supported properties
+
+NOTE: For target-specific properties, please see the specific chapter for your desired target.
+
+[%autowidth.spread, cols="m,d,d,d,a", options="header"]
+|===
+|Property
+|Type
+|Required
+|Description
+|Example
+
+|internalName
+|string
+|Yes
+|The internal identifier for the layout. May be used for generating filenames or internal metadata for a layout.
+
+Must meet the requirements of the regex: `/^[a-z0-9_-]+$/`. A good choice is to use the locale code.
+
+*This SHOULD NOT change between versions!* If you change this, targets such as Android will display unexpected behaviour
+when you update your keyboards.
+|[source,yaml]
+internalName: sma
+
+|displayNames.<lang>
+|string
+|Yes, at least for `en`.
+|The name of the layout.
+
+`<lang>` is any ISO 639-1 or 639-3 code. If a language has both, prefer the 639-1 variant for better support.
+
+It must be defined for at least the `en` locale, and preferably also for each well-supported locale that you expect to support.
+|[source,yaml]
+----
+displayNames:
+  en: Southern Sámi
+----
+
+|locale
+|string
+|Yes
+|The locale for the layout.
+
+Locale is any ISO 639-1 or 639-3 code. If a language has both, prefer the 639-1 variant for better support.
+
+For platforms that do not support the correct locale code for this layout, target-specific overrides may be
+defined. Please check the relevant target documentation for more information.
+|[source,yaml]
+locale: sma
+
+|targets.<target>
+|string map
+|No
+|A map of target-specific customisation properties.
+
+`<target>` is the code for the target.
+
+Only necessary if you need to set a target-specific property.
+|[source,yaml]
+----
+targets:
+  win:
+    locale: sma-Latn-NO
+----
+
+|modes.<mode>
+|layout-formatted string
+|Yes (see description)
+|For mobile targets, both `mobile-default` and `mobile-shift` modes are required.
+
+For desktop targets, in general only the `iso-default` and `iso-shift` modes are strictly
+required. Some targets require other modes, and the tool will inform you if they are missing.
+
+The value of this key should be similar to that provided in the example.
+
+NOTE: Do not forget the `\|` symbol after the `<mode>` key or you will receive unexpected parsing
+errors.
+|[source,yaml]
+----
+modes:
+  mobile-default: \|
+    q w e r t y u i o p å
+    a s d f g h j k l ö æ
+    z x c v b n m ï
+----
+
+|deadKeys.<mode>
+|string array
+|No
+|Defines the dead keys on the given `<mode>`, which is the key for the mode from the `modes` property.
+
+It is recommended that the keys of this array are wrapped in quotes to make diaeresis and other hard to
+see glyphs maintainable for future developers, including yourself.
+|[source,yaml]
+----
+deadKeys:
+  iso-default: ["`"]
+----
+
+|transforms
+|nested string maps
+|No
+|Defines the output of a sequence of key strokes.
+
+Always includes deadkeys but some targets support key sequencing (replacing glyphs based on input pattern) — this behaviour is target dependent.
+
+This map may be repeatedly nested until a terminal is reached. If a sequence is short-circuited, the `" "` is used as the fallback output in all cases.
+|[source,yaml]
+----
+transforms:
+  a:
+    ' ': a
+    `: à
+----
+
+|special.<key>
+|string
+|No
+|These properties are used for setting key outputs for keys outside of the input key area, such as spacebar.
+
+Currently the only supported `<key>` is `space`.
+|[source,yaml]
+----
+special:
+  space:
+    iso-caps: \u{A0}
+----
+
+|strings.<key>
+|string
+|No
+|These properties are only used on mobile targets.
+
+They are used for specifying strings to be shown on the `space` and `return` keys on mobile targets.
+|[source,yaml]
+----
+strings:
+  space: space
+  return: return
+----
+
+|decimal
+|string
+|No (defaults to ".")
+|Specify the decimal separator for the given locale. Required for the numpad keys on some targets.
+|[source,yaml]
+decimal: ","
+
+|supportedTargets
+|string array
+|No (defaults to all targets)
+|A list of the supported targets of this layout. Unlisted targets will result in no generation being attempted for that target.
+
+This is useful for having different definitions for the same layout, such as a separate Windows and macOS variant.
+|[source,yaml]
+----
+supportedTargets: [osx, x11, svg]
+----
+
+|styles
+|mobile styles map
+|No (Yes for mobile)
+|This boilerplate is currently required for mobile targets. It is targeted for deprecation.
+
+Just copy and paste it verbatim into your mobile layouts for a happy life.
+
+|[source,yaml]
+----
+styles:
+  tablet:
+    actions:
+      backspace: [1, right, fill]
+      enter: [2, right, fill]
+      shift: [3, both, fill]
+  phone:
+    actions:
+      shift: [3, left, fill]
+      backspace: [3, right, fill]
+----
+
+|===
+
+== Examples
+
+=== Mobile layout example
+[source,yaml]
+----
+internalName: sma
+
+displayNames:
+  sma: Åarjelsaemien gïele
+  en: South Sami
+  fi: Eteläsaame
+  nb: Sørsamisk
+  se: Lullisámegiella
+  sv: Sydsamiska
+
+locale: sma
+
+supportedTargets: [ios, android]
+
+modes:
+  mobile-default: |
+    q w e r t y u i o p å
+    a s d f g h j k l ö æ
+    z x c v b n m ï
+  mobile-shift: |
+    Q W E R T Y U I O P Å
+    A S D F G H J K L Ö Æ
+    Z X C V B N M Ï
+
+longpress:
+  A: Ä Á À Â Ã Ạ
+  E: Ë É È Ê Ẽ Ẹ
+  I: Ï Í Ì Î Ĩ Ị
+  O: Ø Ö Ó Ò Ô Õ Ọ
+  U: Ü Ú Ù Û Ũ Ụ
+  Y: Ÿ Ý Ỳ Ŷ
+  Æ: Ä
+  Ö: Ø
+
+  C: Č Ç
+  D: Đ
+  G: Ǧ Ǥ Ǧ
+  K: Ǩ
+  N: Ŋ
+  S: Š
+  T: Ŧ
+  Z: Ž Ʒ Ǯ
+
+  a: ä á à â ã ạ
+  e: ë é è ê ẽ ẹ
+  i: ï í ì î ĩ ị
+  o: ø ö ó ò ô õ ọ
+  u: ü ú ù û ũ ụ
+  y: ÿ ý ỳ ŷ
+  æ: ä
+  ö: ø
+
+  c: č ç
+  d: đ
+  g: ǧ ǥ ǧ
+  k: ǩ
+  n: ŋ
+  s: š
+  t: ŧ
+  z: ž ʒ ǯ
+
+styles:
+  tablet:
+    actions:
+      backspace: [1, right, fill]
+      enter: [2, right, fill]
+      shift: [3, both, fill]
+  phone:
+    actions:
+      shift: [3, left, fill]
+      backspace: [3, right, fill]
+
+strings:
+  space: gaskoe
+  return: return
+----
+
+=== Windows desktop layout example
+
+[source,yaml]
+----
+internalName: sma_NO-windows
+
+displayNames:
+  sma: Åarjelsaemien gïele (Nöörje)
+  en: South Sami (Norway)
+  fi: Eteläsaame (Norja)
+  nb: Sørsamisk (Norge)
+  se: Lullisámegiella (Norga)
+  sv: Sydsamiska (Norge)
+
+locale: sma
+
+supportedTargets: [win, x11, svg]
+
+targets:
+  win:
+    locale: sma-Latn-NO
+
+modes:
+  iso-default: |
+    | 1 2 3 4 5 6 7 8 9 0 + \
+    ï w e r t y u i o p å ¨
+    a s d f g h j k l ö æ '
+    < z x c v b n m , . -
+  iso-shift: |
+    § ! " # ¤ % & / ( ) = ? `
+    Ï W E R T Y U I O P Å ^
+    A S D F G H J K L Ö Æ *
+    > Z X C V B N M ; : _
+  iso-caps: |
+    | 1 2 3 4 5 6 7 8 9 0 + \
+    Ï W E R T Y U I O P Å ¨
+    A S D F G H J K L Ö Æ '
+    < Z X C V B N M , . -
+  iso-caps+shift: |
+    § ! " # ¤ % & / ( ) = ? `
+    ï w e r t y u i o p å ^
+    a s d f g h j k l ö æ *
+    > z x c v b n m ; : _
+  iso-alt: |
+    \u{0} \u{0} @ £ $ € \u{0} { [ ] } \u{0} ´
+    q â € \u{0} ŧ \u{0} \u{0} ï õ \u{0} \u{0} ~
+    á š đ ǥ ǧ ȟ \u{0} ǩ \u{0} ø ä \u{0}
+    \u{0} ž \u{0} č ǯ ʒ ŋ µ \u{0} \u{0} \u{0}
+  iso-alt+shift: |
+    \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0}
+    Q Â \u{0} \u{0} Ŧ \u{0} \u{0} Ï Õ \u{0} \u{0} \u{0}
+    Á Š Đ Ǥ Ǧ Ȟ \u{0} Ǩ \u{0} Ø Ä \u{0}
+    \u{0} Ž \u{0} Č Ǯ Ʒ Ŋ \u{0} \u{0} \u{0} \u{0}
+
+deadKeys:
+  iso-default: ['¨']
+  iso-shift: ['^', '`']
+  iso-caps: ['¨']
+  iso-caps+shift: ['^', '`']
+  iso-alt: ['~', '´']
+
+transforms:
+  "`":
+    " ": "`"
+    a: à
+    A: À
+    e: è
+    E: È
+  ´:
+    " ": ´
+    a: á
+    A: Á
+    å: ǻ
+    Å: Ǻ
+  ^:
+    " ": ^
+    a: â
+    A: Â
+    c: ĉ
+    C: Ĉ
+  ¨:
+    " ": ¨
+    a: ä
+    A: Ä
+    e: ë
+    E: Ë
+  "~":
+    " ": "~"
+    a: ã
+    A: Ã
+    i: ĩ
+    I: Ĩ
+----
+
+=== macOS desktop layout example
+
+[source,yaml]
+----
+internalName: sma_NO-mac
+
+displayNames:
+  sma: Åarjelsaemien gïele (Nöörje)
+  en: South Sami (Norway)
+  fi: Eteläsaame (Norja)
+  nb: Sørsamisk (Norge)
+  'no': Sørsamisk (Norge)
+  nn: Sørsamisk (Noreg)
+  da: Sydsamisk (Norge)
+  se: Lullisámegiella (Norga)
+  sv: Sydsamiska (Norge)
+
+locale: sma
+
+supportedTargets: [osx, x11, svg]
+
+modes:
+  iso-default: |
+    < 1 2 3 4 5 6 7 8 9 0 + ´
+    ï w e r t y u i o p å ¨
+    a s d f g h j k l ö æ @
+    ' z x c v b n m , . -
+  iso-shift: |
+    > ! " # $ % & / ( ) = ? `
+    Ï W E R T Y U I O P Å ˆ
+    A S D F G H J K L Ö Æ *
+    § Z X C V B N M ; : _
+  iso-caps: |
+    < 1 2 3 4 5 6 7 8 9 0 + ´
+    Ï W E R T Y U I O P Å ¨
+    A S D F G H J K L Ö Æ @
+    ' Z X C V B N M , . -
+  iso-alt: |
+    ≤ © ™ £ € ‸ § | [ ] ˝ ± \u{301}
+    q , é ˇ þ ˘ ˀ ʼ œ ˙ ˚ \u{308}
+    ¯ ß ð ƒ . ˛ \u{A0}\u{330} ˜ - ø ä '
+    ' ÷ ˍ ¸ ‹ › ‘ ’ ‚ … –
+  iso-alt+shift: |
+    ≥ ¡ ® ¥ ¢ \u{32D} ¶ \ { } \u{30B} ¿ \u{300}
+    Q \u{326} É \u{30C} Þ \u{306} \u{309} \u{31B} Œ \u{307} \u{30A} \u{302}
+    \u{304} № Ð ʔ \u{323} \u{328} \u{330} \u{303} \u{335} Ø Ä "
+    § ⁄ \u{331} \u{327} « » “ ” „ · —
+  iso-caps+alt: |
+    ≤ © ™ £ € ‸ § | [ ] ˝ ± \u{301}
+    Q , É ˇ Þ ˘ ˀ ʼ Œ ˙ ˚ \u{308}
+    ¯ SS Ð ƒ . ˛ \u{A0}\u{330} ˜ - Ø Ä '
+    ' ÷ ˍ ¸ ‹ › ‘ ’ ‚ … –
+  iso-ctrl: |
+    ` 1 2 3 4 5 6 7 8 9 0 \u{1F} =
+    \u{11} \u{17} \u{5} \u{12} \u{14} \u{19} \u{15} \u{9} \u{F} \u{10} \u{1D} ~
+    \u{1} \u{13} \u{4} \u{6} \u{7} \u{8} \u{A} \u{B} \u{C} ; ' \u{1C}
+    0 \u{1A} \u{18} \u{3} \u{16} \u{2} \u{E} \u{D} , . /
+  osx-cmd: |
+    ' 1 2 3 4 5 6 7 8 9 0 + ´
+    q w e r t y u i o p å ¨
+    a s d f g h j k l ø æ @
+    < z x c v b n m , . -
+  osx-cmd+shift: |
+    § ! " # $ % & / ( ) = ? `
+    Q W E R T Y U I O P Å ^
+    A S D F G H J K L Ø Æ *
+    > Z X C V B N M ; : _
+  osx-cmd+alt: |
+    € © ™ £ € ∞ § | [ ] ≈ ± `
+    • Ω é \u{0} † µ ü ı œ π ˙ ~
+     ß ∂ ƒ ¸ ˛ √ ª ﬁ ö ä '
+    ≤ ÷ ≈ ç ‹ › ‘ ’ ‚ … –
+  osx-cmd+alt+shift: |
+    Ÿ ¡ ® ¥ ¢ ‰ ¶ \ { } ≠ ¿ \u{0}
+    ° ˝ É \u{0} ‡ ˜ Ü ˆ Œ ∏ ˚ ^
+    ◊ ∑ ∆ ∫ ¯ ˘ ¬ º ﬂ Ö Ä \u{0}
+    ≥ ⁄ \u{0} Ç « » “ ” „ · —
+
+deadKeys:
+  iso-default: ['¨', '´']
+  iso-shift: ['`', 'ˆ']
+  iso-caps: ['¨', '´']
+  iso-alt: [',', '-', '.', '¯', '¸', 'ʼ', 'ˀ', 'ˇ', 'ˍ', '˘', '˙', '˚', '˛', '˜', '˝', '‸', '\u{A0}\u{330}']
+  iso-alt+shift: ['ʔ', '№']
+  iso-caps+alt: [',', '-', '.', '¯', '¸', 'ʼ', 'ˀ', 'ˇ', 'ˍ', '˘', '˙', '˚', '˛', '˜', '˝', '‸']
+  osx-cmd+alt: ['¸', '˙']
+
+transforms:
+  \u{A0}\u{330}:
+    " ": \u{A0}\u{330}
+    e: ḛ
+    E: Ḛ
+    i: ḭ
+    I: Ḭ
+    u: ṵ
+    U: Ṵ
+  "-":
+    " ": "-"
+    b: ƀ
+    d: đ
+    D: Đ
+    g: ǥ
+  ",":
+    " ": ","
+    s: ș
+    S: Ș
+    t: ț
+    T: Ț
+  .:
+    " ": .
+    a: ạ
+    A: Ạ
+    b: ḅ
+    B: Ḅ
+  ‸:
+    " ": ‸
+    d: ḓ
+    D: Ḓ
+    e: ḙ
+    E: Ḙ
+  "`":
+    " ": "`"
+    a: à
+    A: À
+    e: è
+    E: È
+  ´:
+    " ": ´
+    a: á
+    A: Á
+    å: ǻ
+    Å: Ǻ
+  ˜:
+    " ": "~"
+    a: ã
+    A: Ã
+    y: ỹ
+    Y: Ỹ
+  ¯:
+    " ": ¯
+    a: ā
+    l: l\u{323}\u{304}
+    L: L\u{323}\u{304}
+    æ: ǣ
+    Æ: Ǣ
+  ʼ:
+    " ": ʼ
+    o: ơ
+    O: Ơ
+    u: ư
+    U: Ư
+
+special:
+  space:
+    iso-caps: \u{A0}
+    iso-alt: \u{A0}
+    iso-alt+shift: \u{A0}
+    iso-caps+alt: \u{A0}
+    osx-cmd+alt: \u{A0}
+----
+
+== Best practices
+
+NOTE: These best practices are a work-in-progress. If you have a suggestion, please submit an issue on GitHub.
+
+As you can see from the examples, in some cases, macOS and Windows keyboards diverge significantly enough that
+two separate layouts are defined. While it is still possible to generate a macOS and Windows keyboard from the
+same source, consider user expectations when decided whether or not to split the layouts into separate files.
+
+== Generating layouts from CLDR with cldr2kbdgen
+
+`kbdgen` includes a tool called `cldr2kbdgen`, which will convert a CLDR keyboard XML descriptor
+into a fully functional `kbdgen` layout.
+
+You can acquire a CLDR keyboard repository from the http://cldr.unicode.org/index/downloads[Unicode] website. 
+Choose the latest from the Data column, then select the `cldr-keyboards-x.y.z.zip` file.
+
+WARNING: If converting a macOS keyboard and the E00 (top left) and B00 (bottom left) keys are flipped, this is a known
+issue with some CLDR definitions. Add the `--osx` flag to the `cldr2kbdgen` command and it will auto-flip them back.
+
+Usage is straightforward: `cldr2kbdgen <cldr-xml> <path/to/layout.yaml>`

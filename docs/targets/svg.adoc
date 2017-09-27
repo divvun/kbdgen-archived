@@ -1,0 +1,8 @@
+== SVG
+
+This target exists for the purpose of visualising and debugging keyboard layouts
+during development. An HTML index file is generated, including all SVGs necessary
+to demonstrate the project.
+
+The SVGs show each mode, and the corresponding ISO key code for the mapping. This is
+especially useful for correcting missing key errors.

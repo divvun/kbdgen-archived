@@ -1,0 +1,163 @@
+== Example project descriptor file
+
+Below shows a typical and basic `project.yaml` that describes a project localised into
+Norwegian Bokmål and English, with target-specific configuration for iOS and Android.
+
+.Example of a basic project descriptor file
+[source,yaml]
+----
+# An internal identifier for the project
+internalName: project
+
+# Strings for describing the project, using ISO 639-1 or 639-3 tags.
+locales:
+  en:
+    name: "Keyboard Project"
+    description: "A test keyboard"
+  nb:
+    name: "Tastatur"
+    description: "Et testtastatur"
+
+# Author and email properties
+author: Example Person
+email: person@place.example
+
+# Optional organisation and copyright properties
+organisation: Example Corp
+copyright: Copyright © 2017 Example Corp
+
+# Layouts supported by this project, without .yaml suffix
+layouts: [layout1, layout2]
+
+# Target-specific configurations at project level (may also include osx, win, etc)
+targets:
+  android:
+    version: "1.0"
+    build: "1"
+    packageId: com.example.keyboards
+  ios:
+    version: "1.0"
+    build: "1"
+    packageId: com.example.keyboards
+----
+
+== Supported properties
+
+NOTE: For target-specific properties, please see the specific chapter for your desired target.
+
+[%autowidth.spread, cols="m,d,d,d,a", options="header"]
+|===
+|Property
+|Type
+|Required
+|Description
+|Example
+
+|internalName
+|string
+|Yes
+|The internal identifier for the project. May be used for generating filenames or internal metadata for a project.
+
+Must meet the requirements of the regex: `/^[a-z0-9_-]+$/`.
+|[source,yaml]
+internalName: keyboards
+
+|locales.<lang>.name
+|string
+|Yes, at least for `en`
+|The name string for the project. For mobile keyboards, this is the title of the app.
+
+`<lang>` is any ISO 639-1 or 639-3 code. If a language has both, prefer the 639-1 variant for better support.
+
+It must be defined for at least the `en` locale, and preferably also for each well-supported locale that you expect to support.
+|
+[source,yaml]
+----
+locales:
+  en:
+    name: My Keyboard Project
+----
+
+|locales.<lang>.description
+|string
+|Yes, at least for `en`
+|The description of the project.
+
+`<lang>` is any ISO 639-1 or 639-3 code. If a language has both, prefer the 639-1 variant for better support.
+
+It must be defined for at least the `en` locale, and preferably also for each well-supported locale that you expect to support.
+|[source,yaml]
+----
+locales:
+  en:
+    description: A keyboard supporting zero languages.
+----
+
+|author
+|string
+|Yes
+|The author
+|[source,yaml]
+----
+author: Brendan Molloy
+----
+
+|email
+|string
+|Yes
+|The author's email address
+|[source,yaml]
+----
+email: brendan@bbqsrc.net
+----
+
+|organisation
+|string
+|Yes
+|The associated organisation. Put author here too if no organisation.
+|[source,yaml]
+----
+organisation: Divvun
+----
+
+|copyright
+|string
+|Yes
+|The copyright string to be used where and if necessary.
+|[source,yaml]
+----
+copyright: Copyright © 2017 Divvun
+----
+
+|layouts
+|string array
+|Yes
+|Specify the layouts to be included in this project.
+
+The layout names are the names of the YAML files without the `.yaml` suffix.
+|[source,yaml]
+----
+layouts: [sma, sme, smj]
+----
+
+|targets.<target>
+|property map
+|Target dependent
+|For defining target-specific project-level properties, such as code signing certificates,
+build and version numbers, and other resources to be included at a project level.
+
+See the documentation for each target for more information.
+|[source,yaml]
+----
+targets:
+  android:
+    version: "1.0"
+    build: "1"
+    packageId: com.example.keyboards
+----
+
+|===
+
+== Best practices
+
+NOTE: These best practices are a work-in-progress. If you have a suggestion, please submit an issue on GitHub.

@@ -1,0 +1,32 @@
+WARNING: Each target may have separate requirements for generating and building the output that `kbdgen` provides. Please check the Installation section of your desired target before proceeding.
+
+== From Source
+
+=== Unix-like (Linux, macOS, etc)
+
+You will need Python {pyversion} or higher installed to continue. Use your operating system's package manager to install the `python3` package or equivalent.
+
+INFO: Depending on your system, your `pip` binary may be named `pip3` or some variant thereof, as the `pip` binary will be for Python 2.
+
+[source]
+----
+pip install -r requirements.txt
+pip install .
+----
+
+You will also need to install `imagemagick` or icon generation (and therefore the build) will fail for several targets. On 
+macOS, this can be installed with MacPorts or Homebrew. (`brew install imagemagick` or `port install imagemagick`).
+
+=== Windows
+
+WARNING: Windows support is _experimental_. It may delete everything on your system, eat your cat or empty your bank account. Here be dragons.
+
+Ensure Python {pyversion} or higher is installed on your system and Python's executables are available in your `%PATH%`. Using the Command Prompt, run the following commands:
+
+[source]
+----
+pip install -r requirements.txt
+pip install .
+----
+
+It is left an exercise for the reader to work out how to install `imagemagick` on Windows and add it to the `%PATH%`.

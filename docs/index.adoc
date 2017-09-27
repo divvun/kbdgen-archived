@@ -1,0 +1,67 @@
+= kbdgen User Manual
+Brendan Molloy <brendan@bbqsrc.net>
+:doctype: book
+:compat-mode!:
+:page-layout!:
+:icons: font
+:toc: left
+:toclevels: 2
+:kbdgenversion: 0.5.0
+:pyversion: 3.4
+:sectlinks:
+:sectnums:
+:linkattrs:
+:experimental:
+:stem:
+:idprefix:
+:nofooter:
+:source-highlighter: coderay
+
+ifdef::backend-html5[]
+++++
+<a href="https://github.com/divvun/kbdgen">
+<img style="position: fixed; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png">
+</a>
+++++
+endif::[]
+
+[WARNING]
+====
+_This documentation is currently under active development._
+
+Please follow the warnings or errors that the `kbdgen` tool provides, and if something is missing from the documentation, please open
+an issue on GitHub.
+====
+
+= Introduction to kbdgen {kbdgenversion}
+
+include::intro.adoc[]
+
+= Installation
+
+include::install.adoc[]
+
+// = Quickstart
+// include::quickstart.adoc[]
+
+= Projects
+
+include::files/project.adoc[]
+
+= Layouts
+
+include::files/layout.adoc[]
+
+= Targets
+
+include::targets/android.adoc[]
+
+include::targets/ios.adoc[]
+
+include::targets/macos.adoc[]
+
+include::targets/svg.adoc[]
+
+include::targets/windows.adoc[]
+
+include::targets/x11.adoc[]

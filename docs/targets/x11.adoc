@@ -1,0 +1,5 @@
+== X11
+
+CAUTION: The X11 output should be considered experimental. It requires modifying global X11 files, and might eat your cat.
+
+The `x11` target outputs an X11-compatible xkb file. It has no special configuration and outputs the generated file to the `x11/` directory.

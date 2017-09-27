@@ -1,0 +1,58 @@
+== Windows
+
+=== Preparing build environment
+
+==== Building the Windows target on Unix-like operating systems
+
+You will need to install:
+
+* wine
+* winetricks
+
+WARNING: You will need to use wine in 32-bit mode. If you are concerned or unsure, just set WINEARCH="win32" in your environment before beginning.
+
+Run `wine` at least once to generate a wine prefix.
+
+Run `winetricks -q dotnet20` to install .NET Framework 2.0, required by the keyboard layout creator tools.
+
+Download and install the following dependencies into your wine prefix:
+
+* http://www.jrsoftware.org/download.php/is-unicode.exe[Inno Setup 5 (Unicode)]
+* https://download.microsoft.com/download/1/1/8/118aedd2-152c-453f-bac9-5dd8fb310870/MSKLC.exe[Microsoft Keyboard Layout Creator]
+
+Now when you generate the release version of the `win` target, an installer will be generated that is fully compatible with Windows systems.
+
+=== Limitations
+
+* Windows does not support Unicode glyphbombs ("grapheme clusters") in deadkeys, 
+  but does support them as ordinary keys.
+* Using `iso-caps` and `iso-caps+shift` with Windows is limited to single
+  codepoints, as the glyphbomb limitation also applies here.
+* Windows keyboard identifiers must be unique, are 8 characters long and
+  begin with `kbd`. The next 5 characters are generated from the next 5
+  alphanumeric characters of the keyboard's `internalName`. For example, if
+  the `internalName` of a keyboard is `se-1-foo`, the internal keyboard name
+  for Windows will be `kbdse1fo`.
+* If a keyboard is generated with erroneous data, MSKLC does not provide any
+  useful error information and merely complains that there was an error and
+  the file cannot be opened. Please report these files as bugs on GitHub for
+  investigation.
+
+=== Mappings between modes in layout files and Windows keyboards
+
+.Mappings from kbdgen modes to Windows keyboards
+iso-default:: Base keyboard
+iso-shift:: Shift pressed
+iso-alt:: AltGr (or Ctrl+Alt if keyboard missing AltGr) pressed
+iso-alt+shift:: AltGr plus shift
+iso-caps+alt:: AltGr plus caps lock
+iso-ctrl:: Ctrl pressed (mostly will not work due to OS-level key combinations overriding this layer)
+
+.Special cased mappings
+
+iso-caps:: Caps lock enabled
+iso-caps+shift:: Caps lock and shift pressed
+
+If both of the above modes are found, the limitation regarding single codepoints described in the Limitations section applies.
+
+Any other modes are ignored by this target.

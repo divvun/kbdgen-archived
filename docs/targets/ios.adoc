@@ -1,0 +1,88 @@
+== iOS
+
+The iOS target uses a fork of the https://github.com/archagon/tasty-imitation-keyboard[`tasty-imitation-keyboard`] 
+project to generate a custom keyboard for iOS with the look and feel of the
+native keyboard.
+
+The target will automatically download the https://github.com/divvun/giellakbd-ios[`giellakbd-ios`]
+dependency and cache it for future builds. The cache will automatically be invalidated upon
+an update to the repository.
+
+=== Requirements
+
+You will need:
+
+* Xcode
+
+// === Installation and environment configuration
+// TODO: will be needed once hfst-ospell-rust is integrated
+
+
+=== Project-level configuration and properties
+
+CAUTION: This section is incomplete. Please check the `examples/` directory in the `kbdgen` git repository
+for guidance.
+
+As described in the Projects chapter, some targets may require project-level
+properties in order to generate the target.
+
+.iOS project properties
+[%autowidth.spread, cols="m,d,d,a", options="header"]
+|===
+|Property
+|Required
+|Description
+|Example
+
+|===
+
+=== Layout-level configuration and properties
+
+CAUTION: This section is incomplete. Please check the `examples/` directory in the `kbdgen` git repository
+for guidance.
+
+.iOS layout properties
+[%autowidth.spread, cols="m,d,d,a", options="header"]
+|===
+|Property
+|Required
+|Description
+|Example
+
+|===
+
+.Example
+[source,yaml]
+----
+targets:
+  ios:
+    bundleName: "Sami Keyboards"
+    packageId: com.example.keyboards.sami
+    icon: any.png
+    aboutDir: path/to/about/files # Should contain {locale}.txt files
+----
+
+=== Testing
+
+==== Testing in a simulator
+
+[WARNING]
+====
+The simulator does not always fully replicate the behaviour that a user will
+experience when using keyboards on a real device.
+
+This is especially the case regarding when and where a keyboard can be used in
+the simulator.
+
+The best app for testing keyboards in the simulator is the `Calendar` app. It offers
+a consistent experience and does not often cause obscure and unreproducable issues
+when compared with other simulator apps.
+====
+
+To begin testing in the simulator is straightforward. Open the path provided by
+`kbdgen` after a completed build in Xcode, choose a simulator device from the dropdown
+in the main toolbar, and press the "Play" button.
+
+Follow the instructions in the provided hosting app to enable the keyboards.
+
+// ==== Testing on a device

@@ -1,0 +1,38 @@
+== What is kbdgen?
+
+https://github.com/divvun/kbdgen[`kbdgen`] is a tool for generating keyboards from layout descriptor files defined using YAML.
+
+It requires Python {pyversion} or higher.
+
+== Supported targets
+
+`kbdgen` supports both mobile and desktop keyboards, including a web-based visual layout 
+for development and debugging your layouts.
+
+[horizontal]
+android:: Android target, can be built on any OS
+ios:: iOS target, can be built only on macOS
+osx:: macOS target, can be built only on macOS
+svg:: SVG target, for debugging and development using HTML and SVG, can be built on any OS
+win:: Windows 8.1+ target, can be built on Unix-like operating systems (requires wine)
+x11:: X11 target, can be built on any OS
+
+== Anatomy of a kbdgen project
+
+A `kbdgen` project is ordinarily structured with a central `project.yaml` file defining the project descriptor,
+with several other YAML files describing each layout in the same directory, listed in the `layouts` property
+of the project descriptor.
+
+Resources for each layout will differ per target, and there is no specified or required directory structure
+for storing these resources. When required, properties for resource paths are relative to the project descriptor file.
+
+For more information on the project and layout descriptors, see the documentation and examples provided in 
+the "Projects" and "Layouts" chapters.
+
+== Usage
+
+`kbdgen` is a command line application. Running `kbdgen --help` will provide you with the flags supported.
+
+In general, to begin with you will likely want to just run `kbdgen -t <target> -o <output-dir> <path/to/project.yaml>`.
+
+Try with the `svg` target to get a feel for how it works.
