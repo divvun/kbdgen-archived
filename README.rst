@@ -3,7 +3,9 @@ kbdgen
 
 Generate keyboards and keyboard layouts for various operating systems.
 
-Requires Python 3.
+Requires Python 3.4 or higher.
+
+* `Documentation <https://divvun.github.io/kbdgen/>`__
 
 Installation
 ------------
@@ -56,12 +58,6 @@ have different OS requirements as specified in their documentation.
 
 Patches to extend support more broadly and add further targets are
 highly welcomed!
-
-Documentation
--------------
-
-All documentation can be found in the ``docs`` directory. Once it's good
-enough, it'll be published somewhere nice for easy access.
 
 License
 -------
