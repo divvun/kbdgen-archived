@@ -55,7 +55,7 @@ which has one less key).
 image::keyboard.svg[]
 
 `kbdgen` supports E00–E12, D01–D12, C01–C12, and B00–10 as per traditional European ISO standard keyboards. In practice, for ANSI keyboards,
-C12 moves to D13, and B00 is simply dropped altogether.
+C12 moves to D13, and B00 is simply dropped altogether. B11 is not used on any modern keyboard, and E13 is largely ignored.
 
 If you forget to add the `|` symbol after the mode key, you will encounter some fun parsing errors. 
 Don't forget the pipe!

@@ -59,6 +59,11 @@ have different OS requirements as specified in their documentation.
 Patches to extend support more broadly and add further targets are
 highly welcomed!
 
+Housekeeping
+------------
+
+To generate the documentation, run `asciidoctor index.adoc` in the `docs` directory.
+
 License
 -------
 
