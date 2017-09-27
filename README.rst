@@ -62,7 +62,7 @@ highly welcomed!
 Housekeeping
 ------------
 
-To generate the documentation, run `asciidoctor index.adoc` in the `docs` directory.
+To generate the documentation, run ``asciidoctor index.adoc`` in the ``docs`` directory.
 
 License
 -------
