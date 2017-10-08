@@ -23,6 +23,7 @@ log.enable_pretty_logging(
 logger = logging.getLogger()
 
 Action = namedtuple("Action", ['row', 'position', 'width'])
+ProjectLocaleData = namedtuple("ProjectLocaleData", ['name', 'description'])
 
 ISO_KEYS = ( "E00",
     "E01", "E02", "E03", "E04", "E05", "E06",
@@ -87,7 +88,6 @@ class Project:
     def relpath(self, end):
         return os.path.abspath(os.path.join(self.path, end))
 
-    # TODO properties should never throw.
     @property
     def path(self):
         return self._tree['_path']
@@ -135,6 +135,16 @@ class Project:
     @property
     def organisation(self):
         return self._tree.get('organisation', '')
+
+    def locale(self, tag):
+        val = self.locales.get(tag, None)
+        if val is None:
+            return None
+        return ProjectLocaleData(val["name"], val["description"])
+
+    def first_locale(self):
+        tag = next(iter(self.locales.keys()))
+        return self.locale(tag)
 
     def target(self, target):
         return self._tree['targets'].get(target, {}) or {}

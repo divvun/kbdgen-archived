@@ -157,9 +157,11 @@ inno_langs = {
     "nb": "Norwegian"
 }
 
-str_enable = {
-    "en": "Enable {}",
-    "nb": "Aktiver {}"
+custom_msgs = {
+    "Enable": {
+        "en": "Enable %1",
+        "nb": "Aktiver %1"
+    }
 }
 
 class WindowsGenerator(Generator):
@@ -242,9 +244,9 @@ class WindowsGenerator(Generator):
             return False
 
         if self._project.organisation == "":
-            logger.warn("'organisation' is undefined for this project.")
+            logger.warn("Property 'organisation' is undefined for this project.")
         if self._project.copyright == "":
-            logger.warn("'copyright' is undefined for this project.")
+            logger.warn("Property 'copyright' is undefined for this project.")
         
         if self._project.target("win").get("version", None) is None:
             logger.error("Property 'targets.win.version' must be defined in the project for this target.")
@@ -369,17 +371,21 @@ class WindowsGenerator(Generator):
                     locale, inno_langs[locale]
                 ))
             
+            p = None
             if locale in license_locales:
                 p = self._wine_path(os.path.join(app_license_path, "%s.%s" % (locale, license_format)))
-                buf.write('; LicenseFile: "%s"' % p)
             elif app_license_path is not None:
-                buf.write('; LicenseFile: "%s"' % en_license)
+                p = en_license
+            if p:
+                buf.write('; LicenseFile: "%s"' % p)
             
+            q = None
             if locale in readme_locales:
-                p = self._wine_path(os.path.join(app_readme_path, "%s.%s" % (locale, readme_format)))
-                buf.write('; InfoBeforeFile: "%s"' % p)
+                q = self._wine_path(os.path.join(app_readme_path, "%s.%s" % (locale, readme_format)))
             elif app_readme_path is not None:
-                buf.write('; InfoBeforeFile: "%s"' % en_readme)
+                q = en_readme
+            if q:
+                buf.write('; InfoBeforeFile: "%s"' % q)
 
             out.append(buf.getvalue())
 
@@ -388,10 +394,12 @@ class WindowsGenerator(Generator):
     def _generate_inno_custom_messages(self):
         """Writes out the localised name for the installer and Start Menu group"""
         buf = io.StringIO()
-        first_locale = list(self._project.locales.keys())[0]
         for key in inno_langs.keys():
-            name = self._project.locales.get(key, first_locale)["name"]
-            buf.write("%s.AppName=%s\n" % (key, name))
+            if key not in self._project.locales:
+                continue
+            l = self._project.locale(key) or self._project.first_locale()
+            buf.write("%s.AppName=%s\n" % (key, l.name))
+            buf.write("%s.Enable=%s\n" % (key, custom_msgs["Enable"][key]))
         return buf.getvalue()
 
     def generate_inno_script(self, build_dir):
@@ -445,8 +453,6 @@ UninstallDisplayName={cm:AppName}
 %s
 
 [CustomMessages]
-en.Enable=Enable %%1
-nb.Enable=Aktiver %%1
 %s
 
 [Files]
@@ -503,7 +509,7 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
             if language_name is not None:
                 logger.info("Using language name '%s' for layout '%s'." % (language_name, layout.internal_name))
             else:
-                logger.info("Using Windows default language name for layout '%s'; this can be overridden by providing a value for targets.win.languageName." % (language_name, layout.internal_name))
+                logger.info("Using Windows default language name for layout '%s'; this can be overridden by providing a value for targets.win.languageName." % layout.internal_name)
             guid_str = "{%s}" % str(guid(kbd_id)).upper()
 
             # Install script
@@ -543,8 +549,7 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
         output_path = self._wine_path(build_dir)
         script_path = self._wine_path(os.path.join(build_dir, "install.iss"))
         
-        first_locale = list(self._project.locales.keys())[0]
-        name = self._project.locales[first_locale]["name"]
+        name = self._project.first_locale().name
         version = self._project.target('win')['version']
 
         cmd = ["wine", iscc, '/O%s' % output_path, script_path]
