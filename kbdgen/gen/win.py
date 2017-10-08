@@ -174,8 +174,8 @@ class WindowsGenerator(Generator):
             kbdi = os.environ["KBDI"]
             logger.info("Using kbdi provided by KBDI environment variable: '%s'" % kbdi)
             return kbdi
-        kbdi_sha256 = "440209182f9c6015b53616578dba77b83cc1f4a2969d127d8da5d609d297157c"
-        kbdi_url = "https://github.com/bbqsrc/kbdi/releases/download/v0.2.0/kbdi.exe"
+        kbdi_sha256 = "f5f769f35e03bedb5a3abf574a310ebe4a95c4033aa70182979c88a6485b02e1"
+        kbdi_url = "https://github.com/bbqsrc/kbdi/releases/download/v0.3.0/kbdi.exe"
         return self.cache.download(kbdi_url, kbdi_sha256)
 
     def generate(self, base='.'):
