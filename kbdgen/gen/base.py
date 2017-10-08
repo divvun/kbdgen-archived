@@ -150,9 +150,6 @@ def git_clone(src, dst, branch, clean, cwd='.', logger=print):
 def iterable_set(iterable):
     return {i for i in itertools.chain.from_iterable(iterable)}
 
-def random_id():
-    return str(-random.randrange(1, 32768))
-
 def filepath(fp, *args):
     return os.path.join(os.path.dirname(fp), *args)
 

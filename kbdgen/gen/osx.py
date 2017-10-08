@@ -5,6 +5,7 @@ import tempfile
 import sys
 import re
 import lxml.etree
+import binascii
 
 from lxml.etree import Element, SubElement
 from collections import defaultdict, OrderedDict
@@ -322,11 +323,14 @@ class OSXGenerator(PhysicalGenerator):
         out, err = run_process(cmd, self.build_dir)
 
         logger.info(out.decode().strip())
+    
+    def _layout_id(self, layout):
+        return -min(max(binascii.crc_hqx(layout.internal_name.encode('utf-8'), 0) // 2, 1), 32768)
 
     def generate_xml(self, layout):
         #name = layout.display_names[layout.locale]
         name = self._layout_name(layout)
-        out = OSXKeyLayout(name, random_id())
+        out = OSXKeyLayout(name, self._layout_id(layout))
         walker_errors = 0
 
         dead_keys = set(itertools.chain.from_iterable(layout.dead_keys.values()))
