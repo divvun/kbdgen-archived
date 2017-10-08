@@ -183,6 +183,13 @@ class WindowsGenerator(Generator):
 
         if not self.sanity_check():
             return
+        
+        if self.is_release:
+            try:
+                kbdi = self.get_or_download_kbdi()
+            except Exception as e:
+                logger.critical(e)
+                return
 
         for layout in self.supported_layouts.values():
             outputs[self._klc_get_name(layout, False)] = self.generate_klc(layout)
@@ -212,11 +219,6 @@ class WindowsGenerator(Generator):
         executor.shutdown()
 
         if self.is_release:
-            try:
-                kbdi = self.get_or_download_kbdi()
-            except Exception as e:
-                logger.critical(e)
-                return
             shutil.copyfile(kbdi, os.path.join(build_dir, "kbdi.exe"))
             self.generate_inno_script(build_dir)
             self.copy_nlp_files(build_dir)
