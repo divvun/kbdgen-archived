@@ -196,7 +196,10 @@ def run_process(cmd, cwd=None, show_output=False):
         out, err = process.communicate()
 
         if process.returncode != 0:
-            logger.error(err.decode())
+            x = err.decode()
+            if x.strip() == "":
+                x = out.decode()
+            logger.error(x)
             logger.error("Application ended with error code %s." % (
                     process.returncode))
             sys.exit(process.returncode)
