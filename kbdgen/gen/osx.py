@@ -3,6 +3,7 @@ import shutil
 import subprocess
 import tempfile
 import sys
+import re
 import lxml.etree
 
 from lxml.etree import Element, SubElement
@@ -16,10 +17,29 @@ from os import listdir
 
 logger = get_logger(__file__)
 
+INVERTED_ID_RE = re.compile(r"[^A-Za-z0-9]")
+
 class OSXGenerator(PhysicalGenerator):
     @property
     def disable_transforms(self):
         return "disable-transforms" in self._args["flags"]
+
+    def sanity_check(self):
+        if super().sanity_check() is False:
+            return False
+
+        fail = False
+        ids = []
+        for layout in self.supported_layouts.values():
+            id_ = self._layout_name(layout)
+            if id_ in ids:
+                logger.error("A duplicate internal name was detected: '%s'." % id_)
+            else:
+                ids.append(id_)
+        if fail:
+            logger.error("macOS keyboard internal are converted to only contain A-Z, a-z, and 0-9. "
+                         "Please ensure your internal names are still unique after this process.")
+        return not fail
 
     def generate(self, base='.'):
         if not self.sanity_check():
@@ -59,7 +79,7 @@ class OSXGenerator(PhysicalGenerator):
 
         for name, data in o.items():
             layout = self.supported_layouts[name]
-            fn = layout.internal_name
+            fn = self._layout_name(layout)
 
             for locale, lname in layout.display_names.items():
                 translations[locale][fn] = lname
@@ -73,13 +93,12 @@ class OSXGenerator(PhysicalGenerator):
         self.write_localisations(res_path, translations)
 
         logger.info("Creating installer…")
-        pkg_path = self.create_installer(bundle_path)
+        pkg_path = self.create_installer(bundle_path).replace(" ", "_")
 
         if self.is_release:
             logger.info("Signing installer…")
             self.sign_installer(pkg_path)
-
-        logger.info("Done!")
+        logger.info("Installer generated at '%s'." % pkg_path)
 
     def generate_iconset(self, icon, output_fn):
         cmd_tmpl = "convert -resize {d}x{d} -background transparent -gravity center -extent {d}x{d}"
@@ -118,7 +137,7 @@ class OSXGenerator(PhysicalGenerator):
 
         iconpath = self._project.relpath(icon)
 
-        fn = os.path.join(res_path, "%s.icns" % layout.internal_name)
+        fn = os.path.join(res_path, "%s.icns" % self._layout_name(layout))
         self.generate_iconset(iconpath, fn)
 
     def write_localisations(self, res_path, translations):
@@ -129,6 +148,9 @@ class OSXGenerator(PhysicalGenerator):
             with open(os.path.join(path, "InfoPlist.strings"), 'w') as f:
                 for name, lname in o.items():
                     f.write('"%s" = "%s";\n' % (name, lname))
+
+    def _layout_name(self, layout):
+        return INVERTED_ID_RE.sub("", layout.internal_name)
 
     def create_bundle(self, path):
         # Bundle ID must contain be in format *.keyboardlayout.<name>
@@ -158,8 +180,8 @@ class OSXGenerator(PhysicalGenerator):
 
         targets = []
         for name, layout in self.supported_layouts.items():
-            name = layout.internal_name
-            bundle_chunk = name.lower().replace(' ', '')
+            name = self._layout_name(layout)
+            bundle_chunk = name.lower().replace('-', '')
             targets.append(target_tmpl % (name, bundle_id, bundle_chunk,
                 layout.locale))
 
@@ -304,7 +326,7 @@ class OSXGenerator(PhysicalGenerator):
 
     def generate_xml(self, layout):
         #name = layout.display_names[layout.locale]
-        name = layout.internal_name
+        name = self._layout_name(layout)
         out = OSXKeyLayout(name, random_id())
         walker_errors = 0
 
