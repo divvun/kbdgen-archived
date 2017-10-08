@@ -157,6 +157,11 @@ inno_langs = {
     "nb": "Norwegian"
 }
 
+str_enable = {
+    "en": "Enable {}",
+    "nb": "Aktiver {}"
+}
+
 class WindowsGenerator(Generator):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -339,10 +344,10 @@ class WindowsGenerator(Generator):
 
             buf = io.StringIO()
             if locale == "en":
-                buf.write('Name: "english"; MessagesFile: "compiler:Default.isl"')
+                buf.write('Name: "en"; MessagesFile: "compiler:Default.isl"')
             else:
                 buf.write('Name: "%s"; MessagesFile: "compiler:Languages\\%s.isl"' % (
-                    inno_langs[locale].lower(), inno_langs[locale]
+                    locale, inno_langs[locale]
                 ))
             
             if locale in license_locales:
@@ -361,11 +366,19 @@ class WindowsGenerator(Generator):
 
         return "\n".join(out)
 
+    def _generate_inno_custom_messages(self):
+        """Writes out the localised name for the installer and Start Menu group"""
+        buf = io.StringIO()
+        first_locale = list(self._project.locales.keys())[0]
+        for key in inno_langs.keys():
+            name = self._project.locales.get(key, first_locale)["name"]
+            buf.write("%s.AppName=%s\n" % (key, name))
+        return buf.getvalue()
+
     def generate_inno_script(self, build_dir):
         logger.info("Generating Inno Setup script…")
         target = self._project.target('win')
         try:
-            app_name = target['appName']
             app_version = target['version']
             app_publisher = self._project.organisation
             app_url = target['url']
@@ -383,7 +396,6 @@ class WindowsGenerator(Generator):
              app_readme_path = self._project.relpath(app_readme_path)
 
         script = """\
-#define MyAppName "%s"
 #define MyAppVersion "%s"
 #define MyAppPublisher "%s"
 #define MyAppURL "%s"
@@ -392,24 +404,30 @@ class WindowsGenerator(Generator):
 
 [Setup]
 AppId={#MyAppUUID}
-AppName={#MyAppName}
+AppName={cm:AppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-DefaultDirName={pf}/{#MyAppName}
+DefaultDirName={pf}\\{cm:AppName}
 DisableDirPage=no
-DefaultGroupName={#MyAppName}
-AllowNoIcons=yes
+DefaultGroupName={cm:AppName}
 OutputBaseFilename=install
 Compression=lzma
 SolidCompression=yes
 ArchitecturesInstallIn64BitMode=x64
 AlwaysRestart=yes
+AllowCancelDuringInstall=no
 UninstallRestartComputer=yes
+UninstallDisplayName={cm:AppName}
 
 [Languages]
+%s
+
+[CustomMessages]
+en.Enable=Enable %%1
+nb.Enable=Aktiver %%1
 %s
 
 [Files]
@@ -418,13 +436,13 @@ Source: "{#BuildDir}\\i386\\*"; DestDir: "{sys}"; Check: not Is64BitInstallMode;
 Source: "{#BuildDir}\\amd64\\*"; DestDir: "{sys}"; Check: Is64BitInstallMode; Flags: restartreplace uninsrestartdelete
 Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMode; Flags: restartreplace uninsrestartdelete
         """.strip() % (
-            app_name,
             app_version,
             app_publisher,
             app_url,
             app_uuid,
             self._wine_path(build_dir),
-            self._generate_inno_languages()
+            self._generate_inno_languages(),
+            self._generate_inno_custom_messages()
         )
         
         custom_locales = target.get("customLocales", None)
@@ -451,32 +469,51 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
         run_scr.write("[Run]\n")
         uninst_scr = io.StringIO()
         uninst_scr.write("[UninstallRun]\n")
+        icons_scr = io.StringIO()
+        icons_scr.write("[Icons]\n")
 
         for layout in self.supported_layouts.values():
             kbd_id = self._klc_get_name(layout)
             dll_name = "%s.dll" % kbd_id
             language_code = layout.target("win").get("locale", layout.locale)
-            locale = icu.Locale(language_code)
-            language_name = layout.target("win").get("languageName", locale.getDisplayName())
-            if language_name == layout.target("win").get("languageName", None):
+            language_name = layout.target("win").get("languageName", None)
+            if language_name is not None:
                 logger.info("Using language name '%s' for layout '%s'." % (language_name, layout.internal_name))
             else:
-                logger.info("Using language name '%s' for layout '%s'; this can be overridden by providing a value for targets.win.languageName in the relevant layout file." % (language_name, layout.internal_name))
+                logger.info("Using Windows default language name for layout '%s'; this can be overridden by providing a value for targets.win.languageName." % (language_name, layout.internal_name))
             guid_str = "{%s}" % str(guid(kbd_id))
 
-            run_scr.write('Filename: "{app}\\kbdi.exe"; Parameters: "install')
-            run_scr.write(' -i ""%s""' % language_code)
-            run_scr.write(" -d %s" % dll_name)
-            run_scr.write(' -g ""{%s""' % guid_str)
-            run_scr.write(' -l ""%s""' % language_name)
-            run_scr.write(' -n ""%s""' % layout.native_display_name)
+            # Pre-install clean script
+            run_scr.write('Filename: "{app}\\kbdi.exe"; Parameters: "clean"; '
+                          'Flags: runhidden waituntilterminated\n')
+
+            # Install script
+            run_scr.write('Filename: "{app}\\kbdi.exe"; Parameters: "keyboard_install')
+            run_scr.write(' -t ""%s""' % language_code) # BCP 47 tag
+            if language_name:
+                run_scr.write(' -l ""%s""' % language_name) # Language display name
+            run_scr.write(' -g ""{%s""' % guid_str) # Product code
+            run_scr.write(" -d %s" % dll_name) # Layout DLL
+            run_scr.write(' -n ""%s""' % layout.native_display_name) # Layout native display name
+            run_scr.write(' -e') # Enable layout after installing it
             run_scr.write('"; Flags: runhidden waituntilterminated\n')
 
-            uninst_scr.write('Filename: "{app}\\kbdi.exe"; Parameters: "uninstall ')
-            uninst_scr.write(' -g ""{%s"""; Flags: runhidden waituntilterminated\n' % guid_str)      
+            # Enablement icon
+            icons_scr.write('Name: "{group}\\{cm:Enable,%s}"; ' % layout.native_display_name)
+            icons_scr.write('Filename: "{app}\\kbdi.exe"; ')
+            icons_scr.write('Parameters: "keyboard_enable -g ""{%s"" -t %s"; ' % (guid_str, language_code))
+            icons_scr.write('Flags: runminimized preventpinning excludefromshowinnewinstall\n')
 
-        # TODO: , uninst_scr.getvalue()))
-        script = "\n\n".join((script, run_scr.getvalue()))
+            # Uninstall script
+            uninst_scr.write('Filename: "{app}\\kbdi.exe"; Parameters: "keyboard_uninstall')
+            uninst_scr.write(' ""{%s"""; Flags: runhidden waituntilterminated\n' % guid_str)      
+
+        script = "\n\n".join((
+            script,
+            run_scr.getvalue(),
+            uninst_scr.getvalue(),
+            icons_scr.getvalue()
+        ))
 
         with open(os.path.join(build_dir, "install.iss"), 'w', encoding='utf-8-sig', newline='\r\n') as f:
             f.write(script)
@@ -487,13 +524,14 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
         output_path = self._wine_path(build_dir)
         script_path = self._wine_path(os.path.join(build_dir, "install.iss"))
         
-        name = self._project.target('win')['appName']
+        first_locale = list(self._project.locales.keys())[0]
+        name = self._project.locales[first_locale]["name"]
         version = self._project.target('win')['version']
 
         cmd = ["wine", iscc, '/O%s' % output_path, script_path]
         run_process(cmd, cwd=build_dir)
 
-        fn = "%s %s.exe" % (name, version)
+        fn = "%s_%s.exe" % (name.replace(" ", "_"), version)
         shutil.move(os.path.join(build_dir, "install.exe"), os.path.join(build_dir, fn))
 
         logger.info("Installer generated at '%s'." % 
