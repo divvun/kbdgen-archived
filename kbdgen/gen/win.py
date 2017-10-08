@@ -163,6 +163,10 @@ class WindowsGenerator(Generator):
         self.cache = FileCache()
 
     def get_or_download_kbdi(self):
+        if os.environ.get("KBDI", None) is not None:
+            kbdi = os.environ["KBDI"]
+            logger.info("Using kbdi provided by KBDI environment variable: '%s'" % kbdi)
+            return kbdi
         kbdi_sha256 = "440209182f9c6015b53616578dba77b83cc1f4a2969d127d8da5d609d297157c"
         kbdi_url = "https://github.com/bbqsrc/kbdi/releases/download/v0.2.0/kbdi.exe"
         return self.cache.download(kbdi_url, kbdi_sha256)
