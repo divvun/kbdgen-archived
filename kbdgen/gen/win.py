@@ -240,7 +240,26 @@ class WindowsGenerator(Generator):
     def sanity_check(self):
         if super().sanity_check() is False:
             return False
+
+        if self._project.organisation == "":
+            logger.warn("'organisation' is undefined for this project.")
+        if self._project.copyright == "":
+            logger.warn("'copyright' is undefined for this project.")
         
+        if self._project.target("win").get("version", None) is None:
+            logger.error("Property 'targets.win.version' must be defined in the project for this target.")
+            return False
+
+        guid = self._project.target("win").get("uuid", None)
+        if guid is None:
+            logger.error("Property 'targets.win.uuid' must be defined in the project for this target.")
+            return False
+        try:
+            uuid.UUID(guid)
+        except:
+            logger.error("Property 'targets.win.uuid' is not a valid UUID.")
+            return False
+
         for layout in self.supported_layouts.values():
             native_locale = icu.Locale(layout.locale)
             if native_locale.getLCID() == 0 and layout.target("win").get("locale", None) is None:
@@ -381,10 +400,10 @@ class WindowsGenerator(Generator):
         try:
             app_version = target['version']
             app_publisher = self._project.organisation
-            app_url = target['url']
+            app_url = target.get('url', "")
             app_uuid = target['uuid']
         except KeyError as e:
-            logger.error("%s not defined for target" % e)
+            logger.error("Property %s is not defined at targets.win." % e)
             sys.exit(1)
 
         app_license_path = target.get('licensePath', None)
@@ -472,6 +491,10 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
         icons_scr = io.StringIO()
         icons_scr.write("[Icons]\n")
 
+        # Pre-install clean script
+        run_scr.write('Filename: "{app}\\kbdi.exe"; Parameters: "clean"; '
+                        'Flags: runhidden waituntilterminated\n')
+
         for layout in self.supported_layouts.values():
             kbd_id = self._klc_get_name(layout)
             dll_name = "%s.dll" % kbd_id
@@ -481,11 +504,7 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
                 logger.info("Using language name '%s' for layout '%s'." % (language_name, layout.internal_name))
             else:
                 logger.info("Using Windows default language name for layout '%s'; this can be overridden by providing a value for targets.win.languageName." % (language_name, layout.internal_name))
-            guid_str = "{%s}" % str(guid(kbd_id))
-
-            # Pre-install clean script
-            run_scr.write('Filename: "{app}\\kbdi.exe"; Parameters: "clean"; '
-                          'Flags: runhidden waituntilterminated\n')
+            guid_str = "{%s}" % str(guid(kbd_id)).upper()
 
             # Install script
             run_scr.write('Filename: "{app}\\kbdi.exe"; Parameters: "keyboard_install')
@@ -550,8 +569,8 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
             self._klc_get_name(layout, False),
             layout.display_names[layout.locale]))
 
-        copyright_ = self._project.copyright
-        organisation = self._project.organisation
+        copyright_ = self._project.copyright or "¯\_(ツ)_/¯"
+        organisation = self._project.organisation or "¯\_(ツ)_/¯"
         locale = layout.target('win').get("locale", layout.locale)
 
         buf.write('COPYRIGHT\t"%s"\n\n' % copyright_)
