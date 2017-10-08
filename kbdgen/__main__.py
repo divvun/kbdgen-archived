@@ -67,6 +67,8 @@ def main():
 
     try:
         project = Parser().parse(args.project, args.cfg_pairs)
+        if project is None:
+            return 1
     except yaml.scanner.ScannerError as e:
         logger.critical("Error parsing project:\n%s %s" % (
                 str(e.problem).strip(),
@@ -77,6 +79,7 @@ def main():
         if logger.getEffectiveLevel() < 10:
             raise e
         logger.critical(e)
+        logger.critical("You should not be seeing this error. Please report this as a bug.")
         return 1
 
     generator = generators.get(args.target, None)

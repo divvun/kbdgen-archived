@@ -324,15 +324,19 @@ class Parser:
         layouts = OrderedDict()
 
         for layout in tree['layouts']:
-            with open(os.path.join(tree_path, "%s.yaml" % layout)) as f:
-                try:
-                    data = unicodedata.normalize("NFC", f.read())
-                    kbdtree = orderedyaml.loads(data)
-                    l = self._parse_keyboard_descriptor(kbdtree)
-                    layouts[l.internal_name] = l
-                except Exception as e:
-                    logger.error("There was an error for file '%s.yaml':" % layout)
-                    raise e
+            try:
+                with open(os.path.join(tree_path, "%s.yaml" % layout)) as f:
+                    try:
+                        data = unicodedata.normalize("NFC", f.read())
+                        kbdtree = orderedyaml.loads(data)
+                        l = self._parse_keyboard_descriptor(kbdtree)
+                        layouts[l.internal_name] = l
+                    except Exception as e:
+                        logger.error("There was an error for file '%s.yaml':" % layout)
+                        raise e
+            except FileNotFoundError as e:
+                logger.error("Layout '%s' listed in project, but not found." % layout)
+                return None
 
         tree['layouts'] = layouts
 
@@ -347,6 +351,8 @@ class Parser:
         tree['_path'] = os.path.dirname(os.path.abspath(f.name))
 
         project = self._parse_project(tree)
+        if project is None:
+            return None
         if cfg_pairs is not None:
             self._overrides(project._tree, self._parse_cfg_pairs(cfg_pairs))
         return project
