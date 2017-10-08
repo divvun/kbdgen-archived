@@ -178,7 +178,7 @@ class WindowsGenerator(Generator):
             return
 
         for layout in self.supported_layouts.values():
-            outputs[self._klc_get_name(layout)] = self.generate_klc(layout)
+            outputs[self._klc_get_name(layout, False)] = self.generate_klc(layout)
 
         if self.dry_run:
             logger.info("Dry run completed.")
@@ -248,6 +248,19 @@ class WindowsGenerator(Generator):
                     locale: xyz-Latn
                 """) % layout.internal_name)
                 return False
+        
+        fail = False
+        ids = []
+        for layout in self.supported_layouts.values():
+            id_ = self._klc_get_name(layout)
+            if id_ in ids:
+                fail = True
+                logger.error("Duplicate id found for '%s': '%s'; set targets.win.id to override.", layout.internal_name, id_)
+            else:
+                ids.append(id_)
+
+        if fail:
+            return False
 
         if not self.is_release:
             return True
@@ -486,17 +499,17 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
         logger.info("Installer generated at '%s'." % 
             os.path.join(build_dir, fn))
 
-    def _klc_get_name(self, layout):
+    def _klc_get_name(self, layout, show_errors=True):
         id_ = layout.target('win').get("id", None)
         if id_ is not None:
-            if len(id_) != 5:
-                logger.warning("Keyboard id should be exactly 5 characters, got %d." % len(id_))
+            if len(id_) != 5 and show_errors:
+                logger.warning("Keyboard id '%s' should be exactly 5 characters, got %d." % (id_, len(id_)))
             return "kbd" + id_
-        return "kbd" + re.sub(r'[^A-Za-z0-9]', "", layout.internal_name)[:5]
+        return "kbd" + re.sub(r'[^A-Za-z0-9-]', "", layout.internal_name)[:5]
 
     def _klc_write_headers(self, layout, buf):
         buf.write('KBD\t%s\t"%s"\n\n' % (
-            self._klc_get_name(layout),
+            self._klc_get_name(layout, False),
             layout.display_names[layout.locale]))
 
         copyright_ = self._project.copyright
