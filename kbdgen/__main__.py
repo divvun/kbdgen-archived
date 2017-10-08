@@ -94,8 +94,9 @@ def main():
         x.generate(x.output_dir)
     except KbdgenException as e:
         logger.error(e)
-    except KeyboardInterrupt:
-        return 0
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except KeyboardInterrupt:
+        sys.exit(255)
