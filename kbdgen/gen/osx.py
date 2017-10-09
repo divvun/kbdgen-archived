@@ -182,7 +182,7 @@ class OSXGenerator(PhysicalGenerator):
         targets = []
         for name, layout in self.supported_layouts.items():
             layout_name = self._layout_name(layout)
-            targets.append(target_tmpl % (name, bundle_id, layout_name,
+            targets.append(target_tmpl % (layout_name, bundle_id, layout_name,
                 layout.locale))
 
         with open(os.path.join(bundle_path, 'Contents', "Info.plist"), 'w') as f:
