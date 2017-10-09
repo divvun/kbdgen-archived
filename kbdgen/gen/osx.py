@@ -94,7 +94,7 @@ class OSXGenerator(PhysicalGenerator):
         self.write_localisations(res_path, translations)
 
         logger.info("Creating installer…")
-        pkg_path = self.create_installer(bundle_path).replace(" ", "_")
+        pkg_path = self.create_installer(bundle_path)
 
         if self.is_release:
             logger.info("Signing installer…")
@@ -284,7 +284,8 @@ class OSXGenerator(PhysicalGenerator):
         dist_xml_path = self.generate_distribution_xml(
             component_pkg_path, working_dir)
 
-        pkg_name = "%s %s.unsigned.pkg" % (self._project.target('osx')['bundleName'], version)
+        bundle_name = self._project.target('osx')['bundleName'].replace(" ", "_")
+        pkg_name = "%s_%s.unsigned.pkg" % (bundle_name, version)
 
         cmd = ['productbuild',
                "--distribution", dist_xml_path,
