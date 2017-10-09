@@ -324,8 +324,8 @@ class OSXGenerator(PhysicalGenerator):
 
         logger.info(out.decode().strip())
     
-    def _layout_id(self, layout):
-        return -min(max(binascii.crc_hqx(layout.internal_name.encode('utf-8'), 0) // 2, 1), 32768)
+    def _layout_id(self, layout) -> str:
+        return str(-min(max(binascii.crc_hqx(layout.internal_name.encode('utf-8'), 0) // 2, 1), 32768))
 
     def generate_xml(self, layout):
         #name = layout.display_names[layout.locale]
