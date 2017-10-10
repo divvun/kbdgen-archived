@@ -450,6 +450,7 @@ AlwaysRestart=yes
 AllowCancelDuringInstall=no
 UninstallRestartComputer=yes
 UninstallDisplayName={cm:AppName}
+MinVersion=0,6.3.9200
 
 [Languages]
 %s
