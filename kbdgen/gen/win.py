@@ -174,8 +174,17 @@ class WindowsGenerator(Generator):
             kbdi = os.environ["KBDI"]
             logger.info("Using kbdi provided by KBDI environment variable: '%s'" % kbdi)
             return kbdi
-        kbdi_sha256 = "20fb8d0b446fb0d14bccc4b1b97ac27c1ac6480d2cda76012e043818cbd61e3f"
-        kbdi_url = "https://github.com/bbqsrc/kbdi/releases/download/v0.3.1/kbdi.exe"
+        kbdi_sha256 = "d76ce0fba1447dbe5746bc2f19cd7e37949abeff52dafd4f13215a22150529b2"
+        kbdi_url = "https://github.com/bbqsrc/kbdi/releases/download/v0.4.0/kbdi.exe"
+        return self.cache.download(kbdi_url, kbdi_sha256)
+
+    def get_or_download_kbdi_legacy(self):
+        if os.environ.get("KBDI_LEGACY", None) is not None:
+            kbdi = os.environ["KBDI_LEGACY"]
+            logger.info("Using kbdi-legacy provided by KBDI_LEGACY environment variable: '%s'" % kbdi)
+            return kbdi
+        kbdi_sha256 = "b9b8ed843742e62b9aa38bf39b9eb156689e9addb8c24b19177991d7d65525c0"
+        kbdi_url = "https://github.com/bbqsrc/kbdi/releases/download/v0.4.0/kbdi-legacy.exe"
         return self.cache.download(kbdi_url, kbdi_sha256)
 
     def generate(self, base='.'):
@@ -187,6 +196,7 @@ class WindowsGenerator(Generator):
         if self.is_release:
             try:
                 kbdi = self.get_or_download_kbdi()
+                kbdi_legacy = self.get_or_download_kbdi_legacy()
             except Exception as e:
                 logger.critical(e)
                 return
@@ -202,27 +212,30 @@ class WindowsGenerator(Generator):
         os.makedirs(build_dir, exist_ok=True)
 
         executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
-        futures = []
+        try:
+            futures = []
 
-        for name, data in outputs.items():
-            klc_path = os.path.join(build_dir, "%s.klc" % name)
-            self.write_klc_file(klc_path, data)
+            for name, data in outputs.items():
+                klc_path = os.path.join(build_dir, "%s.klc" % name)
+                self.write_klc_file(klc_path, data)
 
-            if self.is_release:
-                futures.append(executor.submit(self.build_dll, name, "i386", klc_path, build_dir))
-                futures.append(executor.submit(self.build_dll, name, "amd64", klc_path, build_dir))
-                futures.append(executor.submit(self.build_dll, name, "wow64", klc_path, build_dir))
-        
-        for future in futures:
-            future.result()
-
-        executor.shutdown()
+                if self.is_release:
+                    futures.append(executor.submit(self.build_dll, name, "i386", klc_path, build_dir))
+                    futures.append(executor.submit(self.build_dll, name, "amd64", klc_path, build_dir))
+                    futures.append(executor.submit(self.build_dll, name, "wow64", klc_path, build_dir))
+            
+            for future in futures:
+                future.result()
+        finally:
+            executor.shutdown()
 
         if self.is_release:
-            shutil.copyfile(kbdi, os.path.join(build_dir, "kbdi.exe"))
-            self.generate_inno_script(build_dir)
             self.copy_nlp_files(build_dir)
-            self.build_installer(build_dir)
+
+            for os_ in [("Windows 7", kbdi_legacy), ("Windows 8/8.1/10", kbdi)]:
+                shutil.copyfile(os_[1], os.path.join(build_dir, "kbdi.exe"))
+                self.generate_inno_script(os_[0], build_dir)
+                self.build_installer(os_[0], build_dir)
     
     def copy_nlp_files(self, build_dir):
         target = self._project.target('win')
@@ -396,6 +409,7 @@ class WindowsGenerator(Generator):
     def _generate_inno_custom_messages(self):
         """Writes out the localised name for the installer and Start Menu group"""
         buf = io.StringIO()
+
         for key in inno_langs.keys():
             if key not in self._project.locales:
                 continue
@@ -404,8 +418,22 @@ class WindowsGenerator(Generator):
             buf.write("%s.Enable=%s\n" % (key, custom_msgs["Enable"][key]))
         return buf.getvalue()
 
-    def generate_inno_script(self, build_dir):
-        logger.info("Generating Inno Setup script…")
+    def _installer_fn(self, os_, name, version):
+        if os_ == "Windows 7":
+            return "%s_%s.win7.exe" % (name, version)
+        else:
+            return "%s_%s.exe" % (name, version)
+    
+    def _generate_inno_os_config(self, os_):
+        if os_ == "Windows 7":
+            return dedent("""
+            OnlyBelowVersion=0,6.3.9200
+            """)
+        else:
+            return "MinVersion=0,6.3.9200"
+
+    def generate_inno_script(self, os_, build_dir):
+        logger.info("Generating Inno Setup script for %s…" % os_)
         target = self._project.target('win')
         try:
             app_version = target['version']
@@ -450,7 +478,7 @@ AlwaysRestart=yes
 AllowCancelDuringInstall=no
 UninstallRestartComputer=yes
 UninstallDisplayName={cm:AppName}
-MinVersion=0,6.3.9200
+%s
 
 [Languages]
 %s
@@ -469,6 +497,7 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
             app_url,
             app_uuid,
             self._wine_path(build_dir),
+            self._generate_inno_os_config(os_),
             self._generate_inno_languages(),
             self._generate_inno_custom_messages()
         )
@@ -543,14 +572,16 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
             icons_scr.getvalue()
         ))
 
-        with open(os.path.join(build_dir, "install.iss"), 'w', encoding='utf-8-sig', newline='\r\n') as f:
+        fn_os = "all" if os_ != "Windows 7" else "win7"
+        with open(os.path.join(build_dir, "install.%s.iss" % fn_os), 'w', encoding='utf-8-sig', newline='\r\n') as f:
             f.write(script)
 
-    def build_installer(self, build_dir):
-        logger.info("Building installer…")
+    def build_installer(self, os_, build_dir):
+        logger.info("Building installer for %s…" % os_)
         iscc = os.path.join(os.environ["INNO_PATH"], "ISCC.exe")
         output_path = self._wine_path(build_dir)
-        script_path = self._wine_path(os.path.join(build_dir, "install.iss"))
+        fn_os = "all" if os_ != "Windows 7" else "win7"
+        script_path = self._wine_path(os.path.join(build_dir, "install.%s.iss" % fn_os))
         
         name = self._project.first_locale().name
         version = self._project.target('win')['version']
@@ -558,7 +589,7 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
         cmd = ["wine", iscc, '/O%s' % output_path, script_path]
         run_process(cmd, cwd=build_dir)
 
-        fn = "%s_%s.exe" % (name.replace(" ", "_"), version)
+        fn = self._installer_fn(os_, name.replace(" ", "_"), version)
         shutil.move(os.path.join(build_dir, "install.exe"), os.path.join(build_dir, fn))
 
         logger.info("Installer generated at '%s'." % 
@@ -583,13 +614,13 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
 
         buf.write('COPYRIGHT\t"%s"\n\n' % copyright_)
         buf.write('COMPANY\t"%s"\n\n' % organisation)
-        buf.write('LOCALENAME\t"%s"\n\n' % layout.locale)
+        buf.write('LOCALENAME\t"%s"\n\n' % locale)
 
         lcid = icu.Locale(locale).getLCID()
         if lcid != 0:
             locale_id = "0000%04x" % lcid
         else:
-            locale_id = "00001000"
+            locale_id = "00000c00"
 
         # Use fallback ID in every case (MS-LCID)
         buf.write('LOCALEID\t"%s"\n\n' % locale_id)
@@ -740,23 +771,23 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
         native_locale = icu.Locale(layout.locale)
 
         out.append((0x0c00, native_locale.getDisplayName(), layout.native_display_name))
-        out.append((0x1000, native_locale.getDisplayName(), layout.native_display_name))
+        # out.append((0x1000, native_locale.getDisplayName(), layout.native_display_name))
 
         if native_locale.getLCID() != 0:
             out.append((native_locale.getLCID(), native_locale.getDisplayName(), layout.native_display_name))
 
-        for locale_code, name in layout.display_names.items():
-            if locale_code == layout.locale:
-                continue
+        # for locale_code, name in layout.display_names.items():
+        #     if locale_code == layout.locale:
+        #         continue
 
-            locale = icu.Locale(locale_code)
-            language_name = locale.getDisplayName()
-            lcid = locale.getLCID()
+        #     locale = icu.Locale(locale_code)
+        #     language_name = locale.getDisplayName()
+        #     lcid = locale.getLCID()
 
-            if language_name == locale_code or lcid == 0:
-                continue
+        #     if language_name == locale_code or lcid == 0:
+        #         continue
 
-            out.append((lcid, language_name, name))
+        #     out.append((lcid, language_name, name))
 
         buf.write("\nDESCRIPTIONS\n\n")
         for item in out:
