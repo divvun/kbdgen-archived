@@ -767,35 +767,17 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
     def _klc_write_footer(self, layout, buf):
         out = []
 
-        # Check native name
-        native_locale = icu.Locale(layout.locale)
-
-        out.append((0x0c00, native_locale.getDisplayName(), layout.native_display_name))
-        # out.append((0x1000, native_locale.getDisplayName(), layout.native_display_name))
-
-        if native_locale.getLCID() != 0:
-            out.append((native_locale.getLCID(), native_locale.getDisplayName(), layout.native_display_name))
-
-        # for locale_code, name in layout.display_names.items():
-        #     if locale_code == layout.locale:
-        #         continue
-
-        #     locale = icu.Locale(locale_code)
-        #     language_name = locale.getDisplayName()
-        #     lcid = locale.getLCID()
-
-        #     if language_name == locale_code or lcid == 0:
-        #         continue
-
-        #     out.append((lcid, language_name, name))
+        language_name = layout.target("win").get("languageName", native_locale.getDisplayName())
+        lcid = icu.Locale(layout.locale).getLCID() or 0x0c00
+        layout_name = layout.native_display_name
 
         buf.write("\nDESCRIPTIONS\n\n")
         for item in out:
-            buf.write("%04x\t%s\n" % (item[0], item[2]))
+            buf.write("%04x\t%s\n" % (lcid, layout_name))
 
         buf.write("\nLANGUAGENAMES\n\n")
         for item in out:
-            buf.write("%04x\t%s\n" % (item[0], item[1]))
+            buf.write("%04x\t%s\n" % (lcid, language_name))
         
         buf.write("ENDKBD\n")
 
