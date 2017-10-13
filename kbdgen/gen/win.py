@@ -767,8 +767,9 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
     def _klc_write_footer(self, layout, buf):
         out = []
 
+        native_locale = icu.Locale(layout.locale)
         language_name = layout.target("win").get("languageName", native_locale.getDisplayName())
-        lcid = icu.Locale(layout.locale).getLCID() or 0x0c00
+        lcid = native_locale.getLCID() or 0x0c00
         layout_name = layout.native_display_name
 
         buf.write("\nDESCRIPTIONS\n\n")
