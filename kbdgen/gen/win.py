@@ -382,7 +382,7 @@ class WindowsGenerator(Generator):
         if is_windows:
             return args
         else:
-            return ["wine"] + args
+            return ["wine"] + list(args)
 
     @property
     def _kbdutool(self):
