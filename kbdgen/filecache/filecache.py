@@ -27,7 +27,7 @@ class FileCache:
 
     def ensure_cache_exists(self):
         if not self.cache_dir.exists():
-            self.cache_dir.mkdir(exist_ok=True)
+            os.makedirs(str(self.cache_dir), exist_ok=True)
 
     def is_cached_valid(self, filename: str, sha256sum: str) -> bool:
         candidate = self.cache_dir / filename

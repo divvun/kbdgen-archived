@@ -53,7 +53,7 @@ def parse_args():
     p.add_argument('-o', '--output', default=".",
                    help="Output directory (default: current working directory)")
     p.add_argument('project', help="Keyboard generation project (yaml)",
-                   type=argparse.FileType('r'),
+                   type=argparse.FileType('r', encoding="utf-8"),
                    default=sys.stdin)
     p.add_argument('-f', '--flag', nargs="*", dest="flags",
                    help="Generator-specific flags (for debugging)",

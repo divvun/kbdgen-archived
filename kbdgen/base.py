@@ -281,7 +281,8 @@ class Parser:
     def _parse_global(self, cfg_file=None):
         if cfg_file is None:
             cfg_file = open(
-                    os.path.join(os.path.dirname(__file__), "global.yaml"))
+                    os.path.join(os.path.dirname(__file__), "global.yaml"),
+                    encoding="utf-8")
         return orderedyaml.load(cfg_file)
 
     @classmethod
@@ -335,7 +336,7 @@ class Parser:
 
         for layout in tree['layouts']:
             try:
-                with open(os.path.join(tree_path, "%s.yaml" % layout)) as f:
+                with open(os.path.join(tree_path, "%s.yaml" % layout), encoding="utf-8") as f:
                     try:
                         data = unicodedata.normalize("NFC", f.read())
                         kbdtree = orderedyaml.loads(data)
