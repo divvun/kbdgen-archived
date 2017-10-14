@@ -6,7 +6,7 @@ with open('README.rst') as f:
 
 setup(name='kbdgen',
       version=__version__,
-      description='Generate soft keyboards for mobile OSes and layouts for Windows, OS X and X11.',
+      description='Generate soft keyboards for mobile OSes and layouts for Windows, macOS and X11.',
       long_description=desc,
       url='https://github.com/bbqsrc/kbdgen',
       author='Brendan Molloy',
@@ -15,7 +15,6 @@ setup(name='kbdgen',
       packages=find_packages(),
       keywords=['keyboard', 'generator', 'cldr'],
       include_package_data=True,
-      install_requires=['PyYAML', 'PyICU', 'lxml'],
       classifiers=[
         "Development Status :: 4 - Beta",
         "License :: OSI Approved :: Apache Software License",

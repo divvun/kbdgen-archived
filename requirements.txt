@@ -1,5 +1,5 @@
 lxml
-PyICU
+lcid
 PyYAML
 requests
 humanize

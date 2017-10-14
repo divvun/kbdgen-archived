@@ -2,7 +2,7 @@ import io
 import os
 import os.path
 import ntpath
-import icu
+import lcid as lcidlib
 import unicodedata
 import shutil
 import concurrent.futures
@@ -278,8 +278,9 @@ class WindowsGenerator(Generator):
             return False
 
         for layout in self.supported_layouts.values():
-            native_locale = icu.Locale(layout.locale)
-            if native_locale.getLCID() == 0 and layout.target("win").get("locale", None) is None:
+            lcid = lcidlib.get(layout.locale)
+            print(lcid)
+            if lcid is None and layout.target("win").get("locale", None) is None:
                 logger.error(dedent("""\
                 Layout '%s' specifies a locale not recognised by Windows.
                 To solve this issue, insert the below into the relevant layout file with the ISO 639-3 code plus the written script of the language in BCP 47 format:
@@ -289,6 +290,15 @@ class WindowsGenerator(Generator):
                     locale: xyz-Latn
                 """) % layout.internal_name)
                 return False
+
+            if lcid is None and layout.target("win").get("languageName", None) is None:
+                logger.error(dedent("""\
+                Layout '%s' requires the display name for the language to be supplied.
+
+                targets:
+                  win:
+                    languageName: Pig Latin
+                """))
         
         fail = False
         ids = []
@@ -616,14 +626,9 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
         buf.write('COMPANY\t"%s"\n\n' % organisation)
         buf.write('LOCALENAME\t"%s"\n\n' % locale)
 
-        lcid = icu.Locale(locale).getLCID()
-        if lcid != 0:
-            locale_id = "0000%04x" % lcid
-        else:
-            locale_id = "00000c00"
+        lcid = lcidlib.get_hex8(locale) or lcidlib.get_hex8(layout.locale) or "00000c00"
 
-        # Use fallback ID in every case (MS-LCID)
-        buf.write('LOCALEID\t"%s"\n\n' % locale_id)
+        buf.write('LOCALEID\t"%s"\n\n' % lcid)
         buf.write('VERSION\t1.0\n\n')
         # 0: default, 1: shift, 2: ctrl, 6: altGr/ctrl+alt, 7: shift+6
         buf.write('SHIFTSTATE\n\n0\n1\n2\n6\n7\n\n')
@@ -765,20 +770,15 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
             buf.write('%s\t"%s"\n' % (win_filter(basekey)[0], unicodedata.name(basekey)))
 
     def _klc_write_footer(self, layout, buf):
-        out = []
-
-        native_locale = icu.Locale(layout.locale)
-        language_name = layout.target("win").get("languageName", native_locale.getDisplayName())
-        lcid = native_locale.getLCID() or 0x0c00
+        language_name = layout.target("win").get("languageName", "Undefined")
+        lcid = lcidlib.get(layout.locale) or 0x0c00
         layout_name = layout.native_display_name
 
         buf.write("\nDESCRIPTIONS\n\n")
-        for item in out:
-            buf.write("%04x\t%s\n" % (lcid, layout_name))
+        buf.write("%04x\t%s\n" % (lcid, layout_name))
 
         buf.write("\nLANGUAGENAMES\n\n")
-        for item in out:
-            buf.write("%04x\t%s\n" % (lcid, language_name))
+        buf.write("%04x\t%s\n" % (lcid, language_name))
         
         buf.write("ENDKBD\n")
 
