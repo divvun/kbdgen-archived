@@ -6,7 +6,7 @@ import tempfile
 import shutil
 import humanize
 from urllib.parse import urlparse
-from pathlib import Path, PosixPath
+from pathlib import Path
 
 from .. import get_logger
 from .downloader import stream_download
@@ -64,7 +64,7 @@ class FileCache:
 
     def download(self, raw_url: str, sha256sum: str) -> str:
         url = urlparse(raw_url)
-        filename = PosixPath(url.path).name
+        filename = Path(url.path).name
         candidate = str(self.cache_dir / filename)
         if self.is_cached_valid(filename, sha256sum):
             return candidate

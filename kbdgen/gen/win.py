@@ -7,6 +7,7 @@ import unicodedata
 import shutil
 import concurrent.futures
 import uuid
+import sys
 
 from pathlib import Path
 from distutils.dir_util import copy_tree
@@ -20,6 +21,8 @@ from ..cldr import decode_u
 logger = get_logger(__file__)
 
 KBDGEN_NAMESPACE = uuid.uuid5(uuid.NAMESPACE_DNS, "divvun.no")
+
+is_windows = sys.platform.startswith("win32") or sys.platform.startswith("cygwin")
 
 def guid(kbd_id):
     return uuid.uuid5(KBDGEN_NAMESPACE, kbd_id)
@@ -254,6 +257,36 @@ class WindowsGenerator(Generator):
             f.write('\ufeff')
             f.write(data)
 
+    def get_inno_setup_dir(self):
+        possibles = [
+            os.environ.get("INNO_PATH", None)
+        ]
+        if is_windows:
+            possibles += [
+                "C:\\Program Files\\Inno Setup 5",
+                "C:\\Program Files (x86)\\Inno Setup 5"
+            ]
+        for p in possibles:
+            if p is None:
+                continue
+            if os.path.isdir(p):
+                return p
+
+    def get_msklc_dir(self):
+        possibles = [
+            os.environ.get("MSKLC_PATH", None)
+        ]
+        if is_windows:
+            possibles += [
+                "C:\\Program Files\\Microsoft Keyboard Layout Creator 1.4",
+                "C:\\Program Files (x86)\\Microsoft Keyboard Layout Creator 1.4"
+            ]
+        for p in possibles:
+            if p is None:
+                continue
+            if os.path.isdir(p):
+                return p
+    
     def sanity_check(self):
         if super().sanity_check() is False:
             return False
@@ -279,7 +312,6 @@ class WindowsGenerator(Generator):
 
         for layout in self.supported_layouts.values():
             lcid = lcidlib.get(layout.locale)
-            print(lcid)
             if lcid is None and layout.target("win").get("locale", None) is None:
                 logger.error(dedent("""\
                 Layout '%s' specifies a locale not recognised by Windows.
@@ -316,35 +348,48 @@ class WindowsGenerator(Generator):
         if not self.is_release:
             return True
 
-        # Check for wine
-        if not shutil.which("wine"):
-            logger.error("`wine` must exist on your PATH to build keyboard DLLs.")
-            return False
+        if not is_windows:
+            # Check for wine
+            if not shutil.which("wine"):
+                logger.error("`wine` must exist on your PATH to build keyboard DLLs.")
+                return False
 
-        # Check wine version
-        out, err = subprocess.Popen(["wine", "--version"], stdout=subprocess.PIPE).communicate()
-        v_chunks = [int(x) for x in out.decode().split("-").pop().split(".")]
-        if v_chunks[0] < 2 or (v_chunks[0] == 2 and v_chunks[1]) < 10:
-            logger.warn("Builds are not known to succeed with Wine versions less than 2.10; here be dragons.")
+            # Check wine version
+            out, err = subprocess.Popen(["wine", "--version"], stdout=subprocess.PIPE).communicate()
+            v_chunks = [int(x) for x in out.decode().split("-").pop().split(".")]
+            if v_chunks[0] < 2 or (v_chunks[0] == 2 and v_chunks[1]) < 10:
+                logger.warn("Builds are not known to succeed with Wine versions less than 2.10; here be dragons.")
 
         # Check for INNO_PATH
-        if os.environ.get("INNO_PATH", None) is None:
-            logger.error("INNO_PATH environment variable must point to the Inno Setup 5 directory.")
+        elif self.get_inno_setup_dir() is None:
+            logger.error("Inno Setup 5 must be installed or INNO_PATH environment variable must point to the Inno Setup 5 directory.")
             return False
         
         # Check for MSKLC_PATH
-        if os.environ.get("MSKLC_PATH", None) is None:
-            logger.error("MSKLC_PATH environment variable must point to the MSKLC directory.")
+        if self.get_msklc_dir() is None:
+            logger.error("Microsoft Keyboard Layout Creator 1.4 must be installed or MSKLC_PATH environment variable must point to the MSKLC directory.")
             return False
 
         return True
 
     def _wine_path(self, thing):
-        return "Z:%s" % ntpath.abspath(thing)
+        if is_windows:
+            return ntpath.abspath(thing)
+        else:
+            return "Z:%s" % ntpath.abspath(thing)
+
+    def _wine_cmd(self, *args):
+        if is_windows:
+            return args
+        else:
+            return ["wine"] + args
 
     @property
     def _kbdutool(self):
-        return "%s/bin/i386/kbdutool.exe" % os.environ["MSKLC_PATH"]
+        if is_windows:
+            return "%s\\bin\\i386\\kbdutool.exe" % self.get_msklc_dir()
+        else:
+            return "%s/bin/i386/kbdutool.exe" % self.get_msklc_dir()
 
     def build_dll(self, name, arch, klc_path, build_dir):
         # x86, x64, wow64
@@ -360,7 +405,7 @@ class WindowsGenerator(Generator):
         os.makedirs(out_path, exist_ok=True)
 
         logger.info("Building '%s' for %s…" % (name, arch))
-        cmd = ["wine", self._kbdutool, "-n", flag, "-u", self._wine_path(klc_path)]
+        cmd = self._wine_cmd(self._kbdutool, "-n", flag, "-u", self._wine_path(klc_path))
         run_process(cmd, cwd=out_path)
 
     def _generate_inno_languages(self):
@@ -588,7 +633,7 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
 
     def build_installer(self, os_, build_dir):
         logger.info("Building installer for %s…" % os_)
-        iscc = os.path.join(os.environ["INNO_PATH"], "ISCC.exe")
+        iscc = os.path.join(self.get_inno_setup_dir(), "ISCC.exe")
         output_path = self._wine_path(build_dir)
         fn_os = "all" if os_ != "Windows 7" else "win7"
         script_path = self._wine_path(os.path.join(build_dir, "install.%s.iss" % fn_os))
@@ -596,7 +641,7 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
         name = self._project.first_locale().name
         version = self._project.target('win')['version']
 
-        cmd = ["wine", iscc, '/O%s' % output_path, script_path]
+        cmd = self._wine_cmd(iscc, '/O%s' % output_path, script_path)
         run_process(cmd, cwd=build_dir)
 
         fn = self._installer_fn(os_, name.replace(" ", "_"), version)
