@@ -177,8 +177,8 @@ class WindowsGenerator(Generator):
             kbdi = os.environ["KBDI"]
             logger.info("Using kbdi provided by KBDI environment variable: '%s'" % kbdi)
             return kbdi
-        kbdi_sha256 = "d76ce0fba1447dbe5746bc2f19cd7e37949abeff52dafd4f13215a22150529b2"
-        kbdi_url = "https://github.com/bbqsrc/kbdi/releases/download/v0.4.0/kbdi.exe"
+        kbdi_sha256 = "f8446a85fa2cd0f5d7f02528e8e2bc2eb9dd31990b3a0fb69784359685a67252"
+        kbdi_url = "https://github.com/bbqsrc/kbdi/releases/download/v0.4.1/kbdi.exe"
         return self.cache.download(kbdi_url, kbdi_sha256)
 
     def get_or_download_kbdi_legacy(self):
@@ -186,8 +186,8 @@ class WindowsGenerator(Generator):
             kbdi = os.environ["KBDI_LEGACY"]
             logger.info("Using kbdi-legacy provided by KBDI_LEGACY environment variable: '%s'" % kbdi)
             return kbdi
-        kbdi_sha256 = "b9b8ed843742e62b9aa38bf39b9eb156689e9addb8c24b19177991d7d65525c0"
-        kbdi_url = "https://github.com/bbqsrc/kbdi/releases/download/v0.4.0/kbdi-legacy.exe"
+        kbdi_sha256 = "8f39f7cf3c539469f10396a931d39671d0ed0aaa5df836add37e138e98e6fb0d"
+        kbdi_url = "https://github.com/bbqsrc/kbdi/releases/download/v0.4.1/kbdi-legacy.exe"
         return self.cache.download(kbdi_url, kbdi_sha256)
 
     def generate(self, base='.'):
