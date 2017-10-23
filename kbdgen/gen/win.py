@@ -495,6 +495,10 @@ class WindowsGenerator(Generator):
             app_publisher = self._project.organisation
             app_url = target.get('url', "")
             app_uuid = target['uuid']
+            if app_uuid.startswith("{"):
+                app_uuid = app_uuid[1:]
+            if app_uuid.endswith("}"):
+                app_uuid = app_uuid[:-1]
         except KeyError as e:
             logger.error("Property %s is not defined at targets.win." % e)
             sys.exit(1)
@@ -511,7 +515,7 @@ class WindowsGenerator(Generator):
 #define MyAppVersion "%s"
 #define MyAppPublisher "%s"
 #define MyAppURL "%s"
-#define MyAppUUID "%s"
+#define MyAppUUID "{{%s}"
 #define BuildDir "%s"
 
 [Setup]
