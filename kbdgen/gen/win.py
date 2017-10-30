@@ -190,6 +190,11 @@ class WindowsGenerator(Generator):
         kbdi_url = "https://github.com/bbqsrc/kbdi/releases/download/v0.4.1/kbdi-legacy.exe"
         return self.cache.download(kbdi_url, kbdi_sha256)
 
+    def get_or_download_signcode(self):
+        signcode_sha256 = "b347a3bfe9a0370366a24cb4e535c8f7cc113e8903fd2e13ebe09595090d8d54"
+        signcode_url = "https://brendan.so/files/signcode.exe"
+        return self.cache.download(signcode_url, signcode_sha256)
+
     def generate(self, base='.'):
         outputs = OrderedDict()
 
@@ -286,10 +291,33 @@ class WindowsGenerator(Generator):
                 continue
             if os.path.isdir(p):
                 return p
+
+    def get_mono_dir(self):
+        possibles = [
+            os.environ.get("MONO_PATH", None)
+        ]
+        if is_windows:
+            possibles += [
+                "C:\\Program Files\\Mono",
+                "C:\\Program Files (x86)\\Mono"
+            ]
+        for p in possibles:
+            if p is None:
+                continue
+            if os.path.isdir(p):
+                return p
     
     def sanity_check(self):
         if super().sanity_check() is False:
             return False
+        pfx = self._project.target('win').get("codeSignPfx", None)
+        codesign_pw = os.environ.get("CODESIGN_PW", None)
+
+        if pfx is not None and codesign_pw is None:
+            logger.error("Environment variable CODESIGN_PW must be set for a release build.")
+            return False
+        elif pfx is None:
+            logger.warn("No code signing PFX was provided; setup will not be signed.")
 
         if self._project.organisation == "":
             logger.warn("Property 'organisation' is undefined for this project.")
@@ -479,6 +507,22 @@ class WindowsGenerator(Generator):
         else:
             return "%s_%s.exe" % (name, version)
     
+    def _generate_inno_setup(self, app_url, os_):
+        o = self._generate_inno_os_config(os_).strip() + "\n"
+        pfx = self._project.target('win').get('codeSignPfx', None)
+        if pfx is None:
+            return o
+        pfx = self._project.relpath(pfx)
+        app_name = self._project.first_locale().name
+        
+        o += ("SignTool=signtool -a sha1 -t http://timestamp.verisign.com/scripts/timstamp.dll " +
+              "-pkcs12 $q%s$q -$ commercial " +
+              "-n $q%s$q -i $q%s$q $f") % (
+                  self._wine_path(pfx),
+                  app_name,
+                  app_url)
+        return o
+
     def _generate_inno_os_config(self, os_):
         if os_ == "Windows 7":
             return dedent("""
@@ -556,7 +600,7 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
             app_url,
             app_uuid,
             self._wine_path(build_dir),
-            self._generate_inno_os_config(os_),
+            self._generate_inno_setup(app_url, os_),
             self._generate_inno_languages(),
             self._generate_inno_custom_messages()
         )
@@ -645,7 +689,11 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
         name = self._project.first_locale().name
         version = self._project.target('win')['version']
 
-        cmd = self._wine_cmd(iscc, '/O%s' % output_path, script_path)
+        cmd = self._wine_cmd(iscc,
+            '/O%s' % output_path,
+            '/Ssigntool=%s $p' % self._wine_path(self.get_or_download_signcode()),
+            script_path)
+        logger.trace(cmd)
         run_process(cmd, cwd=build_dir)
 
         fn = self._installer_fn(os_, name.replace(" ", "_"), version)
