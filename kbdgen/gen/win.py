@@ -436,6 +436,20 @@ class WindowsGenerator(Generator):
         cmd = self._wine_cmd(self._kbdutool, "-n", flag, "-u", self._wine_path(klc_path))
         run_process(cmd, cwd=out_path)
 
+        pfx = self._project.target('win').get('codeSignPfx', None)
+        if pfx is None:
+            logger.warn("'%s' for %s was not code signed due to no codeSignPfx property.", % (name, arch))
+            return
+
+        logger.info("Signing '%s' for %s…", % (name, arch))
+        cmd = self._wine_cmd(
+            self._wine_path(self.get_or_download_signcode()),
+            "-a", "sha1", "-t", "http://timestamp.verisign.com/scripts/timstamp.dll",
+            "-pkcs12", pfx, "-$", "commercial",
+            self._wine_path(os.path.join(out_dir, "%s.dll" % name))
+        )
+        run_process(cmd, cwd=out_path)
+
     def _generate_inno_languages(self):
         out = []
         target = self._project.target('win')
