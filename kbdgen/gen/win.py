@@ -438,7 +438,7 @@ class WindowsGenerator(Generator):
 
         pfx = self._project.target('win').get('codeSignPfx', None)
         if pfx is None:
-            logger.warn("'%s' for %s was not code signed due to no codeSignPfx property.", % (name, arch))
+            logger.warn("'%s' for %s was not code signed due to no codeSignPfx property." % (name, arch))
             return
 
         logger.info("Signing '%s' for %s…" % (name, arch))
