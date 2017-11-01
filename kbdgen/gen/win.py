@@ -441,7 +441,7 @@ class WindowsGenerator(Generator):
             logger.warn("'%s' for %s was not code signed due to no codeSignPfx property.", % (name, arch))
             return
 
-        logger.info("Signing '%s' for %s…", % (name, arch))
+        logger.info("Signing '%s' for %s…" % (name, arch))
         cmd = self._wine_cmd(
             self._wine_path(self.get_or_download_signcode()),
             "-a", "sha1", "-t", "http://timestamp.verisign.com/scripts/timstamp.dll",
