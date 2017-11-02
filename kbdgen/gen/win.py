@@ -446,7 +446,7 @@ class WindowsGenerator(Generator):
             self._wine_path(self.get_or_download_signcode()),
             "-a", "sha1", "-t", "http://timestamp.verisign.com/scripts/timstamp.dll",
             "-pkcs12", pfx, "-$", "commercial",
-            self._wine_path(os.path.join(out_dir, "%s.dll" % name))
+            self._wine_path(os.path.join(out_path, "%s.dll" % name))
         )
         run_process(cmd, cwd=out_path)
 
