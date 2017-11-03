@@ -380,7 +380,7 @@ def decompose(ch):
     x = unicodedata.normalize("NFKD", ch).replace(" ", "")
     if x == ch:
         try:
-            c = unicodedata.name(ch).replace("MODIFIER LETTER", "COMBINING")
+            c = "COMBINING %s" % unicodedata.name(ch).replace("MODIFIER LETTER ", "")
             return unicodedata.lookup(c)
         except:
             pass
