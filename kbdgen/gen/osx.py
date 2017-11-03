@@ -69,9 +69,6 @@ class OSXGenerator(PhysicalGenerator):
             logger.info("Dry run completed.")
             return
 
-        if os.path.exists(self.build_dir):
-            shutil.rmtree(self.build_dir)
-
         logger.info("Creating bundle…")
         bundle_path = self.create_bundle(self.build_dir)
         res_path = os.path.join(bundle_path, "Contents", "Resources")
@@ -161,6 +158,8 @@ class OSXGenerator(PhysicalGenerator):
                 self._project.internal_name
             )
         bundle_path = os.path.join(path, "%s.bundle" % bundle_id)
+        if os.path.exists(bundle_path):
+            shutil.rmtree(bundle_path)
         bundle_name = self._project.target('osx').get('bundleName', None)
 
         if bundle_name is None:
