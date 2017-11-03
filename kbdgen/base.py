@@ -4,6 +4,7 @@ import os
 import os.path
 import re
 import sys
+import itertools
 import unicodedata
 from collections import OrderedDict, namedtuple
 
@@ -207,6 +208,10 @@ class Keyboard:
         return self._tree.get('deadKeys', {})
 
     @property
+    def derive(self):
+        return self._tree.get('derive', {})
+
+    @property
     def transforms(self):
         return self._tree.get('transforms', {})
 
@@ -341,6 +346,9 @@ class Parser:
                         data = unicodedata.normalize("NFC", f.read())
                         kbdtree = orderedyaml.loads(data)
                         l = self._parse_keyboard_descriptor(kbdtree)
+                        dt = l.derive.get("transforms", False)
+                        if dt is not False:
+                            derive_transforms(l, True if dt == "all" else False)
                         layouts[l.internal_name] = l
                     except Exception as e:
                         logger.error("There was an error for file '%s.yaml':" % layout)
@@ -367,3 +375,49 @@ class Parser:
         if cfg_pairs is not None:
             self._overrides(project._tree, self._parse_cfg_pairs(cfg_pairs))
         return project
+
+def decompose(ch):
+    x = unicodedata.normalize("NFKD", ch).replace(" ", "")
+    if x == ch:
+        try:
+            c = unicodedata.name(ch).replace("MODIFIER LETTER", "COMBINING")
+            return unicodedata.lookup(c)
+        except:
+            pass
+    return x
+
+def derive_transforms(layout, allow_glyphbombs=False):
+    if layout._tree.get("transforms", None) is None:
+        layout._tree["transforms"] = {}
+
+    dead_keys = sorted(set(itertools.chain.from_iterable(layout.dead_keys.values())))
+    logger.trace("Dead keys: %r" % dead_keys)
+
+    # Get all letter category input chars
+    def char_filter(ch):
+        if ch is None: return False
+        if len(ch) != 1: return False
+        return unicodedata.category(ch).startswith("L")
+    input_chars = sorted(set(filter(char_filter,
+        set(itertools.chain.from_iterable((x.values() for x in layout.modes.values()))))))
+    logger.trace("Input chars: %r" % input_chars)
+
+    # Generate inputtable transforms
+    for d in dead_keys:
+        if layout.transforms.get(d, None) is None:
+            layout.transforms[d] = { " ": d }
+
+        dc = decompose(d)
+
+        for ch in input_chars:
+            composed = "%s%s" % (ch, dc)
+            normalised = unicodedata.normalize("NFKC", composed)
+            
+            # Check if when composed the codepoint is not the same as decomposed
+            if not allow_glyphbombs and composed == normalised:
+                logger.trace("Skipping %s%s" % (d, ch))
+                continue
+
+            logger.trace("Adding transform: %s%s -> %s" % (d, ch, normalised))
+            layout.transforms[d][ch] = normalised
+    
