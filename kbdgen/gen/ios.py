@@ -43,6 +43,7 @@ class AppleiOSGenerator(Generator):
         with tempfile.TemporaryDirectory() as tmpdir:
             tarfile.open(tarball, 'r:gz').extractall(str(tmpdir))
             target = [x for x in Path(tmpdir).iterdir() if x.is_dir()][0]
+            os.makedirs(str(deps_dir.parent), exist_ok=True) 
             Path(target).rename(deps_dir)
 
     def generate(self, base='.'):
@@ -56,7 +57,7 @@ class AppleiOSGenerator(Generator):
             logger.info("Dry run completed.")
             return
 
-        self.get_source_tree(base)
+        self.get_source_tree(base, branch=self.branch)
         deps_dir = os.path.join(base, 'ios-build')
 
         path = os.path.join(deps_dir,
