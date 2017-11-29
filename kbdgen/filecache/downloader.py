@@ -12,15 +12,21 @@ def stream_download(url: str, fn: str, output_file: str):
     with open(output_file, 'wb') as f:
         i = 0
         block_size = 1024
+        content_len = None
 
         for block in r.iter_content(block_size):
             if not block:
                 continue
             f.write(block)
-            max_size_raw = int(r.headers['content-length'])
-            max_size = humanize.naturalsize(max_size_raw)
-            i = min(max_size_raw, i + block_size)
-            write_download_progress(fn, i, max_size_raw)
+
+            if content_len is None:
+                content_len = r.headers.get('content-length', None)
+                
+            if content_len is not None:
+                max_size_raw = int(content_len)
+                max_size = humanize.naturalsize(max_size_raw)
+                i = min(max_size_raw, i + block_size)
+                write_download_progress(fn, i, max_size_raw)
         print()
 
 def generate_prog_bar(width: int, cur_sz: int, max_sz: int):
