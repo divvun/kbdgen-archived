@@ -10,8 +10,6 @@ def stream_download(url: str, fn: str, output_file: str):
     r = requests.get(url, stream=True)
 
     with open(output_file, 'wb') as f:
-        max_size_raw = int(r.headers['content-length'])
-        max_size = humanize.naturalsize(max_size_raw)
         i = 0
         block_size = 1024
 
@@ -19,6 +17,8 @@ def stream_download(url: str, fn: str, output_file: str):
             if not block:
                 continue
             f.write(block)
+            max_size_raw = int(r.headers['content-length'])
+            max_size = humanize.naturalsize(max_size_raw)
             i = min(max_size_raw, i + block_size)
             write_download_progress(fn, i, max_size_raw)
         print()
