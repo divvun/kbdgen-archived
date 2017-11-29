@@ -85,20 +85,36 @@ class AppleiOSGenerator(Generator):
             self.update_plist(plist, f)
 
         kbd_plist_path = os.path.join(deps_dir, 'Keyboard', 'Info.plist')
-        
-        # Keyboard plist
+
         with open(kbd_plist_path, 'rb') as f:
             kbd_plist = plistlib.load(f, dict_type=OrderedDict)
-        with open(kbd_plist_path, 'wb') as f:
-            self.update_kbd_plist(kbd_plist, f)
 
-        # Create locale strings
-        self.create_locales(pbxproj, deps_dir)
+            for n, layout in enumerate(self.supported_layouts.values()):
+                name = layout.internal_name
+                os.makedirs(os.path.join(deps_dir, 'Keyboard', name), exist_ok=True)
+                plist_gpath = os.path.join('Keyboard', name, "Info.plist")
+                ref = pbxproj.create_plist_file("Info.plist")
+                pbxproj.add_path(['Keyboard', name])
+                pbxproj.add_ref_to_group(ref, ['Keyboard', name])
+
+                new_plist_path = os.path.join(deps_dir, plist_gpath)
+                with open(new_plist_path, 'wb') as f:
+                    self.update_kbd_plist(kbd_plist, f, layout, n)
+                #pbx_target, appex_ref = 
+                pbxproj.duplicate_target("Keyboard", name, plist_gpath)
+                pbxproj.set_target_package_id(name, "%s.%s" % (self._project.target('ios')['packageId'], name))
+
+                pbxproj.add_appex_to_target_embedded_binaries("%s.appex" % name, "HostingApp")
+
+        pbxproj.remove_target("Keyboard")
 
         # Set package ids properly
         pbxproj.set_target_package_id("HostingApp", self._project.target('ios')['packageId'])
-        pbxproj.set_target_package_id("Keyboard", "%s.keyboard" % self._project.target('ios')['packageId'])
+        # pbxproj.set_target_package_id("Keyboard", "%s.keyboard" % self._project.target('ios')['packageId'])
 
+        # Create locale strings
+        self.create_locales(pbxproj, deps_dir)
+        
         # Update pbxproj with locales
         with open(path, 'w') as f:
             self.update_pbxproj(pbxproj, f)
@@ -387,15 +403,17 @@ class AppleiOSGenerator(Generator):
 
         f.write(str(pbxproj))
 
-    def update_kbd_plist(self, plist, f):
+    def update_kbd_plist(self, plist, f, layout, n):
         pkg_id = self._project.target('ios')['packageId']
-        bundle_id = "%s.keyboard" % pkg_id
+        bundle_id = "%s.%s" % (pkg_id, layout.internal_name.replace("_", "-"))
         
-        plist['CFBundleName'] = self._project.target('ios')['bundleName']
-        plist['CFBundleDisplayName'] = self._project.target('ios')['bundleName']
+        plist['CFBundleName'] = layout.native_display_name # self._project.target('ios')['bundleName']
+        plist['CFBundleDisplayName'] = layout.native_display_name # self._project.target('ios')['bundleName']
         plist['CFBundleShortVersionString'] = self._version
         plist['CFBundleVersion'] = self._build
         plist['LSApplicationQueriesSchemes'][0] = pkg_id
+        plist['NSExtension']['NSExtensionAttributes']['PrimaryLanguage'] = layout.locale
+        plist['DivvunKeyboardIndex'] = n
 
         plistlib.dump(plist, f)
 

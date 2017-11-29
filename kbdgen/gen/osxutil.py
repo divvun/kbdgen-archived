@@ -2,6 +2,7 @@ import copy
 import io
 import json
 import uuid
+import pathlib
 
 from lxml import etree
 from lxml.etree import Element, SubElement
@@ -255,7 +256,18 @@ class Pbxproj:
                 n = False
                 continue
             else:
-                return False
+                # Create new group
+                ref = Pbxproj.gen_key()
+                self.objects[ref] = {
+                    "isa": "PBXGroup",
+                    "children": [],
+                    "path": g,
+                    "sourceTree": "<group>"
+                }
+                o['children'].append(ref)
+                n = False
+                o = self.objects[ref]
+                continue
 
         o['children'].append(ref)
         return True
@@ -270,6 +282,22 @@ class Pbxproj:
         }
 
         o.update(kwargs)
+
+        k = Pbxproj.gen_key()
+        self.objects[k] = o
+        return k
+
+
+#		C6F249581F736E8A00840F2B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+
+    def create_plist_file(self, plist_path):
+        o = {
+            "isa": "PBXFileReference",
+            "lastKnownFileType": "text.plist.xml",
+            "name": pathlib.Path(plist_path).name,
+            "path": plist_path,
+            "sourceTree": "<group>"
+        }
 
         k = Pbxproj.gen_key()
         self.objects[k] = o
@@ -395,14 +423,14 @@ class Pbxproj:
                     o.get('path', None) == appex:
                 break
         else:
-            raise Exception("No src found.")
+            raise Exception("No appex src found.")
 
         for o in self.objects.values():
             if o.get('isa', None) == 'PBXNativeTarget' and\
                     o.get('name', None) == target:
                 break
         else:
-            raise Exception("No src found.")
+            raise Exception("No target src found.")
 
         target_o = o
         for o in [self.objects[x] for x in target_o['buildPhases']]:
@@ -455,7 +483,7 @@ class Pbxproj:
         else:
             raise Exception("No src found.")
         prod_ref = o['productReference']
-        #del self.objects[o['productReference']]
+        del self.objects[o['productReference']]
 
         for nref, o in self.objects.items():
             if o.get('isa', None) == 'PBXBuildFile' and\
@@ -521,7 +549,7 @@ class Pbxproj:
         self.add_ref_to_group(appex_ref, ['Products'])
 
         self.root['targets'].append(base_ref)
-
+        return base_clone, appex_ref
 
 def generate_osx_mods():
     conv = OrderedDict((
