@@ -101,14 +101,14 @@ class AndroidGenerator(Generator):
 
         for name, kbd in self.supported_layouts.items():
             files += [
-                ('app/src/main/res/xml/keyboard_layout_set_%s.xml' % name, self.kbd_layout_set(kbd)),
-                ('app/src/main/res/xml/kbd_%s.xml' % name, self.keyboard(kbd))
+                ('app/src/main/res/xml/keyboard_layout_set_%s.xml' % name.lower(), self.kbd_layout_set(kbd)),
+                ('app/src/main/res/xml/kbd_%s.xml' % name.lower(), self.keyboard(kbd))
             ]
 
             for style, prefix in styles:
                 self.gen_key_width(kbd, style)
 
-                files.append(("app/src/main/res/%s/rows_%s.xml" % (prefix, name),
+                files.append(("app/src/main/res/%s/rows_%s.xml" % (prefix, name.lower()),
                     self.rows(kbd, style)))
 
                 for row in self.rowkeys(kbd, style):
@@ -431,7 +431,7 @@ class AndroidGenerator(Generator):
                 val_dir = os.path.join(res_dir, 'values')
             else:
                 val_dir = os.path.join(res_dir, 'values-%s' % locale)
-            self._str_xml(val_dir, name, kbd.internal_name)
+            self._str_xml(val_dir, name, kbd.internal_name.lower())
 
 
     def gen_method_xml(self, kbds, tree):
@@ -440,10 +440,10 @@ class AndroidGenerator(Generator):
         for kbd in kbds:
             self._android_subelement(root, 'subtype',
                 icon="@drawable/ic_ime_switcher_dark",
-                label="@string/subtype_%s" % kbd.internal_name,
+                label="@string/subtype_%s" % kbd.internal_name.lower(),
                 imeSubtypeLocale=kbd.locale,
                 imeSubtypeMode="keyboard",
-                imeSubtypeExtraValue="KeyboardLayoutSet=%s,AsciiCapable,EmojiCapable" % kbd.internal_name)
+                imeSubtypeExtraValue="KeyboardLayoutSet=%s,AsciiCapable,EmojiCapable" % kbd.internal_name.lower())
 
         return self._tostring(tree)
 
@@ -524,7 +524,7 @@ class AndroidGenerator(Generator):
     def kbd_layout_set(self, kbd):
         out = Element("KeyboardLayoutSet", nsmap={"latin": self.NS})
 
-        kbd_str = "@xml/kbd_%s" % kbd.internal_name
+        kbd_str = "@xml/kbd_%s" % kbd.internal_name.lower()
 
         self._subelement(out, "Element", elementName="alphabet",
             elementKeyboard=kbd_str,
@@ -561,7 +561,7 @@ class AndroidGenerator(Generator):
 
             row = self._subelement(out, "Row")
             include = self._subelement(row, "include", keyboardLayout="@xml/rowkeys_%s%s" % (
-                kbd.internal_name, n))
+                kbd.internal_name.lower(), n))
 
             if not self.row_has_special_keys(kbd, n, style):
                 self._attrib(include, keyWidth='%.2f%%p' % (100 / len(values)))
@@ -592,7 +592,7 @@ class AndroidGenerator(Generator):
 
         self._attrib(out, **kwargs)
 
-        self._subelement(out, "include", keyboardLayout="@xml/rows_%s" % kbd.internal_name)
+        self._subelement(out, "include", keyboardLayout="@xml/rows_%s" % kbd.internal_name.lower())
 
         return self._tostring(out)
 
@@ -612,7 +612,7 @@ class AndroidGenerator(Generator):
 
             self.add_rows(kbd, n, kbd.modes['mobile-default'][n-1], style, default)
 
-            yield ('rowkeys_%s%s.xml' % (kbd.internal_name, n), self._tostring(merge))
+            yield ('rowkeys_%s%s.xml' % (kbd.internal_name.lower(), n), self._tostring(merge))
 
     def _attrib(self, node, **kwargs):
         for k, v in kwargs.items():
@@ -697,6 +697,9 @@ class AndroidGenerator(Generator):
         for mode_name, vals in layout.modes.items():
             for v in vals:
                 for c in v:
+                    if len(c) > 1:
+                        logger.debug("%s is several glyphs?" % c)
+                        continue
                     if glyphs[ord(c)] is False:
                         logger.error(("[%s] Key '%s' (codepoint: U+%04X) "
                                        "is not supported by API %s! Set minimumSdk "
