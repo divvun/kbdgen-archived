@@ -157,12 +157,14 @@ def win_glyphbomb(v):
 
 inno_langs = {
     "en": "English",
+    "fi": "Finnish",
     "nb": "Norwegian"
 }
 
 custom_msgs = {
     "Enable": {
         "en": "Enable %1",
+        "fi": "Aktivoi %1",
         "nb": "Aktiver %1"
     }
 }
