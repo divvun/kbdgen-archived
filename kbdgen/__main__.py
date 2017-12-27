@@ -37,7 +37,7 @@ def parse_args():
     p.add_argument('-r', '--repo', help='Git repo to generate output from')
     p.add_argument('-b', '--branch', default='master',
                    help='Git branch (default: master)')
-    p.add_argument('-t', '--target', required=True, choices=generators.keys(),
+    p.add_argument('-t', '--target', required=True, choices=gen.generators.keys(),
                    help="Target output.")
     p.add_argument('-o', '--output', default=".",
                    help="Output directory (default: current working directory)")
