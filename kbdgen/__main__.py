@@ -5,17 +5,6 @@ from collections import OrderedDict
 
 from . import __version__, KbdgenException, Parser, gen, logger
 
-# TODO move into base?
-generators = OrderedDict((
-    ("win", gen.WindowsGenerator),
-    ("osx", gen.OSXGenerator),
-    ("x11", gen.XKBGenerator),
-    ("svg", gen.SVGGenerator),
-    ("android", gen.AndroidGenerator),
-    ("ios", gen.AppleiOSGenerator),
-    ("json", gen.JSONGenerator)
-))
-
 def parse_args():
     def logging_type(string):
         n = {
@@ -68,7 +57,7 @@ def main():
     try:
         project = Parser().parse(args.project, args.cfg_pairs)
         if project is None:
-            return 1
+            raise Exception("Project parser returned empty project.")
     except yaml.scanner.ScannerError as e:
         logger.critical("Error parsing project:\n%s %s" % (
                 str(e.problem).strip(),
@@ -80,9 +69,10 @@ def main():
             raise e
         logger.critical(e)
         logger.critical("You should not be seeing this error. Please report this as a bug.")
+        logger.critical("URL: https://github.com/divvun/kbdgen/issues/")
         return 1
 
-    generator = generators.get(args.target, None)
+    generator = gen.generators.get(args.target, None)
 
     if generator is None:
         print("Error: '%s' is not a valid target." % args.target,
