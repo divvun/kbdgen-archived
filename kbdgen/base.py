@@ -143,6 +143,20 @@ class Project:
             return None
         return ProjectLocaleData(val["name"], val["description"])
 
+    @property
+    def names(self):
+        x = {}
+        for tag, o in self.locales.items():
+            x[tag] = o["name"]
+        return x
+
+    @property
+    def descriptions(self):
+        x = {}
+        for tag, o in self.locales.items():
+            x[tag] = o["description"]
+        return x
+
     def first_locale(self):
         tag = next(iter(self.locales.keys()))
         return self.locale(tag)
