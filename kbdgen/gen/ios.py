@@ -126,7 +126,7 @@ class AppleiOSGenerator(Generator):
         self.update_app_group_entitlements(deps_dir)
 
         if self.is_release:
-            self.build_release(base, deps_dir, build_dir)
+            self.build_release(base, deps_dir)
         else:
             # self.build_debug(base, deps_dir)
             logger.info("You may now open '%s/GiellaKeyboard.xcodeproj'." %\
@@ -200,7 +200,8 @@ class AppleiOSGenerator(Generator):
             logger.error("Application ended with error code %s." % process.returncode)
             sys.exit(process.returncode)
 
-    def build_release(self, base_dir, deps_dir, build_dir):
+    def build_release(self, base_dir, deps_dir):
+        build_dir = deps_dir
         # TODO check signing ID exists in advance (in sanity checks)
         xcarchive = os.path.abspath(os.path.join(build_dir, "%s.xcarchive" %\
                 self._project.internal_name))
