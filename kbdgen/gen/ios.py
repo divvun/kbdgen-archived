@@ -46,6 +46,10 @@ class AppleiOSGenerator(Generator):
             os.makedirs(str(deps_dir.parent), exist_ok=True) 
             Path(target).rename(deps_dir)
 
+    @property
+    def pkg_id(self):
+        return self._project.target('ios')['packageId'].replace("_", "-")
+
     def generate(self, base='.'):
         if not self.ensure_xcode_version():
             return
@@ -102,15 +106,14 @@ class AppleiOSGenerator(Generator):
                     self.update_kbd_plist(kbd_plist, f, layout, n)
                 #pbx_target, appex_ref = 
                 pbxproj.duplicate_target("Keyboard", name, plist_gpath)
-                pbxproj.set_target_package_id(name, "%s.%s" % (self._project.target('ios')['packageId'], name))
+                pbxproj.set_target_package_id(name, "%s.%s" % (self.pkg_id, name.replace("_", "-"))
 
                 pbxproj.add_appex_to_target_embedded_binaries("%s.appex" % name, "HostingApp")
 
         pbxproj.remove_target("Keyboard")
 
         # Set package ids properly
-        pbxproj.set_target_package_id("HostingApp", self._project.target('ios')['packageId'])
-        # pbxproj.set_target_package_id("Keyboard", "%s.keyboard" % self._project.target('ios')['packageId'])
+        pbxproj.set_target_package_id("HostingApp", self.pkg_id)
 
         # Create locale strings
         self.create_locales(pbxproj, deps_dir)
@@ -141,7 +144,7 @@ class AppleiOSGenerator(Generator):
             plistlib.dump(plist, f)
 
     def update_app_group_entitlements(self, deps_dir):
-        group_id = "group.%s" % self._project.target('ios')['packageId']
+        group_id = "group.%s" % self.pkg_id
         logger.info("Setting app group to '%s'…" % group_id)
 
         self._update_app_group_entitlements(group_id, 
@@ -405,7 +408,7 @@ class AppleiOSGenerator(Generator):
         f.write(str(pbxproj))
 
     def update_kbd_plist(self, plist, f, layout, n):
-        pkg_id = self._project.target('ios')['packageId'].replace("_", "-")
+        pkg_id = self.pkg_id
         bundle_id = "%s.%s" % (pkg_id, layout.internal_name.replace("_", "-"))
         
         plist['CFBundleName'] = layout.native_display_name # self._project.target('ios')['bundleName']
@@ -419,7 +422,7 @@ class AppleiOSGenerator(Generator):
         plistlib.dump(plist, f)
 
     def update_plist(self, plist, f):
-        pkg_id = self._project.target('ios')['packageId'].replace("_", "-")
+        pkg_id = self.pkg_id
 
         plist['CFBundleName'] = self._project.target('ios')['bundleName']
         plist['CFBundleDisplayName'] = self._project.target('ios')['bundleName']
