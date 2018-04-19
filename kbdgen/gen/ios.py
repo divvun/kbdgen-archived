@@ -245,6 +245,7 @@ class AppleiOSGenerator(Generator):
             ):
 
             logger.info(msg)
+            logger.debug(cmd)
             process = subprocess.Popen(cmd, cwd=deps_dir, shell=True,
                     stderr=subprocess.PIPE, stdout=subprocess.PIPE)
             out, err = process.communicate()
