@@ -306,14 +306,7 @@ class AppleiOSGenerator(Generator):
 
             logger.info("Creating '%s' from '%s'…" % (fn, icon))
 
-            # TODO create generic `launch_process` util func
-            process = subprocess.Popen(cmd, shell=True,
-                    stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-            out, err = process.communicate()
-            if process.returncode != 0:
-                logger.error(err.decode())
-                logger.error("Application ended with error code %s." % process.returncode)
-                sys.exit(process.returncode)
+            run_process(cmd.split(" "))
 
         with open(os.path.join(path, "Contents.json"), 'w') as f:
             json.dump(contents, f)
