@@ -106,7 +106,7 @@ class AppleiOSGenerator(Generator):
                     self.update_kbd_plist(kbd_plist, f, layout, n)
                 #pbx_target, appex_ref = 
                 pbxproj.duplicate_target("Keyboard", name, plist_gpath)
-                pbxproj.set_target_package_id(name, "%s.%s" % (self.pkg_id, name.replace("_", "-"))
+                pbxproj.set_target_package_id(name, "%s.%s" % (self.pkg_id, name.replace("_", "-")))
 
                 pbxproj.add_appex_to_target_embedded_binaries("%s.appex" % name, "HostingApp")
 
