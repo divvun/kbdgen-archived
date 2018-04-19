@@ -405,7 +405,7 @@ class AppleiOSGenerator(Generator):
         f.write(str(pbxproj))
 
     def update_kbd_plist(self, plist, f, layout, n):
-        pkg_id = self._project.target('ios')['packageId']
+        pkg_id = self._project.target('ios')['packageId'].replace("_", "-")
         bundle_id = "%s.%s" % (pkg_id, layout.internal_name.replace("_", "-"))
         
         plist['CFBundleName'] = layout.native_display_name # self._project.target('ios')['bundleName']
@@ -419,7 +419,7 @@ class AppleiOSGenerator(Generator):
         plistlib.dump(plist, f)
 
     def update_plist(self, plist, f):
-        pkg_id = self._project.target('ios')['packageId']
+        pkg_id = self._project.target('ios')['packageId'].replace("_", "-")
 
         plist['CFBundleName'] = self._project.target('ios')['bundleName']
         plist['CFBundleDisplayName'] = self._project.target('ios')['bundleName']
