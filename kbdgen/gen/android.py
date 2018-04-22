@@ -160,15 +160,9 @@ class AndroidGenerator(Generator):
             logger.error("No package ID provided for Android target.")
 
         for name, kbd in self.supported_layouts.items():
-            dropped_locales = []
-
             for dn_locale in kbd.display_names:
                 if dn_locale in ['zz', kbd.locale]:
                     continue
-
-            for locale in dropped_locales:
-                logger.debug("Pruning locale '%s'" % locale)
-                del kbd.display_names[locale]
 
             for mode, rows in kbd.modes.items():
                 for n, row in enumerate(rows):
