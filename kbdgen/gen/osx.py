@@ -38,7 +38,7 @@ class OSXGenerator(PhysicalGenerator):
             else:
                 ids.append(id_)
         if fail:
-            logger.error("macOS keyboard internal are converted to only contain A-Z, a-z, and 0-9. "
+            logger.error("macOS keyboard internal names are converted to only contain A-Z, a-z, and 0-9. "
                          "Please ensure your internal names are still unique after this process.")
         return not fail
 
