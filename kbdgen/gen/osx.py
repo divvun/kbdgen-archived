@@ -215,9 +215,10 @@ class OSXGenerator(PhysicalGenerator):
     def generate_distribution_xml(self, component_fn, working_dir):
         dist_fn = os.path.join(working_dir.name, "distribution.xml")
         bundle_name = self._project.target('osx').get('bundleName', None)
+        # Root "bundle id" is used as a unique key only in the pkg xml
         bundle_id = self._project.target('osx')['packageId']
 
-        root = etree.fromstring("""<installer-gui-script minSpecVersion="2" />""") #tree.getroot()
+        root = etree.fromstring("""<installer-gui-script minSpecVersion="2" />""")
 
         SubElement(root, "title").text = bundle_name
         SubElement(root, "options", customize="never", rootVolumeOnly="true")
@@ -230,7 +231,11 @@ class OSXGenerator(PhysicalGenerator):
         choice = SubElement(root, "choice", id=bundle_id, visible="false")
         SubElement(choice, "pkg-ref", id=bundle_id)
 
-        SubElement(root, "pkg-ref", id=bundle_id, version="0", auth="root").text = os.path.basename(component_fn)
+        SubElement(root, "pkg-ref",
+            id=bundle_id,
+            version="0", 
+            auth="root", 
+            onConclusion="RequireRestart").text = os.path.basename(component_fn)
 
         target = self._project.target('osx')
 
