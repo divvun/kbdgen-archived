@@ -182,9 +182,14 @@ class DictWalker:
         for _ in self: pass
 
 def run_process(cmd, cwd=None, show_output=False):
-    process = subprocess.Popen(cmd, cwd=str(cwd) if cwd is not None else None,
-                stderr=None if show_output else subprocess.PIPE,
-                stdout=None if show_output else subprocess.PIPE)
+    try:
+        process = subprocess.Popen(cmd, cwd=str(cwd) if cwd is not None else None,
+                    stderr=None if show_output else subprocess.PIPE,
+                    stdout=None if show_output else subprocess.PIPE)
+    except Exception as e:
+        logger.error("Process failed to launch with the following error message:")
+        logger.error(e)
+        sys.exit(1)
 
     if show_output:
         process.wait()
