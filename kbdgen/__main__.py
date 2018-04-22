@@ -3,7 +3,7 @@ import yaml
 import sys
 from collections import OrderedDict
 
-from . import __version__, KbdgenException, Parser, gen, logger
+from . import __version__, KbdgenException, Parser, gen, logger, UserException
 
 def parse_args():
     def logging_type(string):
@@ -68,6 +68,11 @@ def main():
         if logger.getEffectiveLevel() < 10:
             raise e
         logger.critical(e)
+
+        # Short-circuit for user-caused exceptions
+        if isinstance(e, UserException):
+            return 1
+
         logger.critical("You should not be seeing this error. Please report this as a bug.")
         logger.critical("URL: https://github.com/divvun/kbdgen/issues/")
         return 1

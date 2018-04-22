@@ -11,6 +11,7 @@ from collections import OrderedDict, namedtuple
 from . import orderedyaml, log
 
 class KbdgenException(Exception): pass
+class UserException(Exception): pass
 
 log.monkey_patch_trace_logging()
 
@@ -25,6 +26,8 @@ logger = logging.getLogger()
 
 Action = namedtuple("Action", ['row', 'position', 'width'])
 ProjectLocaleData = namedtuple("ProjectLocaleData", ['name', 'description'])
+
+VALID_ID_RE = re.compile(r"^[a-z][0-9a-z-_]+$")
 
 ISO_KEYS = ( "E00",
     "E01", "E02", "E03", "E04", "E05", "E06",
@@ -352,6 +355,7 @@ class Parser:
         tree_path = tree['_path']
 
         layouts = OrderedDict()
+        known_ids = set()
 
         for layout in tree['layouts']:
             try:
@@ -363,6 +367,13 @@ class Parser:
                         dt = l.derive.get("transforms", False)
                         if dt is not False:
                             derive_transforms(l, True if dt == "all" else False)
+                        if l.internal_name is None:
+                            raise UserException("'%s' has no internalName field" % f.name)
+                        if not VALID_ID_RE.match(l.internal_name):
+                            raise UserException("Internal name '%s' not valid. Must begin with a-z, and after contain only a-z, 0-9, dashes (-) and underscores (_).")
+                        if l.internal_name in known_ids:
+                            raise UserException("A duplicate internal name was found: %s" % l.internal_name)
+                        known_ids.add(l.internal_name)
                         layouts[l.internal_name] = l
                     except Exception as e:
                         logger.error("There was an error for file '%s.yaml':" % layout)
