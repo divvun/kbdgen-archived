@@ -359,7 +359,8 @@ class Parser:
 
         for layout in tree['layouts']:
             try:
-                with open(os.path.join(tree_path, "%s.yaml" % layout), encoding="utf-8") as f:
+                fn = "%s.yaml" % layout
+                with open(os.path.join(tree_path, fn), encoding="utf-8") as f:
                     try:
                         data = unicodedata.normalize("NFC", f.read())
                         kbdtree = orderedyaml.loads(data)
@@ -370,9 +371,9 @@ class Parser:
                         if l.internal_name is None:
                             raise UserException("'%s' has no internalName field" % f.name)
                         if not VALID_ID_RE.match(l.internal_name):
-                            raise UserException("Internal name '%s' not valid. Must begin with a-z, and after contain only a-z, 0-9, dashes (-) and underscores (_).")
+                            raise UserException("Internal name '%s' in file '%s' not valid. Must begin with a-z, and after contain only a-z, 0-9, dashes (-) and underscores (_)." % (l.internal_name, fn))
                         if l.internal_name in known_ids:
-                            raise UserException("A duplicate internal name was found: %s" % l.internal_name)
+                            raise UserException("A duplicate internal name was found '%s' in file '%s'" % (l.internal_name, fn))
                         known_ids.add(l.internal_name)
                         layouts[l.internal_name] = l
                     except Exception as e:
