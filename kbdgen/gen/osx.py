@@ -233,8 +233,8 @@ class OSXGenerator(PhysicalGenerator):
 
         SubElement(root, "pkg-ref",
             id=bundle_id,
-            version="0", 
-            auth="root", 
+            version="0",
+            auth="root",
             onConclusion="RequireRestart").text = os.path.basename(component_fn)
 
         target = self._project.target('osx')

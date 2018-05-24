@@ -89,6 +89,7 @@ class AppleiOSGenerator(Generator):
             self.update_plist(plist, f)
 
         kbd_plist_path = os.path.join(deps_dir, 'Keyboard', 'Info.plist')
+        dev_team = self._project.target("ios").get("codeSignId", None)
 
         with open(kbd_plist_path, 'rb') as f:
             kbd_plist = plistlib.load(f, dict_type=OrderedDict)
@@ -107,6 +108,8 @@ class AppleiOSGenerator(Generator):
                 #pbx_target, appex_ref = 
                 pbxproj.duplicate_target("Keyboard", name, plist_gpath)
                 pbxproj.set_target_package_id(name, "%s.%s" % (self.pkg_id, name.replace("_", "-")))
+                if dev_team is not None:
+                    pbxproj.set_target_build_setting(name, "DEVELOPMENT_TEAM", dev_team)
 
                 pbxproj.add_appex_to_target_embedded_binaries("%s.appex" % name, "HostingApp")
 
@@ -114,6 +117,8 @@ class AppleiOSGenerator(Generator):
 
         # Set package ids properly
         pbxproj.set_target_package_id("HostingApp", self.pkg_id)
+        if dev_team is not None:
+            pbxproj.set_target_build_setting("HostingApp", "DEVELOPMENT_TEAM", dev_team)
 
         # Create locale strings
         self.create_locales(pbxproj, deps_dir)
@@ -220,27 +225,36 @@ class AppleiOSGenerator(Generator):
         projpath = ":".join(os.path.abspath(os.path.join(deps_dir,
             'GiellaKeyboard.xcodeproj'))[1:].split(os.sep))
 
-        code_sign_id = self._project.target('ios').get('codeSignId', '')
-        logger.debug(code_sign_id)
+        # code_sign_id = self._project.target('ios').get('codeSignId', '')
+        # logger.debug(code_sign_id)
         provisioning_profile_id = self._project.target('ios').get(
-                'provisioningProfileId', '')
+                'provisioningProfileId', None)
 
-        cmd0 = """echo "{\\"method\\":\\"app-store\\"}" | plutil -convert xml1 -o \"%s\" -- -""" % os.path.abspath(plist)
+        if provisioning_profile_id is None:
+            raise Exception("provisioningProfileId cannot be null")
+
+        plist_obj = {
+            "method": "app-store",
+            "provisioningProfiles": {}
+        }
+
+        for item in self.all_bundle_ids():
+            plist_obj["provisioningProfiles"][item] = provisioning_profile_id
+
+        with open(plist, 'wb') as f:
+            plistlib.dump(plist_obj, f)
+
         cmd1 = 'xcodebuild -configuration Release -scheme HostingApp ' + \
                 'archive -archivePath "%s" ' % xcarchive + \
                 '-jobs %s ' % multiprocessing.cpu_count() + \
-                'CODE_SIGN_IDENTITY="%s"' % code_sign_id
-
+                'PROVISIONING_PROFILE="%s"' % provisioning_profile_id
         cmd2 = """xcodebuild -exportArchive
-        -archivePath "%s" -exportPath "%s"
-        -exportOptionsPlist "%s"
-        PROVISIONING_PROFILE_SPECIFIER="%s"
-        """.replace('\n', ' ') % (
-                xcarchive, ipa, plist, provisioning_profile_id)
+                -archivePath "%s" -exportPath "%s"
+                -exportOptionsPlist "%s"
+                """.replace('\n', ' ') % (xcarchive, ipa, plist)
 
         for cmd, msg in (
                 (cmd1, "Building .xcarchive…"),
-                (cmd0, "Generating opts.plist…"),
                 (cmd2, "Building .ipa and signing…"),
             ):
 
@@ -400,6 +414,13 @@ class AppleiOSGenerator(Generator):
         #     pbxproj.add_ref_to_group(ref, ["Generated", name])
 
         f.write(str(pbxproj))
+
+    def all_bundle_ids(self):
+        out = []
+        for n, layout in enumerate(self.supported_layouts.values()):
+            bundle_id = "%s.%s" % (self.pkg_id, layout.internal_name.replace("_", "-"))
+            out.append(bundle_id)
+        return out
 
     def update_kbd_plist(self, plist, f, layout, n):
         pkg_id = self.pkg_id

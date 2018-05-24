@@ -218,6 +218,14 @@ class Pbxproj:
             raise Exception("No src found.")
         return o
 
+    def set_target_build_setting(self, target, key, value):
+        o = self.find_target(target)
+        build_cfg_list = self.objects[o["buildConfigurationList"]]
+        build_cfgs = [self.objects[x] for x in build_cfg_list["buildConfigurations"]]
+
+        for cfg in build_cfgs:
+            cfg["buildSettings"][key] = value
+
     def set_target_package_id(self, target, new_id):
         o = self.find_target(target)
         build_cfg_list = self.objects[o["buildConfigurationList"]]
@@ -535,6 +543,7 @@ class Pbxproj:
 
             self.objects[ref]['buildSettings']['INFOPLIST_FILE'] = plist_path
             self.objects[ref]['buildSettings']['PRODUCT_NAME'] = dst_name
+            self.objects[ref]['buildSettings']['CODE_SIGN_STYLE'] = 'Manual'
         conf_clone['buildConfigurations'] = new_confs
 
         appex_ref = Pbxproj.gen_key()
