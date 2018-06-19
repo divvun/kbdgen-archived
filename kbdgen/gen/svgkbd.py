@@ -26,7 +26,7 @@ class SVGGenerator(Generator):
                     "Incompatible strings are currently just ignored.")
         for name, layout in self.supported_layouts.items():
             files.append(("%s.svg" % name,
-                    layout.display_names[layout.locale],
+                    layout.display_names.get(layout.locale, layout.locale),
                     self.generate_svg(layout, copy.deepcopy(root))))
 
         out_dir = os.path.abspath(base)
