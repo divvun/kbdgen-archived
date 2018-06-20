@@ -147,6 +147,9 @@ class AppleiOSGenerator(Generator):
                     deps_dir)
 
     def run_cocoapods(self, deps_dir):
+        logger.info("Updating CocoaPods repository (this may take quite some time)…")
+        run_process(["pod", "repo", "update"])
+
         logger.info("Installing CocoaPods dependencies…")
         run_process(["pod", "install"], cwd=deps_dir)
 
