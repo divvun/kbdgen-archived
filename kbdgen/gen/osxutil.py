@@ -543,7 +543,7 @@ class Pbxproj:
 
             self.objects[ref]['buildSettings']['INFOPLIST_FILE'] = plist_path
             self.objects[ref]['buildSettings']['PRODUCT_NAME'] = dst_name
-            self.objects[ref]['buildSettings']['CODE_SIGN_STYLE'] = 'Manual'
+            self.objects[ref]['buildSettings']['CODE_SIGN_STYLE'] = 'Automatic'
         conf_clone['buildConfigurations'] = new_confs
 
         appex_ref = Pbxproj.gen_key()

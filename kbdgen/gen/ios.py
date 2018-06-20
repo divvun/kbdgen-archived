@@ -54,6 +54,9 @@ class AppleiOSGenerator(Generator):
         if not self.ensure_xcode_version():
             return
 
+        if not self.ensure_cocoapods():
+            return
+
         if not self.sanity_check():
             return
 
@@ -133,12 +136,19 @@ class AppleiOSGenerator(Generator):
         # Add correct ids for entitlements
         self.update_app_group_entitlements(deps_dir)
 
+        # Install CocoaPods deps
+        self.run_cocoapods(deps_dir)
+
         if self.is_release:
             self.build_release(base, deps_dir)
         else:
             # self.build_debug(base, deps_dir)
-            logger.info("You may now open '%s/GiellaKeyboard.xcodeproj'." %\
+            logger.info("You may now open '%s/GiellaKeyboard.xcworkspace'." %\
                     deps_dir)
+
+    def run_cocoapods(self, deps_dir):
+        logger.info("Installing CocoaPods dependencies…")
+        run_process(["pod", "install"], cwd=deps_dir)
 
     def _update_app_group_entitlements(self, group_id, subpath, deps_dir):
         plist_path = os.path.join(deps_dir, subpath)
@@ -156,6 +166,13 @@ class AppleiOSGenerator(Generator):
             "HostingApp/HostingApp.entitlements", deps_dir)
         self._update_app_group_entitlements(group_id, 
             "Keyboard/Keyboard.entitlements", deps_dir)
+
+    def ensure_cocoapods(self):
+        if shutil.which('pod') is None:
+            logger.error("'pod' could not be found on your PATH. Please " +
+                "ensure CocoaPods is installed (`gem install cocoapods`).")
+            return False
+        return True
 
     def ensure_xcode_version(self):
         if shutil.which('xcodebuild') is None:
@@ -197,7 +214,7 @@ class AppleiOSGenerator(Generator):
         return True
 
     def build_debug(self, base_dir, deps_dir):
-        cmd = 'xcodebuild -configuration Debug -target HostingApp ' + \
+        cmd = 'xcodebuild -configuration Debug -scheme HostingApp -allowProvisioningUpdates' + \
               '-jobs %s ' % multiprocessing.cpu_count() + \
               'CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO'
         process = subprocess.Popen(cmd,
@@ -213,7 +230,7 @@ class AppleiOSGenerator(Generator):
         # TODO check signing ID exists in advance (in sanity checks)
         xcarchive = os.path.abspath(os.path.join(build_dir, "%s.xcarchive" %\
                 self._project.internal_name))
-        plist = os.path.join(build_dir, 'opts.plist')
+        plist = os.path.abspath(os.path.join(build_dir, 'opts.plist'))
         ipa = os.path.abspath(os.path.join(build_dir, "%s.ipa" %\
                 self._project.internal_name))
 
@@ -244,14 +261,13 @@ class AppleiOSGenerator(Generator):
         with open(plist, 'wb') as f:
             plistlib.dump(plist_obj, f)
 
-        cmd1 = 'xcodebuild -configuration Release -scheme HostingApp ' + \
+        cmd1 = 'xcodebuild -workspace GiellaKeyboard.xcworkspace -configuration Release ' + \
+                '-scheme HostingApp -allowProvisioningUpdates ' + \
                 'archive -archivePath "%s" ' % xcarchive + \
-                '-jobs %s ' % multiprocessing.cpu_count() + \
-                'PROVISIONING_PROFILE="%s"' % provisioning_profile_id
-        cmd2 = """xcodebuild -exportArchive
-                -archivePath "%s" -exportPath "%s"
-                -exportOptionsPlist "%s"
-                """.replace('\n', ' ') % (xcarchive, ipa, plist)
+                '-jobs %s ' % multiprocessing.cpu_count()
+        cmd2 = 'xcodebuild -exportArchive ' + \
+               '-archivePath "%s" -exportPath "%s" ' % (xcarchive, ipa) + \
+               '-exportOptionsPlist "%s" -allowProvisioningUpdates' % plist
 
         for cmd, msg in (
                 (cmd1, "Building .xcarchive…"),

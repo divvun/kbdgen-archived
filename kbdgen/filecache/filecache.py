@@ -75,7 +75,7 @@ class FileCache:
         return candidate
 
     def download_latest_from_github(self, repo: str, branch: str="master") -> str:
-        repo_meta = requests.get("https://api.github.com/repos/{repo}/commits/HEAD?branch={branch}".format(
+        repo_meta = requests.get("https://api.github.com/repos/{repo}/commits/{branch}".format(
             repo=repo,
             branch=branch
         )).json()
