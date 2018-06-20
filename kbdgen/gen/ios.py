@@ -458,6 +458,10 @@ class AppleiOSGenerator(Generator):
     def update_plist(self, plist, f):
         pkg_id = self.pkg_id
 
+        dsn = self._project.target('ios').get('sentryDsn', None)
+        if dsn is not None:
+            plist['SentryDSN'] = dsn
+
         plist['CFBundleName'] = self._project.target('ios')['bundleName']
         plist['CFBundleDisplayName'] = self._project.target('ios')['bundleName']
         plist['CFBundleShortVersionString'] = self._version
