@@ -234,8 +234,7 @@ class AppleiOSGenerator(Generator):
         xcarchive = os.path.abspath(os.path.join(build_dir, "%s.xcarchive" %\
                 self._project.internal_name))
         plist = os.path.abspath(os.path.join(build_dir, 'opts.plist'))
-        ipa = os.path.abspath(os.path.join(build_dir, "%s.ipa" %\
-                self._project.internal_name))
+        ipa = os.path.abspath(os.path.join(build_dir, "ipa"))
 
         if os.path.exists(xcarchive):
             shutil.rmtree(xcarchive)
