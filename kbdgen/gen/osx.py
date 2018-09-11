@@ -397,7 +397,7 @@ class OSXGenerator(PhysicalGenerator):
             # Space bar special case
             sp = layout.special.get('space', {}).get(mode_name, " ")
             out.set_key(mode_name, sp, "49")
-            if not self.disable_transforms:
+            if not self.disable_transforms and len(layout.transforms) > 0:
                 out.set_transform_key(mode_name, sp, "49")
 
             # Add hardcoded keyboard bits
