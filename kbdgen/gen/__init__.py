@@ -7,6 +7,7 @@ from .osx import OSXGenerator
 from .x11 import XKBGenerator
 from .svgkbd import SVGGenerator
 from .json import JSONGenerator
+from .errormodel import ErrorModelGenerator
 
 generators = OrderedDict(
     (
@@ -17,5 +18,6 @@ generators = OrderedDict(
         ("android", AndroidGenerator),
         ("ios", AppleiOSGenerator),
         ("json", JSONGenerator),
+        ("errormodel", ErrorModelGenerator)
     )
 )
