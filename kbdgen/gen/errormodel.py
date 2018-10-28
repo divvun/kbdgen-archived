@@ -78,6 +78,27 @@ def convert_phy_mode(mode):
     return rows
 
 
+def generate_xfst_macro(coords):
+    alphas = " | ".join(coords.keys())
+    regexes = []
+    for (a, coord) in coords.items():
+        for (b, dist) in coord.dist.items():
+            regexes.append("[%s::0]+ @> [%s::%s]" % (a, b, dist))
+    data = """\
+set print-weight ON
+set precision 6
+
+define Alphabet [%% %s] ;
+regex %s ||
+    Alphabet [Alphabet*] __ [Alphabet*] Alphabet ;
+""" % (
+        alphas,
+        " ,\n    ".join(regexes)
+    )
+
+    return data
+
+
 class ErrorModelGenerator(Generator):
     def generate(self, base="."):
         out_dir = os.path.abspath(base)
@@ -94,4 +115,5 @@ class ErrorModelGenerator(Generator):
                 offsets = calculate_row_offsets(mode)
                 coords = generate_coordinates(mode, offsets)
                 map_ = generate_distances(coords)
-                logger.info(map_.get("d", None))
+                print(generate_xfst_macro(map_))
+                return
