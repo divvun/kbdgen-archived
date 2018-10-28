@@ -82,8 +82,9 @@ def generate_xfst_macro(coords):
     alphas = " | ".join(coords.keys())
     regexes = []
     for (a, coord) in coords.items():
+        regexes.append("[%s::0] @> [%s::0]" % (a, a))
         for (b, dist) in coord.dist.items():
-            regexes.append("[%s::0]+ @> [%s::%s]" % (a, b, dist))
+            regexes.append("[%s::0] @> [%s::%s]" % (a, b, dist))
     data = """\
 set print-weight ON
 set precision 6
