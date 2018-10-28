@@ -2,13 +2,12 @@ import copy
 import os.path
 import itertools
 
-from collections import OrderedDict
 from lxml import etree
 from lxml.etree import Element, SubElement
 from textwrap import dedent
 
-from .. import get_logger
-from .base import *
+from ..base import get_logger
+from .base import Generator, mode_dict, ISO_KEYS
 from ..cldr import decode_u
 
 logger = get_logger(__file__)

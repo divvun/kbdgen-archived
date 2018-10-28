@@ -3,17 +3,18 @@ import os.path
 import shutil
 import sys
 import glob
+import subprocess
 from collections import defaultdict
-from textwrap import dedent, indent
 from pathlib import Path
 
 from lxml import etree
 from lxml.etree import Element, SubElement
 import tarfile
 
-from .base import *
+from .base import Generator, run_process
 from ..filecache import FileCache
-from .. import boolmap, get_logger
+from ..base import get_logger
+from .. import boolmap
 
 logger = get_logger(__file__)
 
@@ -215,7 +216,8 @@ class AndroidGenerator(Generator):
         target = "com.android.inputmethod.dictionarypack.aosp"
 
         # (╯°□°）╯︵ ┻━┻
-        src_path = "app/src/main/java/com/android/inputmethod/dictionarypack/DictionaryPackConstants.java"
+        src_path = "app/src/main/java/com/android/inputmethod/"\
+            + "dictionarypack/DictionaryPackConstants.java"
         path = os.path.join(base, "deps", self.REPO, src_path)
 
         # (┛◉Д◉)┛彡┻━┻
@@ -348,7 +350,9 @@ class AndroidGenerator(Generator):
     def build(self, base, release_mode=True):
         # TODO: make id unique per sha
         tree_id = "giella-ime"
-        tree_base = lambda x: "app/build/intermediates/ndkBuild/%s" % x
+
+        def tree_base(x):
+            return "app/build/intermediates/ndkBuild/%s" % x
 
         if release_mode:
             if not self.cache.inject_directory_tree(
@@ -520,7 +524,10 @@ class AndroidGenerator(Generator):
                 f.write(v)
 
     def get_source_tree(self, base, repo="divvun/giella-ime", branch="master"):
-        """Downloads the IME source from Github as a tarball, then extracts to deps dir."""
+        """
+        Downloads the IME source from Github as a tarball, then extracts to deps
+        dir.
+        """
         logger.info("Getting source files…")
 
         deps_dir = Path(os.path.join(base, "deps"))
@@ -533,8 +540,6 @@ class AndroidGenerator(Generator):
         Path(target).rename(deps_dir / self.REPO)
 
     def create_gradle_properties(self, release_mode=False):
-        o = OrderedDict()
-
         key_store = self._project.relpath(self._project.target("android")["keyStore"])
 
         tmpl = """ext.app = [

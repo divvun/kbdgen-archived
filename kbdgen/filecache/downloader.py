@@ -25,7 +25,6 @@ def stream_download(url: str, fn: str, output_file: str):
 
             if content_len is not None:
                 max_size_raw = int(content_len)
-                max_size = humanize.naturalsize(max_size_raw)
                 i = min(max_size_raw, i + block_size)
                 write_download_progress(fn, i, max_size_raw)
         print()

@@ -1,5 +1,4 @@
 import array
-import io
 
 
 class BoolMap:
@@ -57,8 +56,8 @@ def parse_range_data(data):
     new_ranges = []
 
     for chunk in range_data:
-        l = len(chunk)
-        if 0 > l > 2:
+        ln = len(chunk)
+        if 0 > ln > 2:
             raise Exception()
         if len(chunk) == 1:
             chunk.append(chunk[0])

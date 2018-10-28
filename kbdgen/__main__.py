@@ -1,9 +1,9 @@
 import argparse
 import yaml
 import sys
-from collections import OrderedDict
 
-from . import __version__, KbdgenException, Parser, gen, logger, UserException
+from . import __version__, gen
+from .base import KbdgenException, Parser, logger, UserException
 
 
 def parse_args():
@@ -118,7 +118,7 @@ def main():
 
     if generator is None:
         print("Error: '%s' is not a valid target." % args.target, file=sys.stderr)
-        print("Valid targets: %s" % ", ".join(generators), file=sys.stderr)
+        print("Valid targets: %s" % ", ".join(gen.generators.keys()), file=sys.stderr)
         return 1
 
     x = generator(project, dict(args._get_kwargs()))

@@ -7,15 +7,17 @@ import unicodedata
 import shutil
 import concurrent.futures
 import uuid
+import re
 import sys
+import subprocess
 
-from pathlib import Path
+from collections import OrderedDict
 from distutils.dir_util import copy_tree
 from textwrap import dedent
 
-from .. import get_logger
+from ..base import get_logger
 from ..filecache import FileCache
-from .base import *
+from .base import Generator, bind_iso_keys, run_process, mode_iter
 from ..cldr import decode_u
 
 logger = get_logger(__file__)
@@ -430,19 +432,21 @@ class WindowsGenerator(Generator):
 
         if self._project.target("win").get("version", None) is None:
             logger.error(
-                "Property 'targets.win.version' must be defined in the project for this target."
+                "Property 'targets.win.version' must be defined in the "
+                + "project for this target."
             )
             return False
 
         guid = self._project.target("win").get("uuid", None)
         if guid is None:
             logger.error(
-                "Property 'targets.win.uuid' must be defined in the project for this target."
+                "Property 'targets.win.uuid' must be defined in the project "
+                + "for this target."
             )
             return False
         try:
             uuid.UUID(guid)
-        except:
+        except Exception:
             logger.error("Property 'targets.win.uuid' is not a valid UUID.")
             return False
 
@@ -458,7 +462,7 @@ class WindowsGenerator(Generator):
                 targets:
                   win:
                     locale: xyz-Latn
-                """
+                """  # noqa: E501
                     )
                     % layout.internal_name
                 )
@@ -483,8 +487,10 @@ class WindowsGenerator(Generator):
             id_ = self._klc_get_name(layout)
             if id_ in ids:
                 fail = True
+                msg = "Duplicate id found for '%s': '%s'; "\
+                    + "set targets.win.id to override."
                 logger.error(
-                    "Duplicate id found for '%s': '%s'; set targets.win.id to override.",
+                    msg,
                     layout.internal_name,
                     id_,
                 )
@@ -510,20 +516,23 @@ class WindowsGenerator(Generator):
             v_chunks = [int(x) for x in out.decode().split("-").pop().split(".")]
             if v_chunks[0] < 2 or (v_chunks[0] == 2 and v_chunks[1]) < 10:
                 logger.warn(
-                    "Builds are not known to succeed with Wine versions less than 2.10; here be dragons."
+                    "Builds are not known to succeed with Wine versions less than "
+                    + "2.10; here be dragons."
                 )
 
         # Check for INNO_PATH
         elif self.get_inno_setup_dir() is None:
             logger.error(
-                "Inno Setup 5 must be installed or INNO_PATH environment variable must point to the Inno Setup 5 directory."
+                "Inno Setup 5 must be installed or INNO_PATH environment variable must "
+                + "point to the Inno Setup 5 directory."
             )
             return False
 
         # Check for MSKLC_PATH
         if self.get_msklc_dir() is None:
             logger.error(
-                "Microsoft Keyboard Layout Creator 1.4 must be installed or MSKLC_PATH environment variable must point to the MSKLC directory."
+                "Microsoft Keyboard Layout Creator 1.4 must be installed or MSKLC_PATH "
+                + "environment variable must point to the MSKLC directory."
             )
             return False
 
@@ -663,8 +672,8 @@ class WindowsGenerator(Generator):
         for key in inno_langs.keys():
             if key not in self._project.locales:
                 continue
-            l = self._project.locale(key) or self._project.first_locale()
-            buf.write("%s.AppName=%s\n" % (key, l.name))
+            loc = self._project.locale(key) or self._project.first_locale()
+            buf.write("%s.AppName=%s\n" % (key, loc.name))
             buf.write("%s.Enable=%s\n" % (key, custom_msgs["Enable"][key]))
         return buf.getvalue()
 
@@ -683,7 +692,8 @@ class WindowsGenerator(Generator):
         app_name = self._project.first_locale().name
 
         o += (
-            "SignTool=signtool -a sha1 -t http://timestamp.verisign.com/scripts/timstamp.dll "
+            "SignTool=signtool -a sha1 "
+            + "-t http://timestamp.verisign.com/scripts/timstamp.dll "
             + "-pkcs12 $q%s$q -$ commercial "
             + "-n $q%s$q -i $q%s$q $f"
         ) % (self._wine_path(pfx), app_name, app_url)
@@ -762,7 +772,7 @@ Source: "{#BuildDir}\\kbdi.exe"; DestDir: "{app}"
 Source: "{#BuildDir}\\i386\\*"; DestDir: "{sys}"; Check: not Is64BitInstallMode; Flags: restartreplace uninsrestartdelete
 Source: "{#BuildDir}\\amd64\\*"; DestDir: "{sys}"; Check: Is64BitInstallMode; Flags: restartreplace uninsrestartdelete
 Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMode; Flags: restartreplace uninsrestartdelete
-        """.strip() % (
+        """.strip() % (  # noqa: E501
             app_version,
             app_publisher,
             app_url,
@@ -790,7 +800,7 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
                         """
                 Root: HKLM; Subkey: "SYSTEM\\CurrentControlSet\\Control\\Nls\\CustomLocale";
                 ValueType: string; ValueName: "{locale}"; ValueData: "{locale}"; Flags: uninsdeletevalue
-                """
+                """  # noqa: E501
                     )
                     .strip()
                     .replace("\n", " ")
@@ -798,7 +808,10 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
                 )
                 reg.append(o)
 
-            script += """Source: "{#BuildDir}\\nlp\\*"; DestDir: "{win}\\Globalization"; Flags: restartreplace uninsrestartdelete\n"""
+            script += """Source: "{#BuildDir}\\nlp\\*"; """
+            script += """DestDir: "{win}\\Globalization"; """
+            script += """Flags: restartreplace uninsrestartdelete\n"""
+
             script += "\n[Registry]\n"
             script += "\n".join(reg)
             script += "\n"
@@ -829,7 +842,9 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
                 )
             else:
                 logger.info(
-                    "Using Windows default language name for layout '%s'; this can be overridden by providing a value for targets.win.languageName."
+                    ("Using Windows default language name for layout '%s'; this "
+                        + "can be overridden by providing a value for "
+                        + "targets.win.languageName.")
                     % layout.internal_name
                 )
             guid_str = "{%s}" % str(guid(kbd_id)).upper()
@@ -922,8 +937,8 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
             % (self._klc_get_name(layout, False), layout.display_names[layout.locale])
         )
 
-        copyright_ = self._project.copyright or "¯\_(ツ)_/¯"
-        organisation = self._project.organisation or "¯\_(ツ)_/¯"
+        copyright_ = self._project.copyright or r"¯\_(ツ)_/¯"
+        organisation = self._project.organisation or r"¯\_(ツ)_/¯"
         locale = layout.target("win").get("locale", layout.locale)
 
         buf.write('COPYRIGHT\t"%s"\n\n' % copyright_)
@@ -1016,10 +1031,9 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
 
                 if scap is not None and len(win_glyphbomb(scap)) > 1:
                     scap = None
-                    logger.error(
-                        "Caps+Shift key '%s' is a glyphbomb and cannot be used in Caps Mode."
-                        % cap
-                    )
+                    msg = "Caps+Shift key '%s' is a glyphbomb and "\
+                        + "cannot be used in Caps Mode."
+                    logger.error(msg % cap)
 
                 buf.write(
                     "-1\t-1\t\t0\t%s\t%s\t\t\t\t// %s %s\n"

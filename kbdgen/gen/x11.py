@@ -1,7 +1,7 @@
-import io
+import os
 
-from .. import get_logger
-from .base import *
+from ..base import get_logger
+from .base import Generator, filepath, mode_iter, ISO_KEYS
 from ..cldr import CP_REGEX
 
 logger = get_logger(__file__)

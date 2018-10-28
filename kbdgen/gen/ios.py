@@ -6,13 +6,17 @@ import glob
 import multiprocessing
 import tarfile
 import tempfile
-from textwrap import dedent, indent
+import os
+import json
+import subprocess
+from lxml import etree
+from collections import OrderedDict
 from pathlib import Path
 
-from .. import get_logger
+from ..base import get_logger
 from ..filecache import FileCache
-from .base import *
-from .osxutil import *
+from .base import Generator, run_process
+from .osxutil import Pbxproj
 
 logger = get_logger(__file__)
 
@@ -33,7 +37,9 @@ class AppleiOSGenerator(Generator):
         self.cache = FileCache()
 
     def get_source_tree(self, base, repo="divvun/giellakbd-ios", branch="master"):
-        """Downloads the IME source from Github as a tarball, then extracts to deps dir."""
+        """
+        Downloads the IME source from Github as a tarball, then extracts to deps dir.
+        """
         logger.info("Getting source files…")
 
         deps_dir = Path(os.path.join(base, "ios-build"))
@@ -212,23 +218,11 @@ class AppleiOSGenerator(Generator):
         logger.error("Your version of Xcode is too old. You need 7.1 or later.")
         return False
 
-    def ensure_ios_autotools(self):
-        msg = "'%s' could not be found on your PATH. Please ensure bbqsrc/ios-autotools is installed."
-
-        if shutil.which("iconfigure") is None:
-            logger.error(msg % "iconfigure")
-            return False
-
-        if shutil.which("autoframework") is None:
-            logger.error(msg % "autoframework")
-            return False
-
-        return True
-
     def build_debug(self, base_dir, deps_dir):
+        cpu_count = multiprocessing.cpu_count()
         cmd = (
-            "xcodebuild -configuration Debug -scheme HostingApp -allowProvisioningUpdates"
-            + "-jobs %s " % multiprocessing.cpu_count()
+            "xcodebuild -configuration Debug -scheme HostingApp "
+            + "-allowProvisioningUpdates -jobs %s " % cpu_count
             + 'CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO'
         )
         process = subprocess.Popen(cmd, cwd=os.path.join(deps_dir), shell=True)
@@ -252,14 +246,6 @@ class AppleiOSGenerator(Generator):
         if os.path.exists(ipa):
             os.remove(ipa)
 
-        projpath = ":".join(
-            os.path.abspath(os.path.join(deps_dir, "GiellaKeyboard.xcodeproj"))[
-                1:
-            ].split(os.sep)
-        )
-
-        # code_sign_id = self._project.target('ios').get('codeSignId', '')
-        # logger.debug(code_sign_id)
         provisioning_profile_id = self._project.target("ios").get(
             "provisioningProfileId", None
         )
@@ -348,7 +334,8 @@ class AppleiOSGenerator(Generator):
         with open(os.path.join(path, "Contents.json")) as f:
             contents = json.load(f, object_pairs_hook=OrderedDict)
 
-        cmd_tmpl = "convert -resize {h}x{w} -background white -alpha remove -gravity center -extent {h}x{w} {src} {out}"
+        cmd_tmpl = "convert -resize {h}x{w} -background white -alpha remove "\
+            + "-gravity center -extent {h}x{w} {src} {out}"
 
         for obj in contents["images"]:
             scale = float(obj["scale"][:-1])
@@ -477,14 +464,9 @@ class AppleiOSGenerator(Generator):
 
     def update_kbd_plist(self, plist, f, layout, n):
         pkg_id = self.pkg_id
-        bundle_id = "%s.%s" % (pkg_id, layout.internal_name.replace("_", "-"))
 
-        plist[
-            "CFBundleName"
-        ] = layout.native_display_name  # self._project.target('ios')['bundleName']
-        plist[
-            "CFBundleDisplayName"
-        ] = layout.native_display_name  # self._project.target('ios')['bundleName']
+        plist["CFBundleName"] = layout.native_display_name
+        plist["CFBundleDisplayName"] = layout.native_display_name
         plist["CFBundleShortVersionString"] = self._version
         plist["CFBundleVersion"] = self._build
         plist["LSApplicationQueriesSchemes"][0] = pkg_id

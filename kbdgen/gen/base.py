@@ -2,8 +2,6 @@ import itertools
 import logging
 import os
 import os.path
-import random
-import re
 import subprocess
 import sys
 
@@ -191,7 +189,7 @@ class DictWalker:
             for k, v in dict_.items():
                 if isinstance(v, dict):
                     c = yield self.on_branch(tuple(buf), k)
-                    if c == False:
+                    if c is False:
                         continue
                     nbuf = buf[:]
                     nbuf.append(k)

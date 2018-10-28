@@ -1,20 +1,19 @@
 import os.path
 import shutil
-import subprocess
+import itertools
 import tempfile
 import sys
 import re
-import lxml.etree
+from lxml import etree
 import binascii
 
-from lxml.etree import Element, SubElement
+from lxml.etree import SubElement
 from collections import defaultdict, OrderedDict
 from textwrap import indent, dedent
 
-from .. import get_logger
-from .base import *
-from .osxutil import *
-from os import listdir
+from ..base import get_logger
+from .base import PhysicalGenerator, run_process, DictWalker
+from .osxutil import OSXKeyLayout, OSX_HARDCODED, OSX_KEYMAP
 
 logger = get_logger(__file__)
 
@@ -40,8 +39,9 @@ class OSXGenerator(PhysicalGenerator):
                 ids.append(id_)
         if fail:
             logger.error(
-                "macOS keyboard internal names are converted to only contain A-Z, a-z, and 0-9. "
-                "Please ensure your internal names are still unique after this process."
+                "macOS keyboard internal names are converted to only contain "
+                + "A-Z, a-z, and 0-9.  Please ensure your internal names are "
+                + "still unique after this process."
             )
         return not fail
 
@@ -106,7 +106,8 @@ class OSXGenerator(PhysicalGenerator):
         logger.info("Installer generated at '%s'." % pkg_path)
 
     def generate_iconset(self, icon, output_fn):
-        cmd_tmpl = "convert -resize {d}x{d} -background transparent -gravity center -extent {d}x{d}"
+        cmd_tmpl = "convert -resize {d}x{d} -background transparent "\
+            + "-gravity center -extent {d}x{d}"
 
         files = (
             ("icon_16x16", 16),
@@ -219,7 +220,7 @@ class OSXGenerator(PhysicalGenerator):
 %s
     </dict>
 </plist>
-                """
+                """  # noqa: E501
                 )
                 % (
                     bundle_id,
@@ -345,7 +346,8 @@ class OSXGenerator(PhysicalGenerator):
 
         if version is None:
             logger.critical(
-                "A version must be defined for a signed package. Add a version property to targets.osx in your project.yaml."
+                "A version must be defined for a signed package. Add a version "
+                + "property to targets.osx in your project.yaml."
             )
             sys.exit(1)
 
@@ -374,10 +376,8 @@ class OSXGenerator(PhysicalGenerator):
         )
 
     def generate_xml(self, layout):
-        # name = layout.display_names[layout.locale]
         name = self._layout_name(layout)
         out = OSXKeyLayout(name, self._layout_id(layout))
-        walker_errors = 0
 
         dead_keys = set(itertools.chain.from_iterable(layout.dead_keys.values()))
         action_keys = set()
@@ -485,7 +485,6 @@ class OSXGenerator(PhysicalGenerator):
                 try:
                     out.add_transform(action_id, when_state, next=next_state)
                 except Exception as e:
-                    w()
                     logger.error(
                         "[%s] Error while adding branch transform:\n%s\n%r"
                         % (
@@ -512,7 +511,6 @@ class OSXGenerator(PhysicalGenerator):
                 try:
                     out.add_transform(action_id, when_state, output=str(leaf))
                 except Exception as e:
-                    w()
                     logger.error(
                         "[%s] Error while adding leaf transform:\n%s\n%r"
                         % (layout.internal_name, e, (action_id, when_state, leaf))

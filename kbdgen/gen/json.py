@@ -1,13 +1,9 @@
-import copy
 import os.path
-import itertools
 
 from collections import OrderedDict
-from textwrap import dedent
 
-from .. import get_logger
-from .base import *
-from ..cldr import decode_u
+from .base import Generator
+from ..base import get_logger
 import json
 
 logger = get_logger(__file__)

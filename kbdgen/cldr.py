@@ -1,16 +1,15 @@
 import datetime
 import itertools
-import logging
 import os.path
 import re
 import unicodedata
 
 import lxml.etree
-from lxml.etree import Element, SubElement
+from lxml.etree import SubElement
 from io import StringIO
 from collections import OrderedDict, namedtuple
 
-from . import get_logger
+from .base import get_logger
 
 logger = get_logger(__file__)
 
@@ -46,10 +45,6 @@ def decode_u(v, newlines=True):
 
 def encode_u(v):
     return cldr_sub(v, lambda x, c: r"\u{%X}" % ord(x))
-    # def rep(x):
-    #    c = unicodedata.category(x)[0]
-    #    return r"\u{%X}" % ord(x) if c in BAD_UNICODE_CATS else x
-    # return "".join([rep(x) for x in v])
 
 
 def key_cmp(x):
@@ -58,7 +53,7 @@ def key_cmp(x):
 
 
 def process_value(*args):
-    pv = lambda v: encode_u(decode_u(v))
+    pv = lambda v: encode_u(decode_u(v))  # noqa: E731
     return tuple(pv(i) for i in args) if len(args) > 1 else pv(args[0])
 
 
@@ -478,7 +473,8 @@ class CLDRMode:
 
 
 def cldr2kbdgen_main():
-    import argparse, sys
+    import argparse
+    import sys
 
     p = argparse.ArgumentParser(prog="cldr2kbdgen")
     p.add_argument(
@@ -494,7 +490,8 @@ def cldr2kbdgen_main():
 
 
 def kbdgen2cldr_main():
-    import argparse, sys
+    import argparse
+    import sys
     from . import orderedyaml
 
     p = argparse.ArgumentParser(prog="kbdgen2cldr")

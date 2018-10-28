@@ -1,4 +1,3 @@
-import copy
 import logging
 import os
 import os.path
@@ -352,7 +351,7 @@ class Parser:
     def _parse_cfg_pairs(self, str_list):
         try:
             return [x.split("=", 1) for x in str_list]
-        except:
+        except Exception:
             raise Exception("Error: invalid key-value pair provided.")
 
     def _parse_global(self, cfg_file=None):
@@ -419,30 +418,32 @@ class Parser:
                     try:
                         data = unicodedata.normalize("NFC", f.read())
                         kbdtree = orderedyaml.loads(data)
-                        l = self._parse_keyboard_descriptor(kbdtree)
-                        dt = l.derive.get("transforms", False)
+                        rl = self._parse_keyboard_descriptor(kbdtree)
+                        dt = rl.derive.get("transforms", False)
                         if dt is not False:
-                            derive_transforms(l, True if dt == "all" else False)
-                        if l.internal_name is None:
+                            derive_transforms(rl, True if dt == "all" else False)
+                        if rl.internal_name is None:
                             raise UserException(
                                 "'%s' has no internalName field" % f.name
                             )
-                        if not VALID_ID_RE.match(l.internal_name):
+                        if not VALID_ID_RE.match(rl.internal_name):
                             raise UserException(
-                                "Internal name '%s' in file '%s' not valid. Must begin with a-z, and after contain only a-z, 0-9, dashes (-) and underscores (_)."
-                                % (l.internal_name, fn)
+                                ("Internal name '%s' in file '%s' not valid. Must "
+                                    + "begin with a-z, and after contain only a-z, "
+                                    + "0-9, dashes (-) and underscores (_).")
+                                % (rl.internal_name, fn)
                             )
-                        if l.internal_name in known_ids:
+                        if rl.internal_name in known_ids:
                             raise UserException(
                                 "A duplicate internal name was found '%s' in file '%s'"
-                                % (l.internal_name, fn)
+                                % (rl.internal_name, fn)
                             )
-                        known_ids.add(l.internal_name)
-                        layouts[l.internal_name] = l
+                        known_ids.add(rl.internal_name)
+                        layouts[rl.internal_name] = rl
                     except Exception as e:
                         logger.error("There was an error for file '%s.yaml':" % layout)
                         raise e
-            except FileNotFoundError as e:
+            except FileNotFoundError:
                 logger.error("Layout '%s' listed in project, but not found." % layout)
                 return None
 
@@ -472,7 +473,7 @@ def decompose(ch):
         try:
             c = "COMBINING %s" % unicodedata.name(ch).replace("MODIFIER LETTER ", "")
             return unicodedata.lookup(c)
-        except:
+        except Exception:
             pass
     return x
 

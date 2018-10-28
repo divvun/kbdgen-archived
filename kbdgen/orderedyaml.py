@@ -5,6 +5,8 @@ import yaml
 import yaml.constructor
 
 # Courtesy of https://gist.github.com/844388. Thanks!
+
+
 class OrderedDictYAMLLoader(yaml.Loader):
     """A YAML loader that loads mappings into ordered dictionaries."""
 

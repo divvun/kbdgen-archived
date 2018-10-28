@@ -1,15 +1,17 @@
 import copy
-import io
 import json
 import uuid
 import pathlib
+import itertools
+import subprocess
+import re
+from collections import OrderedDict
 
 from lxml import etree
 from lxml.etree import Element, SubElement
 
-from .. import parse_layout, get_logger
-from ..cldr import CP_REGEX, cldr_sub, decode_u, encode_u
-from .base import *
+from ..base import parse_layout, get_logger
+from ..cldr import CP_REGEX
 
 logger = get_logger(__file__)
 
@@ -297,8 +299,6 @@ class Pbxproj:
         k = Pbxproj.gen_key()
         self.objects[k] = o
         return k
-
-    # 		C6F249581F736E8A00840F2B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 
     def create_plist_file(self, plist_path):
         o = {
@@ -783,7 +783,6 @@ class OSXKeyLayout:
 
     def _set_default_action(self, key):
         action_id = self.actions.get(key)  # "Key %s" % key
-        pressed_id = self.states.get(key)  # "State %s" % key
         action = self.action_cache.get(action_id, None)
 
         if action is None:
@@ -836,7 +835,6 @@ class OSXKeyLayout:
 
     def set_transform_key(self, mode, key, key_id):
         action_id = self.actions.get(key)  # "Key %s" % key
-        pressed_id = self.states.get(key)  # "State %s" % key
 
         self._set_key(mode, key, key_id, action=action_id)
 

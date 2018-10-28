@@ -6,7 +6,8 @@ with open('README.rst') as f:
 
 setup(name='kbdgen',
       version=__version__,
-      description='Generate soft keyboards for mobile OSes and layouts for Windows, macOS and X11.',
+      description='Generate soft keyboards for mobile OSes and '
+      + 'layouts for Windows, macOS and X11.',
       long_description=desc,
       url='https://github.com/bbqsrc/kbdgen',
       author='Brendan Molloy',
@@ -23,7 +24,7 @@ setup(name='kbdgen',
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6"
       ],
-      entry_points = {
+      entry_points={
           'console_scripts': [
               'kbdgen=kbdgen.__main__:main',
               'cldr2kbdgen=kbdgen.cldr:cldr2kbdgen_main',

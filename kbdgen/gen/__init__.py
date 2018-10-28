@@ -1,4 +1,4 @@
-from .base import *
+from collections import OrderedDict
 
 from .ios import AppleiOSGenerator
 from .android import AndroidGenerator

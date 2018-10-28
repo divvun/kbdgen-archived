@@ -95,7 +95,7 @@ class LogFormatter(logging.Formatter):
     * Robust against str/bytes encoding problems.
     """
 
-    DEFAULT_FORMAT = "%(color)s[%(levelname)1.1s %(asctime)s %(module)s:%(lineno)d]%(end_color)s %(message)s"
+    DEFAULT_FORMAT = "%(color)s[%(levelname)1.1s %(asctime)s %(module)s:%(lineno)d]%(end_color)s %(message)s"  # noqa
     DEFAULT_DATE_FORMAT = "%y%m%d %H:%M:%S"
     DEFAULT_COLORS = {
         logging.DEBUG: 4,  # Blue
@@ -205,41 +205,6 @@ def enable_pretty_logging(options=None, logger=None, fmt=None):
     channel = logging.StreamHandler()
     channel.setFormatter(LogFormatter(fmt=fmt))
     logger.addHandler(channel)
-
-
-'''
-def define_logging_options(options=None):
-    """Add logging-related flags to ``options``.
-
-    These options are present automatically on the default options instance;
-    this method is only necessary if you have created your own `.OptionParser`.
-
-    .. versionadded:: 4.2
-        This function existed in prior versions but was broken and undocumented until 4.2.
-    """
-    if options is None:
-        # late import to prevent cycle
-        from tornado.options import options
-    options.define("logging", default="info",
-                   help=("Set the Python log level. If 'none', tornado won't touch the "
-                         "logging configuration."),
-                   metavar="debug|info|warning|error|none")
-    options.define("log_to_stderr", type=bool, default=None,
-                   help=("Send log output to stderr (colorized if possible). "
-                         "By default use stderr if --log_file_prefix is not set and "
-                         "no other logging is configured."))
-    options.define("log_file_prefix", type=str, default=None, metavar="PATH",
-                   help=("Path prefix for log files. "
-                         "Note that if you are running multiple tornado processes, "
-                         "log_file_prefix must be different for each of them (e.g. "
-                         "include the port number)"))
-    options.define("log_file_max_size", type=int, default=100 * 1000 * 1000,
-                   help="max size of log files before rollover")
-    options.define("log_file_num_backups", type=int, default=10,
-                   help="number of log files to keep")
-
-    options.add_parse_callback(lambda: enable_pretty_logging(options))
-'''
 
 
 def monkey_patch_trace_logging():
