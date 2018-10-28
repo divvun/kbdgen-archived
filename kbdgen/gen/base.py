@@ -14,11 +14,18 @@ from ..base import ISO_KEYS, KbdgenException
 
 logger = logging.getLogger()
 
-class MissingApplicationException(KbdgenException): pass
-class GenerationError(KbdgenException): pass
+
+class MissingApplicationException(KbdgenException):
+    pass
+
+
+class GenerationError(KbdgenException):
+    pass
+
 
 def bind_iso_keys(other):
     return OrderedDict(((k, v) for k, v in zip(ISO_KEYS, other)))
+
 
 class Generator:
     def __init__(self, project, args=None):
@@ -27,19 +34,19 @@ class Generator:
 
     @property
     def repo(self):
-        return self._args.get('repo', None)
+        return self._args.get("repo", None)
 
     @property
     def branch(self):
-        return self._args.get('branch', 'master')
+        return self._args.get("branch", "master")
 
     @property
     def is_release(self):
-        return self._args.get('release', False)
+        return self._args.get("release", False)
 
     @property
     def dry_run(self):
-        return self._args.get('dry_run', False)
+        return self._args.get("dry_run", False)
 
     @property
     def output_dir(self):
@@ -61,8 +68,9 @@ class Generator:
             return False
         else:
             logger.debug("Supported layouts: %s" % ", ".join(self.supported_layouts))
-        
+
         return True
+
 
 class PhysicalGenerator(Generator):
     def validate_layout(self, layout):
@@ -71,9 +79,12 @@ class PhysicalGenerator(Generator):
         deadkey_keys = set(layout.dead_keys.keys())
 
         undefined_modes = deadkey_keys - mode_keys
-        
+
         if len(undefined_modes) > 0:
-            raise Exception("Dead key modes are defined for undefined modes: %r" % (list(undefined_modes),))
+            raise Exception(
+                "Dead key modes are defined for undefined modes: %r"
+                % (list(undefined_modes),)
+            )
 
         for mode, keys in layout.dead_keys.items():
             dead_keys = set(keys)
@@ -82,13 +93,19 @@ class PhysicalGenerator(Generator):
             matched_keys = dead_keys & layer_keys
 
             if matched_keys != dead_keys:
-                raise Exception("Specified dead keys missing from mode %r: %r" % (mode, list(dead_keys - matched_keys)))
+                raise Exception(
+                    "Specified dead keys missing from mode %r: %r"
+                    % (mode, list(dead_keys - matched_keys))
+                )
+
 
 class TouchGenerator(Generator):
     def validate_layout(self):
         pass
 
+
 MSG_LAYOUT_MISSING = "Layout '%s' is missing a required mode: '%s'."
+
 
 def mode_iter(keyboard, key, required=False):
     mode = keyboard.modes.get(key, None)
@@ -99,6 +116,7 @@ def mode_iter(keyboard, key, required=False):
 
     return mode.values()
 
+
 def mode_dict(keyboard, key, required=False, space=False):
     mode = keyboard.modes.get(key, None)
     if mode is None:
@@ -107,11 +125,12 @@ def mode_dict(keyboard, key, required=False, space=False):
         return OrderedDict(zip(ISO_KEYS, itertools.repeat(None)))
 
     if space:
-        sp = keyboard.special.get('space', {}).get(key, " ")
-        mode['A03'] = sp
+        sp = keyboard.special.get("space", {}).get(key, " ")
+        mode["A03"] = sp
     return mode
 
-def git_update(dst, branch, clean, cwd='.', logger=print):
+
+def git_update(dst, branch, clean, cwd=".", logger=print):
     msg = "Updating repository '%s'…" % dst
     logger(msg)
 
@@ -123,10 +142,10 @@ def git_update(dst, branch, clean, cwd='.', logger=print):
              git submodule init &&
              git submodule sync &&
              git submodule update""" % (
-                branch,
-                "git clean -fdx &&" if clean else ""
-            )
-    cmd = cmd.replace('\n', ' ')
+        branch,
+        "git clean -fdx &&" if clean else "",
+    )
+    cmd = cmd.replace("\n", " ")
 
     cwd = os.path.join(cwd, dst)
 
@@ -134,11 +153,12 @@ def git_update(dst, branch, clean, cwd='.', logger=print):
     process = subprocess.Popen(cmd, cwd=cwd, shell=True)
     process.wait()
 
-def git_clone(src, dst, branch, clean, cwd='.', logger=print):
+
+def git_clone(src, dst, branch, clean, cwd=".", logger=print):
     msg = "Cloning repository '%s' to '%s'…" % (src, dst)
     logger(msg)
 
-    cmd = ['git', 'clone', src, dst]
+    cmd = ["git", "clone", src, dst]
 
     # TODO error checking
     process = subprocess.Popen(cmd, cwd=cwd)
@@ -147,19 +167,25 @@ def git_clone(src, dst, branch, clean, cwd='.', logger=print):
     # Silence logger for update.
     git_update(dst, branch, cwd, logger=lambda x: None)
 
+
 def iterable_set(iterable):
     return {i for i in itertools.chain.from_iterable(iterable)}
+
 
 def filepath(fp, *args):
     return os.path.join(os.path.dirname(fp), *args)
 
+
 class DictWalker:
     def on_branch(self, base, branch):
         return base, branch
+
     def on_leaf(self, base, branch, leaf):
         return base, branch, leaf
+
     def __init__(self, dict_):
         self._dict = dict_
+
     def __iter__(self):
         def walk(dict_, buf):
             for k, v in dict_.items():
@@ -175,17 +201,24 @@ class DictWalker:
                     yield self.on_leaf(tuple(buf), k, v)
                 else:
                     raise TypeError(v)
+
         for v in walk(self._dict, []):
             yield v
+
     def __call__(self):
         # Run iterator to death
-        for _ in self: pass
+        for _ in self:
+            pass
+
 
 def run_process(cmd, cwd=None, show_output=False):
     try:
-        process = subprocess.Popen(cmd, cwd=str(cwd) if cwd is not None else None,
-                    stderr=None if show_output else subprocess.PIPE,
-                    stdout=None if show_output else subprocess.PIPE)
+        process = subprocess.Popen(
+            cmd,
+            cwd=str(cwd) if cwd is not None else None,
+            stderr=None if show_output else subprocess.PIPE,
+            stdout=None if show_output else subprocess.PIPE,
+        )
     except Exception as e:
         logger.error("Process failed to launch with the following error message:")
         logger.error(e)
@@ -202,8 +235,7 @@ def run_process(cmd, cwd=None, show_output=False):
             if x.strip() == "":
                 x = out.decode()
             logger.error(x)
-            logger.error("Application ended with error code %s." % (
-                    process.returncode))
+            logger.error("Application ended with error code %s." % (process.returncode))
             sys.exit(process.returncode)
-        
+
         return out, err

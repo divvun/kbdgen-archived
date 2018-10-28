@@ -8,7 +8,7 @@ logger = get_logger(__file__)
 
 keysym_to_str = {}
 
-with open(filepath(__file__, 'bin', 'keysym.tsv')) as f:
+with open(filepath(__file__, "bin", "keysym.tsv")) as f:
     line = f.readline()
     while line:
         if line.startswith("*"):
@@ -17,17 +17,18 @@ with open(filepath(__file__, 'bin', 'keysym.tsv')) as f:
 
     line = f.readline()
     while line:
-        string, keysymstr = line.strip().split('\t')
+        string, keysymstr = line.strip().split("\t")
         keysym = int(keysymstr, 16)
 
         keysym_to_str[keysym] = string
         line = f.readline()
 
+
 class XKBGenerator(Generator):
-    def generate(self, base='.'):
+    def generate(self, base="."):
         if not self.sanity_check():
             return
-        
+
         self.build_dir = os.path.abspath(base)
         os.makedirs(self.build_dir, exist_ok=True)
 
@@ -35,15 +36,15 @@ class XKBGenerator(Generator):
             logger.info("Dry run completed.")
             return
 
-        xkb_fn = os.path.join(self.build_dir, "%s.xkb" % (
-            self._project.internal_name))
-        xcompose_fn = os.path.join(self.build_dir, "%s.xcompose" % (
-            self._project.internal_name))
+        xkb_fn = os.path.join(self.build_dir, "%s.xkb" % (self._project.internal_name))
+        xcompose_fn = os.path.join(
+            self.build_dir, "%s.xcompose" % (self._project.internal_name)
+        )
 
         # First char in Supplemental Private Use Area-A
         self.surrogate = 0xF0000
-        self.xkb = open(xkb_fn, 'w')
-        self.xcompose = open(xcompose_fn, 'w')
+        self.xkb = open(xkb_fn, "w")
+        self.xcompose = open(xcompose_fn, "w")
 
         for name, layout in self.supported_layouts.items():
             self.write_nonsense(name, layout)
@@ -54,7 +55,7 @@ class XKBGenerator(Generator):
     def filter_xkb_keysyms(self, v):
         """actual filter function"""
         if v is None:
-            return ''
+            return ""
 
         v = CP_REGEX.sub(lambda x: chr(int(x.group(1), 16)), v)
 
@@ -78,14 +79,14 @@ class XKBGenerator(Generator):
         buf.write('    include "latin"\n')
         buf.write('    name[Group1] = "%s";\n\n' % layout.display_names[layout.locale])
 
-        col0 = mode_iter(layout, 'iso-default', required=True)
-        col1 = mode_iter(layout, 'iso-shift')
-        col2 = mode_iter(layout, 'iso-alt')
-        col3 = mode_iter(layout, 'iso-alt+shift')
+        col0 = mode_iter(layout, "iso-default", required=True)
+        col1 = mode_iter(layout, "iso-shift")
+        col2 = mode_iter(layout, "iso-alt")
+        col3 = mode_iter(layout, "iso-alt+shift")
 
         def xkb_filter(self, *args):
             out = [self.filter_xkb_keysyms(i) for i in args]
-            while len(out) > 0 and out[-1] == '':
+            while len(out) > 0 and out[-1] == "":
                 out.pop()
             return tuple(out)
 
@@ -94,4 +95,4 @@ class XKBGenerator(Generator):
             buf.write("    key <A%s> { [ %s ] };\n" % (iso, cols))
 
         buf.write('\n    include "level3(ralt_switch)"\n};\n\n')
-        ligs.write('\n')
+        ligs.write("\n")

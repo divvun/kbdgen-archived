@@ -1,6 +1,7 @@
 import json
 
 from .. import get_logger
+
 logger = get_logger(__file__)
 
 from .. import Parser
@@ -26,10 +27,10 @@ class BahkatPackage:
             "version": project.target(target).get("version", "0.0.0"),
             "category": category,
             "languages": list(langs),
-            "os": { "windows": ">= 8.1" },
+            "os": {"windows": ">= 8.1"},
             "dependencies": {},
             "virtualDependencies": {},
-            "installer": None
+            "installer": None,
         }
 
         return cls(tree)
@@ -38,27 +39,34 @@ class BahkatPackage:
         self.tree = tree
 
     def to_json(self):
-        return json.dumps(self.tree, indent=2) + '\n'
+        return json.dumps(self.tree, indent=2) + "\n"
+
 
 def main():
     import argparse, sys
 
     p = argparse.ArgumentParser(prog="bahkatgen")
-    p.add_argument('-t', '--target', required=True, choices=generators.keys(),
-                   help="Target output.")
-    p.add_argument('-c', '--category', required=True,
-                   help="Category for package")
-    p.add_argument('kbdgen_project', type=argparse.FileType('r', encoding="utf-8"),
-                   default=sys.stdin)
-    p.add_argument('output_json', type=argparse.FileType('w'),
-                   default=sys.stdout)
+    p.add_argument(
+        "-t",
+        "--target",
+        required=True,
+        choices=generators.keys(),
+        help="Target output.",
+    )
+    p.add_argument("-c", "--category", required=True, help="Category for package")
+    p.add_argument(
+        "kbdgen_project",
+        type=argparse.FileType("r", encoding="utf-8"),
+        default=sys.stdin,
+    )
+    p.add_argument("output_json", type=argparse.FileType("w"), default=sys.stdout)
     args = p.parse_args()
 
     package = BahkatPackage.from_kbdgen_project(
-        args.kbdgen_project,
-        args.target,
-        args.category)
+        args.kbdgen_project, args.target, args.category
+    )
     args.output_json.write(package.to_json())
+
 
 if __name__ == "__main__":
     main()

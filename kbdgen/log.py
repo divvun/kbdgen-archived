@@ -41,6 +41,7 @@ import logging
 import logging.handlers
 import sys
 
+
 def to_unicode(value):
     """Converts a string argument to a unicode string.
 
@@ -50,10 +51,9 @@ def to_unicode(value):
     if isinstance(value, (str, type(None))):
         return value
     if not isinstance(value, bytes):
-        raise TypeError(
-            "Expected bytes, unicode, or None; got %r" % type(value)
-        )
+        raise TypeError("Expected bytes, unicode, or None; got %r" % type(value))
     return value.decode("utf-8")
+
 
 try:
     import curses
@@ -68,7 +68,7 @@ gen_log = logging.getLogger("kbdgen.general")
 
 def _stderr_supports_color():
     color = False
-    if curses and hasattr(sys.stderr, 'isatty') and sys.stderr.isatty():
+    if curses and hasattr(sys.stderr, "isatty") and sys.stderr.isatty():
         try:
             curses.setupterm()
             if curses.tigetnum("colors") > 0:
@@ -94,18 +94,24 @@ class LogFormatter(logging.Formatter):
     * Timestamps on every log line.
     * Robust against str/bytes encoding problems.
     """
-    DEFAULT_FORMAT = '%(color)s[%(levelname)1.1s %(asctime)s %(module)s:%(lineno)d]%(end_color)s %(message)s'
-    DEFAULT_DATE_FORMAT = '%y%m%d %H:%M:%S'
+
+    DEFAULT_FORMAT = "%(color)s[%(levelname)1.1s %(asctime)s %(module)s:%(lineno)d]%(end_color)s %(message)s"
+    DEFAULT_DATE_FORMAT = "%y%m%d %H:%M:%S"
     DEFAULT_COLORS = {
         logging.DEBUG: 4,  # Blue
         logging.INFO: 2,  # Green
         logging.WARNING: 3,  # Yellow
         logging.ERROR: 1,  # Red
-        logging.CRITICAL: 1, # Red
+        logging.CRITICAL: 1,  # Red
     }
 
-    def __init__(self, color=True, fmt=DEFAULT_FORMAT,
-                 datefmt=DEFAULT_DATE_FORMAT, colors=DEFAULT_COLORS):
+    def __init__(
+        self,
+        color=True,
+        fmt=DEFAULT_FORMAT,
+        datefmt=DEFAULT_DATE_FORMAT,
+        colors=DEFAULT_COLORS,
+    ):
         r"""
         :arg bool color: Enables color support.
         :arg string fmt: Log message format.
@@ -133,8 +139,7 @@ class LogFormatter(logging.Formatter):
             # works with unicode strings.  The explicit calls to
             # unicode() below are harmless in python2 but will do the
             # right conversion in python 3.
-            fg_color = (curses.tigetstr("setaf") or
-                        curses.tigetstr("setf") or "")
+            fg_color = curses.tigetstr("setaf") or curses.tigetstr("setf") or ""
             if (3, 0) < sys.version_info < (3, 2, 3):
                 fg_color = str(fg_color, "ascii")
 
@@ -142,7 +147,7 @@ class LogFormatter(logging.Formatter):
                 self._colors[levelno] = str(curses.tparm(fg_color, code), "ascii")
             self._normal = str(curses.tigetstr("sgr0"), "ascii")
         else:
-            self._normal = ''
+            self._normal = ""
 
     def format(self, record):
         try:
@@ -174,7 +179,7 @@ class LogFormatter(logging.Formatter):
             record.color = self._colors[record.levelno]
             record.end_color = self._normal
         else:
-            record.color = record.end_color = ''
+            record.color = record.end_color = ""
 
         formatted = self._fmt % record.__dict__
 
@@ -186,9 +191,10 @@ class LogFormatter(logging.Formatter):
             # each line separately so that non-utf8 bytes don't cause
             # all the newlines to turn into '\n'.
             lines = [formatted.rstrip()]
-            lines.extend(_safe_unicode(ln) for ln in record.exc_text.split('\n'))
-            formatted = '\n'.join(lines)
+            lines.extend(_safe_unicode(ln) for ln in record.exc_text.split("\n"))
+            formatted = "\n".join(lines)
         return formatted.replace("\n", "\n    ")
+
 
 def enable_pretty_logging(options=None, logger=None, fmt=None):
     """Turns on formatted logging output as configured."""
@@ -199,6 +205,7 @@ def enable_pretty_logging(options=None, logger=None, fmt=None):
     channel = logging.StreamHandler()
     channel.setFormatter(LogFormatter(fmt=fmt))
     logger.addHandler(channel)
+
 
 '''
 def define_logging_options(options=None):
@@ -234,8 +241,9 @@ def define_logging_options(options=None):
     options.add_parse_callback(lambda: enable_pretty_logging(options))
 '''
 
+
 def monkey_patch_trace_logging():
-    setattr(logging, 'TRACE', 5)
+    setattr(logging, "TRACE", 5)
     logging._levelToName[logging.TRACE] = "TRACE"
     logging._nameToLevel["TRACE"] = logging.TRACE
 

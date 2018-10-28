@@ -13,103 +13,107 @@ from .base import *
 
 logger = get_logger(__file__)
 
-OSX_KEYMAP = OrderedDict((
-    ('C01', '0'),
-    ('C02', '1'),
-    ('C03', '2'),
-    ('C04', '3'),
-    ('C06', '4'),
-    ('C05', '5'),
-    ('B01', '6'),
-    ('B02', '7'),
-    ('B03', '8'),
-    ('B04', '9'),
-    ('B00', '50'), # E00 flipped!
-    ('B05', '11'),
-    ('D01', '12'),
-    ('D02', '13'),
-    ('D03', '14'),
-    ('D04', '15'),
-    ('D06', '16'),
-    ('D05', '17'),
-    ('E01', '18'),
-    ('E02', '19'),
-    ('E03', '20'),
-    ('E04', '21'),
-    ('E06', '22'),
-    ('E05', '23'),
-    ('E12', '24'),
-    ('E09', '25'),
-    ('E07', '26'),
-    ('E11', '27'),
-    ('E08', '28'),
-    ('E10', '29'),
-    ('D12', '30'),
-    ('D09', '31'),
-    ('D07', '32'),
-    ('D11', '33'),
-    ('D08', '34'),
-    ('D10', '35'),
-    # U WOT 36 - space yeah yeah
-    ('C09', '37'),
-    ('C07', '38'),
-    ('C11', '39'),
-    ('C08', '40'),
-    ('C10', '41'),
-    ('D13', '42'),
-    ('B08', '43'),
-    ('B10', '44'),
-    ('B06', '45'),
-    ('B07', '46'),
-    ('B09', '47'),
-    # U WOT 48 - backspace yeah yeah
-    ('A03', '49'),
-    ('E00', '10'), # B00 flipped!
-    ('E13', '93'),
-    ('B11', '94')
-))
+OSX_KEYMAP = OrderedDict(
+    (
+        ("C01", "0"),
+        ("C02", "1"),
+        ("C03", "2"),
+        ("C04", "3"),
+        ("C06", "4"),
+        ("C05", "5"),
+        ("B01", "6"),
+        ("B02", "7"),
+        ("B03", "8"),
+        ("B04", "9"),
+        ("B00", "50"),  # E00 flipped!
+        ("B05", "11"),
+        ("D01", "12"),
+        ("D02", "13"),
+        ("D03", "14"),
+        ("D04", "15"),
+        ("D06", "16"),
+        ("D05", "17"),
+        ("E01", "18"),
+        ("E02", "19"),
+        ("E03", "20"),
+        ("E04", "21"),
+        ("E06", "22"),
+        ("E05", "23"),
+        ("E12", "24"),
+        ("E09", "25"),
+        ("E07", "26"),
+        ("E11", "27"),
+        ("E08", "28"),
+        ("E10", "29"),
+        ("D12", "30"),
+        ("D09", "31"),
+        ("D07", "32"),
+        ("D11", "33"),
+        ("D08", "34"),
+        ("D10", "35"),
+        # U WOT 36 - space yeah yeah
+        ("C09", "37"),
+        ("C07", "38"),
+        ("C11", "39"),
+        ("C08", "40"),
+        ("C10", "41"),
+        ("D13", "42"),
+        ("B08", "43"),
+        ("B10", "44"),
+        ("B06", "45"),
+        ("B07", "46"),
+        ("B09", "47"),
+        # U WOT 48 - backspace yeah yeah
+        ("A03", "49"),
+        ("E00", "10"),  # B00 flipped!
+        ("E13", "93"),
+        ("B11", "94"),
+    )
+)
 
-OSX_HARDCODED = OrderedDict((
-    ("36", r"\u{D}"),
-    ("48", r"\u{9}"),
-    ("51", r"\u{8}"),
-    ("53", r"\u{1B}"),
-    ("64", r"\u{10}"),
-    ("66", r"\u{1D}"),
-    ("70", r"\u{1C}"),
-    ("71", r"\u{1B}"),
-    ("72", r"\u{1F}"),
-    ("76", r"\u{3}"),
-    ("77", r"\u{1E}"),
-    ("79", r"\u{10}"),
-    ("80", r"\u{10}"),
-    ("96", r"\u{10}"),
-    ("97", r"\u{10}"),
-    ("98", r"\u{10}"),
-    ("99", r"\u{10}"),
-    ("100", r"\u{10}"),
-    ("101", r"\u{10}"),
-    ("103", r"\u{10}"),
-    ("105", r"\u{10}"),
-    ("106", r"\u{10}"),
-    ("107", r"\u{10}"),
-    ("109", r"\u{10}"),
-    ("111", r"\u{10}"),
-    ("113", r"\u{10}"),
-    ("114", r"\u{5}"),
-    ("115", r"\u{1}"),
-    ("116", r"\u{B}"),
-    ("117", r"\u{7F}"),
-    ("118", r"\u{10}"),
-    ("119", r"\u{4}"),
-    ("120", r"\u{10}"),
-    ("121", r"\u{C}"),
-    ("122", r"\u{10}"),
-    ("123", r"\u{1C}"),
-    ("124", r"\u{1D}"),
-    ("125", r"\u{1F}"),
-    ("126", r"\u{1E}")
-))
+OSX_HARDCODED = OrderedDict(
+    (
+        ("36", r"\u{D}"),
+        ("48", r"\u{9}"),
+        ("51", r"\u{8}"),
+        ("53", r"\u{1B}"),
+        ("64", r"\u{10}"),
+        ("66", r"\u{1D}"),
+        ("70", r"\u{1C}"),
+        ("71", r"\u{1B}"),
+        ("72", r"\u{1F}"),
+        ("76", r"\u{3}"),
+        ("77", r"\u{1E}"),
+        ("79", r"\u{10}"),
+        ("80", r"\u{10}"),
+        ("96", r"\u{10}"),
+        ("97", r"\u{10}"),
+        ("98", r"\u{10}"),
+        ("99", r"\u{10}"),
+        ("100", r"\u{10}"),
+        ("101", r"\u{10}"),
+        ("103", r"\u{10}"),
+        ("105", r"\u{10}"),
+        ("106", r"\u{10}"),
+        ("107", r"\u{10}"),
+        ("109", r"\u{10}"),
+        ("111", r"\u{10}"),
+        ("113", r"\u{10}"),
+        ("114", r"\u{5}"),
+        ("115", r"\u{1}"),
+        ("116", r"\u{B}"),
+        ("117", r"\u{7F}"),
+        ("118", r"\u{10}"),
+        ("119", r"\u{4}"),
+        ("120", r"\u{10}"),
+        ("121", r"\u{C}"),
+        ("122", r"\u{10}"),
+        ("123", r"\u{1C}"),
+        ("124", r"\u{1D}"),
+        ("125", r"\u{1F}"),
+        ("126", r"\u{1E}"),
+    )
+)
 
 
 def plutil_get_json(path):
@@ -124,8 +128,7 @@ def plutil_get_json(path):
 def plutil_to_xml_str(json_obj):
     cmd = "plutil -convert xml1 -o - -".split(" ")
 
-    process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE)
+    process = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     return process.communicate(json.dumps(json_obj).encode())[0].decode()
 
 
@@ -142,48 +145,49 @@ class Pbxproj:
 
     @property
     def objects(self):
-        return self._proj['objects']
+        return self._proj["objects"]
 
     @property
     def root(self):
-        return self.objects[self._proj['rootObject']]
+        return self.objects[self._proj["rootObject"]]
 
     @property
     def main_group(self):
-        return self.objects[self.root['mainGroup']]
+        return self.objects[self.root["mainGroup"]]
 
     def find_ref_for_name(self, name, isa=None):
         for ref, o in self.objects.items():
-            if o.get('name', None) == name and \
-                    (isa is None or o.get('isa', None) == isa):
+            if o.get("name", None) == name and (
+                isa is None or o.get("isa", None) == isa
+            ):
                 return ref
         return None
 
     def find_resource_build_phase(self, target_name):
-        targets = [self.objects[t] for t in self.root['targets']]
+        targets = [self.objects[t] for t in self.root["targets"]]
         target = None
 
         for t in targets:
-            if t['name'] == target_name:
+            if t["name"] == target_name:
                 target = t
                 break
 
         if target is None:
             return None
 
-        for build_phase in target['buildPhases']:
+        for build_phase in target["buildPhases"]:
             phase = self.objects[build_phase]
-            if phase['isa'] == "PBXResourcesBuildPhase":
+            if phase["isa"] == "PBXResourcesBuildPhase":
                 return phase
 
         return None
-    
+
     def create_plist_string_variant(self, variants):
         o = {
             "isa": "PBXVariantGroup",
             "children": variants,
             "name": "InfoPlist.strings",
-            "sourceTree": "<group>"
+            "sourceTree": "<group>",
         }
 
         return o
@@ -196,23 +200,22 @@ class Pbxproj:
         self.objects[var_key] = variant
 
         key = Pbxproj.gen_key()
-        self.objects[key] = {
-            "isa": "PBXBuildFile",
-            "fileRef": var_key
-        }
+        self.objects[key] = {"isa": "PBXBuildFile", "fileRef": var_key}
 
         return (var_key, key)
 
     def add_plist_strings_to_build_phase(self, locales, target_name):
         phase = self.find_resource_build_phase(target_name)
         (var_ref, ref) = self.add_plist_strings(locales)
-        phase['files'].append(ref)
+        phase["files"].append(ref)
         return var_ref
 
     def find_variant_group(self, target):
         for o in self.objects.values():
-            if o.get('isa', None) == 'PBXVariantGroup' and\
-                    o.get('name', None) == target:
+            if (
+                o.get("isa", None) == "PBXVariantGroup"
+                and o.get("name", None) == target
+            ):
                 break
         else:
             raise Exception("No src found.")
@@ -236,7 +239,7 @@ class Pbxproj:
 
     def add_file_ref_to_variant_group(self, file_ref, variant_name):
         variant = self.find_variant_group(variant_name)
-        variant['children'].append(file_ref)
+        variant["children"].append(file_ref)
         return variant
 
     def add_plist_strings_to_variant_group(self, locales, variant_name, target_name):
@@ -244,7 +247,7 @@ class Pbxproj:
         o = []
         for locale in locales:
             ref = self.create_plist_string_file(locale, target_name)
-            variant['children'].append(ref)
+            variant["children"].append(ref)
             o.append(ref)
         return o
 
@@ -253,11 +256,11 @@ class Pbxproj:
         n = False
 
         for g in group_list:
-            for c in o['children']:
+            for c in o["children"]:
                 co = self.objects[c]
                 if n:
                     break
-                if co.get('path', co.get('name', None)) == g:
+                if co.get("path", co.get("name", None)) == g:
                     o = co
                     n = True
             if n:
@@ -270,14 +273,14 @@ class Pbxproj:
                     "isa": "PBXGroup",
                     "children": [],
                     "path": g,
-                    "sourceTree": "<group>"
+                    "sourceTree": "<group>",
                 }
-                o['children'].append(ref)
+                o["children"].append(ref)
                 n = False
                 o = self.objects[ref]
                 continue
 
-        o['children'].append(ref)
+        o["children"].append(ref)
         return True
 
     def create_file_reference(self, file_type, locale, name, **kwargs):
@@ -286,7 +289,7 @@ class Pbxproj:
             "lastKnownFileType": file_type,
             "name": locale,
             "path": "%s.lproj/%s" % (locale, name),
-            "sourceTree": "<group>"
+            "sourceTree": "<group>",
         }
 
         o.update(kwargs)
@@ -295,8 +298,7 @@ class Pbxproj:
         self.objects[k] = o
         return k
 
-
-#		C6F249581F736E8A00840F2B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+    # 		C6F249581F736E8A00840F2B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 
     def create_plist_file(self, plist_path):
         o = {
@@ -304,7 +306,7 @@ class Pbxproj:
             "lastKnownFileType": "text.plist.xml",
             "name": pathlib.Path(plist_path).name,
             "path": plist_path,
-            "sourceTree": "<group>"
+            "sourceTree": "<group>",
         }
 
         k = Pbxproj.gen_key()
@@ -322,9 +324,9 @@ class Pbxproj:
             target = self.main_group
 
         for name in path_list:
-            children = [self.objects[r] for r in target['children']]
+            children = [self.objects[r] for r in target["children"]]
             for c in children:
-                if c.get('path', None) == name:
+                if c.get("path", None) == name:
                     target = c
                     break
             else:
@@ -334,41 +336,47 @@ class Pbxproj:
                     "children": [],
                     "isa": "PBXGroup",
                     "path": name,
-                    "sourceTree": "<group>"
+                    "sourceTree": "<group>",
                 }
 
                 self.objects[ref] = o
-                target['children'].append(ref)
+                target["children"].append(ref)
                 target = self.objects[ref]
 
     def clear_target_dependencies(self, target):
         for o in self.objects.values():
-            if o.get('isa', None) == 'PBXNativeTarget' and\
-                    o.get('name', None) == target:
+            if (
+                o.get("isa", None) == "PBXNativeTarget"
+                and o.get("name", None) == target
+            ):
                 break
         else:
             raise Exception("No src found.")
 
         # HACK: unclear; leaves dangling nodes
-        o['dependencies'] = []
+        o["dependencies"] = []
 
     def clear_target_embedded_binaries(self, target):
         for o in self.objects.values():
-            if o.get('isa', None) == 'PBXNativeTarget' and\
-                    o.get('name', None) == target:
+            if (
+                o.get("isa", None) == "PBXNativeTarget"
+                and o.get("name", None) == target
+            ):
                 break
         else:
             raise Exception("No src found.")
 
         target_o = o
-        for o in [self.objects[x] for x in target_o['buildPhases']]:
-            if o.get('isa', None) == 'PBXCopyFilesBuildPhase' and\
-                    o.get('name', None) == "Embed App Extensions":
+        for o in [self.objects[x] for x in target_o["buildPhases"]]:
+            if (
+                o.get("isa", None) == "PBXCopyFilesBuildPhase"
+                and o.get("name", None) == "Embed App Extensions"
+            ):
                 break
         else:
             raise Exception("No src found.")
 
-        o['files'] = []
+        o["files"] = []
 
     def create_container_item_proxy(self, container_portal, remote_ref, info):
         ref = Pbxproj.gen_key()
@@ -378,7 +386,7 @@ class Pbxproj:
             "containerPortal": container_portal,
             "proxyType": "1",
             "remoteGlobalIDString": remote_ref,
-            "remoteInfo": info
+            "remoteInfo": info,
         }
 
         logger.debug(self.objects[ref])
@@ -391,7 +399,7 @@ class Pbxproj:
         self.objects[ref] = {
             "isa": "PBXTargetDependency",
             "targetProxy": proxy_ref,
-            "target": dep_ref
+            "target": dep_ref,
         }
         logger.debug(self.objects[ref])
 
@@ -400,25 +408,27 @@ class Pbxproj:
     def add_dependency_to_target(self, target_ref, dep_ref):
         target = self.objects[target_ref]
 
-        if target.get('dependencies', None) is None:
-            target['dependencies'] = []
+        if target.get("dependencies", None) is None:
+            target["dependencies"] = []
 
-        target['dependencies'].append(dep_ref)
+        target["dependencies"].append(dep_ref)
         logger.debug(target)
 
     def add_appex_to_target_dependencies(self, appex, target):
         logger.debug("%s %s" % (appex, target))
         # Find target
-        appex_ref = self.find_ref_for_name(appex, isa='PBXNativeTarget')
+        appex_ref = self.find_ref_for_name(appex, isa="PBXNativeTarget")
         logger.debug("Appex ref: " + appex_ref)
 
         # Create container proxy
-        proxy_ref = self.create_container_item_proxy(self._proj['rootObject'], appex_ref, appex)
-        logger.debug('Proxy ref: ' + proxy_ref)
+        proxy_ref = self.create_container_item_proxy(
+            self._proj["rootObject"], appex_ref, appex
+        )
+        logger.debug("Proxy ref: " + proxy_ref)
 
         # Create target dependency
         dep_ref = self.create_target_dependency(proxy_ref, appex_ref)
-        logger.debug('Target dep ref: ' + dep_ref)
+        logger.debug("Target dep ref: " + dep_ref)
 
         # Add to deps
         target_ref = self.find_ref_for_name(target, isa="PBXNativeTarget")
@@ -427,23 +437,29 @@ class Pbxproj:
 
     def add_appex_to_target_embedded_binaries(self, appex, target):
         for appex_ref, o in self.objects.items():
-            if o.get('isa', None) == 'PBXFileReference' and\
-                    o.get('path', None) == appex:
+            if (
+                o.get("isa", None) == "PBXFileReference"
+                and o.get("path", None) == appex
+            ):
                 break
         else:
             raise Exception("No appex src found.")
 
         for o in self.objects.values():
-            if o.get('isa', None) == 'PBXNativeTarget' and\
-                    o.get('name', None) == target:
+            if (
+                o.get("isa", None) == "PBXNativeTarget"
+                and o.get("name", None) == target
+            ):
                 break
         else:
             raise Exception("No target src found.")
 
         target_o = o
-        for o in [self.objects[x] for x in target_o['buildPhases']]:
-            if o.get('isa', None) == 'PBXCopyFilesBuildPhase' and\
-                    o.get('name', None) == "Embed App Extensions":
+        for o in [self.objects[x] for x in target_o["buildPhases"]]:
+            if (
+                o.get("isa", None) == "PBXCopyFilesBuildPhase"
+                and o.get("name", None) == "Embed App Extensions"
+            ):
                 break
         else:
             raise Exception("No src found.")
@@ -452,16 +468,18 @@ class Pbxproj:
         appex_o = {
             "isa": "PBXBuildFile",
             "fileRef": appex_ref,
-            "settings": {"ATTRIBUTES": ["RemoveHeadersOnCopy"]}
+            "settings": {"ATTRIBUTES": ["RemoveHeadersOnCopy"]},
         }
         self.objects[ref] = appex_o
 
-        o['files'].append(ref)
+        o["files"].append(ref)
 
     def find_target(self, target):
         for o in self.objects.values():
-            if o.get('isa', None) == 'PBXNativeTarget' and\
-                    o.get('name', None) == target:
+            if (
+                o.get("isa", None) == "PBXNativeTarget"
+                and o.get("name", None) == target
+            ):
                 return o
         else:
             raise Exception("No src found.")
@@ -469,51 +487,53 @@ class Pbxproj:
     def add_source_ref_to_build_phase(self, ref, target):
         target_o = self.find_target(target)
 
-        for o in [self.objects[x] for x in target_o['buildPhases']]:
-            if o.get('isa', None) == 'PBXSourcesBuildPhase':
+        for o in [self.objects[x] for x in target_o["buildPhases"]]:
+            if o.get("isa", None) == "PBXSourcesBuildPhase":
                 break
         else:
             raise Exception("No src found.")
 
         nref = Pbxproj.gen_key()
-        self.objects[nref] = {
-            "isa": "PBXBuildFile",
-            "fileRef": ref
-        }
+        self.objects[nref] = {"isa": "PBXBuildFile", "fileRef": ref}
 
-        o['files'].append(nref)
+        o["files"].append(nref)
 
     def remove_target(self, target):
         for ref, o in self.objects.items():
-            if o.get('isa', None) == 'PBXNativeTarget' and\
-                    o.get('name', None) == target:
+            if (
+                o.get("isa", None) == "PBXNativeTarget"
+                and o.get("name", None) == target
+            ):
                 break
         else:
             raise Exception("No src found.")
-        prod_ref = o['productReference']
-        del self.objects[o['productReference']]
+        prod_ref = o["productReference"]
+        del self.objects[o["productReference"]]
 
         for nref, o in self.objects.items():
-            if o.get('isa', None) == 'PBXBuildFile' and\
-                    o.get('fileRef', None) == prod_ref:
+            if (
+                o.get("isa", None) == "PBXBuildFile"
+                and o.get("fileRef", None) == prod_ref
+            ):
                 break
         else:
             raise Exception("No src found.")
 
         for o in self.objects.values():
-            if o.get('isa', None) == 'PBXGroup' and\
-                    o.get('name', None) == "Products":
+            if o.get("isa", None) == "PBXGroup" and o.get("name", None) == "Products":
                 break
         else:
             raise Exception("No src found.")
 
-        o['children'].remove(prod_ref)
-        self.root['targets'].remove(ref)
+        o["children"].remove(prod_ref)
+        self.root["targets"].remove(ref)
 
     def duplicate_target(self, src_name, dst_name, plist_path):
         for o in self.objects.values():
-            if o.get('isa', None) == 'PBXNativeTarget' and\
-                    o.get('name', None) == src_name:
+            if (
+                o.get("isa", None) == "PBXNativeTarget"
+                and o.get("name", None) == src_name
+            ):
                 break
         else:
             raise Exception("No src found.")
@@ -523,50 +543,53 @@ class Pbxproj:
         self.objects[base_ref] = base_clone
 
         new_phases = []
-        for phase in base_clone['buildPhases']:
+        for phase in base_clone["buildPhases"]:
             ref = Pbxproj.gen_key()
             new_phases.append(ref)
             self.objects[ref] = copy.deepcopy(self.objects[phase])
-        base_clone['buildPhases'] = new_phases
-        base_clone['name'] = dst_name
+        base_clone["buildPhases"] = new_phases
+        base_clone["name"] = dst_name
 
         conf_ref = Pbxproj.gen_key()
-        conf_clone = copy.deepcopy(self.objects[base_clone['buildConfigurationList']])
+        conf_clone = copy.deepcopy(self.objects[base_clone["buildConfigurationList"]])
         self.objects[conf_ref] = conf_clone
-        base_clone['buildConfigurationList'] = conf_ref
+        base_clone["buildConfigurationList"] = conf_ref
 
         new_confs = []
-        for conf in conf_clone['buildConfigurations']:
+        for conf in conf_clone["buildConfigurations"]:
             ref = Pbxproj.gen_key()
             new_confs.append(ref)
             self.objects[ref] = copy.deepcopy(self.objects[conf])
 
-            self.objects[ref]['buildSettings']['INFOPLIST_FILE'] = plist_path
-            self.objects[ref]['buildSettings']['PRODUCT_NAME'] = dst_name
-            self.objects[ref]['buildSettings']['CODE_SIGN_STYLE'] = 'Automatic'
-        conf_clone['buildConfigurations'] = new_confs
+            self.objects[ref]["buildSettings"]["INFOPLIST_FILE"] = plist_path
+            self.objects[ref]["buildSettings"]["PRODUCT_NAME"] = dst_name
+            self.objects[ref]["buildSettings"]["CODE_SIGN_STYLE"] = "Automatic"
+        conf_clone["buildConfigurations"] = new_confs
 
         appex_ref = Pbxproj.gen_key()
-        appex_clone = copy.deepcopy(self.objects[base_clone['productReference']])
+        appex_clone = copy.deepcopy(self.objects[base_clone["productReference"]])
         self.objects[appex_ref] = appex_clone
-        appex_clone['path'] = "%s.appex" % dst_name
-        base_clone['productReference'] = appex_ref
+        appex_clone["path"] = "%s.appex" % dst_name
+        base_clone["productReference"] = appex_ref
 
         # PBXContainerItemProxy etc seem unaffected by leaving dependencies in
-        #base_clone['dependencies'] = []
+        # base_clone['dependencies'] = []
 
-        self.add_ref_to_group(appex_ref, ['Products'])
+        self.add_ref_to_group(appex_ref, ["Products"])
 
-        self.root['targets'].append(base_ref)
+        self.root["targets"].append(base_ref)
         return base_clone, appex_ref
 
+
 def generate_osx_mods():
-    conv = OrderedDict((
-        ("cmd", "command"),
-        ("caps", "caps"),
-        ("alt", "anyOption"),
-        ("shift", "anyShift")
-    ))
+    conv = OrderedDict(
+        (
+            ("cmd", "command"),
+            ("caps", "caps"),
+            ("alt", "anyOption"),
+            ("shift", "anyShift"),
+        )
+    )
 
     def gen_conv(tpl):
         tplo = []
@@ -576,7 +599,7 @@ def generate_osx_mods():
             tplo.append(v)
         return tuple(tplo)
 
-    m = ('caps', 'alt', 'shift')
+    m = ("caps", "alt", "shift")
     mods = (x for i in range(len(m)) for x in itertools.combinations(m, i))
 
     o = OrderedDict()
@@ -585,57 +608,70 @@ def generate_osx_mods():
         o["osx-%s" % "+".join(mod)] = (" ".join(gen_conv(mod)),)
     return o
 
+
 class OSXKeyLayout:
-    doctype = '<!DOCTYPE keyboard PUBLIC "" ' +\
-              '"file://localhost/System/Library/DTDs/KeyboardLayout.dtd">'
-    modes = OrderedDict((
-        ('iso-default', ('command?',)),
-        ('iso-shift', ('anyShift caps? command?',)),
-        ('iso-caps', ('caps',)),
-        ('iso-caps+shift', ('caps anyShift',)),
-        ('iso-alt', ('anyOption command?',)),
-        ('iso-alt+shift', ('anyOption anyShift caps? command?',)),
-        ('iso-caps+alt', ('caps anyOption command?',)),
-        ('iso-caps+alt+shift', ('caps anyOption anyShift command?',)),
-        ('iso-ctrl', ('anyShift? caps? anyOption? anyControl',)),
-        ('osx-cmd', ('command',)),
-        ('osx-cmd+shift', ('command anyShift',))
-    ))
+    doctype = (
+        '<!DOCTYPE keyboard PUBLIC "" '
+        + '"file://localhost/System/Library/DTDs/KeyboardLayout.dtd">'
+    )
+    modes = OrderedDict(
+        (
+            ("iso-default", ("command?",)),
+            ("iso-shift", ("anyShift caps? command?",)),
+            ("iso-caps", ("caps",)),
+            ("iso-caps+shift", ("caps anyShift",)),
+            ("iso-alt", ("anyOption command?",)),
+            ("iso-alt+shift", ("anyOption anyShift caps? command?",)),
+            ("iso-caps+alt", ("caps anyOption command?",)),
+            ("iso-caps+alt+shift", ("caps anyOption anyShift command?",)),
+            ("iso-ctrl", ("anyShift? caps? anyOption? anyControl",)),
+            ("osx-cmd", ("command",)),
+            ("osx-cmd+shift", ("command anyShift",)),
+        )
+    )
     modes.update(generate_osx_mods())
 
     # TODO unused
-    required = ('iso-default', 'iso-shift', 'iso-caps')
+    required = ("iso-default", "iso-shift", "iso-caps")
 
-    DEFAULT_CMD = parse_layout(r"""
+    DEFAULT_CMD = parse_layout(
+        r"""
         § 1 2 3 4 5 6 7 8 9 0 - =
         q w e r t y u i o p [ ]
         a s d f g h j k l ; ' \
         ` z x c v b n m , . /
-    """)
+    """
+    )
 
-    DEFAULT_CMD_SHIFT = parse_layout(r"""
+    DEFAULT_CMD_SHIFT = parse_layout(
+        r"""
         ± ! @ # $ % ^ & * ( ) _ +
         Q W E R T Y U I O P { }
         A S D F G H J K L : " |
         ~ Z X C V B N M < > ?
-    """)
+    """
+    )
 
     def __bytes__(self):
         """XML almost; still encode the control chars. Death to standards!"""
 
         # Convert
         v = CP_REGEX.sub(lambda x: "&#x%04X;" % int(x.group(1), 16), str(self))
-        v = re.sub(r"&(quot|amp|apos|lt|gt);", lambda x: {
-            "&quot;": "&#x0022;",
-            "&amp;": "&#x0026;",
-            "&apos;": "&#x0027;",
-            "&lt;": "&#x003C;",
-            "&gt;": "&#x003E;"
-        }[x.group(0)], v)
-        return ('<?xml version="1.1" encoding="UTF-8"?>\n%s' % v).encode('utf-8')
+        v = re.sub(
+            r"&(quot|amp|apos|lt|gt);",
+            lambda x: {
+                "&quot;": "&#x0022;",
+                "&amp;": "&#x0026;",
+                "&apos;": "&#x0027;",
+                "&lt;": "&#x003C;",
+                "&gt;": "&#x003E;",
+            }[x.group(0)],
+            v,
+        )
+        return ('<?xml version="1.1" encoding="UTF-8"?>\n%s' % v).encode("utf-8")
 
     def __str__(self):
-        root = copy.deepcopy(self.elements['root'])
+        root = copy.deepcopy(self.elements["root"])
 
         actions = root.xpath("actions")[0]
         terminators = root.xpath("terminators")[0]
@@ -645,8 +681,9 @@ class OSXKeyLayout:
         if len(terminators) == 0:
             root.remove(terminators)
 
-        return etree.tostring(root, encoding='unicode',
-                           doctype=self.doctype, pretty_print=True)
+        return etree.tostring(
+            root, encoding="unicode", doctype=self.doctype, pretty_print=True
+        )
 
     def __init__(self, name, id_):
         modifiers_ref = "modifiers"
@@ -654,23 +691,29 @@ class OSXKeyLayout:
 
         self.elements = {}
 
-        root = Element('keyboard', group="126", id=id_, name=name)
-        self.elements['root'] = root
+        root = Element("keyboard", group="126", id=id_, name=name)
+        self.elements["root"] = root
 
-        self.elements['layouts'] = SubElement(root, 'layouts')
+        self.elements["layouts"] = SubElement(root, "layouts")
 
-        SubElement(self.elements['layouts'], 'layout', first="0", last="17",
-                mapSet=mapset_ref, modifiers=modifiers_ref)
+        SubElement(
+            self.elements["layouts"],
+            "layout",
+            first="0",
+            last="17",
+            mapSet=mapset_ref,
+            modifiers=modifiers_ref,
+        )
 
-        self.elements['modifierMap'] = SubElement(root, 'modifierMap',
-                id=modifiers_ref, defaultIndex="0")
+        self.elements["modifierMap"] = SubElement(
+            root, "modifierMap", id=modifiers_ref, defaultIndex="0"
+        )
 
-        self.elements['keyMapSet'] = SubElement(root, 'keyMapSet',
-                id=mapset_ref)
+        self.elements["keyMapSet"] = SubElement(root, "keyMapSet", id=mapset_ref)
 
-        self.elements['actions'] = SubElement(root, 'actions')
+        self.elements["actions"] = SubElement(root, "actions")
 
-        self.elements['terminators'] = SubElement(root, 'terminators')
+        self.elements["terminators"] = SubElement(root, "terminators")
 
         self.key_cache = {}
         self.kmap_cache = {}
@@ -681,8 +724,10 @@ class OSXKeyLayout:
                 self.prefix = prefix
                 self.data = {}
                 self.c = 0
+
             def has(self, key):
                 return key in self.data
+
             def get(self, key):
                 if self.data.get(key, None) is None:
                     self.data[key] = self.c
@@ -695,16 +740,16 @@ class OSXKeyLayout:
         self._n = 0
 
     def _add_modifier_map(self, mode):
-        mm = self.elements['modifierMap']
-        kms = self.elements['keyMapSet']
+        mm = self.elements["modifierMap"]
+        kms = self.elements["keyMapSet"]
 
-        node = SubElement(mm, 'keyMapSelect', mapIndex=str(self._n))
+        node = SubElement(mm, "keyMapSelect", mapIndex=str(self._n))
 
         mods = self.modes.get(mode, None)
         for mod in mods:
-            SubElement(node, 'modifier', keys=mod)
+            SubElement(node, "modifier", keys=mod)
 
-        self.kmap_cache[mode] = SubElement(kms, 'keyMap', index=str(self._n))
+        self.kmap_cache[mode] = SubElement(kms, "keyMap", index=str(self._n))
         self._n += 1
         return self.kmap_cache[mode]
 
@@ -728,30 +773,30 @@ class OSXKeyLayout:
             self.key_cache[key_key] = node
 
         if action is not None:
-            node.attrib['action'] = str(action)
-            if node.attrib.get('output', None) is not None:
-                del node.attrib['output']
+            node.attrib["action"] = str(action)
+            if node.attrib.get("output", None) is not None:
+                del node.attrib["output"]
         elif output is not None:
-            node.attrib['output'] = str(output)
-            if node.attrib.get('action', None) is not None:
-                del node.attrib['action']
+            node.attrib["output"] = str(output)
+            if node.attrib.get("action", None) is not None:
+                del node.attrib["action"]
 
     def _set_default_action(self, key):
-        action_id = self.actions.get(key) # "Key %s" % key
-        pressed_id = self.states.get(key) # "State %s" % key
+        action_id = self.actions.get(key)  # "Key %s" % key
+        pressed_id = self.states.get(key)  # "State %s" % key
         action = self.action_cache.get(action_id, None)
 
         if action is None:
-            action = SubElement(self.elements['actions'], 'action',
-                     id=action_id)
+            action = SubElement(self.elements["actions"], "action", id=action_id)
             self.action_cache[action_id] = action
 
     def _set_terminator(self, action_id, output):
-        termin = self.elements['terminators'].xpath(
-                        'when[@state="%s"]' % action_id.replace('"', r'&quot;'))
+        termin = self.elements["terminators"].xpath(
+            'when[@state="%s"]' % action_id.replace('"', r"&quot;")
+        )
 
         if len(termin) == 0:
-            el = SubElement(self.elements['terminators'], 'when')
+            el = SubElement(self.elements["terminators"], "when")
             el.set("state", action_id)
             el.set("output", output)
 
@@ -760,14 +805,17 @@ class OSXKeyLayout:
 
         # TODO create a generic create or get method for actions
         if action is None:
-            logger.trace("Create default action - action:%r output:%r" % (action_id, output))
-            action = SubElement(self.elements['actions'], 'action',
-                     id=action_id)
+            logger.trace(
+                "Create default action - action:%r output:%r" % (action_id, output)
+            )
+            action = SubElement(self.elements["actions"], "action", id=action_id)
             self.action_cache[action_id] = action
 
         if len(action.xpath('when[@state="none"]')) == 0:
-            logger.trace("Create 'none' when - action:%r output:%r" % (action_id, output))
-            el = SubElement(action, 'when')
+            logger.trace(
+                "Create 'none' when - action:%r output:%r" % (action_id, output)
+            )
+            el = SubElement(action, "when")
             el.set("state", "none")
             el.set("output", output)
 
@@ -777,8 +825,8 @@ class OSXKeyLayout:
     def set_deadkey(self, mode, key, key_id, output):
         """output is the output when the deadkey is followed by an invalid"""
         logger.trace("%r %r %r %r" % (mode, key, key_id, output))
-        action_id = self.actions.get(key) # "Key %s" % key
-        pressed_id = self.states.get(key) # "State %s" % key
+        action_id = self.actions.get(key)  # "Key %s" % key
+        pressed_id = self.states.get(key)  # "State %s" % key
 
         self._set_key(mode, key, key_id, action=action_id)
 
@@ -787,8 +835,8 @@ class OSXKeyLayout:
         self._set_terminator(pressed_id, output)
 
     def set_transform_key(self, mode, key, key_id):
-        action_id = self.actions.get(key) # "Key %s" % key
-        pressed_id = self.states.get(key) # "State %s" % key
+        action_id = self.actions.get(key)  # "Key %s" % key
+        pressed_id = self.states.get(key)  # "State %s" % key
 
         self._set_key(mode, key, key_id, action=action_id)
 
@@ -805,11 +853,11 @@ class OSXKeyLayout:
             raise Exception("Output and next cannot be simultaneously defined.")
 
         if output is not None:
-            el = SubElement(action, 'when')
+            el = SubElement(action, "when")
             el.set("state", state)
             el.set("output", output)
         elif next is not None:
-            el = SubElement(action, 'when')
+            el = SubElement(action, "when")
             el.set("state", state)
             el.set("next", next)
-        #logger.trace("%r" % el)
+        # logger.trace("%r" % el)

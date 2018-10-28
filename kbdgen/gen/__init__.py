@@ -8,12 +8,14 @@ from .x11 import XKBGenerator
 from .svgkbd import SVGGenerator
 from .json import JSONGenerator
 
-generators = OrderedDict((
-    ("win", WindowsGenerator),
-    ("osx", OSXGenerator),
-    ("x11", XKBGenerator),
-    ("svg", SVGGenerator),
-    ("android", AndroidGenerator),
-    ("ios", AppleiOSGenerator),
-    ("json", JSONGenerator)
-))
+generators = OrderedDict(
+    (
+        ("win", WindowsGenerator),
+        ("osx", OSXGenerator),
+        ("x11", XKBGenerator),
+        ("svg", SVGGenerator),
+        ("android", AndroidGenerator),
+        ("ios", AppleiOSGenerator),
+        ("json", JSONGenerator),
+    )
+)

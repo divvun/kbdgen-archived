@@ -20,6 +20,7 @@ elif sys.platform.startswith("darwin"):
 else:
     default_cache_dir = Path(os.getenv("HOME")) / ".cache" / "kbdgen"
 
+
 class FileCache:
     def __init__(self, cache_dir=default_cache_dir):
         self.cache_dir = Path(cache_dir)
@@ -36,7 +37,7 @@ class FileCache:
         if sha256sum is None:
             return True
         m = hashlib.sha256()
-        with candidate.open('rb') as f:
+        with candidate.open("rb") as f:
             m.update(f.read())
         new_sum = m.hexdigest()
         logger.debug("SHA256: %s", new_sum)
@@ -58,7 +59,7 @@ class FileCache:
         os.makedirs(str(target), exist_ok=True)
         shutil.rmtree(str(target), ignore_errors=True)
         logger.debug("Copying '%s' to '%s'" % (src, target))
-        
+
         shutil.copytree(str(src), str(target))
         return True
 
@@ -74,18 +75,21 @@ class FileCache:
             raise Exception("Cached file '%s' has failed integrity checks." % filename)
         return candidate
 
-    def download_latest_from_github(self, repo: str, branch: str="master") -> str:
-        repo_meta = requests.get("https://api.github.com/repos/{repo}/commits/{branch}".format(
-            repo=repo,
-            branch=branch
-        )).json()
+    def download_latest_from_github(self, repo: str, branch: str = "master") -> str:
+        repo_meta = requests.get(
+            "https://api.github.com/repos/{repo}/commits/{branch}".format(
+                repo=repo, branch=branch
+            )
+        ).json()
 
         sha = repo_meta["sha"]
         filename = "%s-%s.tgz" % (repo.replace("/", "-"), sha)
         candidate = str(self.cache_dir / filename)
         if self.is_cached_valid(filename, None):
             return candidate
-        download_url = "https://api.github.com/repos/{repo}/tarball/{branch}".format(repo=repo, branch=branch)
+        download_url = "https://api.github.com/repos/{repo}/tarball/{branch}".format(
+            repo=repo, branch=branch
+        )
         logger.debug("Download URL: %s" % download_url)
         with tempfile.TemporaryDirectory() as tmpdir:
             fp = os.path.join(tmpdir, filename)

@@ -5,6 +5,7 @@ from collections import OrderedDict
 
 from . import __version__, KbdgenException, Parser, gen, logger, UserException
 
+
 def parse_args():
     def logging_type(string):
         n = {
@@ -13,7 +14,7 @@ def parse_args():
             "warning": 30,
             "info": 20,
             "debug": 10,
-            "trace": 5
+            "trace": 5,
         }.get(string, None)
 
         if n is None:
@@ -22,33 +23,67 @@ def parse_args():
 
     p = argparse.ArgumentParser(prog="kbdgen")
 
-    p.add_argument('--version', action='version',
-                   version="%(prog)s " + __version__)
-    p.add_argument('--logging', type=logging_type, default=20,
-                   help="Logging level")
-    p.add_argument('-K', '--key', nargs="*", dest='cfg_pairs',
-                   help="Key-value overrides (eg -K target.thing.foo=42)")
-    p.add_argument('-D', '--dry-run', action="store_true",
-                   help="Don't build, just do sanity checks.")
-    p.add_argument('-R', '--release', action='store_true',
-                   help="Compile in 'release' mode (where necessary).")
-    p.add_argument('-G', '--global', type=argparse.FileType('r'),
-                   help="Override the global.yaml file")
-    p.add_argument('-r', '--repo', help='Git repo to generate output from')
-    p.add_argument('-b', '--branch', default='master',
-                   help='Git branch (default: master)')
-    p.add_argument('-t', '--target', required=True, choices=gen.generators.keys(),
-                   help="Target output.")
-    p.add_argument('-o', '--output', default=".",
-                   help="Output directory (default: current working directory)")
-    p.add_argument('project', help="Keyboard generation project (yaml)",
-                   type=argparse.FileType('r', encoding="utf-8"),
-                   default=sys.stdin)
-    p.add_argument('-f', '--flag', nargs="*", dest="flags",
-                   help="Generator-specific flags (for debugging)",
-                   default=[])
+    p.add_argument("--version", action="version", version="%(prog)s " + __version__)
+    p.add_argument("--logging", type=logging_type, default=20, help="Logging level")
+    p.add_argument(
+        "-K",
+        "--key",
+        nargs="*",
+        dest="cfg_pairs",
+        help="Key-value overrides (eg -K target.thing.foo=42)",
+    )
+    p.add_argument(
+        "-D",
+        "--dry-run",
+        action="store_true",
+        help="Don't build, just do sanity checks.",
+    )
+    p.add_argument(
+        "-R",
+        "--release",
+        action="store_true",
+        help="Compile in 'release' mode (where necessary).",
+    )
+    p.add_argument(
+        "-G",
+        "--global",
+        type=argparse.FileType("r"),
+        help="Override the global.yaml file",
+    )
+    p.add_argument("-r", "--repo", help="Git repo to generate output from")
+    p.add_argument(
+        "-b", "--branch", default="master", help="Git branch (default: master)"
+    )
+    p.add_argument(
+        "-t",
+        "--target",
+        required=True,
+        choices=gen.generators.keys(),
+        help="Target output.",
+    )
+    p.add_argument(
+        "-o",
+        "--output",
+        default=".",
+        help="Output directory (default: current working directory)",
+    )
+    p.add_argument(
+        "project",
+        help="Keyboard generation project (yaml)",
+        type=argparse.FileType("r", encoding="utf-8"),
+        default=sys.stdin,
+    )
+    p.add_argument(
+        "-f",
+        "--flag",
+        nargs="*",
+        dest="flags",
+        help="Generator-specific flags (for debugging)",
+        default=[],
+    )
 
     return p.parse_args()
+
 
 def main():
     args = parse_args()
@@ -59,10 +94,10 @@ def main():
         if project is None:
             raise Exception("Project parser returned empty project.")
     except yaml.scanner.ScannerError as e:
-        logger.critical("Error parsing project:\n%s %s" % (
-                str(e.problem).strip(),
-                str(e.problem_mark).strip()
-            ))
+        logger.critical(
+            "Error parsing project:\n%s %s"
+            % (str(e.problem).strip(), str(e.problem_mark).strip())
+        )
         return 1
     except Exception as e:
         if logger.getEffectiveLevel() < 10:
@@ -73,17 +108,17 @@ def main():
         if isinstance(e, UserException):
             return 1
 
-        logger.critical("You should not be seeing this error. Please report this as a bug.")
+        logger.critical(
+            "You should not be seeing this error. Please report this as a bug."
+        )
         logger.critical("URL: https://github.com/divvun/kbdgen/issues/")
         return 1
 
     generator = gen.generators.get(args.target, None)
 
     if generator is None:
-        print("Error: '%s' is not a valid target." % args.target,
-                file=sys.stderr)
-        print("Valid targets: %s" % ", ".join(generators),
-                file=sys.stderr)
+        print("Error: '%s' is not a valid target." % args.target, file=sys.stderr)
+        print("Valid targets: %s" % ", ".join(generators), file=sys.stderr)
         return 1
 
     x = generator(project, dict(args._get_kwargs()))
@@ -92,6 +127,7 @@ def main():
         x.generate(x.output_dir)
     except KbdgenException as e:
         logger.error(e)
+
 
 if __name__ == "__main__":
     try:

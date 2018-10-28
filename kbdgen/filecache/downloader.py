@@ -6,10 +6,11 @@ import shutil
 clr_line = "%c[2K\r" % 27
 blocks = " ▏▎▍▌▋▊▉█"
 
+
 def stream_download(url: str, fn: str, output_file: str):
     r = requests.get(url, stream=True)
 
-    with open(output_file, 'wb') as f:
+    with open(output_file, "wb") as f:
         i = 0
         block_size = 1024
         content_len = None
@@ -20,14 +21,15 @@ def stream_download(url: str, fn: str, output_file: str):
             f.write(block)
 
             if content_len is None:
-                content_len = r.headers.get('content-length', None)
-                
+                content_len = r.headers.get("content-length", None)
+
             if content_len is not None:
                 max_size_raw = int(content_len)
                 max_size = humanize.naturalsize(max_size_raw)
                 i = min(max_size_raw, i + block_size)
                 write_download_progress(fn, i, max_size_raw)
         print()
+
 
 def generate_prog_bar(width: int, cur_sz: int, max_sz: int):
     if width < 1:
@@ -44,6 +46,7 @@ def generate_prog_bar(width: int, cur_sz: int, max_sz: int):
         bars += blocks[extra]
     return ("{:<%d}" % units).format(bars)
 
+
 def truncate_middle(text: str, sz: int) -> str:
     if len(text) <= sz:
         return text
@@ -54,16 +57,17 @@ def truncate_middle(text: str, sz: int) -> str:
         left -= 1
     return "%s…%s" % (text[:left], text[-right:])
 
+
 def write_download_progress(fn: str, cur_sz: int, max_sz: int):
     if cur_sz < 1000:
         c = "%s B" % cur_sz
     else:
         c = humanize.naturalsize(min(cur_sz, max_sz))
-    
+
     m = humanize.naturalsize(max_sz)
     pc = "%.0f" % min(cur_sz / max_sz * 100.0, 100.0)
     w = min(shutil.get_terminal_size().columns, 80)
-    
+
     max_fn_len = w // 3
     fn = truncate_middle(fn, max_fn_len)
     pc_len = 4
@@ -72,19 +76,17 @@ def write_download_progress(fn: str, cur_sz: int, max_sz: int):
     prog = generate_prog_bar(w - msg_len, cur_sz, max_sz)
 
     msg = "{clr}{fn}: {pc:>3}% {prog}▏ {frac:<18}".format(
-        clr=clr_line,
-        fn=fn,
-        prog=prog,
-        frac="{cur}/{max}".format(cur=c, max=m),
-        pc=pc,
+        clr=clr_line, fn=fn, prog=prog, frac="{cur}/{max}".format(cur=c, max=m), pc=pc
     )
 
     sys.stdout.write(msg)
     sys.stdout.flush()
 
+
 def test_download_bar():
     import time
     import random
+
     fsize = 2717221829
     i = 0
     while i < fsize:
@@ -94,6 +96,7 @@ def test_download_bar():
     i = fsize
     write_download_progress("a-ridiculous-name-that-was-truncated.tgz", i, fsize)
     print()
+
 
 if __name__ == "__main__":
     test_download_bar()

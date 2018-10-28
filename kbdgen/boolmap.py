@@ -1,10 +1,11 @@
 import array
 import io
 
+
 class BoolMap:
     def __init__(self, bytedata=None, default=False):
         self._default = bool(default)
-        self._data = array.array('B')
+        self._data = array.array("B")
         if bytedata is not None:
             self._data.frombytes(bytedata)
 
@@ -31,8 +32,8 @@ class BoolMap:
 
         if pos >= len(self._data):
             self._data.fromlist(
-                    [0 if self._default is False else 0xFF] * (
-                        pos - len(self._data) + 1))
+                [0 if self._default is False else 0xFF] * (pos - len(self._data) + 1)
+            )
 
         chunk = self._data[pos]
         if v:
@@ -52,7 +53,7 @@ class BoolMap:
 
 
 def parse_range_data(data):
-    range_data = [x.split('-', 1) for x in data.split(',')]
+    range_data = [x.split("-", 1) for x in data.split(",")]
     new_ranges = []
 
     for chunk in range_data:
@@ -73,11 +74,13 @@ def apply_ranges_to_boolmap(data):
             boolmap[i] = True
     return boolmap
 
+
 if __name__ == "__main__":
     import sys
+
     with open(sys.argv[1]) as f:
         data = f.read()
     ranges = parse_range_data(data)
     bm = apply_ranges_to_boolmap(ranges)
-    with open(sys.argv[1] + '.bin', 'wb') as f:
+    with open(sys.argv[1] + ".bin", "wb") as f:
         f.write(bm.to_bytes())

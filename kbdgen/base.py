@@ -10,34 +10,84 @@ from collections import OrderedDict, namedtuple
 
 from . import orderedyaml, log
 
-class KbdgenException(Exception): pass
-class UserException(Exception): pass
+
+class KbdgenException(Exception):
+    pass
+
+
+class UserException(Exception):
+    pass
+
 
 log.monkey_patch_trace_logging()
+
 
 def get_logger(path):
     return logging.getLogger(os.path.basename(os.path.splitext(path)[0]))
 
+
 log.enable_pretty_logging(
-        fmt="%(color)s[%(levelname)1.1s %(module)s:%(lineno)d]%(end_color)s" +
-            " %(message)s")
+    fmt="%(color)s[%(levelname)1.1s %(module)s:%(lineno)d]%(end_color)s"
+    + " %(message)s"
+)
 
 logger = logging.getLogger()
 
-Action = namedtuple("Action", ['row', 'position', 'width'])
-ProjectLocaleData = namedtuple("ProjectLocaleData", ['name', 'description'])
+Action = namedtuple("Action", ["row", "position", "width"])
+ProjectLocaleData = namedtuple("ProjectLocaleData", ["name", "description"])
 
 VALID_ID_RE = re.compile(r"^[a-z][0-9a-z-_]+$")
 
-ISO_KEYS = ( "E00",
-    "E01", "E02", "E03", "E04", "E05", "E06",
-    "E07", "E08", "E09", "E10", "E11", "E12",
-    "D01", "D02", "D03", "D04", "D05", "D06",
-    "D07", "D08", "D09", "D10", "D11", "D12",
-    "C01", "C02", "C03", "C04", "C05", "C06", # TODO fix the D13 special case.
-    "C07", "C08", "C09", "C10", "C11", "D13", # C12 -> D13
-    "B00", "B01", "B02", "B03", "B04", "B05",
-    "B06", "B07", "B08", "B09", "B10" )
+ISO_KEYS = (
+    "E00",
+    "E01",
+    "E02",
+    "E03",
+    "E04",
+    "E05",
+    "E06",
+    "E07",
+    "E08",
+    "E09",
+    "E10",
+    "E11",
+    "E12",
+    "D01",
+    "D02",
+    "D03",
+    "D04",
+    "D05",
+    "D06",
+    "D07",
+    "D08",
+    "D09",
+    "D10",
+    "D11",
+    "D12",
+    "C01",
+    "C02",
+    "C03",
+    "C04",
+    "C05",
+    "C06",  # TODO fix the D13 special case.
+    "C07",
+    "C08",
+    "C09",
+    "C10",
+    "C11",
+    "D13",  # C12 -> D13
+    "B00",
+    "B01",
+    "B02",
+    "B03",
+    "B04",
+    "B05",
+    "B06",
+    "B07",
+    "B08",
+    "B09",
+    "B10",
+)
 
 MODE_LIST_ERROR = """\
 '%s' must be defined as a string using block string format, not a list.
@@ -64,6 +114,7 @@ modes:
 ```
 """
 
+
 def parse_layout(data, length_check=True):
     if isinstance(data, dict):
         o = OrderedDict()
@@ -82,8 +133,10 @@ def parse_layout(data, length_check=True):
                 o[k] = None
         return o
 
+
 def parse_touch_layout(data):
-    return [re.split(r'\s+', x.strip()) for x in data.strip().split('\n')]
+    return [re.split(r"\s+", x.strip()) for x in data.strip().split("\n")]
+
 
 class Project:
     def __init__(self, tree):
@@ -94,51 +147,51 @@ class Project:
 
     @property
     def path(self):
-        return self._tree['_path']
+        return self._tree["_path"]
 
     @property
     def locales(self):
-        return self._tree['locales']
+        return self._tree["locales"]
 
     @property
     def author(self):
-        return self._tree['author']
+        return self._tree["author"]
 
     @property
     def email(self):
-        return self._tree['email']
+        return self._tree["email"]
 
     @property
     def layouts(self):
-        return self._tree['layouts']
+        return self._tree["layouts"]
 
     @property
     def targets(self):
-        return self._tree['targets']
+        return self._tree["targets"]
 
     @property
     def internal_name(self):
-        return self._tree['internalName']
+        return self._tree["internalName"]
 
     @property
     def app_strings(self):
-        return self._tree['appStrings']
+        return self._tree["appStrings"]
 
     @property
     def version(self):
-        return str(self._tree['version'])
+        return str(self._tree["version"])
 
     @property
     def build(self):
-        return str(self._tree['build'])
+        return str(self._tree["build"])
 
     @property
     def copyright(self):
-        return self._tree.get('copyright', '')
+        return self._tree.get("copyright", "")
 
     @property
     def organisation(self):
-        return self._tree.get('organisation', '')
+        return self._tree.get("organisation", "")
 
     def locale(self, tag):
         val = self.locales.get(tag, None)
@@ -165,10 +218,10 @@ class Project:
         return self.locale(tag)
 
     def target(self, target):
-        return self._tree['targets'].get(target, {}) or {}
+        return self._tree["targets"].get(target, {}) or {}
 
     def icon(self, target, size=None):
-        val = self.target(target).get('icon', None)
+        val = self.target(target).get("icon", None)
         if val is None:
             return None
         if isinstance(val, str):
@@ -192,13 +245,14 @@ class Project:
                 return self.relpath(val[lrg])
             return self.relpath(val[m])
 
+
 class Keyboard:
     def __init__(self, tree):
         self._tree = tree
 
     @property
     def internal_name(self):
-        return self._tree['internalName']
+        return self._tree["internalName"]
 
     @property
     def native_display_name(self):
@@ -206,67 +260,67 @@ class Keyboard:
 
     @property
     def display_names(self):
-        return self._tree['displayNames']
+        return self._tree["displayNames"]
 
     @property
     def locale(self):
-        return self._tree['locale']
+        return self._tree["locale"]
 
     @property
     def special(self):
-        return self._tree.get('special', {})
+        return self._tree.get("special", {})
 
     @property
     def decimal(self):
-        return self._tree.get('decimal', None)
+        return self._tree.get("decimal", None)
 
     @property
     def dead_keys(self):
-        return self._tree.get('deadKeys', {})
+        return self._tree.get("deadKeys", {})
 
     @property
     def derive(self):
-        return self._tree.get('derive', {})
+        return self._tree.get("derive", {})
 
     @property
     def transforms(self):
-        return self._tree.get('transforms', {})
+        return self._tree.get("transforms", {})
 
     @property
     def modifiers(self):
-        return self._tree['modifiers']
+        return self._tree["modifiers"]
 
     @property
     def modes(self):
-        return self._tree['modes']
+        return self._tree["modes"]
 
     @property
     def strings(self):
-        return self._tree.get('strings', {})
+        return self._tree.get("strings", {})
 
     @property
     def styles(self):
-        return self._tree['styles']
+        return self._tree["styles"]
 
     def target(self, target):
-        return self._tree.get('targets', {}).get(target, {}) or {}
+        return self._tree.get("targets", {}).get(target, {}) or {}
 
     def get_actions(self, style):
-        return self.styles[style]['actions']
+        return self.styles[style]["actions"]
 
     def get_action(self, style, key):
-        return self.styles[style]['actions'].get(key, None)
+        return self.styles[style]["actions"].get(key, None)
 
     @property
     def longpress(self):
-        return self._tree['longpress']
+        return self._tree["longpress"]
 
     def get_longpress(self, key):
-        return self._tree['longpress'].get(key, None)
+        return self._tree["longpress"].get(key, None)
 
     @property
     def supported_targets(self):
-        return self._tree.get('supportedTargets', None)
+        return self._tree.get("supportedTargets", None)
 
     def supported_target(self, target):
         targets = self.supported_targets
@@ -274,13 +328,14 @@ class Keyboard:
             return True
         return target in targets
 
+
 class Parser:
     def __init__(self):
         pass
 
     def _overrides(self, project, cfg_pairs):
         def resolve_path(path, v):
-            chunks = path.split('.')
+            chunks = path.split(".")
 
             last = chunks.pop()
             node = project
@@ -296,68 +351,68 @@ class Parser:
 
     def _parse_cfg_pairs(self, str_list):
         try:
-            return [x.split('=', 1) for x in str_list]
+            return [x.split("=", 1) for x in str_list]
         except:
             raise Exception("Error: invalid key-value pair provided.")
 
     def _parse_global(self, cfg_file=None):
         if cfg_file is None:
             cfg_file = open(
-                    os.path.join(os.path.dirname(__file__), "global.yaml"),
-                    encoding="utf-8")
+                os.path.join(os.path.dirname(__file__), "global.yaml"), encoding="utf-8"
+            )
         return orderedyaml.load(cfg_file)
 
     @classmethod
     def _parse_keyboard_descriptor(cls, tree):
-        for key in ['locale', 'displayNames', 'internalName', 'modes']:
+        for key in ["locale", "displayNames", "internalName", "modes"]:
             if key not in tree:
                 raise Exception("%s key missing from file." % key)
 
         # TODO move this to android and ios generators
-        #if 'mobile-default' not in tree['modes']:
+        # if 'mobile-default' not in tree['modes']:
         #    raise Exception("No default mode supplied in file.")
 
-        if 'modifiers' not in tree or tree.get('modifiers', None) is None:
-            tree['modifiers'] = []
+        if "modifiers" not in tree or tree.get("modifiers", None) is None:
+            tree["modifiers"] = []
 
-        if 'longpress' not in tree or tree.get('longpress', None) is None:
-            tree['longpress'] = OrderedDict()
+        if "longpress" not in tree or tree.get("longpress", None) is None:
+            tree["longpress"] = OrderedDict()
 
-        for mode in list(tree['modes'].keys()):
-            if isinstance(tree['modes'][mode], list):
+        for mode in list(tree["modes"].keys()):
+            if isinstance(tree["modes"][mode], list):
                 raise Exception(MODE_LIST_ERROR % mode)
             try:
                 # Soft layouts are special cased.
-                if mode in ['mobile-default', 'mobile-shift']:
-                    tree['modes'][mode] = parse_touch_layout(tree['modes'][mode])
+                if mode in ["mobile-default", "mobile-shift"]:
+                    tree["modes"][mode] = parse_touch_layout(tree["modes"][mode])
                 else:
-                    tree['modes'][mode] = parse_layout(tree['modes'][mode])
+                    tree["modes"][mode] = parse_layout(tree["modes"][mode])
             except Exception as e:
-                raise Exception(("'%s' is the wrong length. " +
-                                 "Got %s, expected %s.") % (
-                    mode, str(e), len(ISO_KEYS)))
+                raise Exception(
+                    ("'%s' is the wrong length. " + "Got %s, expected %s.")
+                    % (mode, str(e), len(ISO_KEYS))
+                )
 
-        for longpress, strings in tree['longpress'].items():
-            tree['longpress'][longpress] = re.split(r"\s+", strings.strip())
+        for longpress, strings in tree["longpress"].items():
+            tree["longpress"][longpress] = re.split(r"\s+", strings.strip())
 
-        for style, styles in tree.get('styles', {}).items():
-            for action, info in styles['actions'].items():
-                styles['actions'][action] = Action(info[0], info[1], info[2])
+        for style, styles in tree.get("styles", {}).items():
+            for action, info in styles["actions"].items():
+                styles["actions"][action] = Action(info[0], info[1], info[2])
 
         return Keyboard(tree)
 
     def _parse_project(self, tree):
-        for key in ['locales', 'author',
-                    'email', 'layouts', 'targets']:
+        for key in ["locales", "author", "email", "layouts", "targets"]:
             if key not in tree:
                 raise Exception("%s key missing from file." % key)
 
-        tree_path = tree['_path']
+        tree_path = tree["_path"]
 
         layouts = OrderedDict()
         known_ids = set()
 
-        for layout in tree['layouts']:
+        for layout in tree["layouts"]:
             try:
                 fn = "%s.yaml" % layout
                 with open(os.path.join(tree_path, fn), encoding="utf-8") as f:
@@ -369,11 +424,19 @@ class Parser:
                         if dt is not False:
                             derive_transforms(l, True if dt == "all" else False)
                         if l.internal_name is None:
-                            raise UserException("'%s' has no internalName field" % f.name)
+                            raise UserException(
+                                "'%s' has no internalName field" % f.name
+                            )
                         if not VALID_ID_RE.match(l.internal_name):
-                            raise UserException("Internal name '%s' in file '%s' not valid. Must begin with a-z, and after contain only a-z, 0-9, dashes (-) and underscores (_)." % (l.internal_name, fn))
+                            raise UserException(
+                                "Internal name '%s' in file '%s' not valid. Must begin with a-z, and after contain only a-z, 0-9, dashes (-) and underscores (_)."
+                                % (l.internal_name, fn)
+                            )
                         if l.internal_name in known_ids:
-                            raise UserException("A duplicate internal name was found '%s' in file '%s'" % (l.internal_name, fn))
+                            raise UserException(
+                                "A duplicate internal name was found '%s' in file '%s'"
+                                % (l.internal_name, fn)
+                            )
                         known_ids.add(l.internal_name)
                         layouts[l.internal_name] = l
                     except Exception as e:
@@ -383,7 +446,7 @@ class Parser:
                 logger.error("Layout '%s' listed in project, but not found." % layout)
                 return None
 
-        tree['layouts'] = layouts
+        tree["layouts"] = layouts
 
         return Project(tree)
 
@@ -393,7 +456,7 @@ class Parser:
         data = unicodedata.normalize("NFC", f.read())
         tree.update(orderedyaml.loads(data))
 
-        tree['_path'] = os.path.dirname(os.path.abspath(f.name))
+        tree["_path"] = os.path.dirname(os.path.abspath(f.name))
 
         project = self._parse_project(tree)
         if project is None:
@@ -401,6 +464,7 @@ class Parser:
         if cfg_pairs is not None:
             self._overrides(project._tree, self._parse_cfg_pairs(cfg_pairs))
         return project
+
 
 def decompose(ch):
     x = unicodedata.normalize("NFKD", ch).replace(" ", "")
@@ -412,6 +476,7 @@ def decompose(ch):
             pass
     return x
 
+
 def derive_transforms(layout, allow_glyphbombs=False):
     if layout._tree.get("transforms", None) is None:
         layout._tree["transforms"] = {}
@@ -421,24 +486,37 @@ def derive_transforms(layout, allow_glyphbombs=False):
 
     # Get all letter category input chars
     def char_filter(ch):
-        if ch is None: return False
-        if len(ch) != 1: return False
+        if ch is None:
+            return False
+        if len(ch) != 1:
+            return False
         return unicodedata.category(ch).startswith("L")
-    input_chars = sorted(set(filter(char_filter,
-        set(itertools.chain.from_iterable((x.values() for x in layout.modes.values()))))))
+
+    input_chars = sorted(
+        set(
+            filter(
+                char_filter,
+                set(
+                    itertools.chain.from_iterable(
+                        (x.values() for x in layout.modes.values())
+                    )
+                ),
+            )
+        )
+    )
     logger.trace("Input chars: %r" % input_chars)
 
     # Generate inputtable transforms
     for d in dead_keys:
         if layout.transforms.get(d, None) is None:
-            layout.transforms[d] = { " ": d }
+            layout.transforms[d] = {" ": d}
 
         dc = decompose(d)
 
         for ch in input_chars:
             composed = "%s%s" % (ch, dc)
             normalised = unicodedata.normalize("NFKC", composed)
-            
+
             # Check if when composed the codepoint is not the same as decomposed
             if not allow_glyphbombs and composed == normalised:
                 logger.trace("Skipping %s%s" % (d, ch))
@@ -446,4 +524,3 @@ def derive_transforms(layout, allow_glyphbombs=False):
 
             logger.trace("Adding transform: %s%s -> %s" % (d, ch, normalised))
             layout.transforms[d][ch] = normalised
-    
