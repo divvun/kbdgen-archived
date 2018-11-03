@@ -561,10 +561,11 @@ class Pbxproj:
             new_confs.append(ref)
             self.objects[ref] = copy.deepcopy(self.objects[conf])
 
-            self.objects[ref]["buildSettings"]["INFOPLIST_FILE"] = plist_path
-            self.objects[ref]["buildSettings"]["PRODUCT_NAME"] = dst_name
-            self.objects[ref]["buildSettings"]["CODE_SIGN_STYLE"] = "Automatic"
-        conf_clone["buildConfigurations"] = new_confs
+            self.objects[ref]['buildSettings']['INFOPLIST_FILE'] = plist_path
+            self.objects[ref]['buildSettings']['PRODUCT_NAME'] = dst_name
+            self.objects[ref]['buildSettings']['CODE_SIGN_STYLE'] = 'Automatic'
+            self.objects[ref]['buildSettings']['ENABLE_BITCODE'] = 'NO'
+        conf_clone['buildConfigurations'] = new_confs
 
         appex_ref = Pbxproj.gen_key()
         appex_clone = copy.deepcopy(self.objects[base_clone["productReference"]])

@@ -36,6 +36,13 @@ class AppleiOSGenerator(Generator):
         super().__init__(*args, **kwargs)
         self.cache = FileCache()
 
+    def _unfurl_tarball(self, tarball, target_dir):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tarfile.open(tarball, 'r:gz').extractall(str(tmpdir))
+            target = [x for x in Path(tmpdir).iterdir() if x.is_dir()][0]
+            os.makedirs(str(target_dir.parent), exist_ok=True) 
+            Path(target).rename(target_dir)
+
     def get_source_tree(self, base, repo="divvun/giellakbd-ios", branch="master"):
         """
         Downloads the IME source from Github as a tarball, then extracts to deps dir.
@@ -46,12 +53,12 @@ class AppleiOSGenerator(Generator):
         shutil.rmtree(str(deps_dir), ignore_errors=True)
 
         tarball = self.cache.download_latest_from_github(repo, branch)
+        hfst_ospell_tbl = self.cache.download_latest_from_github("bbqsrc/hfst-ospell-rs", "experimental")
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            tarfile.open(tarball, "r:gz").extractall(str(tmpdir))
-            target = [x for x in Path(tmpdir).iterdir() if x.is_dir()][0]
-            os.makedirs(str(deps_dir.parent), exist_ok=True)
-            Path(target).rename(deps_dir)
+        self._unfurl_tarball(tarball, deps_dir)
+
+        shutil.rmtree(str(deps_dir / "Dependencies/hfst-ospell-rs"), ignore_errors=True)
+        self._unfurl_tarball(hfst_ospell_tbl, deps_dir / "Dependencies/hfst-ospell-rs")
 
     @property
     def pkg_id(self):
@@ -148,6 +155,9 @@ class AppleiOSGenerator(Generator):
         # Install CocoaPods deps
         self.run_cocoapods(deps_dir)
 
+        # Add ZHFST files
+        self.add_zhfst_files(deps_dir)
+
         if self.is_release:
             self.build_release(base, deps_dir)
         else:
@@ -212,10 +222,10 @@ class AppleiOSGenerator(Generator):
 
         logger.debug("Xcode version: %s.%s" % (major, minor))
 
-        if major >= 8 or (major == 7 and minor >= 1):
+        if major >= 10:
             return True
 
-        logger.error("Your version of Xcode is too old. You need 7.1 or later.")
+        logger.error("Your version of Xcode is too old. You need 10.0 or later.")
         return False
 
     def build_debug(self, base_dir, deps_dir):
@@ -334,8 +344,8 @@ class AppleiOSGenerator(Generator):
         with open(os.path.join(path, "Contents.json")) as f:
             contents = json.load(f, object_pairs_hook=OrderedDict)
 
-        cmd_tmpl = "convert -resize {h}x{w} -background white -alpha remove "\
-            + "-gravity center -extent {h}x{w} {src} {out}"
+        cmd_tmpl = "convert -resize {h}x{w} -background white -alpha remove -gravity center -extent {h}x{w} {src} {out}"
+        work_items = []
 
         for obj in contents["images"]:
             scale = float(obj["scale"][:-1])
@@ -348,9 +358,12 @@ class AppleiOSGenerator(Generator):
             obj["filename"] = fn
             cmd = cmd_tmpl.format(h=h, w=w, src=icon, out=os.path.join(path, fn))
 
-            logger.info("Creating '%s' from '%s'…" % (fn, icon))
-
-            run_process(cmd.split(" "))
+            msg = "Creating '%s' from '%s'…" % (fn, icon)
+            work_items.append((msg, run_process(cmd.split(" "), return_process=True)))
+    
+        for (msg, process) in work_items:
+            logger.info(msg)
+            process.wait()
 
         with open(os.path.join(path, "Contents.json"), "w") as f:
             json.dump(contents, f)
