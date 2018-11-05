@@ -1,5 +1,6 @@
 import os.path
 
+from io import StringIO
 from collections import namedtuple
 from math import sqrt
 from .base import Generator
@@ -24,8 +25,6 @@ def generate_distances(coords):
     for (a, a_xy) in coords.items():
         dists = {}
         for (b, b_xy) in coords.items():
-            if a == b:
-                continue
             dists[b] = find_key_distance(a_xy, b_xy)
         o[a] = Key(a_xy[0], a_xy[1], dists)
     return o
@@ -100,6 +99,28 @@ regex %s ||
     return data
 
 
+def generate_att(coords):
+    # find end point of all items
+    c = 1
+    pairs = []
+    out = StringIO()
+
+    for (a, coord) in coords.items():
+        for (b, dist) in coord.dist.items():
+            pairs.append([a, b, dist])
+    pairs.sort()
+    
+    for (a, b, dist) in pairs:
+        first = c
+        c += 1
+        out.write("0\t{0}\t{1}\t{1}\t0.0\n".format(first, a))
+        out.write("{0}\t@TERMINUS@\t{1}\t{1}\t{2}\n".format(first, b, "%.6f" % dist))
+    out.write("{0} 0.0\n".format(c))
+
+    v = out.getvalue().replace("@TERMINUS@", str(c))
+    return v
+
+
 class ErrorModelGenerator(Generator):
     def generate(self, base="."):
         out_dir = os.path.abspath(base)
@@ -116,5 +137,5 @@ class ErrorModelGenerator(Generator):
                 offsets = calculate_row_offsets(mode)
                 coords = generate_coordinates(mode, offsets)
                 map_ = generate_distances(coords)
-                print(generate_xfst_macro(map_))
+                print(generate_att(map_))
                 return
