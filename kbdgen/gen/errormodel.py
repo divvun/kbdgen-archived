@@ -126,7 +126,7 @@ class ErrorModelGenerator(Generator):
         out_dir = os.path.abspath(base)
         os.makedirs(out_dir, exist_ok=True)
 
-        for name, layout in self.supported_layouts.items():
+        for name, layout in self._project.layouts.items():
             logger.info(name)
             logger.info("---")
             for (mode_name, mode) in layout.modes.items():
