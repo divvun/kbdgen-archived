@@ -53,7 +53,7 @@ class AppleiOSGenerator(Generator):
         shutil.rmtree(str(deps_dir), ignore_errors=True)
 
         tarball = self.cache.download_latest_from_github(repo, branch)
-        hfst_ospell_tbl = self.cache.download_latest_from_github("bbqsrc/hfst-ospell-rs", "experimental")
+        hfst_ospell_tbl = self.cache.download_latest_from_github("bbqsrc/hfst-ospell-rs", "realign")
 
         self._unfurl_tarball(tarball, deps_dir)
 
