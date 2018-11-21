@@ -54,7 +54,7 @@ class FileCache:
         logger.debug("Inject directory tree: id: %s, tree: %s, base_target: %s" % (id, tree, base_target))
         tree_path = os.path.relpath(tree, base_target)
         src = self.cache_dir / id / tree_path
-        target = Path(tree_path).parent
+        target = Path(base_target) / Path(tree_path)
         logger.debug("src: %s, target: %s" % (src, target))
         # TODO: this does not check if the directory has even a single file in it...
         if not src.exists():

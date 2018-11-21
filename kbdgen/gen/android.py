@@ -235,7 +235,7 @@ class AndroidGenerator(Generator):
         self._update_dict_auth_java(auth, base)
 
     def add_zhfst_files(self, build_dir):
-        nm = "assets/dicts"
+        nm = "app/src/main/assets/dicts"
         dict_path = os.path.join(build_dir, "deps", self.REPO, nm)
         if os.path.exists(dict_path):
             shutil.rmtree(dict_path)
@@ -357,7 +357,7 @@ class AndroidGenerator(Generator):
             logger.info("Building native components…")
             for (target, jni_name) in targets:
                 logger.info("Building %s architecture…" % target)
-                run_process(["/Users/brendan/.cargo/bin/cargo", "ndk", "--android-platform", "21", "--target", target, "--", "build", "--release"], cwd=cwd, show_output=True)
+                run_process(["cargo", "ndk", "--android-platform", "21", "--target", target, "--", "build", "--release"], cwd=cwd, show_output=True)
                 jni_dir = os.path.join(res_dir, jni_name)
                 Path(jni_dir).mkdir(parents=True, exist_ok=True) 
                 shutil.copyfile(os.path.join(cwd, "target", target, "release/libhfstospell.so"), os.path.join(jni_dir, "libhfstospell.so"))
