@@ -81,6 +81,14 @@ def parse_args():
         help="Generator-specific flags (for debugging)",
         default=[],
     )
+    p.add_argument(
+        "--github-username",
+        help="GitHub username for source getting"
+    )
+    p.add_argument(
+        "--github-token",
+        help="GitHub token for source getting"
+    )
 
     return p.parse_args()
 

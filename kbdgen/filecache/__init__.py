@@ -2,6 +2,7 @@ import sys
 import os
 import hashlib
 import requests
+from requests.auth import HTTPBasicAuth
 import tempfile
 import shutil
 from urllib.parse import urlparse
@@ -78,16 +79,19 @@ class FileCache:
             raise Exception("Cached file '%s' has failed integrity checks." % filename)
         return candidate
 
-    def download_latest_from_github(self, repo: str, branch: str = "master") -> str:
-        repo_meta = requests.get(
-            "https://api.github.com/repos/{repo}/commits/{branch}".format(
-                repo=repo, branch=branch
-            )
-        ).json()
+    def download_latest_from_github(self, repo: str, branch: str = "master", username: str = None, password: str = None) -> str:
+        url = "https://api.github.com/repos/{repo}/commits/{branch}".format(
+            repo=repo, branch=branch
+        )
 
-        logger.debug(repo_meta)
+        if username is not None and password is not None:
+            repo_meta = requests.get(url, auth=HTTPBasicAuth(username, password)).json()
+        else:
+            repo_meta = requests.get(url).json()
 
-        sha = repo_meta["sha"]
+        sha = repo_meta.get("sha", None)
+        if sha is None:
+            raise Exception("No sha found in response: %r" % sha)
         filename = "%s-%s.tgz" % (repo.replace("/", "-"), sha)
         candidate = str(self.cache_dir / filename)
         if self.is_cached_valid(filename, None):
