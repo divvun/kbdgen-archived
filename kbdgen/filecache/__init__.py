@@ -43,18 +43,22 @@ class FileCache:
         return new_sum == sha256sum
 
     def save_directory_tree(self, id: str, basepath: str, tree: str):
-        src = Path(basepath) / tree
-        target = self.cache_dir / id / tree
+        logger.debug("Inject directory tree - id: %s, base: %s, tree: %s" % (id, basepath, tree))
+        target = self.cache_dir / id / os.path.relpath(tree, basepath)
+        logger.debug("src: %s, dst: %s" % (tree, target))
         target.mkdir(parents=True, exist_ok=True)
         shutil.rmtree(target, ignore_errors=True)
-        shutil.copytree(src, target)
+        shutil.copytree(tree, target)
 
     def inject_directory_tree(self, id: str, tree: str, base_target: str) -> bool:
-        src = self.cache_dir / id / tree
+        logger.debug("Inject directory tree: id: %s, tree: %s, base_target: %s" % (id, tree, base_target))
+        tree_path = os.path.relpath(tree, base_target)
+        src = self.cache_dir / id / tree_path
+        target = Path(tree_path).parent
+        logger.debug("src: %s, target: %s" % (src, target))
         # TODO: this does not check if the directory has even a single file in it...
         if not src.exists():
             return False
-        target = Path(base_target) / Path(tree).parent
         os.makedirs(str(target), exist_ok=True)
         shutil.rmtree(str(target), ignore_errors=True)
         logger.debug("Copying '%s' to '%s'" % (src, target))
@@ -80,6 +84,8 @@ class FileCache:
                 repo=repo, branch=branch
             )
         ).json()
+
+        logger.debug(repo_meta)
 
         sha = repo_meta["sha"]
         filename = "%s-%s.tgz" % (repo.replace("/", "-"), sha)

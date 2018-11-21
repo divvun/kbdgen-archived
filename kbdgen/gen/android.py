@@ -10,6 +10,7 @@ from pathlib import Path
 from lxml import etree
 from lxml.etree import Element, SubElement
 import tarfile
+import tempfile
 
 from .base import Generator, run_process
 from ..filecache import FileCache
@@ -92,7 +93,7 @@ class AndroidGenerator(Generator):
         self.repo_dir = os.path.join(deps_dir, self.REPO)
         os.makedirs(deps_dir, exist_ok=True)
 
-        self.get_source_tree(base)
+        tree_id = self.get_source_tree(base)
         self.native_locale_workaround(base)
 
         dsn = self._project.target("android").get("sentryDsn", None)
@@ -137,10 +138,10 @@ class AndroidGenerator(Generator):
 
         # Add zhfst files if found
         self.add_zhfst_files(base)
-        self.update_dict_authority(base)
+        # self.update_dict_authority(base)
         self.update_localisation(base)
         self.generate_icons(base)
-        self.build(base, self.is_release)
+        self.build(base, tree_id, self.is_release)
 
     def native_locale_workaround(self, base):
         for name, kbd in self.supported_layouts.items():
@@ -347,48 +348,38 @@ class AndroidGenerator(Generator):
     def _gradle(self, *args):
         run_process(["./gradlew"] + list(args), cwd=self.repo_dir, show_output=True)
 
-    def build(self, base, release_mode=True):
-        # TODO: make id unique per sha
-        tree_id = "giella-ime"
+    def build(self, base, tree_id, release_mode=True):
+        targets = [("armv7-linux-androideabi", "armeabi-v7a"), ("aarch64-linux-android", "arm64-v8a")]
+        res_dir = os.path.join(base, "deps", self.REPO, "app/src/main/jniLibs")
+        cwd = os.path.join(self.repo_dir, "..", "hfst-ospell-rs")
 
-        def tree_base(x):
-            return "app/build/intermediates/ndkBuild/%s" % x
+        if not self.cache.inject_directory_tree(tree_id, res_dir, self.repo_dir):
+            logger.info("Building native components…")
+            for (target, jni_name) in targets:
+                logger.info("Building %s architecture…" % target)
+                run_process(["/Users/brendan/.cargo/bin/cargo", "ndk", "--android-platform", "21", "--target", target, "--", "build", "--release"], cwd=cwd, show_output=True)
+                jni_dir = os.path.join(res_dir, jni_name)
+                Path(jni_dir).mkdir(parents=True, exist_ok=True) 
+                shutil.copyfile(os.path.join(cwd, "target", target, "release/libhfstospell.so"), os.path.join(jni_dir, "libhfstospell.so"))
 
-        if release_mode:
-            if not self.cache.inject_directory_tree(
-                tree_id, tree_base("release"), self.repo_dir
-            ):
-                logger.info("Building native components…")
-                self._gradle("generateJsonModelRelease", "externalNativeBuildRelease")
-                self.cache.save_directory_tree(
-                    tree_id, self.repo_dir, tree_base("release")
-                )
-            else:
-                logger.info("Native components copied from cache.")
+            self.cache.save_directory_tree(
+                tree_id, self.repo_dir, res_dir
+            )
         else:
-            if not self.cache.inject_directory_tree(
-                tree_id, tree_base("debug"), self.repo_dir
-            ):
-                logger.info("Building native components…")
-                self._gradle("generateJsonModelDebug", "externalNativeBuildDebug")
-                self.cache.save_directory_tree(
-                    tree_id, self.repo_dir, tree_base("debug")
-                )
-            else:
-                logger.info("Native components copied from cache.")
+            logger.info("Native components copied from cache.")
 
         logger.info("Building keyboards…")
         self._gradle("assembleRelease" if release_mode else "assembleDebug")
 
         if not release_mode:
-            suffix = "debug.apk"
+            suffix = "debug"
         else:
-            suffix = "release.apk"
+            suffix = "release"
 
-        path = os.path.join(base, "deps", self.REPO, "app/build/outputs/apk")
-        fn = "app-%s" % suffix
+        path = os.path.join(base, "deps", self.REPO, "app/build/outputs/apk", suffix)
+        fn = "app-%s.apk" % suffix
         out_fn = os.path.join(
-            base, "%s-%s_%s" % (self._project.internal_name, self._version, suffix)
+            base, "%s-%s_%s.apk" % (self._project.internal_name, self._version, suffix)
         )
 
         logger.info("Copying '%s' -> '%s'…" % (fn, out_fn))
@@ -522,8 +513,15 @@ class AndroidGenerator(Generator):
             with open(os.path.join(fn, k), "w") as f:
                 logger.info("Creating '%s'…" % k)
                 f.write(v)
+    
+    def _unfurl_tarball(self, tarball, target_dir):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tarfile.open(tarball, 'r:gz').extractall(str(tmpdir))
+            target = [x for x in Path(tmpdir).iterdir() if x.is_dir()][0]
+            os.makedirs(str(target_dir.parent), exist_ok=True) 
+            Path(target).rename(target_dir)
 
-    def get_source_tree(self, base, repo="divvun/giella-ime", branch="master"):
+    def get_source_tree(self, base, repo="divvun/giella-ime", branch="feature/divvunspell"):
         """
         Downloads the IME source from Github as a tarball, then extracts to deps
         dir.
@@ -532,12 +530,15 @@ class AndroidGenerator(Generator):
 
         deps_dir = Path(os.path.join(base, "deps"))
         shutil.rmtree(str(deps_dir), ignore_errors=True)
-        deps_dir.mkdir()
 
         tarball = self.cache.download_latest_from_github(repo, branch)
-        tarfile.open(tarball, "r:gz").extractall(str(deps_dir))
-        target = [x for x in deps_dir.iterdir() if x.is_dir()][0]
-        Path(target).rename(deps_dir / self.REPO)
+        hfst_ospell_tbl = self.cache.download_latest_from_github("bbqsrc/hfst-ospell-rs", "realign")
+
+        self._unfurl_tarball(tarball, deps_dir / self.REPO)
+
+        shutil.rmtree(str(deps_dir / "../hfst-ospell-rs"), ignore_errors=True)
+        self._unfurl_tarball(hfst_ospell_tbl, deps_dir / "hfst-ospell-rs")
+        return hfst_ospell_tbl.split("/")[-1].split(".")[0]
 
     def create_gradle_properties(self, release_mode=False):
         key_store = self._project.relpath(self._project.target("android")["keyStore"])
