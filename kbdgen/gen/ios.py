@@ -291,6 +291,7 @@ class AppleiOSGenerator(Generator):
             + "-scheme HostingApp "
             + 'archive -archivePath "%s" ' % xcarchive
             + "-jobs %s " % multiprocessing.cpu_count()
+            + "CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO"
             # + "DEVELOPMENT_TEAM=%s" % code_sign_id
         )
         cmd2 = (
