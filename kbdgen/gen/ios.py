@@ -285,13 +285,13 @@ class AppleiOSGenerator(Generator):
             + "-scheme HostingApp -allowProvisioningUpdates "
             + 'archive -archivePath "%s" ' % xcarchive
             + "-jobs %s " % multiprocessing.cpu_count()
-            + "DEVELOPMENT_TEAM=%s" % codeSignId
+            + "DEVELOPMENT_TEAM=%s" % code_sign_id
         )
         cmd2 = (
             "xcodebuild -exportArchive "
             + '-archivePath "%s" -exportPath "%s" ' % (xcarchive, ipa)
             + '-exportOptionsPlist "%s" -allowProvisioningUpdates' % plist
-            + "DEVELOPMENT_TEAM=%s" % codeSignId
+            + "DEVELOPMENT_TEAM=%s" % code_sign_id
         )
 
         for cmd, msg in (
