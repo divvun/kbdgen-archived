@@ -291,7 +291,7 @@ class AppleiOSGenerator(Generator):
             + "-scheme HostingApp "
             + 'archive -archivePath "%s" ' % xcarchive
             + "-jobs %s " % multiprocessing.cpu_count()
-            + "DEVELOPMENT_TEAM=%s" % code_sign_id
+            # + "DEVELOPMENT_TEAM=%s" % code_sign_id
         )
         cmd2 = (
             "xcodebuild -exportArchive "
