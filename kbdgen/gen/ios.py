@@ -292,11 +292,13 @@ class AppleiOSGenerator(Generator):
             + 'archive -archivePath "%s" ' % xcarchive
             + "-jobs %s " % multiprocessing.cpu_count()
             + "CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO"
+            + " | xcpretty"
         )
         cmd2 = (
             "xcodebuild -exportArchive "
             + '-archivePath "%s" -exportPath "%s" ' % (xcarchive, ipa)
             + '-exportOptionsPlist "%s" ' % plist
+            + " | xcpretty"
         )
 
         for cmd, msg in (
