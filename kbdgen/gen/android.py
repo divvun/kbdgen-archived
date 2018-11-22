@@ -346,6 +346,9 @@ class AndroidGenerator(Generator):
                 sys.exit(process.returncode)
 
     def _gradle(self, *args):
+        # HACK: let's be honest it's all hacks
+        with open(os.path.join(self.repo_dir, "local.properties"), "a") as f:
+            f.write("sdk.dir=%s\n" % os.environ["ANDROID_HOME"])
         run_process(["./gradlew"] + list(args), cwd=self.repo_dir, show_output=True)
 
     def build(self, base, tree_id, release_mode=True):
