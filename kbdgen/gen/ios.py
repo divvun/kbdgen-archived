@@ -288,7 +288,7 @@ class AppleiOSGenerator(Generator):
 
         cmd1 = (
             "xcodebuild -workspace GiellaKeyboard.xcworkspace -configuration Release "
-            + "-scheme HostingApp -allowProvisioningUpdates "
+            + "-scheme HostingApp "
             + 'archive -archivePath "%s" ' % xcarchive
             + "-jobs %s " % multiprocessing.cpu_count()
             + "DEVELOPMENT_TEAM=%s" % code_sign_id
@@ -296,7 +296,7 @@ class AppleiOSGenerator(Generator):
         cmd2 = (
             "xcodebuild -exportArchive "
             + '-archivePath "%s" -exportPath "%s" ' % (xcarchive, ipa)
-            + '-exportOptionsPlist "%s" -allowProvisioningUpdates' % plist
+            + '-exportOptionsPlist "%s" ' % plist
             + "DEVELOPMENT_TEAM=%s" % code_sign_id
         )
 
