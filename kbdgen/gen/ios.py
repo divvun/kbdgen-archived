@@ -267,6 +267,11 @@ class AppleiOSGenerator(Generator):
         if provisioning_profile_id is None:
             raise Exception("provisioningProfileId cannot be null")
 
+        code_sign_id = self._project.target("ios").get("codeSignId", None)
+
+        if code_sign_id is None:
+            raise Exception("codeSignId cannot be null")
+
         plist_obj = {"method": "app-store", "provisioningProfiles": {}}
 
         for item in self.all_bundle_ids():
@@ -280,11 +285,13 @@ class AppleiOSGenerator(Generator):
             + "-scheme HostingApp -allowProvisioningUpdates "
             + 'archive -archivePath "%s" ' % xcarchive
             + "-jobs %s " % multiprocessing.cpu_count()
+            + "DEVELOPMENT_TEAM=%s" % codeSignId
         )
         cmd2 = (
             "xcodebuild -exportArchive "
             + '-archivePath "%s" -exportPath "%s" ' % (xcarchive, ipa)
             + '-exportOptionsPlist "%s" -allowProvisioningUpdates' % plist
+            + "DEVELOPMENT_TEAM=%s" % codeSignId
         )
 
         for cmd, msg in (
