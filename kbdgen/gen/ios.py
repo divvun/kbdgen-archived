@@ -69,6 +69,12 @@ class AppleiOSGenerator(Generator):
         return self._project.target("ios")["packageId"].replace("_", "-")
 
     def generate(self, base="."):
+        command = self._args.get("command", None)
+        if command is not None:
+            if command == "ids":
+                print(",".join([self.pkg_id] + self.all_bundle_ids()))
+                return
+
         if not self.ensure_xcode_version():
             return
 

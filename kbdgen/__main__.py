@@ -89,6 +89,11 @@ def parse_args():
         "--github-token",
         help="GitHub token for source getting"
     )
+    p.add_argument(
+        "-c",
+        "--command",
+        help="Command to run for a given generators"
+    )
 
     return p.parse_args()
 
