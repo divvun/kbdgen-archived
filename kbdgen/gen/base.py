@@ -209,10 +209,11 @@ class DictWalker:
             pass
 
 
-def run_process(cmd, cwd=None, show_output=False, return_process=False):
+def run_process(cmd, cwd=None, show_output=False, return_process=False, shell=False):
     try:
         process = subprocess.Popen(
             cmd,
+            shell=shell,
             cwd=str(cwd) if cwd is not None else None,
             stderr=None if show_output else subprocess.PIPE,
             stdout=None if show_output else subprocess.PIPE,
@@ -227,7 +228,7 @@ def run_process(cmd, cwd=None, show_output=False, return_process=False):
         
     if show_output:
         process.wait()
-        return None, None
+        return process.returncode
     else:
         out, err = process.communicate()
 

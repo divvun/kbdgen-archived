@@ -291,15 +291,14 @@ class AppleiOSGenerator(Generator):
             + "-workspace GiellaKeyboard.xcworkspace -configuration Release "
             + "-scheme HostingApp "
             + "-jobs %s " % multiprocessing.cpu_count()
-            + '-exportOptionsPlist "%s" ' % plist
             + "CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO"
-            + " | xcpretty --no-color | test $PIPESTATUS -eq 0"
+            + ' | xcpretty --no-color | [ "$PIPESTATUS" = "0" ]'
         )
         cmd2 = (
             "xcodebuild -exportArchive "
             + '-archivePath "%s" -exportPath "%s" ' % (xcarchive, ipa)
             + '-exportOptionsPlist "%s" ' % plist
-            + " | xcpretty --no-color | test $PIPESTATUS -eq 0"
+            + ' | xcpretty --no-color | [ "$PIPESTATUS" = "0" ]'
         )
 
         for cmd, msg in (
