@@ -287,42 +287,36 @@ class AppleiOSGenerator(Generator):
             plistlib.dump(plist_obj, f)
 
         cmd1 = (
-            "xcodebuild -workspace GiellaKeyboard.xcworkspace -configuration Release "
+            'xcodebuild archive -archivePath "%s" ' % xcarchive
+            + "-workspace GiellaKeyboard.xcworkspace -configuration Release "
             + "-scheme HostingApp "
-            + 'archive -archivePath "%s" ' % xcarchive
             + "-jobs %s " % multiprocessing.cpu_count()
+            + '-exportOptionsPlist "%s" ' % plist
             + "CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO"
-            + " | xcpretty"
+            + " | xcpretty --no-color | test $PIPESTATUS -eq 0"
         )
         cmd2 = (
             "xcodebuild -exportArchive "
             + '-archivePath "%s" -exportPath "%s" ' % (xcarchive, ipa)
             + '-exportOptionsPlist "%s" ' % plist
-            + " | xcpretty"
+            + " | xcpretty --no-color | test $PIPESTATUS -eq 0"
         )
 
         for cmd, msg in (
             (cmd1, "Building .xcarchive…"),
             (cmd2, "Building .ipa and signing…"),
         ):
-
             logger.info(msg)
             logger.debug(cmd)
-            process = subprocess.Popen(
-                cmd,
+            returncode = run_process(cmd,
                 cwd=deps_dir,
                 shell=True,
-                stderr=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-            )
-            out, err = process.communicate()
-            if process.returncode != 0:
-                logger.error(out.decode().strip())
-                logger.error(err.decode().strip())
+                show_output=True)
+            if returncode != 0:
                 logger.error(
-                    "Application ended with error code %s." % process.returncode
+                    "Application ended with error code %s." % returncode
                 )
-                sys.exit(process.returncode)
+                sys.exit(returncode)
 
         if os.path.exists(xcarchive):
             shutil.rmtree(xcarchive)
