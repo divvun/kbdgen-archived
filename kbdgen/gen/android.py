@@ -519,7 +519,7 @@ class AndroidGenerator(Generator):
             tarfile.open(tarball, 'r:gz').extractall(str(tmpdir))
             target = [x for x in Path(tmpdir).iterdir() if x.is_dir()][0]
             os.makedirs(str(target_dir.parent), exist_ok=True) 
-            Path(target).rename(target_dir)
+            shutil.move(target, target_dir)
 
     def get_source_tree(self, base, repo="divvun/giella-ime", branch="feature/divvunspell"):
         """
