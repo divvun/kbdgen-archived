@@ -68,12 +68,14 @@ class AppleiOSGenerator(Generator):
     def pkg_id(self):
         return self._project.target("ios")["packageId"].replace("_", "-")
 
+    def command_ids(self):
+        return ",".join([self.pkg_id] + self.all_bundle_ids())
+
     def generate(self, base="."):
         command = self._args.get("command", None)
         if command is not None:
             if command == "ids":
-                print(",".join([self.pkg_id] + self.all_bundle_ids()))
-                return
+                return self.command_ids()
 
         if not self.ensure_xcode_version():
             return
@@ -286,6 +288,30 @@ class AppleiOSGenerator(Generator):
         with open(plist, "wb") as f:
             plistlib.dump(plist_obj, f)
 
+        if self._args.get("ci", None) is not None:
+            logger.info("Setting up keychain…")
+            returncode = run_process('fastlane travis',
+                cwd=deps_dir,
+                shell=True,
+                show_output=True)
+            if returncode != 0:
+                logger.error(
+                    "Application ended with error code %s." % returncode
+                )
+                sys.exit(returncode)
+
+            logger.info("Downloading signing certificates…")
+            cmd = "fastlane match appstore --app_identifier=%s" % self.command_ids()
+            returncode = run_process(cmd,
+                cwd=deps_dir,
+                shell=True,
+                show_output=True)
+            if returncode != 0:
+                logger.error(
+                    "Application ended with error code %s." % returncode
+                )
+                sys.exit(returncode)
+
         cmd1 = (
             'xcodebuild archive -archivePath "%s" ' % xcarchive
             + "-workspace GiellaKeyboard.xcworkspace -configuration Release "
@@ -301,6 +327,7 @@ class AppleiOSGenerator(Generator):
         )
 
         for cmd, msg in (
+            (cmd0, "Generating keychain (if needed)…")
             (cmd1, "Building .xcarchive…"),
             (cmd2, "Building .ipa and signing…"),
         ):

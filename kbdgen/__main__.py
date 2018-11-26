@@ -94,6 +94,10 @@ def parse_args():
         "--command",
         help="Command to run for a given generators"
     )
+    p.add_argument(
+        "--ci",
+        help="Continuous integration build"
+    )
 
     return p.parse_args()
 
