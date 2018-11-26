@@ -103,5 +103,5 @@ class FileCache:
         with tempfile.TemporaryDirectory() as tmpdir:
             fp = os.path.join(tmpdir, filename)
             stream_download(download_url, filename, fp)
-            Path(fp).rename(candidate)
+            shutil.move(fp, candidate)
         return candidate

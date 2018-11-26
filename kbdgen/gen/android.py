@@ -522,7 +522,7 @@ class AndroidGenerator(Generator):
             tarfile.open(tarball, 'r:gz').extractall(str(tmpdir))
             target = [x for x in Path(tmpdir).iterdir() if x.is_dir()][0]
             os.makedirs(str(target_dir.parent), exist_ok=True) 
-            Path(target).rename(target_dir)
+            shutil.move(target, target_dir)
 
     def get_source_tree(self, base, repo="divvun/giella-ime", branch="feature/divvunspell"):
         """
@@ -534,8 +534,12 @@ class AndroidGenerator(Generator):
         deps_dir = Path(os.path.join(base, "deps"))
         shutil.rmtree(str(deps_dir), ignore_errors=True)
 
-        tarball = self.cache.download_latest_from_github(repo, branch)
-        hfst_ospell_tbl = self.cache.download_latest_from_github("bbqsrc/hfst-ospell-rs", "realign")
+        tarball = self.cache.download_latest_from_github(repo, branch,
+                username=self._args.get("github_username", None),
+                password=self._args.get("github_token", None))
+        hfst_ospell_tbl = self.cache.download_latest_from_github("bbqsrc/hfst-ospell-rs", "realign",
+                username=self._args.get("github_username", None),
+                password=self._args.get("github_token", None))
 
         self._unfurl_tarball(tarball, deps_dir / self.REPO)
 
