@@ -298,7 +298,6 @@ class AppleiOSGenerator(Generator):
             "xcodebuild -exportArchive "
             + '-archivePath "%s" -exportPath "%s" ' % (xcarchive, ipa)
             + '-exportOptionsPlist "%s" ' % plist
-            + '-quiet'
         )
 
         for cmd, msg in (
