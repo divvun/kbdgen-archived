@@ -96,6 +96,7 @@ def parse_args():
     )
     p.add_argument(
         "--ci",
+        action="store_true",
         help="Continuous integration build"
     )
 

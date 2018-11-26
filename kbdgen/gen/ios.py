@@ -327,7 +327,6 @@ class AppleiOSGenerator(Generator):
         )
 
         for cmd, msg in (
-            (cmd0, "Generating keychain (if needed)…")
             (cmd1, "Building .xcarchive…"),
             (cmd2, "Building .ipa and signing…"),
         ):
