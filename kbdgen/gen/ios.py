@@ -75,7 +75,8 @@ class AppleiOSGenerator(Generator):
         command = self._args.get("command", None)
         if command is not None:
             if command == "ids":
-                return self.command_ids()
+                print(self.command_ids())
+                return
 
         if not self.ensure_xcode_version():
             return
