@@ -325,7 +325,7 @@ class AppleiOSGenerator(Generator):
         cmd2 = (
             "xcodebuild -exportArchive "
             + '-archivePath "%s" -exportPath "%s" ' % (xcarchive, ipa)
-            + '-exportOptionsPlist "%s" ' % plist
+            + '-exportOptionsPlist "%s" -UseModernBuildSystem=NO' % plist
         )
 
         for cmd, msg in (
