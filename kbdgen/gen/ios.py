@@ -296,10 +296,10 @@ class AppleiOSGenerator(Generator):
                 shell=True,
                 show_output=True)
             if returncode != 0:
-                logger.error(
+                # oN eRrOr GoTo NeXt
+                logger.warn(
                     "Application ended with error code %s." % returncode
                 )
-                sys.exit(returncode)
 
             logger.info("Downloading signing certificates…")
             cmd = "fastlane match appstore --app_identifier=%s" % self.command_ids()
@@ -318,7 +318,8 @@ class AppleiOSGenerator(Generator):
             + "-workspace GiellaKeyboard.xcworkspace -configuration Release "
             + "-scheme HostingApp "
             + "-jobs %s " % multiprocessing.cpu_count()
-            + '-quiet'
+            + '-quiet '
+            + "PROVISIONING_PROFILE_SPECIFIER='%s' " % provisioning_profile_id
             + "DEVELOPMENT_TEAM=%s" % code_sign_id
         )
         cmd2 = (
