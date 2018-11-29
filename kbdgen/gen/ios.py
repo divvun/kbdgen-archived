@@ -55,7 +55,7 @@ class AppleiOSGenerator(Generator):
         tarball = self.cache.download_latest_from_github(repo, branch,
                 username=self._args.get("github_username", None),
                 password=self._args.get("github_token", None))
-        hfst_ospell_tbl = self.cache.download_latest_from_github("bbqsrc/hfst-ospell-rs", "realign",
+        hfst_ospell_tbl = self.cache.download_latest_from_github("bbqsrc/hfst-ospell-rs", "master",
                 username=self._args.get("github_username", None),
                 password=self._args.get("github_token", None))
 
@@ -556,7 +556,7 @@ class AppleiOSGenerator(Generator):
         plist["CFBundleName"] = layout.native_display_name
         plist["CFBundleDisplayName"] = layout.native_display_name
         plist["CFBundleShortVersionString"] = self._version
-        plist["CFBundleVersion"] = self._build
+        plist["CFBundleVersion"] = int(self._build)
         plist["LSApplicationQueriesSchemes"][0] = pkg_id
         plist["NSExtension"]["NSExtensionAttributes"]["PrimaryLanguage"] = layout.locale
         plist["DivvunKeyboardIndex"] = n
@@ -573,7 +573,7 @@ class AppleiOSGenerator(Generator):
         plist["CFBundleName"] = self._project.target("ios")["bundleName"]
         plist["CFBundleDisplayName"] = self._project.target("ios")["bundleName"]
         plist["CFBundleShortVersionString"] = self._version
-        plist["CFBundleVersion"] = self._build
+        plist["CFBundleVersion"] = int(self._build)
         plist["CFBundleURLTypes"][0]["CFBundleURLSchemes"][0] = pkg_id
         plist["LSApplicationQueriesSchemes"][0] = pkg_id
 
