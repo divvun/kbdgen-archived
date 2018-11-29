@@ -117,7 +117,7 @@ class AppleiOSGenerator(Generator):
             self.update_plist(plist, f)
 
         kbd_plist_path = os.path.join(deps_dir, "Keyboard", "Info.plist")
-        dev_team = self._project.target("ios").get("codeSignId", None)
+        dev_team = self._project.target("ios").get("teamId", None)
 
         with open(kbd_plist_path, "rb") as f:
             kbd_plist = plistlib.load(f, dict_type=OrderedDict)
@@ -135,8 +135,9 @@ class AppleiOSGenerator(Generator):
                     self.update_kbd_plist(kbd_plist, f, layout, n)
                 # pbx_target, appex_ref =
                 pbxproj.duplicate_target("Keyboard", name, plist_gpath)
+                id_ = "%s.%s" % (self.pkg_id, name.replace("_", "-"))
                 pbxproj.set_target_package_id(
-                    name, "%s.%s" % (self.pkg_id, name.replace("_", "-"))
+                    name, id_
                 )
                 if dev_team is not None:
                     pbxproj.set_target_build_setting(name, "DEVELOPMENT_TEAM", dev_team)
@@ -172,7 +173,7 @@ class AppleiOSGenerator(Generator):
         self.add_zhfst_files(deps_dir)
 
         if self.is_release:
-            self.build_release(base, deps_dir)
+            self.build_release(base, deps_dir, path, pbxproj)
         else:
             # self.build_debug(base, deps_dir)
             logger.info("You may now open '%s/GiellaKeyboard.xcworkspace'." % deps_dir)
@@ -241,6 +242,27 @@ class AppleiOSGenerator(Generator):
         logger.error("Your version of Xcode is too old. You need 10.0 or later.")
         return False
 
+    def embed_provisioning_profiles(self, pbxproj_path, pbxproj, deps_dir):
+        logger.info("Embedding provisioning profiles…")
+
+        o = {}
+
+        for item in self.all_bundle_ids() + [self.pkg_id]:
+            name = item.split(".")[-1] if item != self.pkg_id else "HostingApp"
+            profile = self.load_provisioning_profile(item, deps_dir)
+            pbxproj.set_target_build_setting(name, "PROVISIONING_PROFILE", profile["UUID"])
+            pbxproj.set_target_build_setting(name, "PROVISIONING_PROFILE_SPECIFIER", profile["Name"])
+            o[item] = profile["UUID"]
+
+        with open(pbxproj_path, "w") as f:
+            f.write(str(pbxproj))
+        return o
+
+    def load_provisioning_profile(self, item, deps_dir):
+        cmd = "security cms -D -i %s.mobileprovision" % item
+        out, err = run_process(cmd.split(" "), cwd=deps_dir)
+        return plistlib.loads(out)
+            
     def build_debug(self, base_dir, deps_dir):
         cpu_count = multiprocessing.cpu_count()
         cmd = (
@@ -254,8 +276,8 @@ class AppleiOSGenerator(Generator):
         if process.returncode != 0:
             logger.error("Application ended with error code %s." % process.returncode)
             sys.exit(process.returncode)
-
-    def build_release(self, base_dir, deps_dir):
+        
+    def build_release(self, base_dir, deps_dir, pbxproj_path, pbxproj):
         build_dir = deps_dir
         # TODO check signing ID exists in advance (in sanity checks)
         xcarchive = os.path.abspath(
@@ -280,29 +302,46 @@ class AppleiOSGenerator(Generator):
 
         if code_sign_id is None:
             raise Exception("codeSignId cannot be null")
+        team_id = self._project.target("ios").get("teamId", None)
 
-        plist_obj = {"teamID": code_sign_id, "method": "app-store", "provisioningProfiles": {}}
+        if team_id is None:
+            raise Exception("teamId cannot be null")
 
-        for item in self.all_bundle_ids():
-            plist_obj["provisioningProfiles"][item] = provisioning_profile_id
+        plist_obj = {
+            "teamID": team_id,
+            "method": "app-store",
+            "provisioningProfiles": {}
+        }
 
-        with open(plist, "wb") as f:
-            plistlib.dump(plist_obj, f)
+        logger.info("Setting up keychain…")
+        returncode = run_process('fastlane travis',
+            cwd=deps_dir,
+            shell=True,
+            show_output=True)
+        if returncode != 0:
+            # oN eRrOr GoTo NeXt
+            logger.warn(
+                "Application ended with error code %s." % returncode
+            )
 
-        if self._args.get("ci", None) is not None:
-            logger.info("Setting up keychain…")
-            returncode = run_process('fastlane travis',
-                cwd=deps_dir,
-                shell=True,
-                show_output=True)
-            if returncode != 0:
-                # oN eRrOr GoTo NeXt
-                logger.warn(
-                    "Application ended with error code %s." % returncode
-                )
-
-            logger.info("Downloading signing certificates…")
-            cmd = "fastlane match appstore --app_identifier=%s" % self.command_ids()
+        logger.info("Downloading signing certificates…")
+        cmd = "fastlane match appstore --app_identifier=%s" % self.command_ids()
+        logger.debug(cmd)
+        returncode = run_process(cmd,
+            cwd=deps_dir,
+            shell=True,
+            show_output=True)
+        if returncode != 0:
+            logger.error(
+                "Application ended with error code %s." % returncode
+            )
+            sys.exit(returncode)
+        
+        logger.info("Downloading provisioning profiles…")
+        for item in self.all_bundle_ids() + [self.pkg_id]:
+            cmd = "fastlane sigh -a %s -b %s -z -q %s.mobileprovision" % (
+                item, team_id, item)
+            logger.debug(cmd)
             returncode = run_process(cmd,
                 cwd=deps_dir,
                 shell=True,
@@ -312,6 +351,11 @@ class AppleiOSGenerator(Generator):
                     "Application ended with error code %s." % returncode
                 )
                 sys.exit(returncode)
+        
+        plist_obj["provisioningProfiles"] = self.embed_provisioning_profiles(pbxproj_path, pbxproj, deps_dir)
+        
+        with open(plist, "wb") as f:
+            plistlib.dump(plist_obj, f)
 
         cmd1 = (
             'xcodebuild archive -archivePath "%s" ' % xcarchive
@@ -319,13 +363,13 @@ class AppleiOSGenerator(Generator):
             + "-scheme HostingApp "
             + "-jobs %s " % multiprocessing.cpu_count()
             + '-quiet '
-            + "PROVISIONING_PROFILE_SPECIFIER='%s' " % provisioning_profile_id
-            + "DEVELOPMENT_TEAM=%s" % code_sign_id
+            + 'CODE_SIGN_IDENTITY="%s" ' % code_sign_id
+            + 'DEVELOPMENT_TEAM=%s' % team_id
         )
         cmd2 = (
             "xcodebuild -exportArchive "
             + '-archivePath "%s" -exportPath "%s" ' % (xcarchive, ipa)
-            + '-exportOptionsPlist "%s"' % plist
+            + '-exportOptionsPlist "%s" ' % plist
         )
 
         for cmd, msg in (
@@ -344,8 +388,8 @@ class AppleiOSGenerator(Generator):
                 )
                 sys.exit(returncode)
 
-        if os.path.exists(xcarchive):
-            shutil.rmtree(xcarchive)
+        # if os.path.exists(xcarchive):
+        #     shutil.rmtree(xcarchive)
         logger.info("Done! -> %s" % ipa)
 
     def _tostring(self, tree):

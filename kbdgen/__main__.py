@@ -94,12 +94,6 @@ def parse_args():
         "--command",
         help="Command to run for a given generators"
     )
-    p.add_argument(
-        "--ci",
-        action="store_true",
-        help="Continuous integration build"
-    )
-
     return p.parse_args()
 
 
