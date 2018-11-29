@@ -291,13 +291,6 @@ class AppleiOSGenerator(Generator):
         if os.path.exists(ipa):
             os.remove(ipa)
 
-        provisioning_profile_id = self._project.target("ios").get(
-            "provisioningProfileId", None
-        )
-
-        if provisioning_profile_id is None:
-            raise Exception("provisioningProfileId cannot be null")
-
         code_sign_id = self._project.target("ios").get("codeSignId", None)
 
         if code_sign_id is None:
