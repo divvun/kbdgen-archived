@@ -349,6 +349,8 @@ class AndroidGenerator(Generator):
         # HACK: let's be honest it's all hacks
         with open(os.path.join(self.repo_dir, "local.properties"), "a") as f:
             f.write("sdk.dir=%s\n" % os.environ["ANDROID_HOME"])
+            f.write("store.pw=%s\n" % os.environ["STORE_PW"])
+            f.write("key.pw=%s\n" % os.environ["KEY_PW"])
         run_process(["./gradlew"] + list(args), cwd=self.repo_dir, show_output=True)
 
     def build(self, base, tree_id, release_mode=True):
