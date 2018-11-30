@@ -514,14 +514,14 @@ class WindowsGenerator(Generator):
                 ["wine", "--version"], stdout=subprocess.PIPE
             ).communicate()
             v_chunks = [int(x) for x in out.decode().split("-").pop().split(".")]
-            if v_chunks[0] < 2 or (v_chunks[0] == 2 and v_chunks[1]) < 10:
+            if v_chunks[0] < 2 or (v_chunks[0] == 2 and v_chunks[1] < 10):
                 logger.warn(
                     "Builds are not known to succeed with Wine versions less than "
                     + "2.10; here be dragons."
                 )
 
         # Check for INNO_PATH
-        elif self.get_inno_setup_dir() is None:
+        if self.get_inno_setup_dir() is None:
             logger.error(
                 "Inno Setup 5 must be installed or INNO_PATH environment variable must "
                 + "point to the Inno Setup 5 directory."
