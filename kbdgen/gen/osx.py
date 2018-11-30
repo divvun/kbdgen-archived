@@ -103,7 +103,8 @@ class OSXGenerator(PhysicalGenerator):
         if self.is_release:
             logger.info("Signing installer…")
             self.sign_installer(pkg_path)
-        logger.info("Installer generated at '%s'." % pkg_path)
+        else:
+            logger.info("Installer generated at '%s'." % pkg_path)
 
     def generate_iconset(self, icon, output_fn):
         cmd_tmpl = "convert -resize {d}x{d} -background transparent "\
@@ -366,6 +367,7 @@ class OSXGenerator(PhysicalGenerator):
         out, err = run_process(cmd, self.build_dir)
 
         logger.info(out.decode().strip())
+        logger.info("Installer generated at '%s'." % os.path.join(self.build_dir, signed_path))
 
     def _layout_id(self, layout) -> str:
         return str(
