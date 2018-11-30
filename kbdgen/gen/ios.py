@@ -71,12 +71,16 @@ class AppleiOSGenerator(Generator):
     def command_ids(self):
         return ",".join([self.pkg_id] + self.all_bundle_ids())
 
+    def process_command(self, command):
+        if command == "ids":
+            print(self.command_ids())
+            return
+            
     def generate(self, base="."):
         command = self._args.get("command", None)
         if command is not None:
-            if command == "ids":
-                print(self.command_ids())
-                return
+            self.process_command(command)
+            return
 
         if not self.ensure_xcode_version():
             return
@@ -248,8 +252,9 @@ class AppleiOSGenerator(Generator):
         o = {}
 
         for item in self.all_bundle_ids() + [self.pkg_id]:
-            name = item.split(".")[-1] if item != self.pkg_id else "HostingApp"
+            name = item.split(".")[-1].replace("-", "_") if item != self.pkg_id else "HostingApp"
             profile = self.load_provisioning_profile(item, deps_dir)
+            logger.debug("Profile: %s %s -> %s" % (profile["UUID"], profile["Name"], name))
             pbxproj.set_target_build_setting(name, "PROVISIONING_PROFILE", profile["UUID"])
             pbxproj.set_target_build_setting(name, "PROVISIONING_PROFILE_SPECIFIER", profile["Name"])
             o[item] = profile["UUID"]
