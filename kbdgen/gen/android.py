@@ -528,7 +528,7 @@ class AndroidGenerator(Generator):
             os.makedirs(str(target_dir.parent), exist_ok=True) 
             shutil.move(target, target_dir)
 
-    def get_source_tree(self, base, repo="divvun/giella-ime", branch="feature/divvunspell"):
+    def get_source_tree(self, base, repo="divvun/giella-ime", branch="master"):
         """
         Downloads the IME source from Github as a tarball, then extracts to deps
         dir.
@@ -541,7 +541,7 @@ class AndroidGenerator(Generator):
         tarball = self.cache.download_latest_from_github(repo, branch,
                 username=self._args.get("github_username", None),
                 password=self._args.get("github_token", None))
-        hfst_ospell_tbl = self.cache.download_latest_from_github("bbqsrc/hfst-ospell-rs", "realign",
+        hfst_ospell_tbl = self.cache.download_latest_from_github("bbqsrc/hfst-ospell-rs", "master",
                 username=self._args.get("github_username", None),
                 password=self._args.get("github_token", None))
 
