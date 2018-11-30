@@ -555,8 +555,8 @@ class AppleiOSGenerator(Generator):
 
         plist["CFBundleName"] = layout.native_display_name
         plist["CFBundleDisplayName"] = layout.native_display_name
-        plist["CFBundleShortVersionString"] = self._version
-        plist["CFBundleVersion"] = int(self._build)
+        plist["CFBundleShortVersionString"] = str(self._version)
+        plist["CFBundleVersion"] = str(self._build)
         plist["LSApplicationQueriesSchemes"][0] = pkg_id
         plist["NSExtension"]["NSExtensionAttributes"]["PrimaryLanguage"] = layout.locale
         plist["DivvunKeyboardIndex"] = n
@@ -572,8 +572,8 @@ class AppleiOSGenerator(Generator):
 
         plist["CFBundleName"] = self._project.target("ios")["bundleName"]
         plist["CFBundleDisplayName"] = self._project.target("ios")["bundleName"]
-        plist["CFBundleShortVersionString"] = self._version
-        plist["CFBundleVersion"] = int(self._build)
+        plist["CFBundleShortVersionString"] = str(self._version)
+        plist["CFBundleVersion"] = str(self._build)
         plist["CFBundleURLTypes"][0]["CFBundleURLSchemes"][0] = pkg_id
         plist["LSApplicationQueriesSchemes"][0] = pkg_id
 
