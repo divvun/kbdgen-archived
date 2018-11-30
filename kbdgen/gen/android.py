@@ -379,7 +379,7 @@ class AndroidGenerator(Generator):
         if not release_mode:
             suffix = "debug"
         else:
-            suffix = "release"
+            suffix = "release-unsigned"
 
         path = os.path.join(base, "deps", self.REPO, "app/build/outputs/apk", suffix)
         fn = "app-%s.apk" % suffix
