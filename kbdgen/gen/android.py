@@ -351,6 +351,8 @@ class AndroidGenerator(Generator):
             f.write("sdk.dir=%s\n" % os.environ["ANDROID_HOME"])
             f.write("store.pw=%s\n" % os.environ["STORE_PW"])
             f.write("key.pw=%s\n" % os.environ["KEY_PW"])
+            f.write("play.email=%s\n" % os.environ["PLAY_STORE_ACCOUNT"])
+            f.write("play.credentials=%s\n" % os.environ["PLAY_STORE_P12"])
         run_process(["./gradlew"] + list(args), cwd=self.repo_dir, show_output=True)
 
     def build(self, base, tree_id, release_mode=True):
