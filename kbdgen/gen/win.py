@@ -581,6 +581,9 @@ class WindowsGenerator(Generator):
             return
 
         logger.info("Signing '%s' for %s…" % (name, arch))
+        pfx_path = self._wine_path(self._project.relpath(pfx))
+        logger.debug("PFX path: %s", pfx_path)
+
         cmd = self._wine_cmd(
             self._wine_path(self.get_or_download_signcode()),
             "-a",
@@ -588,7 +591,7 @@ class WindowsGenerator(Generator):
             "-t",
             "http://timestamp.verisign.com/scripts/timstamp.dll",
             "-pkcs12",
-            pfx,
+            pfx_path,
             "-$",
             "commercial",
             self._wine_path(os.path.join(out_path, "%s.dll" % name)),
@@ -945,7 +948,7 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
         buf.write('COMPANY\t"%s"\n\n' % organisation)
         buf.write('LOCALENAME\t"%s"\n\n' % locale)
 
-        lcid = lcidlib.get_hex8(locale) or lcidlib.get_hex8(layout.locale) or "00000c00"
+        lcid = lcidlib.get_hex8(locale) or lcidlib.get_hex8(layout.locale) or "00002000"
 
         buf.write('LOCALEID\t"%s"\n\n' % lcid)
         buf.write("VERSION\t1.0\n\n")
