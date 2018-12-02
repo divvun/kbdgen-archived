@@ -21,7 +21,7 @@ logger = get_logger(__file__)
 
 ANDROID_GLYPHS = {}
 
-for api in (16, 19, 21, 23):
+for api in (21, 23):
     with open(
         os.path.join(
             os.path.dirname(__file__), "bin", "android-glyphs-api%s.bin" % api
