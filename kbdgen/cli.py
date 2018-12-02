@@ -81,24 +81,10 @@ def parse_args():
         help="Generator-specific flags (for debugging)",
         default=[],
     )
-    p.add_argument(
-        "--github-username",
-        help="GitHub username for source getting"
-    )
-    p.add_argument(
-        "--github-token",
-        help="GitHub token for source getting"
-    )
-    p.add_argument(
-        "-c",
-        "--command",
-        help="Command to run for a given generators"
-    )
-    p.add_argument(
-        "--ci",
-        action="store_true",
-        help="Continuous integration build"
-    )
+    p.add_argument("--github-username", help="GitHub username for source getting")
+    p.add_argument("--github-token", help="GitHub token for source getting")
+    p.add_argument("-c", "--command", help="Command to run for a given generators")
+    p.add_argument("--ci", action="store_true", help="Continuous integration build")
 
     return p.parse_args()
 

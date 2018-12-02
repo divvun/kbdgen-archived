@@ -93,7 +93,7 @@ regex %s ||
     Alphabet [Alphabet*] __ [Alphabet*] Alphabet ;
 """ % (
         alphas,
-        " ,\n    ".join(regexes)
+        " ,\n    ".join(regexes),
     )
 
     return data
@@ -109,7 +109,7 @@ def generate_att(coords):
         for (b, dist) in coord.dist.items():
             pairs.append([a, b, dist])
     pairs.sort()
-    
+
     for (a, b, dist) in pairs:
         first = c
         c += 1

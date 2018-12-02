@@ -428,9 +428,11 @@ class Parser:
                             )
                         if not VALID_ID_RE.match(rl.internal_name):
                             raise UserException(
-                                ("Internal name '%s' in file '%s' not valid. Must "
+                                (
+                                    "Internal name '%s' in file '%s' not valid. Must "
                                     + "begin with a-z, and after contain only a-z, "
-                                    + "0-9, dashes (-) and underscores (_).")
+                                    + "0-9, dashes (-) and underscores (_)."
+                                )
                                 % (rl.internal_name, fn)
                             )
                         if rl.internal_name in known_ids:

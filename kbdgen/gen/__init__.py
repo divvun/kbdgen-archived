@@ -18,6 +18,6 @@ generators = OrderedDict(
         ("android", AndroidGenerator),
         ("ios", AppleiOSGenerator),
         ("json", JSONGenerator),
-        ("errormodel", ErrorModelGenerator)
+        ("errormodel", ErrorModelGenerator),
     )
 )

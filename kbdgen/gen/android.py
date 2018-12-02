@@ -161,24 +161,40 @@ class AndroidGenerator(Generator):
 
         sane = True
 
+        if os.environ.get("JAVA_HOME", None) and not shutil.which("java"):
+            logger.error("`java` not found on path and JAVA_HOME not set.")
+            sane = False
+
+        if os.environ.get("ANDROID_HOME", None) is None:
+            logger.error("ANDROID_HOME must be provided and point to the Android SDK directory.")
+            sane = False
+
+        if os.environ.get("NDK_HOME", None) is None:
+            logger.error("NDK_HOME must be provided and point to the Android NDK directory.")
+            sane = False
+
         if self.is_release:
             key_store_path = self.environ_or_target("ANDROID_KEYSTORE", "keyStore")
             if key_store_path is None:
-                logger.error("A keystore must be provided with target property `keyStore` "
-                    + "or environment variable `ANDROID_KEYSTORE` for release builds.")
-                return False
+                logger.error(
+                    "A keystore must be provided with target property `keyStore` "
+                    + "or environment variable `ANDROID_KEYSTORE` for release builds."
+                )
+                sane = False
 
             key_alias = self.environ_or_target("ANDROID_KEYALIAS", "keyAlias")
             if key_alias is None:
-                logger.error("A key alias must be provided with target property `keyAlias` "
-                    + "or environment variable `ANDROID_KEYALIAS` for release builds.")
-                return False
+                logger.error(
+                    "A key alias must be provided with target property `keyAlias` "
+                    + "or environment variable `ANDROID_KEYALIAS` for release builds."
+                )
+                sane = False
 
             store_pw = os.environ.get("STORE_PW", None)
             key_pw = os.environ.get("KEY_PW", None)
             if store_pw is None or key_pw is None:
                 logger.error("STORE_PW and KEY_PW must be set for a release build.")
-                return False
+                sane = False
 
         pid = self._project.target("android").get("packageId")
         if pid is None:
@@ -229,8 +245,10 @@ class AndroidGenerator(Generator):
         target = "com.android.inputmethod.dictionarypack.aosp"
 
         # (╯°□°）╯︵ ┻━┻
-        src_path = "app/src/main/java/com/android/inputmethod/"\
+        src_path = (
+            "app/src/main/java/com/android/inputmethod/"
             + "dictionarypack/DictionaryPackConstants.java"
+        )
         path = os.path.join(base, "deps", self.REPO, src_path)
 
         # (┛◉Д◉)┛彡┻━┻
@@ -312,7 +330,9 @@ class AndroidGenerator(Generator):
 
         logger.info("Updating localisation values…")
 
-        self._update_locale(os.path.join(res_dir, "values"), self._project.locales["en"])
+        self._update_locale(
+            os.path.join(res_dir, "values"), self._project.locales["en"]
+        )
 
         for locale, values in self._project.locales.items():
             d = os.path.join(res_dir, "values-%s" % locale)
@@ -365,7 +385,10 @@ class AndroidGenerator(Generator):
         return run_process(cmd, cwd=self.repo_dir, show_output=True) == 0
 
     def build(self, base, tree_id, release_mode=True):
-        targets = [("armv7-linux-androideabi", "armeabi-v7a"), ("aarch64-linux-android", "arm64-v8a")]
+        targets = [
+            ("armv7-linux-androideabi", "armeabi-v7a"),
+            ("aarch64-linux-android", "arm64-v8a"),
+        ]
         res_dir = os.path.join(base, "deps", self.REPO, "app/src/main/jniLibs")
         cwd = os.path.join(self.repo_dir, "..", "hfst-ospell-rs")
 
@@ -373,14 +396,29 @@ class AndroidGenerator(Generator):
             logger.info("Building native components…")
             for (target, jni_name) in targets:
                 logger.info("Building %s architecture…" % target)
-                run_process(["cargo", "ndk", "--android-platform", "21", "--target", target, "--", "build", "--release"], cwd=cwd, show_output=True)
+                run_process(
+                    [
+                        "cargo",
+                        "ndk",
+                        "--android-platform",
+                        "21",
+                        "--target",
+                        target,
+                        "--",
+                        "build",
+                        "--release",
+                    ],
+                    cwd=cwd,
+                    show_output=True,
+                )
                 jni_dir = os.path.join(res_dir, jni_name)
-                Path(jni_dir).mkdir(parents=True, exist_ok=True) 
-                shutil.copyfile(os.path.join(cwd, "target", target, "release/libhfstospell.so"), os.path.join(jni_dir, "libhfstospell.so"))
+                Path(jni_dir).mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(
+                    os.path.join(cwd, "target", target, "release/libhfstospell.so"),
+                    os.path.join(jni_dir, "libhfstospell.so"),
+                )
 
-            self.cache.save_directory_tree(
-                tree_id, self.repo_dir, res_dir
-            )
+            self.cache.save_directory_tree(tree_id, self.repo_dir, res_dir)
         else:
             logger.info("Native components copied from cache.")
 
@@ -528,12 +566,12 @@ class AndroidGenerator(Generator):
         for k, v in files:
             with open(os.path.join(fn, k), "w") as f:
                 f.write(v)
-    
+
     def _unfurl_tarball(self, tarball, target_dir):
         with tempfile.TemporaryDirectory() as tmpdir:
-            tarfile.open(tarball, 'r:gz').extractall(str(tmpdir))
+            tarfile.open(tarball, "r:gz").extractall(str(tmpdir))
             target = [x for x in Path(tmpdir).iterdir() if x.is_dir()][0]
-            os.makedirs(str(target_dir.parent), exist_ok=True) 
+            os.makedirs(str(target_dir.parent), exist_ok=True)
             shutil.move(target, target_dir)
 
     def get_source_tree(self, base, repo="divvun/giella-ime", branch="master"):
@@ -546,12 +584,18 @@ class AndroidGenerator(Generator):
         deps_dir = Path(os.path.join(base, "deps"))
         shutil.rmtree(str(deps_dir), ignore_errors=True)
 
-        tarball = self.cache.download_latest_from_github(repo, branch,
-                username=self._args.get("github_username", None),
-                password=self._args.get("github_token", None))
-        hfst_ospell_tbl = self.cache.download_latest_from_github("bbqsrc/hfst-ospell-rs", "master",
-                username=self._args.get("github_username", None),
-                password=self._args.get("github_token", None))
+        tarball = self.cache.download_latest_from_github(
+            repo,
+            branch,
+            username=self._args.get("github_username", None),
+            password=self._args.get("github_token", None),
+        )
+        hfst_ospell_tbl = self.cache.download_latest_from_github(
+            "bbqsrc/hfst-ospell-rs",
+            "master",
+            username=self._args.get("github_username", None),
+            password=self._args.get("github_token", None),
+        )
 
         self._unfurl_tarball(tarball, deps_dir / self.REPO)
 
@@ -560,16 +604,16 @@ class AndroidGenerator(Generator):
         return hfst_ospell_tbl.split("/")[-1].split(".")[0]
 
     def environ_or_target(self, env_key, target_key):
-        return os.environ.get(env_key, 
-            self._project.target("android").get(target_key, None))
+        return os.environ.get(
+            env_key, self._project.target("android").get(target_key, None)
+        )
 
     def create_gradle_properties(self, base, release_mode=False):
-        key_store_path = self.environ_or_target("ANDROID_KEYSTORE", "keyStore")
-
+        key_store_path = self.environ_or_target("ANDROID_KEYSTORE", "keyStore") or ""
         key_store = self._project.relpath(key_store_path)
         logger.debug("Key store: %s" % key_store)
 
-        key_alias = self.environ_or_target("ANDROID_KEYALIAS", "keyAlias")
+        key_alias = self.environ_or_target("ANDROID_KEYALIAS", "keyAlias") or ""
 
         tmpl = """\
 ext.app = [
@@ -594,7 +638,7 @@ ext.app = [
             play_email=os.environ.get("PLAY_STORE_ACCOUNT", "").replace('"', '\\"'),
             play_creds=os.environ.get("PLAY_STORE_P12", "").replace('"', '\\"'),
             store_pw=os.environ.get("STORE_PW", "").replace('"', '\\"'),
-            key_pw=os.environ.get("KEY_PW", "").replace('"', '\\"')
+            key_pw=os.environ.get("KEY_PW", "").replace('"', '\\"'),
         ).replace("$", "\\$")
 
         fn = os.path.join(base, "deps", self.REPO, "app/local.gradle")

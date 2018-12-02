@@ -38,9 +38,9 @@ class AppleiOSGenerator(Generator):
 
     def _unfurl_tarball(self, tarball, target_dir):
         with tempfile.TemporaryDirectory() as tmpdir:
-            tarfile.open(tarball, 'r:gz').extractall(str(tmpdir))
+            tarfile.open(tarball, "r:gz").extractall(str(tmpdir))
             target = [x for x in Path(tmpdir).iterdir() if x.is_dir()][0]
-            os.makedirs(str(target_dir.parent), exist_ok=True) 
+            os.makedirs(str(target_dir.parent), exist_ok=True)
             shutil.move(target, target_dir)
 
     def get_source_tree(self, base, repo="divvun/giellakbd-ios", branch="master"):
@@ -52,12 +52,18 @@ class AppleiOSGenerator(Generator):
         deps_dir = Path(os.path.join(base, "ios-build"))
         shutil.rmtree(str(deps_dir), ignore_errors=True)
 
-        tarball = self.cache.download_latest_from_github(repo, branch,
-                username=self._args.get("github_username", None),
-                password=self._args.get("github_token", None))
-        hfst_ospell_tbl = self.cache.download_latest_from_github("bbqsrc/hfst-ospell-rs", "master",
-                username=self._args.get("github_username", None),
-                password=self._args.get("github_token", None))
+        tarball = self.cache.download_latest_from_github(
+            repo,
+            branch,
+            username=self._args.get("github_username", None),
+            password=self._args.get("github_token", None),
+        )
+        hfst_ospell_tbl = self.cache.download_latest_from_github(
+            "bbqsrc/hfst-ospell-rs",
+            "master",
+            username=self._args.get("github_username", None),
+            password=self._args.get("github_token", None),
+        )
 
         self._unfurl_tarball(tarball, deps_dir)
 
@@ -75,7 +81,7 @@ class AppleiOSGenerator(Generator):
         if command == "ids":
             print(self.command_ids())
             return
-            
+
     def generate(self, base="."):
         command = self._args.get("command", None)
         if command is not None:
@@ -140,9 +146,7 @@ class AppleiOSGenerator(Generator):
                 # pbx_target, appex_ref =
                 pbxproj.duplicate_target("Keyboard", name, plist_gpath)
                 id_ = "%s.%s" % (self.pkg_id, name.replace("_", "-"))
-                pbxproj.set_target_package_id(
-                    name, id_
-                )
+                pbxproj.set_target_package_id(name, id_)
                 if dev_team is not None:
                     pbxproj.set_target_build_setting(name, "DEVELOPMENT_TEAM", dev_team)
 
@@ -252,11 +256,21 @@ class AppleiOSGenerator(Generator):
         o = {}
 
         for item in self.all_bundle_ids() + [self.pkg_id]:
-            name = item.split(".")[-1].replace("-", "_") if item != self.pkg_id else "HostingApp"
+            name = (
+                item.split(".")[-1].replace("-", "_")
+                if item != self.pkg_id
+                else "HostingApp"
+            )
             profile = self.load_provisioning_profile(item, deps_dir)
-            logger.debug("Profile: %s %s -> %s" % (profile["UUID"], profile["Name"], name))
-            pbxproj.set_target_build_setting(name, "PROVISIONING_PROFILE", profile["UUID"])
-            pbxproj.set_target_build_setting(name, "PROVISIONING_PROFILE_SPECIFIER", profile["Name"])
+            logger.debug(
+                "Profile: %s %s -> %s" % (profile["UUID"], profile["Name"], name)
+            )
+            pbxproj.set_target_build_setting(
+                name, "PROVISIONING_PROFILE", profile["UUID"]
+            )
+            pbxproj.set_target_build_setting(
+                name, "PROVISIONING_PROFILE_SPECIFIER", profile["Name"]
+            )
             o[item] = profile["UUID"]
 
         with open(pbxproj_path, "w") as f:
@@ -267,7 +281,7 @@ class AppleiOSGenerator(Generator):
         cmd = "security cms -D -i %s.mobileprovision" % item
         out, err = run_process(cmd.split(" "), cwd=deps_dir)
         return plistlib.loads(out)
-            
+
     def build_debug(self, base_dir, deps_dir):
         cpu_count = multiprocessing.cpu_count()
         cmd = (
@@ -281,7 +295,7 @@ class AppleiOSGenerator(Generator):
         if process.returncode != 0:
             logger.error("Application ended with error code %s." % process.returncode)
             sys.exit(process.returncode)
-        
+
     def build_release(self, base_dir, deps_dir, pbxproj_path, pbxproj):
         build_dir = deps_dir
         # TODO check signing ID exists in advance (in sanity checks)
@@ -308,50 +322,42 @@ class AppleiOSGenerator(Generator):
         plist_obj = {
             "teamID": team_id,
             "method": "app-store",
-            "provisioningProfiles": {}
+            "provisioningProfiles": {},
         }
 
         logger.info("Setting up keychain…")
-        returncode = run_process('fastlane travis',
-            cwd=deps_dir,
-            shell=True,
-            show_output=True)
+        returncode = run_process(
+            "fastlane travis", cwd=deps_dir, shell=True, show_output=True
+        )
         if returncode != 0:
             # oN eRrOr GoTo NeXt
-            logger.warn(
-                "Application ended with error code %s." % returncode
-            )
+            logger.warn("Application ended with error code %s." % returncode)
 
         logger.info("Downloading signing certificates…")
         cmd = "fastlane match appstore --app_identifier=%s" % self.command_ids()
         logger.debug(cmd)
-        returncode = run_process(cmd,
-            cwd=deps_dir,
-            shell=True,
-            show_output=True)
+        returncode = run_process(cmd, cwd=deps_dir, shell=True, show_output=True)
         if returncode != 0:
-            logger.error(
-                "Application ended with error code %s." % returncode
-            )
+            logger.error("Application ended with error code %s." % returncode)
             sys.exit(returncode)
-        
+
         logger.info("Downloading provisioning profiles…")
         for item in self.all_bundle_ids() + [self.pkg_id]:
             cmd = "fastlane sigh -a %s -b %s -z -q %s.mobileprovision" % (
-                item, team_id, item)
+                item,
+                team_id,
+                item,
+            )
             logger.debug(cmd)
-            returncode = run_process(cmd,
-                cwd=deps_dir,
-                shell=True,
-                show_output=True)
+            returncode = run_process(cmd, cwd=deps_dir, shell=True, show_output=True)
             if returncode != 0:
-                logger.error(
-                    "Application ended with error code %s." % returncode
-                )
+                logger.error("Application ended with error code %s." % returncode)
                 sys.exit(returncode)
-        
-        plist_obj["provisioningProfiles"] = self.embed_provisioning_profiles(pbxproj_path, pbxproj, deps_dir)
-        
+
+        plist_obj["provisioningProfiles"] = self.embed_provisioning_profiles(
+            pbxproj_path, pbxproj, deps_dir
+        )
+
         with open(plist, "wb") as f:
             plistlib.dump(plist_obj, f)
 
@@ -360,9 +366,9 @@ class AppleiOSGenerator(Generator):
             + "-workspace GiellaKeyboard.xcworkspace -configuration Release "
             + "-scheme HostingApp "
             + "-jobs %s " % multiprocessing.cpu_count()
-            + '-quiet '
+            + "-quiet "
             + 'CODE_SIGN_IDENTITY="%s" ' % code_sign_id
-            + 'DEVELOPMENT_TEAM=%s' % team_id
+            + "DEVELOPMENT_TEAM=%s" % team_id
         )
         cmd2 = (
             "xcodebuild -exportArchive "
@@ -376,14 +382,9 @@ class AppleiOSGenerator(Generator):
         ):
             logger.info(msg)
             logger.debug(cmd)
-            returncode = run_process(cmd,
-                cwd=deps_dir,
-                shell=True,
-                show_output=True)
+            returncode = run_process(cmd, cwd=deps_dir, shell=True, show_output=True)
             if returncode != 0:
-                logger.error(
-                    "Application ended with error code %s." % returncode
-                )
+                logger.error("Application ended with error code %s." % returncode)
                 sys.exit(returncode)
 
         # if os.path.exists(xcarchive):
@@ -440,7 +441,7 @@ class AppleiOSGenerator(Generator):
 
             msg = "Creating '%s' from '%s'…" % (fn, icon)
             work_items.append((msg, run_process(cmd.split(" "), return_process=True)))
-    
+
         for (msg, process) in work_items:
             logger.info(msg)
             process.wait()

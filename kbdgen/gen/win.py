@@ -487,13 +487,11 @@ class WindowsGenerator(Generator):
             id_ = self._klc_get_name(layout)
             if id_ in ids:
                 fail = True
-                msg = "Duplicate id found for '%s': '%s'; "\
+                msg = (
+                    "Duplicate id found for '%s': '%s'; "
                     + "set targets.win.id to override."
-                logger.error(
-                    msg,
-                    layout.internal_name,
-                    id_,
                 )
+                logger.error(msg, layout.internal_name, id_)
             else:
                 ids.append(id_)
 
@@ -845,9 +843,11 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
                 )
             else:
                 logger.info(
-                    ("Using Windows default language name for layout '%s'; this "
+                    (
+                        "Using Windows default language name for layout '%s'; this "
                         + "can be overridden by providing a value for "
-                        + "targets.win.languageName.")
+                        + "targets.win.languageName."
+                    )
                     % layout.internal_name
                 )
             guid_str = "{%s}" % str(guid(kbd_id)).upper()
@@ -1034,8 +1034,10 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
 
                 if scap is not None and len(win_glyphbomb(scap)) > 1:
                     scap = None
-                    msg = "Caps+Shift key '%s' is a glyphbomb and "\
+                    msg = (
+                        "Caps+Shift key '%s' is a glyphbomb and "
                         + "cannot be used in Caps Mode."
+                    )
                     logger.error(msg % cap)
 
                 buf.write(

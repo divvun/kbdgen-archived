@@ -225,7 +225,7 @@ def run_process(cmd, cwd=None, show_output=False, return_process=False, shell=Fa
 
     if return_process:
         return process
-        
+
     if show_output:
         process.wait()
         return process.returncode

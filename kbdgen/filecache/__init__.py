@@ -44,7 +44,9 @@ class FileCache:
         return new_sum == sha256sum
 
     def save_directory_tree(self, id: str, basepath: str, tree: str):
-        logger.debug("Inject directory tree - id: %s, base: %s, tree: %s" % (id, basepath, tree))
+        logger.debug(
+            "Inject directory tree - id: %s, base: %s, tree: %s" % (id, basepath, tree)
+        )
         target = self.cache_dir / id / os.path.relpath(tree, basepath)
         logger.debug("src: %s, dst: %s" % (tree, target))
         target.mkdir(parents=True, exist_ok=True)
@@ -52,7 +54,10 @@ class FileCache:
         shutil.copytree(tree, target)
 
     def inject_directory_tree(self, id: str, tree: str, base_target: str) -> bool:
-        logger.debug("Inject directory tree: id: %s, tree: %s, base_target: %s" % (id, tree, base_target))
+        logger.debug(
+            "Inject directory tree: id: %s, tree: %s, base_target: %s"
+            % (id, tree, base_target)
+        )
         tree_path = os.path.relpath(tree, base_target)
         src = self.cache_dir / id / tree_path
         target = Path(base_target) / Path(tree_path)
@@ -79,7 +84,13 @@ class FileCache:
             raise Exception("Cached file '%s' has failed integrity checks." % filename)
         return candidate
 
-    def download_latest_from_github(self, repo: str, branch: str = "master", username: str = None, password: str = None) -> str:
+    def download_latest_from_github(
+        self,
+        repo: str,
+        branch: str = "master",
+        username: str = None,
+        password: str = None,
+    ) -> str:
         url = "https://api.github.com/repos/{repo}/commits/{branch}".format(
             repo=repo, branch=branch
         )
