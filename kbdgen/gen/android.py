@@ -201,7 +201,7 @@ class AndroidGenerator(Generator):
                             )
                             % (name, n + 1, len(row))
                         )
-            for api_v in [16, 19, 21, 23]:
+            for api_v in [21, 23]:
                 if not self.detect_unavailable_glyphs(kbd, api_v):
                     sane = False
 
