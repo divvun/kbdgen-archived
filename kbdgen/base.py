@@ -463,6 +463,7 @@ class Parser:
         if project is None:
             return None
         if cfg_pairs is not None:
+            logger.trace("cfg_pairs: %r", cfg_pairs)
             self._overrides(project._tree, self._parse_cfg_pairs(cfg_pairs))
         return project
 

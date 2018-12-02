@@ -106,6 +106,7 @@ class AndroidGenerator(Generator):
 
         layouts = defaultdict(list)
 
+        logger.info("Updating XML strings…")
         for name, kbd in self.supported_layouts.items():
             files += [
                 (
@@ -133,7 +134,7 @@ class AndroidGenerator(Generator):
             self.update_strings_xml(kbd, base)
 
         self.update_method_xmls(layouts, base)
-        files.append(self.create_gradle_properties(self.is_release))
+        self.create_gradle_properties(base, self.is_release)
         self.save_files(files, base)
 
         # Add zhfst files if found
@@ -274,9 +275,7 @@ class AndroidGenerator(Generator):
         with open(path, "w") as f:
             f.write(self._tostring(tree))
 
-    def _upd_locale(self, d, values):
-        logger.info("Updating localisation for %s…" % d)
-
+    def _update_locale(self, d, values):
         fn = os.path.join(d, "strings-appname.xml")
         node = None
 
@@ -300,12 +299,14 @@ class AndroidGenerator(Generator):
     def update_localisation(self, base):
         res_dir = os.path.join(base, "deps", self.REPO, "app/src/main/res")
 
-        self._upd_locale(os.path.join(res_dir, "values"), self._project.locales["en"])
+        logger.info("Updating localisation values…")
+
+        self._update_locale(os.path.join(res_dir, "values"), self._project.locales["en"])
 
         for locale, values in self._project.locales.items():
             d = os.path.join(res_dir, "values-%s" % locale)
             if os.path.isdir(d):
-                self._upd_locale(d, values)
+                self._update_locale(d, values)
 
     def generate_icons(self, base):
         icon = self._project.icon("android")
@@ -349,11 +350,8 @@ class AndroidGenerator(Generator):
         # HACK: let's be honest it's all hacks
         with open(os.path.join(self.repo_dir, "local.properties"), "a") as f:
             f.write("sdk.dir=%s\n" % os.environ["ANDROID_HOME"])
-            f.write("store.pw=%s\n" % os.environ["STORE_PW"])
-            f.write("key.pw=%s\n" % os.environ["KEY_PW"])
-            f.write("play.email=%s\n" % os.environ["PLAY_STORE_ACCOUNT"])
-            f.write("play.credentials=%s\n" % os.environ["PLAY_STORE_P12"])
-        run_process(["./gradlew"] + list(args), cwd=self.repo_dir, show_output=True)
+        cmd = ["./gradlew"] + list(args) + ["-Dorg.gradle.jvmargs=-Xmx4096M"]
+        return run_process(cmd, cwd=self.repo_dir, show_output=True) == 0
 
     def build(self, base, tree_id, release_mode=True):
         targets = [("armv7-linux-androideabi", "armeabi-v7a"), ("aarch64-linux-android", "arm64-v8a")]
@@ -375,13 +373,14 @@ class AndroidGenerator(Generator):
         else:
             logger.info("Native components copied from cache.")
 
-        logger.info("Building keyboards…")
-        self._gradle("assembleRelease" if release_mode else "assembleDebug")
+        logger.info("Generating .apk…")
+        if not self._gradle("assembleRelease" if release_mode else "assembleDebug"):
+            return 1
 
         if not release_mode:
             suffix = "debug"
         else:
-            suffix = "release-unsigned"
+            suffix = "release"
 
         path = os.path.join(base, "deps", self.REPO, "app/build/outputs/apk", suffix)
         fn = "app-%s.apk" % suffix
@@ -397,7 +396,6 @@ class AndroidGenerator(Generator):
     def _str_xml(self, val_dir, name, subtype):
         os.makedirs(val_dir, exist_ok=True)
         fn = os.path.join(val_dir, "strings.xml")
-        logger.info("Updating '%s'…" % fn)
 
         if not os.path.exists(fn):
             root = etree.XML("<resources/>")
@@ -488,7 +486,7 @@ class AndroidGenerator(Generator):
         base_layouts = layouts[None]
         del layouts[None]
 
-        logger.info("Updating 'res/xml/method.xml'…")
+        logger.info("Updating method definitions…")
         path = os.path.join(base, "deps", self.REPO, "app/src/main/res", "%s")
         fn = os.path.join(path, "method.xml")
 
@@ -509,16 +507,15 @@ class AndroidGenerator(Generator):
 
         for api_ver, kbds in layouts.items():
             xmlv = "xml-v%s" % api_ver
-            logger.info("Updating 'res/%s/method.xml'…" % xmlv)
             os.makedirs(path % xmlv, exist_ok=True)
             with open(fn % xmlv, "w") as f:
                 f.write(self.gen_method_xml(kbds, copy.deepcopy(tree)))
 
     def save_files(self, files, base):
         fn = os.path.join(base, "deps", self.REPO)
+        logger.info("Embedding generated keyboard XML files…")
         for k, v in files:
             with open(os.path.join(fn, k), "w") as f:
-                logger.info("Creating '%s'…" % k)
                 f.write(v)
     
     def _unfurl_tarball(self, tarball, target_dir):
@@ -533,7 +530,7 @@ class AndroidGenerator(Generator):
         Downloads the IME source from Github as a tarball, then extracts to deps
         dir.
         """
-        logger.info("Getting source files…")
+        logger.info("Getting source files from %s %s branch…" % (repo, branch))
 
         deps_dir = Path(os.path.join(base, "deps"))
         shutil.rmtree(str(deps_dir), ignore_errors=True)
@@ -551,26 +548,39 @@ class AndroidGenerator(Generator):
         self._unfurl_tarball(hfst_ospell_tbl, deps_dir / "hfst-ospell-rs")
         return hfst_ospell_tbl.split("/")[-1].split(".")[0]
 
-    def create_gradle_properties(self, release_mode=False):
+    def create_gradle_properties(self, base, release_mode=False):
         key_store = self._project.relpath(self._project.target("android")["keyStore"])
+        logger.debug("Key store: %s" % key_store)
 
-        tmpl = """ext.app = [
-            storeFile: "{store_file}",
-            keyAlias: "{key_alias}",
-            packageName: "{pkg_name}",
-            versionCode: {build},
-            versionName: "{version}"
-        ]"""
+        tmpl = """\
+ext.app = [
+    storeFile: "{store_file}",
+    keyAlias: "{key_alias}",
+    storePassword: "{store_pw}",
+    keyPassword: "{key_pw}",
+    packageName: "{pkg_name}",
+    versionCode: {build},
+    versionName: "{version}",
+    playEmail: "{play_email}",
+    playCredentials: "{play_creds}"
+]
+"""
 
         data = tmpl.format(
-            store_file=os.path.abspath(key_store),
-            key_alias=self._project.target("android")["keyAlias"],
+            store_file=os.path.abspath(key_store).replace('"', '\\"'),
+            key_alias=self._project.target("android")["keyAlias"].replace('"', '\\"'),
             version=self._version,
             build=self._build,
-            pkg_name=self._project.target("android")["packageId"],
-        )
+            pkg_name=self._project.target("android")["packageId"].replace('"', '\\"'),
+            play_email=os.environ.get("PLAY_STORE_ACCOUNT", "").replace('"', '\\"'),
+            play_creds=os.environ.get("PLAY_STORE_P12", "").replace('"', '\\"'),
+            store_pw=os.environ.get("STORE_PW", "").replace('"', '\\"'),
+            key_pw=os.environ.get("KEY_PW", "").replace('"', '\\"')
+        ).replace("$", "\\$")
 
-        return ("app/local.gradle", data)
+        fn = os.path.join(base, "deps", self.REPO, "app/local.gradle")
+        with open(fn, "w") as f:
+            f.write(data)
 
     def kbd_layout_set(self, kbd):
         out = Element("KeyboardLayoutSet", nsmap={"latin": self.NS})
