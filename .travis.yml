@@ -5,11 +5,13 @@ python:
     - 3.4
     - 3.5
     - 3.6
+    - 3.7
 before_install:
     - sudo apt-get -qq update
     - sudo apt-get install -y libicu-dev build-essential
+    - curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python3
 install:
-    - pip install -r requirements.txt
-    - pip install .
+    - poetry install
+    - poetry build
 script:
     - kbdgen -h
