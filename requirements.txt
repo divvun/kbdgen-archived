@@ -1,6 +1,0 @@
-wheel
-lxml
-lcid
-PyYAML
-requests
-humanize
