@@ -162,9 +162,20 @@ class AndroidGenerator(Generator):
         sane = True
 
         if self.is_release:
+            key_store_path = self.environ_or_target("ANDROID_KEYSTORE", "keyStore")
+            if key_store_path is None:
+                logger.error("A keystore must be provided with target property `keyStore` "
+                    + "or environment variable `ANDROID_KEYSTORE` for release builds.")
+                return False
+
+            key_alias = self.environ_or_target("ANDROID_KEYALIAS", "keyAlias")
+            if key_alias is None:
+                logger.error("A key alias must be provided with target property `keyAlias` "
+                    + "or environment variable `ANDROID_KEYALIAS` for release builds.")
+                return False
+
             store_pw = os.environ.get("STORE_PW", None)
             key_pw = os.environ.get("KEY_PW", None)
-
             if store_pw is None or key_pw is None:
                 logger.error("STORE_PW and KEY_PW must be set for a release build.")
                 return False
@@ -548,9 +559,17 @@ class AndroidGenerator(Generator):
         self._unfurl_tarball(hfst_ospell_tbl, deps_dir / "hfst-ospell-rs")
         return hfst_ospell_tbl.split("/")[-1].split(".")[0]
 
+    def environ_or_target(self, env_key, target_key):
+        return os.environ.get(env_key, 
+            self._project.target("android").get(target_key, None))
+
     def create_gradle_properties(self, base, release_mode=False):
-        key_store = self._project.relpath(self._project.target("android")["keyStore"])
+        key_store_path = self.environ_or_target("ANDROID_KEYSTORE", "keyStore")
+
+        key_store = self._project.relpath(key_store_path)
         logger.debug("Key store: %s" % key_store)
+
+        key_alias = self.environ_or_target("ANDROID_KEYALIAS", "keyAlias")
 
         tmpl = """\
 ext.app = [
@@ -568,7 +587,7 @@ ext.app = [
 
         data = tmpl.format(
             store_file=os.path.abspath(key_store).replace('"', '\\"'),
-            key_alias=self._project.target("android")["keyAlias"].replace('"', '\\"'),
+            key_alias=key_alias.replace('"', '\\"'),
             version=self._version,
             build=self._build,
             pkg_name=self._project.target("android")["packageId"].replace('"', '\\"'),
