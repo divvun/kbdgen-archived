@@ -1,3 +1,6 @@
+.. image:: https://travis-ci.org/divvun/kbdgen.svg?branch=master
+    :target: https://travis-ci.org/divvun/kbdgen
+
 kbdgen
 ======
 
