@@ -1,8 +1,8 @@
-.. image:: https://travis-ci.org/divvun/kbdgen.svg?branch=master
-    :target: https://travis-ci.org/divvun/kbdgen
-
 kbdgen
 ======
+
+.. image:: https://travis-ci.org/divvun/kbdgen.svg?branch=master
+    :target: https://travis-ci.org/divvun/kbdgen
 
 Generate keyboards and keyboard layouts for various operating systems.
 
