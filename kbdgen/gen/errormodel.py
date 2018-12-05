@@ -112,9 +112,9 @@ def generate_att(coords):
 
     for (a, b, dist) in pairs:
         first = c
-        c += 1
-        out.write("0\t{0}\t{1}\t{1}\t0.0\n".format(first, a))
-        out.write("{0}\t@TERMINUS@\t{1}\t{1}\t{2}\n".format(first, b, "%.6f" % dist))
+        if dist < 2.5:
+            c += 1
+            out.write("{0}\t@TERMINUS@\t{1}\t{2}\t{3}\n".format(first, a, b, "%.6f" % dist))
     out.write("{0} 0.0\n".format(c))
 
     v = out.getvalue().replace("@TERMINUS@", str(c))
