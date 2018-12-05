@@ -9,9 +9,7 @@ from ..base import get_logger
 logger = get_logger(__file__)
 Key = namedtuple("Key", ["x", "y", "dist"])
 
-
-def generate_error_map(layout):
-    pass
+MAX_DIST = 3
 
 
 def find_key_distance(a, b):
@@ -76,29 +74,6 @@ def convert_phy_mode(mode):
 
     return rows
 
-
-def generate_xfst_macro(coords):
-    alphas = " | ".join(coords.keys())
-    regexes = []
-    for (a, coord) in coords.items():
-        regexes.append("[%s::0] @> [%s::0]" % (a, a))
-        for (b, dist) in coord.dist.items():
-            regexes.append("[%s::0] @> [%s::%s]" % (a, b, dist))
-    data = """\
-set print-weight ON
-set precision 6
-
-define Alphabet [%% %s] ;
-regex %s ||
-    Alphabet [Alphabet*] __ [Alphabet*] Alphabet ;
-""" % (
-        alphas,
-        " ,\n    ".join(regexes),
-    )
-
-    return data
-
-
 def generate_att(coords):
     # find end point of all items
     c = 1
@@ -111,10 +86,9 @@ def generate_att(coords):
     pairs.sort()
 
     for (a, b, dist) in pairs:
-        first = c
-        if dist < 2.5:
+        if dist < MAX_DIST:
             c += 1
-            out.write("{0}\t@TERMINUS@\t{1}\t{2}\t{3}\n".format(first, a, b, "%.6f" % dist))
+            out.write("0\t@TERMINUS@\t{0}\t{1}\t{2}\n".format(a, b, "%.6f" % (dist + 1)))
     out.write("{0} 0.0\n".format(c))
 
     v = out.getvalue().replace("@TERMINUS@", str(c))
