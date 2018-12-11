@@ -566,6 +566,10 @@ class AppleiOSGenerator(Generator):
         plist["LSApplicationQueriesSchemes"][0] = pkg_id
         plist["NSExtension"]["NSExtensionAttributes"]["PrimaryLanguage"] = layout.locale
         plist["DivvunKeyboardIndex"] = n
+        
+        dsn = self._project.target("ios").get("sentryDsn", None)
+        if dsn is not None:
+            plist["SentryDSN"] = dsn
 
         plistlib.dump(plist, f)
 
