@@ -100,16 +100,24 @@ class ErrorModelGenerator(Generator):
         out_dir = os.path.abspath(base)
         os.makedirs(out_dir, exist_ok=True)
 
-        for name, layout in self._project.layouts.items():
-            logger.info(name)
-            logger.info("---")
-            for (mode_name, mode) in layout.modes.items():
-                if not mode_name.startswith("mobile"):
-                    continue
+        selected_layout = self._args.get("layout", None)
+        if selected_layout is None:
+            logger.error("No layout provided with the -l flag; aborting.")
+            logger.info("Available layouts: %s" % ", ".join(self._project.layouts.keys()))
+            return 1
+        
+        layout = self._project.layouts.get(selected_layout, None)
+        if layout is None:
+            logger.error("Invalid layout selected.")
+            logger.info("Available layouts: %s" % ", ".join(self._project.layouts.keys()))
+            return 1
 
-                mode = convert_phy_mode(mode)
-                offsets = calculate_row_offsets(mode)
-                coords = generate_coordinates(mode, offsets)
-                map_ = generate_distances(coords)
-                print(generate_att(map_))
-                return
+        mode = layout.modes["mobile-default"]
+
+        mode = convert_phy_mode(mode)
+        offsets = calculate_row_offsets(mode)
+        coords = generate_coordinates(mode, offsets)
+        map_ = generate_distances(coords)
+
+        print(generate_att(map_))
+        return
