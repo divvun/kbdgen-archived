@@ -9,7 +9,7 @@ from ..base import get_logger
 logger = get_logger(__file__)
 Key = namedtuple("Key", ["x", "y", "dist"])
 
-MAX_DIST = 3
+MAX_DIST = 1.5
 
 
 def find_key_distance(a, b):
