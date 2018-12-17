@@ -88,7 +88,7 @@ def generate_att(coords):
     for (a, b, dist) in pairs:
         if dist < MAX_DIST:
             c += 1
-            out.write("0\t@TERMINUS@\t{0}\t{1}\t{2}\n".format(a, b, "%.6f" % (dist + 1)))
+            out.write("0\t@TERMINUS@\t{0}\t{1}\t{2}\n".format(a, b, "%.6f" % dist))
     out.write("{0} 0.0\n".format(c))
 
     v = out.getvalue().replace("@TERMINUS@", str(c))
