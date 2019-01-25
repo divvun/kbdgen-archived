@@ -403,10 +403,18 @@ class AppleiOSGenerator(Generator):
             shutil.rmtree(path)
         os.makedirs(path, exist_ok=True)
 
-        files = glob.glob(os.path.join(self._project.path, "*.zhfst"))
-        if len(files) == 0:
-            logger.warning("No ZHFST files found.")
-            return
+        use_chfst = self._project.target("ios").get("chfst", False)
+
+        if use_chfst:
+            files = glob.glob(os.path.join(self._project.path, "*.chfst"))
+            if len(files) == 0:
+                logger.warning("No CHFST files found.")
+                return
+        else:
+            files = glob.glob(os.path.join(self._project.path, "*.zhfst"))
+            if len(files) == 0:
+                logger.warning("No ZHFST files found.")
+                return
 
         for fn in files:
             bfn = os.path.basename(fn)
