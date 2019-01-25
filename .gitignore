@@ -4,4 +4,4 @@ deps
 *.pyc
 .vscode
 .envrc
-
+outputs

@@ -291,9 +291,9 @@ class WindowsGenerator(Generator):
 
     def get_or_download_signcode(self):
         signcode_sha256 = (
-            "b347a3bfe9a0370366a24cb4e535c8f7cc113e8903fd2e13ebe09595090d8d54"
+            "f2e19899e5dd38d9096b389ab61c7b7dfd059b4f42993b54d6683cfa93490577"
         )
-        signcode_url = "https://brendan.so/files/signcode.exe"
+        signcode_url = "https://brendan.so/files/osslsigncode-1.7.1-1-x86_64.zip"
         return self.cache.download(signcode_url, signcode_sha256)
 
     def generate(self, base="."):
@@ -536,11 +536,11 @@ class WindowsGenerator(Generator):
 
         return True
 
-    def _wine_path(self, thing):
+    def _wine_path(self, *args):
         if is_windows:
-            return ntpath.abspath(thing)
+            return ntpath.abspath(os.path.join(*args))
         else:
-            return "Z:%s" % ntpath.abspath(thing)
+            return "Z:%s" % ntpath.abspath(os.path.join(*args))
 
     def _wine_cmd(self, *args):
         if is_windows:
@@ -579,21 +579,22 @@ class WindowsGenerator(Generator):
             return
 
         logger.info("Signing '%s' for %s…" % (name, arch))
-        pfx_path = self._wine_path(self._project.relpath(pfx))
+        pfx_path = self._project.relpath(pfx)
         logger.debug("PFX path: %s", pfx_path)
 
-        cmd = self._wine_cmd(
-            self._wine_path(self.get_or_download_signcode()),
-            "-a",
+        cmd = ["osslsigncode",
+            "sign",
+            "-pkcs12",
+            pfx_path,
+            "-pass",
+            os.environ["CODESIGN_PW"],
+            "-h",
             "sha1",
             "-t",
             "http://timestamp.verisign.com/scripts/timstamp.dll",
-            "-pkcs12",
-            pfx_path,
-            "-$",
-            "commercial",
-            self._wine_path(os.path.join(out_path, "%s.dll" % name)),
-        )
+            os.path.join(out_path, "%s.dll" % name)
+        ]
+        logger.debug(cmd)
         run_process(cmd, cwd=out_path)
 
     def _generate_inno_languages(self):

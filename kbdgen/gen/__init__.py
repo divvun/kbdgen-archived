@@ -8,6 +8,7 @@ from .x11 import XKBGenerator
 from .svgkbd import SVGGenerator
 from .json import JSONGenerator
 from .errormodel import ErrorModelGenerator
+from .pahkat import PahkatGenerator
 
 generators = OrderedDict(
     (
@@ -19,5 +20,6 @@ generators = OrderedDict(
         ("ios", AppleiOSGenerator),
         ("json", JSONGenerator),
         ("errormodel", ErrorModelGenerator),
+        ("pahkat", PahkatGenerator),
     )
 )
