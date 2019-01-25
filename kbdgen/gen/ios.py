@@ -410,16 +410,21 @@ class AppleiOSGenerator(Generator):
             if len(files) == 0:
                 logger.warning("No CHFST files found.")
                 return
+
+            for fn in files:
+                bfn = os.path.basename(fn)
+                logger.info("Adding '%s' to '%s'…" % (bfn, nm))
+                shutil.copytree(fn, os.path.join(path, bfn))
         else:
             files = glob.glob(os.path.join(self._project.path, "*.zhfst"))
             if len(files) == 0:
                 logger.warning("No ZHFST files found.")
                 return
 
-        for fn in files:
-            bfn = os.path.basename(fn)
-            logger.info("Adding '%s' to '%s'…" % (bfn, nm))
-            shutil.copyfile(fn, os.path.join(path, bfn))
+            for fn in files:
+                bfn = os.path.basename(fn)
+                logger.info("Adding '%s' to '%s'…" % (bfn, nm))
+                shutil.copyfile(fn, os.path.join(path, bfn))
 
     def gen_hosting_app_icons(self, build_dir):
         if self._project.icon("ios") is None:
