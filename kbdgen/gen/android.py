@@ -93,7 +93,7 @@ class AndroidGenerator(Generator):
         self.repo_dir = os.path.join(deps_dir, self.REPO)
         os.makedirs(deps_dir, exist_ok=True)
 
-        tree_id = self.get_source_tree(base)
+        tree_id = self.get_source_tree(base, branch=self.branch)
         self.native_locale_workaround(base)
 
         dsn = self._project.target("android").get("sentryDsn", None)
@@ -156,7 +156,7 @@ class AndroidGenerator(Generator):
             self.update_locale_exception(kbd, base)
 
     def sanity_check(self):
-        if super().sanity_check() is False:
+        if super().sanity_check() is False: 
             return False
 
         sane = True
