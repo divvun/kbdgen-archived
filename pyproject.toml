@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "kbdgen"
-version = "1.0.6"
+version = "1.0.7"
 description = "A generator for keyboard layouts"
 authors = ["Brendan Molloy <brendan@bbqsrc.net>"]
 license = "Apache-2.0"
