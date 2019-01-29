@@ -414,8 +414,8 @@ class AndroidGenerator(Generator):
                 jni_dir = os.path.join(res_dir, jni_name)
                 Path(jni_dir).mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(
-                    os.path.join(cwd, "target", target, "release/libhfstospell.so"),
-                    os.path.join(jni_dir, "libhfstospell.so"),
+                    os.path.join(cwd, "target", target, "release/libdivvunspell.so"),
+                    os.path.join(jni_dir, "libdivvunspell.so"),
                 )
 
             self.cache.save_directory_tree(tree_id, self.repo_dir, res_dir)
@@ -591,7 +591,7 @@ class AndroidGenerator(Generator):
             password=self._args.get("github_token", None),
         )
         hfst_ospell_tbl = self.cache.download_latest_from_github(
-            "bbqsrc/hfst-ospell-rs",
+            "divvun/divvunspell",
             "master",
             username=self._args.get("github_username", None),
             password=self._args.get("github_token", None),
