@@ -102,7 +102,7 @@ class FileCache:
 
         sha = repo_meta.get("sha", None)
         if sha is None:
-            raise Exception("No sha found in response: %r" % sha)
+            raise Exception("No sha found in response: %r" % repo_meta)
         filename = "%s-%s.tgz" % (repo.replace("/", "-"), sha)
         candidate = str(self.cache_dir / filename)
         if self.is_cached_valid(filename, None):
