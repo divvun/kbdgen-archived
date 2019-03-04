@@ -1,0 +1,144 @@
+#![field_naming(lower_camel)]
+
+type ProjectDesc {
+    name: string;
+    description: string;
+}
+
+type Project {
+    locales: {string: ProjectDesc};
+    author: string;
+    email: string;
+    copyright: string;
+    organisation: string;
+}
+
+type LayoutStrings {
+    space: string;
+    return: string;
+}
+
+type DeriveOptions {
+    transforms?: boolean;
+}
+
+/// A layout is defined as a file by the name <locale>.yaml or <locale>.<target>.yaml, and lives in the 
+/// locales/ directory in the kbdgen project bundle.
+type Layout {
+    /// The display names for the layout, keyed by locale.
+    display_names: {string: string};
+
+    /// The different modes.
+    modes: {string: any};
+
+    /// The decimal key. Nominally a '.' or ','.
+    decimal?: string;
+
+    /// Dead keys present, keyed by layer code.
+    dead_keys?: {string: [string]};
+
+    /// The items to be shown when a key is long-pressed. Values are space separated in one string.
+    longpress?: {string: string};
+
+    /// The chain of inputs necessary to provide an output after a deadkey is pressed. Keyed by each individual input.
+    transforms?: {string: any};
+
+    /// Strings to be shown on some OSes
+    strings?: LayoutStrings;
+
+    /// Derives
+    derive?: DeriveOptions;
+
+    /// Targets...
+    targets?: {string: any};
+}
+
+type LayoutTargetWindows {
+    /// The actual locale within Windows, as per their broken ISO 639-3 scheme or secret hardcoded lists.
+    locale: string;
+
+    /// The language name to be cached, in order to try to mask the ugly ISO code name that often shows.
+    language_name: string;
+}
+
+type LayoutTargetAndroid {
+    /// Minimum SDK can be specified for a specific layout
+    minimum_sdk?: u32;
+
+    /// Styles
+    style?: {string: any};
+}
+
+type TargetAndroid {
+    version: string;
+
+    build: u32;
+
+    package_id: string;
+
+    icon?: string;
+
+    sentry_dsn?: string;
+
+    show_number_hints?: boolean;
+
+    minimum_sdk?: u32;
+
+    chfst?: boolean;
+
+    // DEPRECATED
+    key_store?: string;
+
+    // DEPRECATED
+    key_alias?: string;
+}
+
+type TargetIOS {
+    version: string;
+
+    build: u32;
+
+    package_id: string;
+
+    icon?: string;
+
+    bundle_name: string;
+
+    team_id?: string;
+
+    code_sign_id?: string;
+
+    sentry_dsn?: string;
+
+    about_dir?: string;
+
+    chfst?: boolean;
+}
+
+type TargetWindows {
+    version: string;
+    
+    app_name: string;
+
+    url: string;
+
+    uuid: string;
+}
+
+type TargetMacOS {
+    version: string;
+
+    build: u32;
+
+    package_id: string;
+
+    icon?: string;
+
+    bundle_name: string;
+
+    team_id?: string;
+
+    code_sign_id?: string;
+
+    resources?: string;
+}

@@ -10,7 +10,8 @@ from collections import OrderedDict
 from lxml import etree
 from lxml.etree import Element, SubElement
 
-from ..base import parse_layout, get_logger
+from ..bundle import parse_desktop_layout
+from ..base import get_logger
 from ..cldr import CP_REGEX
 
 logger = get_logger(__file__)
@@ -635,7 +636,7 @@ class OSXKeyLayout:
     # TODO unused
     required = ("iso-default", "iso-shift", "iso-caps")
 
-    DEFAULT_CMD = parse_layout(
+    DEFAULT_CMD = parse_desktop_layout(
         r"""
         § 1 2 3 4 5 6 7 8 9 0 - =
         q w e r t y u i o p [ ]
@@ -644,7 +645,7 @@ class OSXKeyLayout:
     """
     )
 
-    DEFAULT_CMD_SHIFT = parse_layout(
+    DEFAULT_CMD_SHIFT = parse_desktop_layout(
         r"""
         ± ! @ # $ % ^ & * ( ) _ +
         Q W E R T Y U I O P { }

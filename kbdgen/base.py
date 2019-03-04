@@ -7,7 +7,8 @@ import itertools
 import unicodedata
 from collections import OrderedDict, namedtuple
 
-from . import orderedyaml, log
+from . import orderedyaml, log, models
+from .bundle import ProjectBundle
 
 
 class KbdgenException(Exception):
@@ -95,237 +96,217 @@ For example, if your keyboard.yaml looks like:
 
 ```
 modes:
-  default: [
-    q w e r t y u i o p å,
-    a s d f g h j k l ö æ,
-      z x c v b n m ï
-  ]
+  mobile:
+    default: [
+        q w e r t y u i o p å,
+        a s d f g h j k l ö æ,
+        z x c v b n m ï
+    ]
 ```
 
 Convert that to:
 
 ```
 modes:
-  default: |
-    q w e r t y u i o p å
-    a s d f g h j k l ö æ
-      z x c v b n m ï
+  mobile:
+    default: |
+        q w e r t y u i o p å
+        a s d f g h j k l ö æ
+        z x c v b n m ï
 ```
 """
 
 
-def parse_layout(data, length_check=True):
-    if isinstance(data, dict):
-        o = OrderedDict()
-        for key in ISO_KEYS:
-            v = data.get(key, None)
-            o[key] = str(v) if v is not None else None
-        return o
-    elif isinstance(data, str):
-        data = re.sub(r"[\r\n\s]+", " ", data.strip()).split(" ")
-        if length_check and len(data) != len(ISO_KEYS):
-            raise Exception(len(data))
-        o = OrderedDict(zip(ISO_KEYS, data))
-        # Remove nulls
-        for k in ISO_KEYS:
-            if o[k] == r"\u{0}":
-                o[k] = None
-        return o
+
+# class Project:
+#     def __init__(self, tree):
+#         self._tree = tree
+
+#     def relpath(self, end):
+#         return os.path.abspath(os.path.join(self.path, end))
+
+#     @property
+#     def path(self):
+#         return self._tree["_path"]
+
+#     @property
+#     def locales(self):
+#         return self._tree["locales"]
+
+#     @property
+#     def author(self):
+#         return self._tree["author"]
+
+#     @property
+#     def email(self):
+#         return self._tree["email"]
+
+#     @property
+#     def layouts(self):
+#         return self._tree["layouts"]
+
+#     @property
+#     def targets(self):
+#         return self._tree["targets"]
+
+#     @property
+#     def internal_name(self):
+#         return self._tree["internalName"]
+
+#     @property
+#     def app_strings(self):
+#         return self._tree["appStrings"]
+
+#     @property
+#     def version(self):
+#         return str(self._tree["version"])
+
+#     @property
+#     def build(self):
+#         return str(self._tree["build"])
+
+#     @property
+#     def copyright(self):
+#         return self._tree.get("copyright", "")
+
+#     @property
+#     def organisation(self):
+#         return self._tree.get("organisation", "")
+
+#     def locale(self, tag):
+#         val = self.locales.get(tag, None)
+#         if val is None:
+#             return None
+#         return ProjectLocaleData(val["name"], val["description"])
+
+#     @property
+#     def names(self):
+#         x = {}
+#         for tag, o in self.locales.items():
+#             x[tag] = o["name"]
+#         return x
+
+#     @property
+#     def descriptions(self):
+#         x = {}
+#         for tag, o in self.locales.items():
+#             x[tag] = o["description"]
+#         return x
+
+#     def first_locale(self):
+#         tag = next(iter(self.locales.keys()))
+#         return self.locale(tag)
+
+#     def target(self, target):
+#         return self._tree["targets"].get(target, {}) or {}
+
+#     def icon(self, target, size=None):
+#         val = self.target(target).get("icon", None)
+#         if val is None:
+#             return None
+#         if isinstance(val, str):
+#             return self.relpath(val)
+#         if size is None:
+#             # Find largest
+#             m = -1
+#             for k in val:
+#                 if k > m:
+#                     m = k
+#             return self.relpath(val[m])
+#         else:
+#             lrg = -1
+#             m = sys.maxsize
+#             for k in val:
+#                 if k > lrg:
+#                     lrg = k
+#                 if k >= size and k < m:
+#                     m = k
+#             if m == sys.maxsize:
+#                 return self.relpath(val[lrg])
+#             return self.relpath(val[m])
 
 
-def parse_touch_layout(data):
-    return [re.split(r"\s+", x.strip()) for x in data.strip().split("\n")]
+# class Keyboard:
+#     def __init__(self, tree):
+#         self._tree = tree
 
+#     @property
+#     def internal_name(self):
+#         return self._tree["internalName"]
 
-class Project:
-    def __init__(self, tree):
-        self._tree = tree
+#     @property
+#     def native_display_name(self):
+#         return self.display_names[self.locale]
 
-    def relpath(self, end):
-        return os.path.abspath(os.path.join(self.path, end))
+#     @property
+#     def display_names(self):
+#         return self._tree["displayNames"]
 
-    @property
-    def path(self):
-        return self._tree["_path"]
+#     @property
+#     def locale(self):
+#         return self._tree["locale"]
 
-    @property
-    def locales(self):
-        return self._tree["locales"]
+#     @property
+#     def special(self):
+#         return self._tree.get("special", {})
 
-    @property
-    def author(self):
-        return self._tree["author"]
+#     @property
+#     def decimal(self):
+#         return self._tree.get("decimal", None)
 
-    @property
-    def email(self):
-        return self._tree["email"]
+#     @property
+#     def dead_keys(self):
+#         return self._tree.get("deadKeys", {})
 
-    @property
-    def layouts(self):
-        return self._tree["layouts"]
+#     @property
+#     def derive(self):
+#         return self._tree.get("derive", {})
 
-    @property
-    def targets(self):
-        return self._tree["targets"]
+#     @property
+#     def transforms(self):
+#         return self._tree.get("transforms", {})
 
-    @property
-    def internal_name(self):
-        return self._tree["internalName"]
+#     @property
+#     def modifiers(self):
+#         return self._tree["modifiers"]
 
-    @property
-    def app_strings(self):
-        return self._tree["appStrings"]
+#     @property
+#     def modes(self):
+#         return self._tree["modes"]
 
-    @property
-    def version(self):
-        return str(self._tree["version"])
+#     @property
+#     def strings(self):
+#         return self._tree.get("strings", {})
 
-    @property
-    def build(self):
-        return str(self._tree["build"])
+#     @property
+#     def styles(self):
+#         return self._tree["styles"]
 
-    @property
-    def copyright(self):
-        return self._tree.get("copyright", "")
+#     def target(self, target):
+#         return self._tree.get("targets", {}).get(target, {}) or {}
 
-    @property
-    def organisation(self):
-        return self._tree.get("organisation", "")
+#     def get_actions(self, style):
+#         return self.styles[style]["actions"]
 
-    def locale(self, tag):
-        val = self.locales.get(tag, None)
-        if val is None:
-            return None
-        return ProjectLocaleData(val["name"], val["description"])
+#     def get_action(self, style, key):
+#         return self.styles[style]["actions"].get(key, None)
 
-    @property
-    def names(self):
-        x = {}
-        for tag, o in self.locales.items():
-            x[tag] = o["name"]
-        return x
+#     @property
+#     def longpress(self):
+#         return self._tree["longpress"]
 
-    @property
-    def descriptions(self):
-        x = {}
-        for tag, o in self.locales.items():
-            x[tag] = o["description"]
-        return x
+#     def get_longpress(self, key):
+#         return self._tree["longpress"].get(key, None)
 
-    def first_locale(self):
-        tag = next(iter(self.locales.keys()))
-        return self.locale(tag)
+#     @property
+#     def supported_targets(self):
+#         return self._tree.get("supportedTargets", None)
 
-    def target(self, target):
-        return self._tree["targets"].get(target, {}) or {}
-
-    def icon(self, target, size=None):
-        val = self.target(target).get("icon", None)
-        if val is None:
-            return None
-        if isinstance(val, str):
-            return self.relpath(val)
-        if size is None:
-            # Find largest
-            m = -1
-            for k in val:
-                if k > m:
-                    m = k
-            return self.relpath(val[m])
-        else:
-            lrg = -1
-            m = sys.maxsize
-            for k in val:
-                if k > lrg:
-                    lrg = k
-                if k >= size and k < m:
-                    m = k
-            if m == sys.maxsize:
-                return self.relpath(val[lrg])
-            return self.relpath(val[m])
-
-
-class Keyboard:
-    def __init__(self, tree):
-        self._tree = tree
-
-    @property
-    def internal_name(self):
-        return self._tree["internalName"]
-
-    @property
-    def native_display_name(self):
-        return self.display_names[self.locale]
-
-    @property
-    def display_names(self):
-        return self._tree["displayNames"]
-
-    @property
-    def locale(self):
-        return self._tree["locale"]
-
-    @property
-    def special(self):
-        return self._tree.get("special", {})
-
-    @property
-    def decimal(self):
-        return self._tree.get("decimal", None)
-
-    @property
-    def dead_keys(self):
-        return self._tree.get("deadKeys", {})
-
-    @property
-    def derive(self):
-        return self._tree.get("derive", {})
-
-    @property
-    def transforms(self):
-        return self._tree.get("transforms", {})
-
-    @property
-    def modifiers(self):
-        return self._tree["modifiers"]
-
-    @property
-    def modes(self):
-        return self._tree["modes"]
-
-    @property
-    def strings(self):
-        return self._tree.get("strings", {})
-
-    @property
-    def styles(self):
-        return self._tree["styles"]
-
-    def target(self, target):
-        return self._tree.get("targets", {}).get(target, {}) or {}
-
-    def get_actions(self, style):
-        return self.styles[style]["actions"]
-
-    def get_action(self, style, key):
-        return self.styles[style]["actions"].get(key, None)
-
-    @property
-    def longpress(self):
-        return self._tree["longpress"]
-
-    def get_longpress(self, key):
-        return self._tree["longpress"].get(key, None)
-
-    @property
-    def supported_targets(self):
-        return self._tree.get("supportedTargets", None)
-
-    def supported_target(self, target):
-        targets = self.supported_targets
-        if targets is None:
-            return True
-        return target in targets
+#     def supported_target(self, target):
+#         targets = self.supported_targets
+#         if targets is None:
+#             return True
+#         return target in targets
 
 
 class Parser:
@@ -340,10 +321,10 @@ class Parser:
             node = project
 
             for chunk in chunks:
-                if node.get(chunk, None) is None:
-                    node[chunk] = OrderedDict()
-                node = node[chunk]
-            node[last] = v
+                if getattr(node, chunk, None) is None:
+                    setattr(node, chunk, OrderedDict())
+                node = getattr(node, chunk, None)
+            setattr(node, last, v)
 
         for path, v in cfg_pairs:
             resolve_path(path, v)
@@ -354,177 +335,10 @@ class Parser:
         except Exception:
             raise Exception("Error: invalid key-value pair provided.")
 
-    def _parse_global(self, cfg_file=None):
-        if cfg_file is None:
-            cfg_file = open(
-                os.path.join(os.path.dirname(__file__), "global.yaml"), encoding="utf-8"
-            )
-        return orderedyaml.load(cfg_file)
-
-    @classmethod
-    def _parse_keyboard_descriptor(cls, tree):
-        for key in ["locale", "displayNames", "internalName", "modes"]:
-            if key not in tree:
-                raise Exception("%s key missing from file." % key)
-
-        # TODO move this to android and ios generators
-        # if 'mobile-default' not in tree['modes']:
-        #    raise Exception("No default mode supplied in file.")
-
-        if "modifiers" not in tree or tree.get("modifiers", None) is None:
-            tree["modifiers"] = []
-
-        if "longpress" not in tree or tree.get("longpress", None) is None:
-            tree["longpress"] = OrderedDict()
-
-        for mode in list(tree["modes"].keys()):
-            if isinstance(tree["modes"][mode], list):
-                raise Exception(MODE_LIST_ERROR % mode)
-            try:
-                # Soft layouts are special cased.
-                if mode in ["mobile-default", "mobile-shift"]:
-                    tree["modes"][mode] = parse_touch_layout(tree["modes"][mode])
-                else:
-                    tree["modes"][mode] = parse_layout(tree["modes"][mode])
-            except Exception as e:
-                raise Exception(
-                    ("'%s' is the wrong length. " + "Got %s, expected %s.")
-                    % (mode, str(e), len(ISO_KEYS))
-                )
-
-        for longpress, strings in tree["longpress"].items():
-            tree["longpress"][longpress] = re.split(r"\s+", strings.strip())
-
-        for style, styles in tree.get("styles", {}).items():
-            for action, info in styles["actions"].items():
-                styles["actions"][action] = Action(info[0], info[1], info[2])
-
-        return Keyboard(tree)
-
-    def _parse_project(self, tree):
-        for key in ["locales", "author", "email", "layouts", "targets"]:
-            if key not in tree:
-                raise Exception("%s key missing from file." % key)
-
-        tree_path = tree["_path"]
-
-        layouts = OrderedDict()
-        known_ids = set()
-
-        for layout in tree["layouts"]:
-            try:
-                fn = "%s.yaml" % layout
-                with open(os.path.join(tree_path, fn), encoding="utf-8") as f:
-                    try:
-                        data = unicodedata.normalize("NFC", f.read())
-                        kbdtree = orderedyaml.loads(data)
-                        rl = self._parse_keyboard_descriptor(kbdtree)
-                        dt = rl.derive.get("transforms", False)
-                        if dt is not False:
-                            derive_transforms(rl, True if dt == "all" else False)
-                        if rl.internal_name is None:
-                            raise UserException(
-                                "'%s' has no internalName field" % f.name
-                            )
-                        if not VALID_ID_RE.match(rl.internal_name):
-                            raise UserException(
-                                (
-                                    "Internal name '%s' in file '%s' not valid. Must "
-                                    + "begin with a-z, and after contain only a-z, "
-                                    + "0-9, dashes (-) and underscores (_)."
-                                )
-                                % (rl.internal_name, fn)
-                            )
-                        if rl.internal_name in known_ids:
-                            raise UserException(
-                                "A duplicate internal name was found '%s' in file '%s'"
-                                % (rl.internal_name, fn)
-                            )
-                        known_ids.add(rl.internal_name)
-                        layouts[rl.internal_name] = rl
-                    except Exception as e:
-                        logger.error("There was an error for file '%s.yaml':" % layout)
-                        raise e
-            except FileNotFoundError:
-                logger.error("Layout '%s' listed in project, but not found." % layout)
-                return None
-
-        tree["layouts"] = layouts
-
-        return Project(tree)
-
-    def parse(self, f, cfg_pairs=None, cfg_file=None):
-        tree = self._parse_global(cfg_file)
-        # Compose all decomposed unicode codepoints
-        data = unicodedata.normalize("NFC", f.read())
-        tree.update(orderedyaml.loads(data))
-
-        tree["_path"] = os.path.dirname(os.path.abspath(f.name))
-
-        project = self._parse_project(tree)
-        if project is None:
-            return None
+    def parse(self, proj_path, cfg_pairs=None, cfg_file=None):
+        project = ProjectBundle.load(proj_path)
         if cfg_pairs is not None:
             logger.trace("cfg_pairs: %r", cfg_pairs)
-            self._overrides(project._tree, self._parse_cfg_pairs(cfg_pairs))
+            self._overrides(project, self._parse_cfg_pairs(cfg_pairs))
         return project
 
-
-def decompose(ch):
-    x = unicodedata.normalize("NFKD", ch).replace(" ", "")
-    if x == ch:
-        try:
-            c = "COMBINING %s" % unicodedata.name(ch).replace("MODIFIER LETTER ", "")
-            return unicodedata.lookup(c)
-        except Exception:
-            pass
-    return x
-
-
-def derive_transforms(layout, allow_glyphbombs=False):
-    if layout._tree.get("transforms", None) is None:
-        layout._tree["transforms"] = {}
-
-    dead_keys = sorted(set(itertools.chain.from_iterable(layout.dead_keys.values())))
-    logger.trace("Dead keys: %r" % dead_keys)
-
-    # Get all letter category input chars
-    def char_filter(ch):
-        if ch is None:
-            return False
-        if len(ch) != 1:
-            return False
-        return unicodedata.category(ch).startswith("L")
-
-    input_chars = sorted(
-        set(
-            filter(
-                char_filter,
-                set(
-                    itertools.chain.from_iterable(
-                        (x.values() for x in layout.modes.values())
-                    )
-                ),
-            )
-        )
-    )
-    logger.trace("Input chars: %r" % input_chars)
-
-    # Generate inputtable transforms
-    for d in dead_keys:
-        if layout.transforms.get(d, None) is None:
-            layout.transforms[d] = {" ": d}
-
-        dc = decompose(d)
-
-        for ch in input_chars:
-            composed = "%s%s" % (ch, dc)
-            normalised = unicodedata.normalize("NFKC", composed)
-
-            # Check if when composed the codepoint is not the same as decomposed
-            if not allow_glyphbombs and composed == normalised:
-                logger.trace("Skipping %s%s" % (d, ch))
-                continue
-
-            logger.trace("Adding transform: %s%s -> %s" % (d, ch, normalised))
-            layout.transforms[d][ch] = normalised

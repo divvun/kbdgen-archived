@@ -24,13 +24,19 @@ VERSION_RE = re.compile(r"Xcode (\d+)\.(\d+)")
 
 
 class AppleiOSGenerator(Generator):
+    def mode(self, layout, mode):
+        o = {}
+        o.update(layout.modes.get("mobile", {}))
+        o.update(layout.modes.get("ios", {}))
+        return o
+
     @property
     def _version(self):
-        return self._project.target("ios").get("version", self._project.version)
+        return self.ios_target.version
 
     @property
     def _build(self):
-        return self._project.target("ios").get("build", self._project.build)
+        return self.ios_target.build
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -71,8 +77,12 @@ class AppleiOSGenerator(Generator):
         self._unfurl_tarball(hfst_ospell_tbl, deps_dir / "Dependencies/hfst-ospell-rs")
 
     @property
+    def ios_target(self):
+        return self._bundle.targets.get("ios", {})
+
+    @property
     def pkg_id(self):
-        return self._project.target("ios")["packageId"].replace("_", "-")
+        return self.ios_target.package_id.replace("_", "-")
 
     def command_ids(self):
         return ",".join([self.pkg_id] + self.all_bundle_ids())
@@ -81,6 +91,15 @@ class AppleiOSGenerator(Generator):
         if command == "ids":
             print(self.command_ids())
             return
+
+    @property
+    # @lru_cache(maxsize=1)
+    def supported_layouts(self):
+        o = OrderedDict()
+        for k, v in self._bundle.layouts.items():
+            if "ios" in v.modes or "mobile" in v.modes:
+                o[k] = v
+        return o
 
     def generate(self, base="."):
         command = self._args.get("command", None)
@@ -113,6 +132,7 @@ class AppleiOSGenerator(Generator):
         layouts = []
         for name, layout in self.supported_layouts.items():
             layouts.append(self.generate_json_layout(name, layout))
+        logger.trace("Layouts: %r", layouts)
 
         fn = os.path.join(deps_dir, "Keyboard", "KeyboardDefinitions.json")
         with open(fn, "w") as f:
@@ -127,13 +147,12 @@ class AppleiOSGenerator(Generator):
             self.update_plist(plist, f)
 
         kbd_plist_path = os.path.join(deps_dir, "Keyboard", "Info.plist")
-        dev_team = self._project.target("ios").get("teamId", None)
+        dev_team = self.ios_target.team_id
 
         with open(kbd_plist_path, "rb") as f:
             kbd_plist = plistlib.load(f, dict_type=OrderedDict)
 
-            for n, layout in enumerate(self.supported_layouts.values()):
-                name = layout.internal_name
+            for n, (name, layout) in enumerate(self.supported_layouts.items()):
                 os.makedirs(os.path.join(deps_dir, "Keyboard", name), exist_ok=True)
                 plist_gpath = os.path.join("Keyboard", name, "Info.plist")
                 ref = pbxproj.create_plist_file("Info.plist")
@@ -141,8 +160,9 @@ class AppleiOSGenerator(Generator):
                 pbxproj.add_ref_to_group(ref, ["Keyboard", name])
 
                 new_plist_path = os.path.join(deps_dir, plist_gpath)
+                native_name = layout.display_names[name]
                 with open(new_plist_path, "wb") as f:
-                    self.update_kbd_plist(kbd_plist, f, layout, n)
+                    self.update_kbd_plist(kbd_plist, f, name, native_name, layout, n)
                 # pbx_target, appex_ref =
                 pbxproj.duplicate_target("Keyboard", name, plist_gpath)
                 id_ = "%s.%s" % (self.pkg_id, name.replace("_", "-"))
@@ -300,7 +320,7 @@ class AppleiOSGenerator(Generator):
         build_dir = deps_dir
         # TODO check signing ID exists in advance (in sanity checks)
         xcarchive = os.path.abspath(
-            os.path.join(build_dir, "%s.xcarchive" % self._project.internal_name)
+            os.path.join(build_dir, "%s.xcarchive" % self.pkg_id)
         )
         plist = os.path.abspath(os.path.join(build_dir, "opts.plist"))
         ipa = os.path.abspath(os.path.join(build_dir, "ipa"))
@@ -310,11 +330,12 @@ class AppleiOSGenerator(Generator):
         if os.path.exists(ipa):
             os.remove(ipa)
 
-        code_sign_id = self._project.target("ios").get("codeSignId", None)
+        code_sign_id = self.ios_target.code_sign_id
 
         if code_sign_id is None:
             raise Exception("codeSignId cannot be null")
-        team_id = self._project.target("ios").get("teamId", None)
+
+        team_id = self.ios_target.teamId
 
         if team_id is None:
             raise Exception("teamId cannot be null")
@@ -403,10 +424,10 @@ class AppleiOSGenerator(Generator):
             shutil.rmtree(path)
         os.makedirs(path, exist_ok=True)
 
-        use_chfst = self._project.target("ios").get("chfst", False)
+        use_chfst = self.ios_target.chfst or False
 
         if use_chfst:
-            files = glob.glob(os.path.join(self._project.path, "*.chfst"))
+            files = glob.glob(os.path.join(self._bundle.path, "*.chfst"))
             if len(files) == 0:
                 logger.warning("No CHFST files found.")
                 return
@@ -416,7 +437,7 @@ class AppleiOSGenerator(Generator):
                 logger.info("Adding '%s' to '%s'…" % (bfn, nm))
                 shutil.copytree(fn, os.path.join(path, bfn))
         else:
-            files = glob.glob(os.path.join(self._project.path, "*.zhfst"))
+            files = glob.glob(os.path.join(self._bundle.path, "*.zhfst"))
             if len(files) == 0:
                 logger.warning("No ZHFST files found.")
                 return
@@ -427,7 +448,7 @@ class AppleiOSGenerator(Generator):
                 shutil.copyfile(fn, os.path.join(path, bfn))
 
     def gen_hosting_app_icons(self, build_dir):
-        if self._project.icon("ios") is None:
+        if self.ios_target.icon is None:
             logger.warning("no icon supplied!")
             return
 
@@ -447,7 +468,7 @@ class AppleiOSGenerator(Generator):
             h = float(h) * scale
             w = float(w) * scale
 
-            icon = self._project.icon("ios", w)
+            icon = self.ios_target.icon
             fn = "%s-%s@%s.png" % (obj["idiom"], obj["size"], obj["scale"])
             obj["filename"] = fn
             cmd = cmd_tmpl.format(h=h, w=w, src=icon, out=os.path.join(path, fn))
@@ -496,26 +517,26 @@ class AppleiOSGenerator(Generator):
         )
 
     def create_locales(self, pbxproj, gen_dir):
-        about_dir = self._project.target("ios").get("aboutDir", None)
+        about_dir = self.ios_target.about_dir
         about_locales = []
 
         # If aboutDir is set, get the supported locales
         if about_dir is not None:
-            about_dir = self._project.relpath(about_dir)
+            about_dir = self._bundle.relpath(about_dir)
             about_locales = [
                 os.path.splitext(x)[0]
                 for x in os.listdir(about_dir)
                 if x.endswith(".txt")
             ]
 
-        for locale, attrs in self._project.locales.items():
+        for locale, attrs in self._bundle.project.locales.items():
             lproj_dir = locale if locale != "en" else "Base"
             lproj = os.path.join(gen_dir, "HostingApp", "%s.lproj" % lproj_dir)
             os.makedirs(lproj, exist_ok=True)
 
             with open(os.path.join(lproj, "InfoPlist.strings"), "ab") as f:
-                self.write_l10n_str(f, "CFBundleName", attrs["name"])
-                self.write_l10n_str(f, "CFBundleDisplayName", attrs["name"])
+                self.write_l10n_str(f, "CFBundleName", attrs.name)
+                self.write_l10n_str(f, "CFBundleDisplayName", attrs.name)
 
             # Add About.txt to the lproj if exists
             if locale in about_locales:
@@ -526,15 +547,15 @@ class AppleiOSGenerator(Generator):
                     file_ref = pbxproj.create_text_file(locale, "About.txt")
                     pbxproj.add_file_ref_to_variant_group(file_ref, "About.txt")
 
-    def get_layout_locales(self, layout):
+    def get_layout_locales(self, name, layout):
         locales = set(layout.display_names.keys())
         locales.remove("en")
         locales.add("Base")
-        locales.add(layout.locale)
+        locales.add(name)
         return locales
 
     def get_project_locales(self):
-        locales = set(self._project.locales.keys())
+        locales = set(self._bundle.project.locales.keys())
         locales.remove("en")
         locales.add("Base")
         return locales
@@ -542,8 +563,8 @@ class AppleiOSGenerator(Generator):
     def get_all_locales(self):
         o = self.get_project_locales()
 
-        for layout in self.supported_layouts.values():
-            o |= self.get_layout_locales(layout)
+        for name, layout in self.supported_layouts.items():
+            o |= self.get_layout_locales(name, layout)
 
         return sorted(list(o))
 
@@ -569,18 +590,18 @@ class AppleiOSGenerator(Generator):
             out.append(bundle_id)
         return out
 
-    def update_kbd_plist(self, plist, f, layout, n):
+    def update_kbd_plist(self, plist, f, locale, native_name, layout, n):
         pkg_id = self.pkg_id
 
-        plist["CFBundleName"] = layout.native_display_name
-        plist["CFBundleDisplayName"] = layout.native_display_name
+        plist["CFBundleName"] = native_name
+        plist["CFBundleDisplayName"] = native_name
         plist["CFBundleShortVersionString"] = str(self._version)
         plist["CFBundleVersion"] = str(self._build)
         plist["LSApplicationQueriesSchemes"][0] = pkg_id
-        plist["NSExtension"]["NSExtensionAttributes"]["PrimaryLanguage"] = layout.locale
+        plist["NSExtension"]["NSExtensionAttributes"]["PrimaryLanguage"] = locale
         plist["DivvunKeyboardIndex"] = n
         
-        dsn = self._project.target("ios").get("sentryDsn", None)
+        dsn = self.ios_target.sentry_dsn
         if dsn is not None:
             plist["SentryDSN"] = dsn
 
@@ -589,12 +610,12 @@ class AppleiOSGenerator(Generator):
     def update_plist(self, plist, f):
         pkg_id = self.pkg_id
 
-        dsn = self._project.target("ios").get("sentryDsn", None)
+        dsn = self.ios_target.sentry_dsn
         if dsn is not None:
             plist["SentryDSN"] = dsn
 
-        plist["CFBundleName"] = self._project.target("ios")["bundleName"]
-        plist["CFBundleDisplayName"] = self._project.target("ios")["bundleName"]
+        plist["CFBundleName"] = self.ios_target.bundle_name
+        plist["CFBundleDisplayName"] = self.ios_target.bundle_name
         plist["CFBundleShortVersionString"] = str(self._version)
         plist["CFBundleVersion"] = str(self._build)
         plist["CFBundleURLTypes"][0]["CFBundleURLSchemes"][0] = pkg_id
@@ -603,21 +624,21 @@ class AppleiOSGenerator(Generator):
         plistlib.dump(plist, f)
 
     def generate_json_layout(self, name, layout):
-        local_name = layout.display_names.get(layout.locale, None)
+        local_name = layout.display_names.get(name, None)
         if local_name is None:
             raise Exception(
                 ("Keyboard '%s' requires localisation " + "into its own locale.")
-                % layout.internal_name
+                % name
             )
 
         out = OrderedDict()
 
         out["name"] = local_name
         out["internalName"] = name
-        out["return"] = layout.strings.get("return", "return")
-        out["space"] = layout.strings.get("space", "space")
+        out["return"] = layout.strings._return
+        out["space"] = layout.strings.space
         out["longPress"] = layout.longpress
-        out["normal"] = layout.modes["mobile-default"]
-        out["shifted"] = layout.modes["mobile-shift"]
+        out["normal"] = self.mode(layout, "default")
+        out["shifted"] = self.mode(layout, "shift")
 
         return out

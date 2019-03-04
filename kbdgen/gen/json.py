@@ -39,8 +39,8 @@ class QRGenerator(Generator):
             "name": layout.native_display_name,
             "space": tree["strings"]["space"],
             "enter": tree["strings"]["return"],
-            "normal": tree["modes"]["mobile-default"],
-            "shifted": tree["modes"]["mobile-shift"],
+            "normal": tree["modes"]["default"],
+            "shifted": tree["modes"]["shift"],
             "longPress": tree["longpress"]
         }
 

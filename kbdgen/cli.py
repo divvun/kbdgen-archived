@@ -69,9 +69,7 @@ def parse_args():
     )
     p.add_argument(
         "project",
-        help="Keyboard generation project (yaml)",
-        type=argparse.FileType("r", encoding="utf-8"),
-        default=sys.stdin,
+        help="Keyboard generation bundle (.kbdgen)"
     )
     p.add_argument(
         "-f",

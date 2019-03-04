@@ -26,8 +26,8 @@ def bind_iso_keys(other):
 
 
 class Generator:
-    def __init__(self, project, args=None):
-        self._project = project
+    def __init__(self, bundle, args=None):
+        self._bundle = bundle
         self._args = args or {}
 
     @property
@@ -50,22 +50,12 @@ class Generator:
     def output_dir(self):
         return self._args.get("output", ".")
 
-    @property
-    @lru_cache(maxsize=1)
-    def supported_layouts(self):
-        t = self._args["target"]
-        o = OrderedDict()
-        for k, v in self._project.layouts.items():
-            if v.supported_target(t):
-                o[k] = v
-        return o
-
     def sanity_check(self) -> bool:
-        if len(self.supported_layouts) == 0:
-            logger.error("This project defines no supported layouts for this target.")
-            return False
-        else:
-            logger.debug("Supported layouts: %s" % ", ".join(self.supported_layouts))
+        # if len(self.supported_layouts) == 0:
+        #     logger.error("This project defines no supported layouts for this target.")
+        #     return False
+        # else:
+        #     logger.debug("Supported layouts: %s" % ", ".join(self.supported_layouts))
 
         return True
 
@@ -97,7 +87,7 @@ class PhysicalGenerator(Generator):
                 )
 
 
-class TouchGenerator(Generator):
+class MobileGenerator(Generator):
     def validate_layout(self):
         pass
 
