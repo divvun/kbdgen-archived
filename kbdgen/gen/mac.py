@@ -20,10 +20,23 @@ logger = get_logger(__file__)
 INVERTED_ID_RE = re.compile(r"[^A-Za-z0-9]")
 
 
-class OSXGenerator(PhysicalGenerator):
+class MacGenerator(PhysicalGenerator):
     @property
     def disable_transforms(self):
         return "disable-transforms" in self._args["flags"]
+
+    @property
+    def mac_target(self):
+        return self._bundle.targets.get("mac", {})
+
+    @property
+    # @lru_cache(maxsize=1)
+    def supported_layouts(self):
+        o = OrderedDict()
+        for k, v in self._bundle.layouts.items():
+            if "mac" in v.modes or "desktop" in v.modes:
+                o[k] = v
+        return o
 
     def sanity_check(self):
         if super().sanity_check() is False:
@@ -31,8 +44,8 @@ class OSXGenerator(PhysicalGenerator):
 
         fail = False
         ids = []
-        for layout in self.supported_layouts.values():
-            id_ = self._layout_name(layout)
+        for locale, layout in self.supported_layouts.items():
+            id_ = self._layout_name(locale, layout)
             if id_ in ids:
                 logger.error("A duplicate internal name was detected: '%s'." % id_)
             else:
@@ -65,7 +78,7 @@ class OSXGenerator(PhysicalGenerator):
             except Exception as e:
                 logger.error(
                     "[%s] Error while validating layout:\n%s"
-                    % (layout.internal_name, e)
+                    % (name, e)
                 )
                 continue
 
@@ -84,7 +97,7 @@ class OSXGenerator(PhysicalGenerator):
 
         for name, data in o.items():
             layout = self.supported_layouts[name]
-            fn = self._layout_name(layout)
+            fn = self._layout_name(name, layout)
 
             for locale, lname in layout.display_names.items():
                 translations[locale][fn] = lname
@@ -93,7 +106,7 @@ class OSXGenerator(PhysicalGenerator):
             with open(os.path.join(res_path, "%s.keylayout" % fn), "w") as f:
                 f.write(data)
 
-            self.write_icon(res_path, layout)
+            self.write_icon(res_path, name, layout)
 
         self.write_localisations(res_path, translations)
 
@@ -135,20 +148,16 @@ class OSXGenerator(PhysicalGenerator):
 
         iconset.cleanup()
 
-    def write_icon(self, res_path, layout):
-        icon = layout.target("osx").get("icon", None)
-
-        # Get base icon
-        if icon is None:
-            icon = self._project.target("osx").get("icon", None)
+    def write_icon(self, res_path, name, layout):
+        icon = layout.mac_target.icon
 
         if icon is None:
-            logger.warning("no icon for layout '%s'." % layout.internal_name)
+            logger.warning("no icon for layout '%s'." % name)
             return
 
-        iconpath = self._project.relpath(icon)
+        iconpath = self._bundle.relpath(icon)
 
-        fn = os.path.join(res_path, "%s.icns" % self._layout_name(layout))
+        fn = os.path.join(res_path, "%s.icns" % self._layout_name(name, layout))
         self.generate_iconset(iconpath, fn)
 
     def write_localisations(self, res_path, translations):
@@ -160,20 +169,20 @@ class OSXGenerator(PhysicalGenerator):
                 for name, lname in o.items():
                     f.write('"%s" = "%s";\n' % (name, lname))
 
-    def _layout_name(self, layout):
-        return INVERTED_ID_RE.sub("", layout.internal_name)
+    def _layout_name(self, locale, layout):
+        return INVERTED_ID_RE.sub("", locale)
 
     def create_bundle(self, path):
         # Bundle ID must contain be in format *.keyboardlayout.<name>
         # Failure to do so and the bundle will not be detected as a keyboard bundle
         bundle_id = "%s.keyboardlayout.%s" % (
-            self._project.target("osx")["packageId"],
-            self._project.internal_name,
+            self.mac_target.package_id,
+            self._bundle.name
         )
         bundle_path = os.path.join(path, "%s.bundle" % bundle_id)
         if os.path.exists(bundle_path):
             shutil.rmtree(bundle_path)
-        bundle_name = self._project.target("osx").get("bundleName", None)
+        bundle_name = self.mac_target.bundle_name
 
         if bundle_name is None:
             raise Exception(
@@ -199,9 +208,9 @@ class OSXGenerator(PhysicalGenerator):
 
         targets = []
         for name, layout in self.supported_layouts.items():
-            layout_name = self._layout_name(layout)
+            layout_name = self._layout_name(name, layout)
             targets.append(
-                target_tmpl % (layout_name, bundle_id, layout_name, layout.locale)
+                target_tmpl % (layout_name, bundle_id, layout_name, name)
             )
 
         with open(os.path.join(bundle_path, "Contents", "Info.plist"), "w") as f:
@@ -228,8 +237,8 @@ class OSXGenerator(PhysicalGenerator):
                 % (
                     bundle_id,
                     bundle_name,
-                    self._project.target("osx").get("build", "1"),
-                    self._project.target("osx").get("version", "0.0.0"),
+                    self.mac_target.build,
+                    self.mac_target.version,
                     "\n".join(targets),
                 )
             )
@@ -238,9 +247,9 @@ class OSXGenerator(PhysicalGenerator):
 
     def generate_distribution_xml(self, component_fn, working_dir):
         dist_fn = os.path.join(working_dir.name, "distribution.xml")
-        bundle_name = self._project.target("osx").get("bundleName", None)
+        bundle_name = self.mac_target.bundle_name
         # Root "bundle id" is used as a unique key only in the pkg xml
-        bundle_id = self._project.target("osx")["packageId"]
+        bundle_id = self.mac_target.package_id
 
         root = etree.fromstring("""<installer-gui-script minSpecVersion="2" />""")
 
@@ -264,14 +273,14 @@ class OSXGenerator(PhysicalGenerator):
             onConclusion="RequireRestart",
         ).text = os.path.basename(component_fn)
 
-        target = self._project.target("osx")
+        target = self.mac_target
 
-        bg = target.get("background", None)
+        bg = target.background
         if bg is not None:
             SubElement(root, "background", file=bg, alignment="bottomleft")
 
         for key in ("license", "welcome", "readme", "conclusion"):
-            fn = target.get(key, None)
+            fn = getattr(target, key, None)
             if fn is not None:
                 SubElement(root, key, file=fn)
 
@@ -285,7 +294,7 @@ class OSXGenerator(PhysicalGenerator):
         return dist_fn
 
     def create_component_pkg(self, bundle, version, working_dir):
-        pkg_name = "%s.pkg" % self._project.target("osx")["packageId"]
+        pkg_name = "%s.pkg" % self.mac_target.package_id
         pkg_path = os.path.join(working_dir.name, pkg_name)
 
         cmd = [
@@ -307,7 +316,7 @@ class OSXGenerator(PhysicalGenerator):
 
     def create_installer(self, bundle):
         working_dir = tempfile.TemporaryDirectory()
-        version = self._project.target("osx").get("version", None)
+        version = self.mac_target.version
 
         if version is None:
             logger.warn("No version for installer specified; defaulting to '0.0.0'.")
@@ -315,13 +324,13 @@ class OSXGenerator(PhysicalGenerator):
 
         component_pkg_path = self.create_component_pkg(bundle, version, working_dir)
 
-        resources = self._project.target("osx").get("resources", None)
+        resources = self.mac_target.resources
         if resources is not None:
-            resources = self._project.relpath(resources)
+            resources = self._bundle.relpath(resources)
 
         dist_xml_path = self.generate_distribution_xml(component_pkg_path, working_dir)
 
-        bundle_name = self._project.target("osx")["bundleName"].replace(" ", "_")
+        bundle_name = self.mac_target.bundle_name.replace(" ", "_")
         pkg_name = "%s_%s.unsigned.pkg" % (bundle_name, version)
 
         cmd = [
@@ -345,7 +354,7 @@ class OSXGenerator(PhysicalGenerator):
         return os.path.join(self.build_dir, pkg_name)
 
     def sign_installer(self, pkg_path):
-        version = self._project.target("osx").get("version", None)
+        version = self.mac_target.version
 
         if version is None:
             logger.critical(
@@ -354,9 +363,9 @@ class OSXGenerator(PhysicalGenerator):
             )
             sys.exit(1)
 
-        signed_path = "%s %s.pkg" % (self._project.target("osx")["bundleName"], version)
+        signed_path = "%s %s.pkg" % (self.mac_target.bundle_name, version)
 
-        sign_id = self._project.target("osx").get("codeSignId", None)
+        sign_id = self.mac_target.code_sign_id
 
         if sign_id is None:
             logger.error("No signing identify found; skipping.")

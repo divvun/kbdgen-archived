@@ -154,4 +154,11 @@ type TargetMacOS {
     code_sign_id?: string;
 
     resources?: string;
+
+    background?: string;
+
+    license?: string;
+    welcome?: string;
+    readme?: string;
+    conclusion?: string;
 }

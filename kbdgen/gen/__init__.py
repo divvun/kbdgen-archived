@@ -3,7 +3,7 @@ from collections import OrderedDict
 from .ios import AppleiOSGenerator
 from .android import AndroidGenerator
 from .win import WindowsGenerator
-from .osx import OSXGenerator
+from .mac import MacGenerator
 from .x11 import XKBGenerator
 from .svgkbd import SVGGenerator
 from .json import QRGenerator, JSONGenerator
@@ -12,7 +12,7 @@ from .errormodel import ErrorModelGenerator
 generators = OrderedDict(
     (
         ("win", WindowsGenerator),
-        ("osx", OSXGenerator),
+        ("mac", MacGenerator),
         ("x11", XKBGenerator),
         ("svg", SVGGenerator),
         ("android", AndroidGenerator),

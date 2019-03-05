@@ -312,6 +312,10 @@ class ProjectBundle:
         return os.path.abspath(os.path.join(self.path, end))
 
     @property
+    def name(self):
+        return os.path.splitext(os.path.basename(self._path))[0]
+
+    @property
     def path(self):
         return self._path
 
