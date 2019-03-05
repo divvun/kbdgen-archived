@@ -690,9 +690,9 @@ class WindowsGenerator(Generator):
         buf = io.StringIO()
 
         for key in inno_langs.keys():
-            if key not in self._project.locales:
+            if key not in self._bundle.project.locales:
                 continue
-            loc = self._project.locale(key) or self._project.first_locale()
+            loc = self._bundle.project.locales.get(key, self.first_locale())
             buf.write("%s.AppName=%s\n" % (key, loc.name))
             buf.write("%s.Enable=%s\n" % (key, custom_msgs["Enable"][key]))
         return buf.getvalue()
@@ -702,14 +702,18 @@ class WindowsGenerator(Generator):
             return "%s_%s.win7.exe" % (name, version)
         else:
             return "%s_%s.exe" % (name, version)
-
+    
+    def first_locale(self):
+        tag = next(iter(self._bundle.project.locales.keys()))
+        return self._bundle.project.locales[tag]
+    
     def _generate_inno_setup(self, app_url, os_):
         o = self._generate_inno_os_config(os_).strip() + "\n"
         pfx = self.win_target.code_sign_pfx
         if pfx is None:
             return o
         pfx = self._bundle.relpath(pfx)
-        app_name = self._bundle.project.locales[0].name
+        app_name = self.first_locale().name
 
         o += (
             "SignTool=signtool -a sha1 "
@@ -808,7 +812,7 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
         custom_locales = target.get("customLocales", None)
 
         if custom_locales is not None:
-            custom_locales_path = self._project.relpath(custom_locales)
+            custom_locales_path = self._bundle.relpath(custom_locales)
             locales = [
                 os.path.splitext(x)[0]
                 for x in os.listdir(custom_locales_path)
@@ -927,8 +931,8 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
         fn_os = "all" if os_ != "Windows 7" else "win7"
         script_path = self._wine_path(os.path.join(build_dir, "install.%s.iss" % fn_os))
 
-        name = self._project.first_locale().name
-        version = self.win_target["version"]
+        name = self.first_locale().name
+        version = self.win_target.version
 
         cmd = self._wine_cmd(
             iscc,
