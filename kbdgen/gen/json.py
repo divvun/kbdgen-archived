@@ -3,7 +3,7 @@ import shutil
 
 from collections import OrderedDict
 
-from .base import Generator, run_process
+from .base import Generator, run_process, MobileLayoutView
 from ..base import get_logger
 import json
 
@@ -14,12 +14,12 @@ class JSONGenerator(Generator):
     def generate(self, base="."):
         out_dir = os.path.abspath(base)
         os.makedirs(out_dir, exist_ok=True)
-        fn = os.path.join(out_dir, "%s.json" % self._project.internal_name)
+        fn = os.path.join(out_dir, "%s.json" % os.path.splitext(self._bundle.path)[0])
 
         layouts = OrderedDict()
 
-        for name, layout in self._project.layouts.items():
-            layouts[layout.internal_name] = layout._tree
+        for name, layout in self._bundle.layouts.items():
+            layouts[name] = layout
 
         with open(fn, "w") as f:
             json.dump({"layouts": layouts}, f, indent=2, ensure_ascii=False)
@@ -30,17 +30,19 @@ class QRGenerator(Generator):
             logger.error("`qrencode` not found on PATH.")
             return
 
-        for name, layout in self._project.layouts.items():
+        for name, layout in self._bundle.layouts.items():
             logger.info("Choosing first layout from project: %s" % name)
-            tree = layout._tree
+            tree = layout
             break
+
+        layout_view = MobileLayoutView(tree, "ios")
 
         o = {
             "name": layout.native_display_name,
             "space": tree["strings"]["space"],
             "enter": tree["strings"]["return"],
-            "normal": tree["modes"]["default"],
-            "shifted": tree["modes"]["shift"],
+            "normal": layout_view.mode("default"),
+            "shifted": layout_view.mode("shift"),
             "longPress": tree["longpress"]
         }
 

@@ -33,7 +33,6 @@ log.enable_pretty_logging(
 
 logger = logging.getLogger()
 
-Action = namedtuple("Action", ["row", "position", "width"])
 ProjectLocaleData = namedtuple("ProjectLocaleData", ["name", "description"])
 
 VALID_ID_RE = re.compile(r"^[a-z][0-9a-z-_]+$")

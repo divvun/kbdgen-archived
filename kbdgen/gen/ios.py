@@ -15,21 +15,14 @@ from pathlib import Path
 
 from ..base import get_logger
 from ..filecache import FileCache
-from .base import Generator, run_process
+from .base import Generator, run_process, MobileLayoutView
 from .osxutil import Pbxproj
 
 logger = get_logger(__file__)
 
 VERSION_RE = re.compile(r"Xcode (\d+)\.(\d+)")
 
-
 class AppleiOSGenerator(Generator):
-    def mode(self, layout, mode):
-        o = {}
-        o.update(layout.modes.get("mobile", {}))
-        o.update(layout.modes.get("ios", {}))
-        return o
-
     @property
     def _version(self):
         return self.ios_target.version
@@ -66,7 +59,7 @@ class AppleiOSGenerator(Generator):
         )
         hfst_ospell_tbl = self.cache.download_latest_from_github(
             "divvun/divvunspell",
-            "master",
+            branch,
             username=self._args.get("github_username", None),
             password=self._args.get("github_token", None),
         )
@@ -524,7 +517,7 @@ class AppleiOSGenerator(Generator):
         if about_dir is not None:
             about_dir = self._bundle.relpath(about_dir)
             about_locales = [
-                os.path.splitext(x)[0]
+                os.path.splitext(os.path.basename(x))[0]
                 for x in os.listdir(about_dir)
                 if x.endswith(".txt")
             ]
@@ -638,7 +631,10 @@ class AppleiOSGenerator(Generator):
         out["return"] = layout.strings._return
         out["space"] = layout.strings.space
         out["longPress"] = layout.longpress
-        out["normal"] = self.mode(layout, "default")
-        out["shifted"] = self.mode(layout, "shift")
+
+        view = MobileLayoutView(layout, "ios")
+
+        out["normal"] = view.mode("default")
+        out["shifted"] = view.mode("shift")
 
         return out

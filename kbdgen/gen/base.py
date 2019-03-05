@@ -24,6 +24,16 @@ class GenerationError(KbdgenException):
 def bind_iso_keys(other):
     return OrderedDict(((k, v) for k, v in zip(ISO_KEYS, other)))
 
+class MobileLayoutView:
+    def __init__(self, layout, target):
+        self._layout = layout
+        self._target = target
+
+    def mode(self, mode):
+        o = {}
+        o.update(self._layout.modes.get("mobile", {}))
+        o.update(self._layout.modes.get(self._target, {}))
+        return o[mode]
 
 class Generator:
     def __init__(self, bundle, args=None):
@@ -200,6 +210,7 @@ class DictWalker:
 
 
 def run_process(cmd, cwd=None, show_output=False, return_process=False, shell=False):
+    logger.trace("%r cwd=%r" % (cmd, cwd))
     try:
         process = subprocess.Popen(
             cmd,

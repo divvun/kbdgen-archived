@@ -4,7 +4,7 @@ import shutil
 import sys
 import glob
 import subprocess
-from collections import defaultdict
+from collections import defaultdict, OrderedDict, namedtuple
 from pathlib import Path
 
 from lxml import etree
@@ -12,12 +12,15 @@ from lxml.etree import Element, SubElement
 import tarfile
 import tempfile
 
-from .base import Generator, run_process
+from .base import Generator, run_process, MobileLayoutView
 from ..filecache import FileCache
 from ..base import get_logger
 from .. import boolmap
 
 logger = get_logger(__file__)
+
+
+Action = namedtuple("Action", ["row", "position", "width"])
 
 ANDROID_GLYPHS = {}
 
@@ -69,16 +72,29 @@ class AndroidGenerator(Generator):
         ).decode()
 
     @property
+    def android_target(self):
+        return self._bundle.targets.get("android", {})
+
+    @property
     def _version(self):
-        return self._project.target("android").get("version", self._project.version)
+        return self.android_target.version
 
     @property
     def _build(self):
-        return self._project.target("android").get("build", self._project.build)
+        return self.android_target.build
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.cache = FileCache()
+
+    @property
+    # @lru_cache(maxsize=1)
+    def supported_layouts(self):
+        o = OrderedDict()
+        for k, v in self._bundle.layouts.items():
+            if "android" in v.modes or "mobile" in v.modes:
+                o[k] = v
+        return o
 
     def generate(self, base="."):
         if not self.sanity_check():
@@ -96,7 +112,7 @@ class AndroidGenerator(Generator):
         tree_id = self.get_source_tree(base, branch=self.branch)
         self.native_locale_workaround(base)
 
-        dsn = self._project.target("android").get("sentryDsn", None)
+        dsn = self.android_target.sentry_dsn
         if dsn is not None:
             self.add_sentry_dsn(dsn, base)
 
@@ -108,12 +124,13 @@ class AndroidGenerator(Generator):
 
         logger.info("Updating XML strings…")
         for name, kbd in self.supported_layouts.items():
+            clean_name = name.lower().replace('-', '_')
             files += [
                 (
-                    "app/src/main/res/xml/keyboard_layout_set_%s.xml" % name.lower(),
-                    self.kbd_layout_set(kbd),
+                    "app/src/main/res/xml/keyboard_layout_set_%s.xml" % clean_name,
+                    self.kbd_layout_set(clean_name, kbd),
                 ),
-                ("app/src/main/res/xml/kbd_%s.xml" % name.lower(), self.keyboard(kbd)),
+                ("app/src/main/res/xml/kbd_%s.xml" % clean_name, self.keyboard(clean_name, kbd)),
             ]
 
             for style, prefix in styles:
@@ -121,17 +138,17 @@ class AndroidGenerator(Generator):
 
                 files.append(
                     (
-                        "app/src/main/res/%s/rows_%s.xml" % (prefix, name.lower()),
-                        self.rows(kbd, style),
+                        "app/src/main/res/%s/rows_%s.xml" % (prefix, clean_name),
+                        self.rows(clean_name, kbd, style),
                     )
                 )
 
-                for row in self.rowkeys(kbd, style):
+                for row in self.rowkeys(clean_name, kbd, style):
                     row = ("app/src/main/res/%s/%s" % (prefix, row[0]), row[1])
                     files.append(row)
 
-            layouts[kbd.target("android").get("minimumSdk", None)].append(kbd)
-            self.update_strings_xml(kbd, base)
+            layouts[self.layout_target(kbd).get("minimumSdk", None)].append((clean_name, kbd))
+            self.update_strings_xml(clean_name, kbd, base)
 
         self.update_method_xmls(layouts, base)
         self.create_gradle_properties(base, self.is_release)
@@ -146,14 +163,14 @@ class AndroidGenerator(Generator):
 
     def native_locale_workaround(self, base):
         for name, kbd in self.supported_layouts.items():
-            if len(kbd.locale) <= 2:
+            if len(name) <= 2:
                 continue
 
             # locale = 'zz_%s' % kbd.locale
             # kbd.display_names[locale] = kbd.display_names[kbd.locale]
             # kbd._tree['locale'] = locale
 
-            self.update_locale_exception(kbd, base)
+            self.update_locale_exception(name, kbd, base)
 
     def sanity_check(self):
         if super().sanity_check() is False: 
@@ -196,14 +213,14 @@ class AndroidGenerator(Generator):
                 logger.error("STORE_PW and KEY_PW must be set for a release build.")
                 sane = False
 
-        pid = self._project.target("android").get("packageId")
+        pid = self.android_target.package_id
         if pid is None:
             sane = False
             logger.error("No package ID provided for Android target.")
 
         for name, kbd in self.supported_layouts.items():
             for dn_locale in kbd.display_names:
-                if dn_locale in ["zz", kbd.locale]:
+                if dn_locale in ["zz", name]:
                     continue
 
             for mode, rows in kbd.modes.items():
@@ -218,7 +235,7 @@ class AndroidGenerator(Generator):
                             % (name, n + 1, len(row))
                         )
             for api_v in [21, 23]:
-                if not self.detect_unavailable_glyphs(kbd, api_v):
+                if not self.detect_unavailable_glyphs(name, kbd, api_v):
                     sane = False
 
         return sane
@@ -257,12 +274,12 @@ class AndroidGenerator(Generator):
         with open(path, "w") as f:
             f.write(o)
 
-    def update_dict_authority(self, base):
-        auth = "%s.dictionarypack" % self._project.target("android")["packageId"]
-        logger.info("Updating dict authority string to '%s'…" % auth)
+    # def update_dict_authority(self, base):
+    #     auth = "%s.dictionarypack" % self.android_target.package_id
+    #     logger.info("Updating dict authority string to '%s'…" % auth)
 
-        self._update_dict_auth_xml(auth, base)
-        self._update_dict_auth_java(auth, base)
+    #     self._update_dict_auth_xml(auth, base)
+    #     self._update_dict_auth_java(auth, base)
 
     def add_zhfst_files(self, build_dir):
         nm = "app/src/main/assets/dicts"
@@ -271,7 +288,7 @@ class AndroidGenerator(Generator):
             shutil.rmtree(dict_path)
         os.makedirs(dict_path, exist_ok=True)
 
-        files = glob.glob(os.path.join(self._project.path, "*.zhfst"))
+        files = glob.glob(os.path.join(self._bundle.path, "*.zhfst"))
         if len(files) == 0:
             logger.warning("No ZHFST files found.")
             return
@@ -320,7 +337,7 @@ class AndroidGenerator(Generator):
         if node is None:
             node = SubElement(tree, "string", name="english_ime_name")
 
-        node.text = values["name"].replace("'", r"\'")
+        node.text = values.name.replace("'", r"\'")
 
         with open(fn, "w") as f:
             f.write(self._tostring(tree))
@@ -331,16 +348,16 @@ class AndroidGenerator(Generator):
         logger.info("Updating localisation values…")
 
         self._update_locale(
-            os.path.join(res_dir, "values"), self._project.locales["en"]
+            os.path.join(res_dir, "values"), self._bundle.project.locales["en"]
         )
 
-        for locale, values in self._project.locales.items():
+        for locale, values in self._bundle.project.locales.items():
             d = os.path.join(res_dir, "values-%s" % locale)
             if os.path.isdir(d):
                 self._update_locale(d, values)
 
     def generate_icons(self, base):
-        icon = self._project.icon("android")
+        icon = self.android_target.icon
         if icon is None:
             logger.warning("no icon supplied!")
             return
@@ -407,6 +424,7 @@ class AndroidGenerator(Generator):
                         "--",
                         "build",
                         "--release",
+                        "--lib"
                     ],
                     cwd=cwd,
                     show_output=True,
@@ -434,7 +452,7 @@ class AndroidGenerator(Generator):
         path = os.path.join(base, "deps", self.REPO, "app/build/outputs/apk", suffix)
         fn = "app-%s.apk" % suffix
         out_fn = os.path.join(
-            base, "%s-%s_%s.apk" % (self._project.internal_name, self._version, suffix)
+            base, "%s-%s_%s.apk" % (os.path.splitext(os.path.basename(self._bundle.path))[0], self._version, suffix)
         )
 
         logger.info("Copying '%s' -> '%s'…" % (fn, out_fn))
@@ -457,27 +475,29 @@ class AndroidGenerator(Generator):
         with open(fn, "w") as f:
             f.write(self._tostring(root))
 
-    def update_locale_exception(self, kbd, base):
+    def update_locale_exception(self, name, kbd, base):
         res_dir = os.path.join(base, "deps", self.REPO, "app/src/main/res")
         fn = os.path.join(res_dir, "values", "donottranslate.xml")
 
-        logger.info("Adding '%s' to '%s'…" % (kbd.locale, fn))
+        logger.info("Adding '%s' to '%s'…" % (name, fn))
 
         with open(fn) as f:
             tree = etree.parse(f)
 
+        clean_name = name.replace("-", "_")
+
         # Add to exception keys
         node = tree.xpath("string-array[@name='subtype_locale_exception_keys']")[0]
-        SubElement(node, "item").text = kbd.locale
+        SubElement(node, "item").text = clean_name
 
         node = tree.xpath(
             "string-array[@name='subtype_locale_displayed_in_root_locale']"
         )[0]
-        SubElement(node, "item").text = kbd.locale
+        SubElement(node, "item").text = clean_name
 
         SubElement(
-            tree.getroot(), "string", name="subtype_in_root_locale_%s" % kbd.locale
-        ).text = kbd.display_names[kbd.locale]
+            tree.getroot(), "string", name="subtype_in_root_locale_%s" % clean_name
+        ).text = kbd.display_names[name]
 
         with open(fn, "w") as f:
             f.write(self._tostring(tree.getroot()))
@@ -498,7 +518,7 @@ class AndroidGenerator(Generator):
         with open(fn, "w") as f:
             f.write(self._tostring(tree.getroot()))
 
-    def update_strings_xml(self, kbd, base):
+    def update_strings_xml(self, kbd_name, kbd, base):
         # TODO sanity check for non-existence directories
         # TODO run this only once preferably
         res_dir = os.path.join(base, "deps", self.REPO, "app/src/main/res")
@@ -511,21 +531,21 @@ class AndroidGenerator(Generator):
                 val_dir = os.path.join(res_dir, "values")
             else:
                 val_dir = os.path.join(res_dir, "values-%s" % locale)
-            self._str_xml(val_dir, name, kbd.internal_name.lower())
+            self._str_xml(val_dir, name, kbd_name.lower())
 
     def gen_method_xml(self, kbds, tree):
         root = tree.getroot()
 
-        for kbd in kbds:
+        for (name, kbd) in kbds:
             self._android_subelement(
                 root,
                 "subtype",
                 icon="@drawable/ic_ime_switcher_dark",
-                label="@string/subtype_%s" % kbd.internal_name.lower(),
-                imeSubtypeLocale=kbd.locale,
+                label="@string/subtype_%s" % name.lower(),
+                imeSubtypeLocale=name,
                 imeSubtypeMode="keyboard",
                 imeSubtypeExtraValue="KeyboardLayoutSet=%s,AsciiCapable,EmojiCapable"
-                % kbd.internal_name.lower(),
+                % name.lower()
             )
 
         return self._tostring(tree)
@@ -592,7 +612,7 @@ class AndroidGenerator(Generator):
         )
         hfst_ospell_tbl = self.cache.download_latest_from_github(
             "divvun/divvunspell",
-            "master",
+            branch,
             username=self._args.get("github_username", None),
             password=self._args.get("github_token", None),
         )
@@ -605,12 +625,12 @@ class AndroidGenerator(Generator):
 
     def environ_or_target(self, env_key, target_key):
         return os.environ.get(
-            env_key, self._project.target("android").get(target_key, None)
+            env_key, getattr(self.android_target, target_key, None)
         )
 
     def create_gradle_properties(self, base, release_mode=False):
         key_store_path = self.environ_or_target("ANDROID_KEYSTORE", "keyStore") or ""
-        key_store = self._project.relpath(key_store_path)
+        key_store = self._bundle.relpath(key_store_path)
         logger.debug("Key store: %s" % key_store)
 
         key_alias = self.environ_or_target("ANDROID_KEYALIAS", "keyAlias") or ""
@@ -634,7 +654,7 @@ ext.app = [
             key_alias=key_alias.replace('"', '\\"'),
             version=self._version,
             build=self._build,
-            pkg_name=self._project.target("android")["packageId"].replace('"', '\\"'),
+            pkg_name=self.android_target.package_id.replace('"', '\\"'),
             play_email=os.environ.get("PLAY_STORE_ACCOUNT", "").replace('"', '\\"'),
             play_creds=os.environ.get("PLAY_STORE_P12", "").replace('"', '\\"'),
             store_pw=os.environ.get("STORE_PW", "").replace('"', '\\"'),
@@ -645,10 +665,11 @@ ext.app = [
         with open(fn, "w") as f:
             f.write(data)
 
-    def kbd_layout_set(self, kbd):
+    def kbd_layout_set(self, name, kbd):
         out = Element("KeyboardLayoutSet", nsmap={"latin": self.NS})
 
-        kbd_str = "@xml/kbd_%s" % kbd.internal_name.lower()
+        # TODO: need a target override for legacy keyboards
+        kbd_str = "@xml/kbd_%s" % name.lower()
 
         self._subelement(
             out,
@@ -673,25 +694,46 @@ ext.app = [
 
         return self._tostring(out)
 
+    def get_actions(self, layout, style):
+        target = self.layout_target(layout) or {}
+        actions = target.get("styles", {}).get(style, {}).get("actions", None)
+
+        if actions is not None:
+            return actions
+
+        # time for defaults
+        if style == "tablet":
+            return {
+                "backspace": [1, "right", "fill"],
+                "enter": [2, "right", "fill"],
+                "shift": [3, "both", "fill"]
+            }
+        else:
+            return {
+                "shift": [3, "left", "fill"],
+                "backspace": [3, "right", "fill"]
+            }
+    
     def row_has_special_keys(self, kbd, n, style):
-        for key, action in kbd.get_actions(style).items():
-            if action.row == n:
+        for key, action in self.get_actions(kbd, style).items():
+            if Action(*action).row == n:
                 return True
         return False
 
-    def rows(self, kbd, style):
+    def rows(self, name, kbd, style):
         out = Element("merge", nsmap={"latin": self.NS})
 
         self._subelement(out, "include", keyboardLayout="@xml/key_styles_common")
 
-        for n, values in enumerate(kbd.modes["mobile-default"]):
+        layout_view = MobileLayoutView(kbd, "default")
+        for n, values in enumerate(layout_view.mode("default")):
             n += 1
 
             row = self._subelement(out, "Row")
             include = self._subelement(
                 row,
                 "include",
-                keyboardLayout="@xml/rowkeys_%s%s" % (kbd.internal_name.lower(), n),
+                keyboardLayout="@xml/rowkeys_%s%s" % (name.lower(), n),
             )
 
             if not self.row_has_special_keys(kbd, n, style):
@@ -706,7 +748,7 @@ ext.app = [
 
     def gen_key_width(self, kbd, style):
         m = 0
-        for row in kbd.modes["mobile-default"]:
+        for row in MobileLayoutView(kbd, "android").mode("default"):
             r = len(row)
             if r > m:
                 m = r
@@ -715,20 +757,21 @@ ext.app = [
 
         self.key_width = vals[style] / m
 
-    def keyboard(self, kbd, **kwargs):
+    def keyboard(self, name, kbd, **kwargs):
         out = Element("Keyboard", nsmap={"latin": self.NS})
 
         self._attrib(out, **kwargs)
 
         self._subelement(
-            out, "include", keyboardLayout="@xml/rows_%s" % kbd.internal_name.lower()
+            out, "include", keyboardLayout="@xml/rows_%s" % name.lower()
         )
 
         return self._tostring(out)
 
-    def rowkeys(self, kbd, style):
+    def rowkeys(self, name, kbd, style):
+        layout_view = MobileLayoutView(kbd, "android")
         # TODO check that lengths of both modes are the same
-        for n in range(1, len(kbd.modes["mobile-default"]) + 1):
+        for n in range(1, len(layout_view.mode("default")) + 1):
             merge = Element("merge", nsmap={"latin": self.NS})
             switch = self._subelement(merge, "switch")
 
@@ -739,14 +782,14 @@ ext.app = [
                 + "alphabetShiftLockShifted",
             )
 
-            self.add_rows(kbd, n, kbd.modes["mobile-shift"][n - 1], style, case)
+            self.add_rows(kbd, n, layout_view.mode("shift")[n - 1], style, case)
 
             default = self._subelement(switch, "default")
 
-            self.add_rows(kbd, n, kbd.modes["mobile-default"][n - 1], style, default)
+            self.add_rows(kbd, n, layout_view.mode("default")[n - 1], style, default)
 
             yield (
-                "rowkeys_%s%s.xml" % (kbd.internal_name.lower(), n),
+                "rowkeys_%s%s.xml" % (name.lower(), n),
                 self._tostring(merge),
             )
 
@@ -779,19 +822,20 @@ ext.app = [
     def add_special_buttons(self, kbd, n, style, row, tree, is_start):
         side = "left" if is_start else "right"
 
-        for key, action in kbd.get_actions(style).items():
+        for key, action in self.get_actions(kbd, style).items():
+            action = Action(*action)
             if action.row == n and action.position in [side, "both"]:
                 self.add_button_type(key, action, row, tree, is_start)
 
     def add_rows(self, kbd, n, values, style, out):
         i = 1
 
-        show_number_hints = kbd.target("android").get("showNumberHints", True)
+        show_number_hints = self.layout_target(kbd).get("showNumberHints", True)
 
         self.add_special_buttons(kbd, n, style, values, out, True)
 
         for key in values:
-            more_keys = kbd.get_longpress(key)
+            more_keys = kbd.longpress.get(key, None)
             node = self._subelement(out, "Key", keySpec=key)
 
             # If top row, and between 0 and 9 keys, show numeric hint
@@ -817,8 +861,13 @@ ext.app = [
 
         self.add_special_buttons(kbd, n, style, values, out, False)
 
-    def detect_unavailable_glyphs(self, layout, api_ver):
-        if layout.target("android").get("minimumSdk", 0) > api_ver:
+    def layout_target(self, layout):
+        if layout.targets is not None:
+            return layout.targets.get("android", {})
+        return {}
+
+    def detect_unavailable_glyphs(self, name, layout, api_ver):
+        if self.layout_target(layout).get("minimumSdk", 0) > api_ver:
             return True
 
         glyphs = ANDROID_GLYPHS.get(api_ver, None)
@@ -847,7 +896,7 @@ ext.app = [
                                 "is not supported by API %s! Set minimumSdk "
                                 "to suppress this error."
                             )
-                            % (layout.internal_name, c, ord(c), api_ver)
+                            % (name, c, ord(c), api_ver)
                         )
                         has_error = True
 
@@ -860,7 +909,7 @@ ext.app = [
                                 "[%s] Long press key '%s' (codepoint: U+%04X) "
                                 + "is not supported by API %s!"
                             )
-                            % (layout.internal_name, c, ord(c), api_ver)
+                            % (name, c, ord(c), api_ver)
                         )
 
         return not has_error
