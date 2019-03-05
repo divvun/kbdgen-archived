@@ -17,7 +17,7 @@ from textwrap import dedent
 
 from ..base import get_logger
 from ..filecache import FileCache
-from .base import Generator, bind_iso_keys, run_process, mode_iter
+from .base import Generator, bind_iso_keys, run_process, mode_iter, DesktopLayoutView
 from ..cldr import decode_u
 
 logger = get_logger(__file__)
@@ -266,6 +266,10 @@ class WindowsGenerator(Generator):
         super().__init__(*args, **kwargs)
         self.cache = FileCache()
 
+    @property
+    def win_target(self):
+        return self._bundle.targets.get("win", {})
+
     def get_or_download_kbdi(self):
         if os.environ.get("KBDI", None) is not None:
             kbdi = os.environ["KBDI"]
@@ -296,6 +300,15 @@ class WindowsGenerator(Generator):
         signcode_url = "https://brendan.so/files/signcode.exe"
         return self.cache.download(signcode_url, signcode_sha256)
 
+    @property
+    # @lru_cache(maxsize=1)
+    def supported_layouts(self):
+        o = OrderedDict()
+        for k, v in self._bundle.layouts.items():
+            if "win" in v.modes or "desktop" in v.modes:
+                o[k] = v
+        return o
+
     def generate(self, base="."):
         outputs = OrderedDict()
 
@@ -310,8 +323,8 @@ class WindowsGenerator(Generator):
                 logger.critical(e)
                 return
 
-        for layout in self.supported_layouts.values():
-            outputs[self._klc_get_name(layout, False)] = self.generate_klc(layout)
+        for locale, layout in self.supported_layouts.items():
+            outputs[self._klc_get_name(locale, layout, False)] = self.generate_klc(locale, layout)
 
         if self.dry_run:
             logger.info("Dry run completed.")
@@ -359,12 +372,12 @@ class WindowsGenerator(Generator):
                 self.build_installer(os_[0], build_dir)
 
     def copy_nlp_files(self, build_dir):
-        target = self._project.target("win")
-        src_path = target.get("customLocales", None)
+        target = self.win_target
+        src_path = target.custom_locales
         if src_path is None:
             return
 
-        src_path = self._project.relpath(src_path)
+        src_path = self._bundle.relpath(src_path)
 
         nlp_path = os.path.join(build_dir, "nlp")
         copy_tree(src_path, nlp_path)
@@ -411,10 +424,15 @@ class WindowsGenerator(Generator):
             if os.path.isdir(p):
                 return p
 
+    def layout_target(self, layout):
+        if layout.targets is not None:
+            return layout.targets.get("win", {})
+        return {}
+
     def sanity_check(self):
         if super().sanity_check() is False:
             return False
-        pfx = self._project.target("win").get("codeSignPfx", None)
+        pfx = self.win_target.code_sign_pfx
         codesign_pw = os.environ.get("CODESIGN_PW", None)
 
         if pfx is not None and codesign_pw is None:
@@ -425,19 +443,19 @@ class WindowsGenerator(Generator):
         elif pfx is None:
             logger.warn("No code signing PFX was provided; setup will not be signed.")
 
-        if self._project.organisation == "":
+        if self._bundle.project.organisation == "":
             logger.warn("Property 'organisation' is undefined for this project.")
-        if self._project.copyright == "":
+        if self._bundle.project.copyright == "":
             logger.warn("Property 'copyright' is undefined for this project.")
 
-        if self._project.target("win").get("version", None) is None:
+        if self.win_target.version is None:
             logger.error(
                 "Property 'targets.win.version' must be defined in the "
                 + "project for this target."
             )
             return False
 
-        guid = self._project.target("win").get("uuid", None)
+        guid = self.win_target.uuid
         if guid is None:
             logger.error(
                 "Property 'targets.win.uuid' must be defined in the project "
@@ -450,9 +468,9 @@ class WindowsGenerator(Generator):
             logger.error("Property 'targets.win.uuid' is not a valid UUID.")
             return False
 
-        for layout in self.supported_layouts.values():
-            lcid = lcidlib.get(layout.locale)
-            if lcid is None and layout.target("win").get("locale", None) is None:
+        for locale, layout in self.supported_layouts.items():
+            lcid = lcidlib.get(locale)
+            if lcid is None and self.layout_target(layout).get("locale", None) is None:
                 logger.error(
                     dedent(
                         """\
@@ -468,7 +486,7 @@ class WindowsGenerator(Generator):
                 )
                 return False
 
-            if lcid is None and layout.target("win").get("languageName", None) is None:
+            if lcid is None and self.layout_target(layout).get("languageName", None) is None:
                 logger.error(
                     dedent(
                         """\
@@ -483,8 +501,8 @@ class WindowsGenerator(Generator):
 
         fail = False
         ids = []
-        for layout in self.supported_layouts.values():
-            id_ = self._klc_get_name(layout)
+        for locale, layout in self.supported_layouts.items():
+            id_ = self._klc_get_name(locale, layout)
             if id_ in ids:
                 fail = True
                 msg = (
@@ -499,6 +517,7 @@ class WindowsGenerator(Generator):
             return False
 
         if not self.is_release:
+            logger.trace("Yalooo")
             return True
 
         if not is_windows:
@@ -570,7 +589,7 @@ class WindowsGenerator(Generator):
         )
         run_process(cmd, cwd=out_path)
 
-        pfx = self._project.target("win").get("codeSignPfx", None)
+        pfx = self.win_target.code_sign_pfx
         if pfx is None:
             logger.warn(
                 "'%s' for %s was not code signed due to no codeSignPfx property."
@@ -598,13 +617,13 @@ class WindowsGenerator(Generator):
 
     def _generate_inno_languages(self):
         out = []
-        target = self._project.target("win")
+        target = self.win_target
 
         license_format = target.get("licenseFormat", "txt")
         app_license_path = target.get("licensePath", None)
         license_locales = []
         if app_license_path is not None:
-            app_license_path = self._project.relpath(app_license_path)
+            app_license_path = self._bundle.project.relpath(app_license_path)
             license_locales = [
                 os.path.splitext(x)[0]
                 for x in os.listdir(app_license_path)
@@ -618,7 +637,7 @@ class WindowsGenerator(Generator):
         app_readme_path = target.get("readmePath", None)
         readme_locales = []
         if app_readme_path is not None:
-            app_readme_path = self._project.relpath(app_readme_path)
+            app_readme_path = self._bundle.project.relpath(app_readme_path)
             readme_locales = [
                 os.path.splitext(x)[0]
                 for x in os.listdir(app_readme_path)
@@ -628,7 +647,7 @@ class WindowsGenerator(Generator):
                 os.path.join(app_readme_path, "en.%s" % readme_format)
             )
 
-        for locale, attrs in self._project.locales.items():
+        for locale, attrs in self._bundle.project.locales.items():
             if locale not in inno_langs:
                 logger.info("'%s' not supported by setup script; skipping." % locale)
                 continue
@@ -686,11 +705,11 @@ class WindowsGenerator(Generator):
 
     def _generate_inno_setup(self, app_url, os_):
         o = self._generate_inno_os_config(os_).strip() + "\n"
-        pfx = self._project.target("win").get("codeSignPfx", None)
+        pfx = self.win_target.code_sign_pfx
         if pfx is None:
             return o
-        pfx = self._project.relpath(pfx)
-        app_name = self._project.first_locale().name
+        pfx = self._bundle.relpath(pfx)
+        app_name = self._bundle.project.locales[0].name
 
         o += (
             "SignTool=signtool -a sha1 "
@@ -712,12 +731,14 @@ class WindowsGenerator(Generator):
 
     def generate_inno_script(self, os_, build_dir):
         logger.info("Generating Inno Setup script for %s…" % os_)
-        target = self._project.target("win")
+        target = self.win_target
         try:
-            app_version = target["version"]
-            app_publisher = self._project.organisation
-            app_url = target.get("url", "")
-            app_uuid = target["uuid"]
+            app_version = target.version
+            app_publisher = self._bundle.project.organisation
+            app_url = target.url
+            if app_url is None:
+                app_url = ""
+            app_uuid = target.uuid
             if app_uuid.startswith("{"):
                 app_uuid = app_uuid[1:]
             if app_uuid.endswith("}"):
@@ -726,13 +747,13 @@ class WindowsGenerator(Generator):
             logger.error("Property %s is not defined at targets.win." % e)
             sys.exit(1)
 
-        app_license_path = target.get("licensePath", None)
+        app_license_path = target.license_path
         if app_license_path is not None:
-            app_license_path = self._project.relpath(app_license_path)
+            app_license_path = self._bundle.relpath(app_license_path)
 
-        app_readme_path = target.get("readmePath", None)
+        app_readme_path = target.readme_path
         if app_readme_path is not None:
-            app_readme_path = self._project.relpath(app_readme_path)
+            app_readme_path = self._bundle.relpath(app_readme_path)
 
         script = """\
 #define MyAppVersion "%s"
@@ -831,8 +852,8 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
             "Flags: runhidden waituntilterminated\n"
         )
 
-        for layout in self.supported_layouts.values():
-            kbd_id = self._klc_get_name(layout)
+        for locale, layout in self.supported_layouts.items():
+            kbd_id = self._klc_get_name(locale, layout)
             dll_name = "%s.dll" % kbd_id
             language_code = layout.target("win").get("locale", layout.locale)
             language_name = layout.target("win").get("languageName", None)
@@ -907,7 +928,7 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
         script_path = self._wine_path(os.path.join(build_dir, "install.%s.iss" % fn_os))
 
         name = self._project.first_locale().name
-        version = self._project.target("win")["version"]
+        version = self.win_target["version"]
 
         cmd = self._wine_cmd(
             iscc,
@@ -923,8 +944,8 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
 
         logger.info("Installer generated at '%s'." % os.path.join(build_dir, fn))
 
-    def _klc_get_name(self, layout, show_errors=True):
-        id_ = layout.target("win").get("id", None)
+    def _klc_get_name(self, locale, layout, show_errors=True):
+        id_ = self.layout_target(layout).get("id", None)
         if id_ is not None:
             if len(id_) != 5 and show_errors:
                 logger.warning(
@@ -932,23 +953,23 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
                     % (id_, len(id_))
                 )
             return "kbd" + id_
-        return "kbd" + re.sub(r"[^A-Za-z0-9-]", "", layout.internal_name)[:5]
+        return "kbd" + re.sub(r"[^A-Za-z0-9-]", "", locale)[:5]
 
-    def _klc_write_headers(self, layout, buf):
+    def _klc_write_headers(self, locale, layout, buf):
         buf.write(
             'KBD\t%s\t"%s"\n\n'
-            % (self._klc_get_name(layout, False), layout.display_names[layout.locale])
+            % (self._klc_get_name(locale, layout, False), layout.display_names[locale])
         )
 
-        copyright_ = self._project.copyright or r"¯\_(ツ)_/¯"
-        organisation = self._project.organisation or r"¯\_(ツ)_/¯"
-        locale = layout.target("win").get("locale", layout.locale)
+        copyright_ = self._bundle.project.copyright or r"¯\_(ツ)_/¯"
+        organisation = self._bundle.project.organisation or r"¯\_(ツ)_/¯"
+        override_locale = self.layout_target(layout).get("locale", locale)
 
         buf.write('COPYRIGHT\t"%s"\n\n' % copyright_)
         buf.write('COMPANY\t"%s"\n\n' % organisation)
-        buf.write('LOCALENAME\t"%s"\n\n' % locale)
+        buf.write('LOCALENAME\t"%s"\n\n' % override_locale)
 
-        lcid = lcidlib.get_hex8(locale) or lcidlib.get_hex8(layout.locale) or "00002000"
+        lcid = lcidlib.get_hex8(override_locale) or lcidlib.get_hex8(locale) or "00002000"
 
         buf.write('LOCALEID\t"%s"\n\n' % lcid)
         buf.write("VERSION\t1.0\n\n")
@@ -963,15 +984,15 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
             "//--\t----\t\t----\t------\t-----\t----\t-----\t-------\t   ------\n\n"
         )
 
-    def _klc_write_keys(self, layout, buf):
-        col0 = mode_iter(layout, "iso-default", required=True)
-        col1 = mode_iter(layout, "iso-shift")
-        col2 = mode_iter(layout, "iso-ctrl")
-        col6 = mode_iter(layout, "iso-alt")
-        col7 = mode_iter(layout, "iso-alt+shift")
-        alt_caps = mode_iter(layout, "iso-alt+caps")
-        caps = mode_iter(layout, "iso-caps")
-        caps_shift = mode_iter(layout, "iso-caps+shift")
+    def _klc_write_keys(self, locale, layout, buf):
+        col0 = mode_iter(locale, layout, "default", required=True)
+        col1 = mode_iter(locale, layout, "shift")
+        col2 = mode_iter(locale, layout, "ctrl")
+        col6 = mode_iter(locale, layout, "alt")
+        col7 = mode_iter(locale, layout, "alt+shift")
+        alt_caps = mode_iter(locale, layout, "alt+caps")
+        caps = mode_iter(locale, layout, "caps")
+        caps_shift = mode_iter(locale, layout, "caps+shift")
 
         # Hold all the glyphbombs
         glyphbombs = []
@@ -1006,11 +1027,11 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
 
             # n is the col number for glyphbombs.
             for n, mode, key in (
-                (0, "iso-default", c0),
-                (1, "iso-shift", c1),
-                (2, "iso-ctrl", c2),
-                (3, "iso-alt", c6),
-                (4, "iso-alt+shift", c7),
+                (0, "default", c0),
+                (1, "shift", c1),
+                (2, "ctrl", c2),
+                (3, "alt", c6),
+                (4, "alt+shift", c7),
             ):
 
                 filtered = decode_u(key or "")
@@ -1047,18 +1068,18 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
 
         # Space, such special case oh my.
         buf.write("39\tSPACE\t\t0\t")
-        if "space" not in layout.special:
+        if layout.space is None or layout.space.get("win", None) is None:
             buf.write("0020\t0020\t0020\t-1\t-1\n")
         else:
-            o = layout.special["space"]
+            o = layout.space.get("win")
             buf.write(
                 "%s\t%s\t%s\t%s\t%s\n"
                 % win_filter(
-                    o.get("iso-default", "0020"),
-                    o.get("iso-shift", "0020"),
-                    o.get("iso-ctrl", "0020"),
-                    o.get("iso-alt", None),
-                    o.get("iso-alt+shift", None),
+                    o.get("default", "0020"),
+                    o.get("shift", "0020"),
+                    o.get("ctrl", "0020"),
+                    o.get("alt", None),
+                    o.get("alt+shift", None),
                 )
             )
 
@@ -1099,7 +1120,7 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
                 output = str(output)
 
                 if len(key) != 1 or len(output) != 1:
-                    logger.warning(
+                    logger.debug(
                         ("%s%s -> %s is invalid for Windows " + "deadkeys; skipping.")
                         % (basekey, key, output)
                     )
@@ -1128,10 +1149,10 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
                 '%s\t"%s"\n' % (win_filter(basekey)[0], unicodedata.name(basekey))
             )
 
-    def _klc_write_footer(self, layout, buf):
-        language_name = layout.target("win").get("languageName", "Undefined")
-        lcid = lcidlib.get(layout.locale) or 0x0C00
-        layout_name = layout.native_display_name
+    def _klc_write_footer(self, locale, layout, buf):
+        language_name = self.layout_target(layout).get("languageName", "Undefined")
+        lcid = lcidlib.get(locale) or 0x0C00
+        layout_name = layout.display_names[locale]
 
         buf.write("\nDESCRIPTIONS\n\n")
         buf.write("%04x\t%s\n" % (lcid, layout_name))
@@ -1141,13 +1162,13 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
 
         buf.write("ENDKBD\n")
 
-    def generate_klc(self, layout):
+    def generate_klc(self, locale, layout):
         buf = io.StringIO()
 
-        self._klc_write_headers(layout, buf)
-        self._klc_write_keys(layout, buf)
+        self._klc_write_headers(locale, layout, buf)
+        self._klc_write_keys(locale, layout, buf)
         buf.write(DEFAULT_KEYNAMES)
         self._klc_write_deadkey_names(layout, buf)
-        self._klc_write_footer(layout, buf)
+        self._klc_write_footer(locale, layout, buf)
 
         return buf.getvalue()

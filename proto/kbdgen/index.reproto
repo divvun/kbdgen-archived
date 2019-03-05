@@ -34,8 +34,11 @@ type Layout {
     /// The decimal key. Nominally a '.' or ','.
     decimal?: string;
 
+    /// An override for space keys on some OSes. Keyed by target.
+    space?: {string: any};
+
     /// Dead keys present, keyed by layer code.
-    dead_keys?: {string: [string]};
+    dead_keys?: {string: any};
 
     /// The items to be shown when a key is long-pressed. Values are space separated in one string.
     longpress?: {string: string};
@@ -123,6 +126,16 @@ type TargetWindows {
     url: string;
 
     uuid: string;
+
+    code_sign_pfx?: string;
+
+    custom_locales?: string;
+
+    // DEPRECATE THIS
+    license_path?: string;
+
+    // DEPRECATE THIS
+    readme_path?: string;
 }
 
 type TargetMacOS {

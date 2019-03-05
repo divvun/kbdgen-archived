@@ -35,6 +35,17 @@ class MobileLayoutView:
         o.update(self._layout.modes.get(self._target, {}))
         return o[mode]
 
+class DesktopLayoutView:
+    def __init__(self, layout, target):
+        self._layout = layout
+        self._target = target
+
+    def mode(self, mode):
+        o = {}
+        o.update(self._layout.modes.get("desktop", {}))
+        o.update(self._layout.modes.get(self._target, {}))
+        return o.get(mode, None)
+
 class Generator:
     def __init__(self, bundle, args=None):
         self._bundle = bundle
@@ -105,23 +116,24 @@ class MobileGenerator(Generator):
 MSG_LAYOUT_MISSING = "Layout '%s' is missing a required mode: '%s'."
 
 
-def mode_iter(keyboard, key, required=False):
-    mode = keyboard.modes.get(key, None)
+def mode_iter(locale, keyboard, key, required=False):
+    mode = DesktopLayoutView(keyboard, "win").mode(key)
     if mode is None:
         if required:
-            raise GenerationError(MSG_LAYOUT_MISSING % (keyboard.internal_name, key))
+            raise GenerationError(MSG_LAYOUT_MISSING % (locale, key))
         return itertools.repeat(None)
 
     return mode.values()
 
 
-def mode_dict(keyboard, key, required=False, space=False):
+def mode_dict(locale, keyboard, key, required=False, space=False):
     mode = keyboard.modes.get(key, None)
     if mode is None:
         if required:
-            raise GenerationError(MSG_LAYOUT_MISSING % (keyboard.internal_name, key))
+            raise GenerationError(MSG_LAYOUT_MISSING % (locale, key))
         return OrderedDict(zip(ISO_KEYS, itertools.repeat(None)))
 
+    # TODO this isn't handled properly yet
     if space:
         sp = keyboard.special.get("space", {}).get(key, " ")
         mode["A03"] = sp
