@@ -41,10 +41,19 @@ class DesktopLayoutView:
         self._target = target
 
     def mode(self, mode):
+        return self.modes().get(mode, None)
+    
+    def modes(self):
         o = {}
         o.update(self._layout.modes.get("desktop", {}))
         o.update(self._layout.modes.get(self._target, {}))
-        return o.get(mode, None)
+        return o
+
+    def dead_keys(self):
+        o = {}
+        o.update(self._layout.dead_keys.get("desktop", {}))
+        o.update(self._layout.dead_keys.get(self._target, {}))
+        return o
 
 class Generator:
     def __init__(self, bundle, args=None):
@@ -82,22 +91,28 @@ class Generator:
 
 
 class PhysicalGenerator(Generator):
-    def validate_layout(self, layout):
-        # TODO finish cls-based validate_layout
-        mode_keys = set(layout.modes.keys())
-        deadkey_keys = set(layout.dead_keys.keys())
+    def validate_layout(self, layout, target):
+        view = DesktopLayoutView(layout, target)
+        
+        mode_keys = set(view.modes().keys())
+        deadkey_keys = set(view.dead_keys().keys())
+
+        print(mode_keys)
 
         undefined_modes = deadkey_keys - mode_keys
 
         if len(undefined_modes) > 0:
-            raise Exception(
-                "Dead key modes are defined for undefined modes: %r"
-                % (list(undefined_modes),)
-            )
+            # raise Exception(
+            #     "Dead key modes are defined for undefined modes: %r"
+            #     % (list(undefined_modes),)
+            # )
+            logger.warn("Dead key modes are defined for undefined modes: %r" % (list(undefined_modes),))
 
-        for mode, keys in layout.dead_keys.items():
+        for mode, keys in view.dead_keys().items():
             dead_keys = set(keys)
-            layer_keys = set(layout.modes[mode].values())
+            layer_keys = set(view.modes()[mode].values())
+
+            logger.trace("Dead: %r, layer: %r" % (dead_keys, layer_keys))
 
             matched_keys = dead_keys & layer_keys
 

@@ -598,7 +598,7 @@ class WindowsGenerator(Generator):
             return
 
         logger.info("Signing '%s' for %s…" % (name, arch))
-        pfx_path = self._wine_path(self._project.relpath(pfx))
+        pfx_path = self._wine_path(self._bundle.relpath(pfx))
         logger.debug("PFX path: %s", pfx_path)
 
         cmd = self._wine_cmd(

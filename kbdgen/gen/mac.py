@@ -12,7 +12,7 @@ from collections import defaultdict, OrderedDict
 from textwrap import indent, dedent
 
 from ..base import get_logger
-from .base import PhysicalGenerator, run_process, DictWalker
+from .base import PhysicalGenerator, run_process, DictWalker, DesktopLayoutView
 from .osxutil import OSXKeyLayout, OSX_HARDCODED, OSX_KEYMAP
 
 logger = get_logger(__file__)
@@ -74,16 +74,17 @@ class MacGenerator(PhysicalGenerator):
 
         for name, layout in self.supported_layouts.items():
             try:
-                self.validate_layout(layout)
+                self.validate_layout(layout, "mac")
             except Exception as e:
                 logger.error(
                     "[%s] Error while validating layout:\n%s"
                     % (name, e)
                 )
-                continue
+                raise e
+                return
 
             logger.info("Generating '%s'…" % name)
-            o[name] = self.generate_xml(layout)
+            o[name] = self.generate_xml(name, layout)
 
         if self.dry_run:
             logger.info("Dry run completed.")
@@ -148,8 +149,13 @@ class MacGenerator(PhysicalGenerator):
 
         iconset.cleanup()
 
+    def layout_target(self, layout):
+        if layout.targets is not None:
+            return layout.targets.get("mac", {})
+        return {}
+
     def write_icon(self, res_path, name, layout):
-        icon = layout.mac_target.icon
+        icon = self.layout_target(layout).get("icon", None)
 
         if icon is None:
             logger.warning("no icon for layout '%s'." % name)
@@ -382,19 +388,21 @@ class MacGenerator(PhysicalGenerator):
             "Installer generated at '%s'." % os.path.join(self.build_dir, signed_path)
         )
 
-    def _layout_id(self, layout) -> str:
+    def _layout_id(self, name) -> str:
         return str(
             -min(
-                max(binascii.crc_hqx(layout.internal_name.encode("utf-8"), 0) // 2, 1),
+                max(binascii.crc_hqx(name.encode("utf-8"), 0) // 2, 1),
                 32768,
             )
         )
 
-    def generate_xml(self, layout):
-        name = self._layout_name(layout)
-        out = OSXKeyLayout(name, self._layout_id(layout))
+    def generate_xml(self, name, layout):
+        name = self._layout_name(name, layout)
+        out = OSXKeyLayout(name, self._layout_id(name))
 
-        dead_keys = set(itertools.chain.from_iterable(layout.dead_keys.values()))
+        layout_view = DesktopLayoutView(layout, "mac")
+
+        dead_keys = set(itertools.chain.from_iterable(layout_view.dead_keys().values()))
         action_keys = set()
         for x in DictWalker(layout.transforms):
             for i in x[0] + (x[1],):
@@ -404,9 +412,9 @@ class MacGenerator(PhysicalGenerator):
         for mode_name in OSXKeyLayout.modes:
             logger.trace("BEGINNING MODE: %r" % mode_name)
 
-            mode = layout.modes.get(mode_name, None)
+            mode = layout_view.mode(mode_name)
             if mode is None:
-                msg = "layout '%s' has no mode '%s'" % (layout.internal_name, mode_name)
+                msg = "layout '%s' has no mode '%s'" % (name, mode_name)
                 if mode_name.startswith("osx-"):
                     logger.debug(msg)
                 else:
@@ -459,7 +467,11 @@ class MacGenerator(PhysicalGenerator):
                     out.set_transform_key(mode_name, key, key_id)
 
             # Space bar special case
-            sp = layout.special.get("space", {}).get(mode_name, " ")
+            if layout.space is not None:
+                sp = layout.space.get("mac", {}).get(mode_name, " ")
+            else:
+                sp = " "
+
             out.set_key(mode_name, sp, "49")
             if not self.disable_transforms and len(layout.transforms) > 0:
                 out.set_transform_key(mode_name, sp, "49")

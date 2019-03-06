@@ -607,7 +607,7 @@ def generate_osx_mods():
     o = OrderedDict()
     for mod in mods:
         mod = ("cmd",) + mod
-        o["osx-%s" % "+".join(mod)] = (" ".join(gen_conv(mod)),)
+        o["+".join(mod)] = (" ".join(gen_conv(mod)),)
     return o
 
 
@@ -618,23 +618,23 @@ class OSXKeyLayout:
     )
     modes = OrderedDict(
         (
-            ("iso-default", ("command?",)),
-            ("iso-shift", ("anyShift caps? command?",)),
-            ("iso-caps", ("caps",)),
-            ("iso-caps+shift", ("caps anyShift",)),
-            ("iso-alt", ("anyOption command?",)),
-            ("iso-alt+shift", ("anyOption anyShift caps? command?",)),
-            ("iso-caps+alt", ("caps anyOption command?",)),
-            ("iso-caps+alt+shift", ("caps anyOption anyShift command?",)),
-            ("iso-ctrl", ("anyShift? caps? anyOption? anyControl",)),
-            ("osx-cmd", ("command",)),
-            ("osx-cmd+shift", ("command anyShift",)),
+            ("default", ("command?",)),
+            ("shift", ("anyShift caps? command?",)),
+            ("caps", ("caps",)),
+            ("caps+shift", ("caps anyShift",)),
+            ("alt", ("anyOption command?",)),
+            ("alt+shift", ("anyOption anyShift caps? command?",)),
+            ("caps+alt", ("caps anyOption command?",)),
+            ("caps+alt+shift", ("caps anyOption anyShift command?",)),
+            ("ctrl", ("anyShift? caps? anyOption? anyControl",)),
+            ("cmd", ("command",)),
+            ("cmd+shift", ("command anyShift",)),
         )
     )
     modes.update(generate_osx_mods())
 
     # TODO unused
-    required = ("iso-default", "iso-shift", "iso-caps")
+    required = ("default", "shift", "caps")
 
     DEFAULT_CMD = parse_desktop_layout(
         r"""
