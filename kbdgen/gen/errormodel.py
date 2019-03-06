@@ -1,9 +1,9 @@
 import os.path
 
 from io import StringIO
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 from math import sqrt
-from .base import Generator
+from .base import Generator, MobileLayoutView
 from ..base import get_logger
 
 logger = get_logger(__file__)
@@ -96,6 +96,15 @@ def generate_att(coords):
 
 
 class ErrorModelGenerator(Generator):
+    @property
+    # @lru_cache(maxsize=1)
+    def supported_layouts(self):
+        o = OrderedDict()
+        for k, v in self._bundle.layouts.items():
+            if "ios" in v.modes or "mobile" in v.modes:
+                o[k] = v
+        return o
+
     def generate(self, base="."):
         out_dir = os.path.abspath(base)
         os.makedirs(out_dir, exist_ok=True)
@@ -103,16 +112,16 @@ class ErrorModelGenerator(Generator):
         selected_layout = self._args.get("layout", None)
         if selected_layout is None:
             logger.error("No layout provided with the -l flag; aborting.")
-            logger.info("Available layouts: %s" % ", ".join(self._project.layouts.keys()))
+            logger.info("Available layouts: %s" % ", ".join(self._bundle.layouts.keys()))
             return 1
         
-        layout = self._project.layouts.get(selected_layout, None)
+        layout = self._bundle.layouts.get(selected_layout, None)
         if layout is None:
             logger.error("Invalid layout selected.")
-            logger.info("Available layouts: %s" % ", ".join(self._project.layouts.keys()))
+            logger.info("Available layouts: %s" % ", ".join(self._bundle.layouts.keys()))
             return 1
 
-        mode = layout.modes["mobile-default"]
+        mode = MobileLayoutView(layout, "ios").mode("default")
 
         mode = convert_phy_mode(mode)
         offsets = calculate_row_offsets(mode)

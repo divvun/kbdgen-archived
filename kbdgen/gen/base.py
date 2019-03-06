@@ -131,8 +131,8 @@ class MobileGenerator(Generator):
 MSG_LAYOUT_MISSING = "Layout '%s' is missing a required mode: '%s'."
 
 
-def mode_iter(locale, keyboard, key, required=False):
-    mode = DesktopLayoutView(keyboard, "win").mode(key)
+def mode_iter(locale, keyboard, key, target, required=False):
+    mode = DesktopLayoutView(keyboard, target).mode(key)
     if mode is None:
         if required:
             raise GenerationError(MSG_LAYOUT_MISSING % (locale, key))
@@ -141,8 +141,8 @@ def mode_iter(locale, keyboard, key, required=False):
     return mode.values()
 
 
-def mode_dict(locale, keyboard, key, required=False, space=False):
-    mode = keyboard.modes.get(key, None)
+def mode_dict(locale, keyboard, key, target, required=False, space=False):
+    mode = DesktopLayoutView(keyboard, target).mode(key)
     if mode is None:
         if required:
             raise GenerationError(MSG_LAYOUT_MISSING % (locale, key))

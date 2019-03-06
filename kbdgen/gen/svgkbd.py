@@ -5,6 +5,7 @@ import itertools
 from lxml import etree
 from lxml.etree import Element, SubElement
 from textwrap import dedent
+from collections import OrderedDict
 
 from ..base import get_logger
 from .base import Generator, mode_dict, ISO_KEYS
@@ -14,6 +15,15 @@ logger = get_logger(__file__)
 
 
 class SVGGenerator(Generator):
+    @property
+    # @lru_cache(maxsize=1)
+    def supported_layouts(self):
+        o = OrderedDict()
+        for k, v in self._bundle.layouts.items():
+            if "desktop" in v.modes or "mac" in v.modes or "win" in v.modes:
+                o[k] = v
+        return o
+
     def generate(self, base="."):
         with open(
             os.path.join(os.path.dirname(__file__), "bin", "keyboard-iso.svg")
@@ -31,8 +41,8 @@ class SVGGenerator(Generator):
             files.append(
                 (
                     "%s.svg" % name,
-                    layout.display_names.get(layout.locale, layout.locale),
-                    self.generate_svg(layout, copy.deepcopy(root)),
+                    layout.display_names.get(name, name),
+                    self.generate_svg(name, layout, copy.deepcopy(root)),
                 )
             )
 
@@ -44,9 +54,7 @@ class SVGGenerator(Generator):
                 f.write(data)
 
         # Get English name, or fallback to internal name
-        kbd_name = self._project.locales.get("en", {}).get(
-            "name", self._project.internal_name
-        )
+        kbd_name = self._bundle.name
 
         with open(os.path.join(out_dir, "layout.html"), "w") as f:
             f.write(
@@ -160,56 +168,56 @@ class SVGGenerator(Generator):
             logger.warning("For char 0x%04x: %s" % (ord(secondary), e))
         return (g, p, s)
 
-    def generate_svg(self, layout, root):
-        default = mode_dict(layout, "iso-default", required=True)
-        shift = mode_dict(layout, "iso-shift")
+    def generate_svg(self, locale, layout, root):
+        default = mode_dict(locale, layout, "default", "win", required=True)
+        shift = mode_dict(locale, layout, "shift", "win")
 
-        caps = mode_dict(layout, "iso-caps")
-        caps_shift = mode_dict(layout, "iso-caps+shift")
+        caps = mode_dict(locale, layout, "caps", "win")
+        caps_shift = mode_dict(locale, layout, "caps+shift", "win")
 
-        alts = mode_dict(layout, "iso-alt")
-        alts_shift = mode_dict(layout, "iso-alt+shift")
+        alts = mode_dict(locale, layout, "alt", "win")
+        alts_shift = mode_dict(locale, layout, "alt+shift", "win")
 
-        alt_caps = mode_dict(layout, "iso-caps+alt")
-        alt_caps_shift = mode_dict(layout, "iso-caps+alt+shift")
+        alt_caps = mode_dict(locale, layout, "caps+alt", "win")
+        alt_caps_shift = mode_dict(locale, layout, "caps+alt+shift", "win")
 
         for k in itertools.chain(ISO_KEYS, ("A03",)):
             groups = []
 
             dk = decode_u(default.get(k, "")) or None
             dk_dead = dk is not None and default[k] in layout.dead_keys.get(
-                "iso-default", {}
+                "default", {}
             )
 
             sk = decode_u(shift.get(k, "")) or None
             sk_dead = sk is not None and shift[k] in layout.dead_keys.get(
-                "iso-shift", {}
+                "shift", {}
             )
 
             ack = decode_u(alt_caps.get(k, "")) or None
             ack_dead = ack is not None and alt_caps[k] in layout.dead_keys.get(
-                "iso-caps+alt", {}
+                "caps+alt", {}
             )
 
             acsk = decode_u(alt_caps_shift.get(k, "")) or None
             acsk_dead = acsk is not None and alt_caps_shift[k] in layout.dead_keys.get(
-                "iso-caps+alt+shift", {}
+                "caps+alt+shift", {}
             )
 
             ak = decode_u(alts.get(k, "")) or None
-            ak_dead = ak is not None and alts[k] in layout.dead_keys.get("iso-alt", {})
+            ak_dead = ak is not None and alts[k] in layout.dead_keys.get("alt", {})
 
             ask = decode_u(alts_shift.get(k, "")) or None
             ask_dead = ask is not None and alts_shift[k] in layout.dead_keys.get(
-                "iso-alt+shift", {}
+                "alt+shift", {}
             )
 
             ck = decode_u(caps.get(k, "")) or None
-            ck_dead = ck is not None and caps[k] in layout.dead_keys.get("iso-caps", {})
+            ck_dead = ck is not None and caps[k] in layout.dead_keys.get("caps", {})
 
             csk = decode_u(caps_shift.get(k, "")) or None
             csk_dead = csk is not None and caps_shift[k] in layout.dead_keys.get(
-                "iso-caps+shift", {}
+                "caps+shift", {}
             )
 
             g = root.xpath("//*[contains(@class,'%s')]" % k.lower())[0]

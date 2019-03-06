@@ -989,14 +989,14 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
         )
 
     def _klc_write_keys(self, locale, layout, buf):
-        col0 = mode_iter(locale, layout, "default", required=True)
-        col1 = mode_iter(locale, layout, "shift")
-        col2 = mode_iter(locale, layout, "ctrl")
-        col6 = mode_iter(locale, layout, "alt")
-        col7 = mode_iter(locale, layout, "alt+shift")
-        alt_caps = mode_iter(locale, layout, "alt+caps")
-        caps = mode_iter(locale, layout, "caps")
-        caps_shift = mode_iter(locale, layout, "caps+shift")
+        col0 = mode_iter(locale, layout, "default", "win", required=True)
+        col1 = mode_iter(locale, layout, "shift", "win")
+        col2 = mode_iter(locale, layout, "ctrl", "win")
+        col6 = mode_iter(locale, layout, "alt", "win")
+        col7 = mode_iter(locale, layout, "alt+shift", "win")
+        alt_caps = mode_iter(locale, layout, "alt+caps", "win")
+        caps = mode_iter(locale, layout, "caps", "win")
+        caps_shift = mode_iter(locale, layout, "caps+shift", "win")
 
         # Hold all the glyphbombs
         glyphbombs = []

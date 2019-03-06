@@ -1,4 +1,5 @@
 import os
+from collections import OrderedDict
 
 from ..base import get_logger
 from .base import Generator, filepath, mode_iter, ISO_KEYS
@@ -25,6 +26,16 @@ with open(filepath(__file__, "bin", "keysym.tsv")) as f:
 
 
 class XKBGenerator(Generator):
+    @property
+    # @lru_cache(maxsize=1)
+    def supported_layouts(self):
+        o = OrderedDict()
+        for k, v in self._bundle.layouts.items():
+            # TODO: we might need an X11 target
+            if "win" in v.modes or "desktop" in v.modes:
+                o[k] = v
+        return o
+
     def generate(self, base="."):
         if not self.sanity_check():
             return
@@ -36,9 +47,9 @@ class XKBGenerator(Generator):
             logger.info("Dry run completed.")
             return
 
-        xkb_fn = os.path.join(self.build_dir, "%s.xkb" % (self._project.internal_name))
+        xkb_fn = os.path.join(self.build_dir, "%s.xkb" % (self._bundle.name))
         xcompose_fn = os.path.join(
-            self.build_dir, "%s.xcompose" % (self._project.internal_name)
+            self.build_dir, "%s.xcompose" % (self._bundle.name)
         )
 
         # First char in Supplemental Private Use Area-A
@@ -77,12 +88,12 @@ class XKBGenerator(Generator):
         buf.write("default partial alphanumeric_keys\n")
         buf.write('xkb_symbols "basic" {\n\n')
         buf.write('    include "latin"\n')
-        buf.write('    name[Group1] = "%s";\n\n' % layout.display_names[layout.locale])
+        buf.write('    name[Group1] = "%s";\n\n' % layout.display_names[name])
 
-        col0 = mode_iter(layout, "iso-default", required=True)
-        col1 = mode_iter(layout, "iso-shift")
-        col2 = mode_iter(layout, "iso-alt")
-        col3 = mode_iter(layout, "iso-alt+shift")
+        col0 = mode_iter(name, layout, "default", "win", required=True)
+        col1 = mode_iter(name, layout, "shift", "win")
+        col2 = mode_iter(name, layout, "alt", "win")
+        col3 = mode_iter(name, layout, "alt+shift", "win")
 
         def xkb_filter(self, *args):
             out = [self.filter_xkb_keysyms(i) for i in args]
