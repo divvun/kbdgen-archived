@@ -344,6 +344,5 @@ class ProjectBundle:
     def targets(self):
         return self._targets
 
-    @property
     def resources(self, target):
         return os.path.join(self.relpath("resources"), target)
