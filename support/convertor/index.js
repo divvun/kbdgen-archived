@@ -158,9 +158,33 @@ function injectTransforms(newTransforms, layout) {
   recurseTransforms(newTransforms, transforms)
 }
 
+function cleanupLayoutTargets(locale, targets, oldResourcesPath, resourcesPath) {
+  if (targets.mac != null) {
+    const target = targets.mac
+
+    if (target.icon) {
+      const { icon } = target
+      delete target.icon
+
+      const thing = path.resolve(oldResourcesPath, icon)
+      console.log(thing)
+      if (!fs.existsSync(thing)) {
+        return
+      }
+
+      const ext = fs.extname(thing)
+      const newThing = path.join(resourcesPath, "mac", `icon.${locale}${ext}`)
+      console.log(newThing)
+
+      fs.copyFileSync(thing, newThing)
+    }
+  }
+}
+
 function injectLayoutTargets(newTargets, targets) {
-  for (let k in targets) {
-    if (k === "osx") {
+  for (const targetKey in targets) {
+    let k = targetKey
+    if (targetKey === "osx") {
       k = "mac"
     }
 
@@ -168,7 +192,7 @@ function injectLayoutTargets(newTargets, targets) {
       newTargets[k] = {}
     }
 
-    Object.assign(newTargets[k], targets[k])
+    Object.assign(newTargets[k], targets[targetKey])
   }
 }
 
@@ -238,17 +262,20 @@ function injectProjectTarget(target, key, oldProjectPath, bundlePath) {
 
       fs.copyFileSync(thing, path.join(resourcesPath, `${prefix}${ext}`))
     }
+  } else if (key === "ios" || key === "android") {
+    if (target.icon == null) {
+      return
+    }
 
-    // resources?: string;
-    // background?: string;
-    // license?: string;
-    // welcome?: string;
-    // readme?: string;
-    // conclusion?: string;
+    const thing = path.resolve(oldProjectPath, target.icon)
+    delete target.icon
 
+    if (!fs.existsSync(thing)) {
+      return
+    }
 
-  } else if (key === "win") {
-
+    const ext = path.extname(thing)
+    fs.copyFileSync(thing, path.join(resourcesPath, `icon.${ext}`))
   }
 }
 
@@ -343,20 +370,21 @@ async function start(projectYamlPath, bundlePath) {
       injectLongPresses(newLongpress, layout)
 
       if (layout.special && layout.special.space) {
-        if (newLayout.space == null) {
-          newLayout.space = {}
+        if (newLayout2.space == null) {
+          newLayout2.space = {}
         }
 
-        newLayout.space[guessedTarget] = cleanModeKeys(layout.special.space)
+        newLayout2.space[guessedTarget] = cleanModeKeys(layout.special.space)
       }
 
       if (layout.targets) {
         injectLayoutTargets(newTargets, layout.targets)
+        cleanupLayoutTargets(locale, newTargets, path.resolve(projectYamlPath, ".."), resourcesPath)
       }
       injectLegacyName(newTargets, guessedTarget, layout)
 
       if (layout.strings != null) {
-        newLayout.strings = layout.strings
+        newLayout2.strings = layout.strings
       }
     }
     

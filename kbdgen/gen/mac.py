@@ -167,13 +167,15 @@ class MacGenerator(PhysicalGenerator):
         return {}
 
     def write_icon(self, res_path, name, layout):
-        icon = self.layout_target(layout).get("icon", None)
-
-        if icon is None:
+        for x in os.listdir(self.mac_resources):
+            if x.startswith("icon.%s." % name):
+                icon = x
+                break
+        else:
             logger.warning("no icon for layout '%s'." % name)
             return
 
-        iconpath = self._bundle.relpath(icon)
+        iconpath = os.path.join(self.mac_resources, icon)
 
         fn = os.path.join(res_path, "%s.icns" % self._layout_name(name, layout))
         self.generate_iconset(iconpath, fn)

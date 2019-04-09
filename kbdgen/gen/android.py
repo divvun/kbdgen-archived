@@ -356,9 +356,13 @@ class AndroidGenerator(Generator):
             if os.path.isdir(d):
                 self._update_locale(d, values)
 
+    @property
+    def android_resources(self):
+        return self._bundle.resources("android")
+
     def generate_icons(self, base):
-        icon = self.android_target.icon
-        if icon is None:
+        icon = os.path.join(self.android_resources, "icon.png")
+        if not os.path.exists(icon):
             logger.warning("no icon supplied!")
             return
 

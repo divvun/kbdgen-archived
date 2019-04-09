@@ -440,8 +440,14 @@ class AppleiOSGenerator(Generator):
                 logger.info("Adding '%s' to '%s'…" % (bfn, nm))
                 shutil.copyfile(fn, os.path.join(path, bfn))
 
+    @property
+    def ios_resources(self):
+        return self._bundle.resources("ios")
+
     def gen_hosting_app_icons(self, build_dir):
-        if self.ios_target.icon is None:
+        icon = os.path.join(self.ios_resources, "icon.png")
+
+        if not os.path.exists(icon):
             logger.warning("no icon supplied!")
             return
 
@@ -461,7 +467,6 @@ class AppleiOSGenerator(Generator):
             h = float(h) * scale
             w = float(w) * scale
 
-            icon = self.ios_target.icon
             fn = "%s-%s@%s.png" % (obj["idiom"], obj["size"], obj["scale"])
             obj["filename"] = fn
             cmd = cmd_tmpl.format(h=h, w=w, src=icon, out=os.path.join(path, fn))
