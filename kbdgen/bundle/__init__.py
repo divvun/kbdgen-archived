@@ -186,16 +186,25 @@ def parse_modes(tree):
     return modes
 
 
+def try_decode_target(cls, target, obj):
+    try:
+        return cls.decode(obj)
+    except KeyError as e:
+        raise Exception("Error decoding target '%s', missing key: %s" % (
+            target, str(e)))
+
+
 def decode_target(name, obj):
     if name.startswith("win"):
-        return TargetWindows.decode(obj)
+        return try_decode_target(TargetWindows, "win", obj)
     if name.startswith("mac"):
-        return TargetMacOS.decode(obj)
+        return try_decode_target(TargetMacOS, "mac", obj)
     if name.startswith("ios"):
-        return TargetIOS.decode(obj)
+        return try_decode_target(TargetIOS, "ios", obj)
     if name.startswith("android"):
-        return TargetAndroid.decode(obj)
+        return try_decode_target(TargetAndroid, "android", obj)
     return obj
+
 
 def decompose(ch):
     x = unicodedata.normalize("NFKD", ch).replace(" ", "")
@@ -283,18 +292,22 @@ class ProjectBundle:
     
     @staticmethod
     def load(bundle_path):
+        logger.trace("Loading %r" % bundle_path)
         project_yaml_path = os.path.join(bundle_path, "project.yaml")
         layouts_path = os.path.join(bundle_path, "layouts")
         targets_path = os.path.join(bundle_path, "targets")
 
         with open(project_yaml_path) as f:
+            logger.trace("Loading project: %r" % project_yaml_path)
             project = Project.decode(normalized_yaml_load(f))
 
+        logger.trace("Loading layouts")
         layouts = dict([(
             os.path.splitext(x)[0],
             decode_layout(normalized_yaml_load(open(os.path.join(layouts_path, x))))
         ) for x in os.listdir(layouts_path)])
         
+        logger.trace("Loading targets")
         targets = dict([(
             os.path.splitext(x)[0],
             decode_target(x, normalized_yaml_load(open(os.path.join(targets_path, x))))
@@ -330,3 +343,7 @@ class ProjectBundle:
     @property
     def targets(self):
         return self._targets
+
+    @property
+    def resources(self, target):
+        return os.path.join(self.relpath("resources"), target)

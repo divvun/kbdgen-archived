@@ -30,6 +30,10 @@ class MacGenerator(PhysicalGenerator):
         return self._bundle.targets.get("mac", {})
 
     @property
+    def mac_resources(self):
+        return self._bundle.resources("mac")
+
+    @property
     # @lru_cache(maxsize=1)
     def supported_layouts(self):
         o = OrderedDict()
@@ -40,6 +44,14 @@ class MacGenerator(PhysicalGenerator):
 
     def sanity_check(self):
         if super().sanity_check() is False:
+            return False
+
+        if shutil.which("pkgbuild") is None:
+            logger.error("'pkgbuild' not found on PATH; are you running on macOS?")
+            return False
+            
+        if shutil.which("productbuild") is None:
+            logger.error("'productbuild' not found on PATH; are you running on macOS?")
             return False
 
         fail = False
@@ -279,14 +291,12 @@ class MacGenerator(PhysicalGenerator):
             onConclusion="RequireRestart",
         ).text = os.path.basename(component_fn)
 
-        target = self.mac_target
-
-        bg = target.background
+        bg = self.resource_with_prefix("background")
         if bg is not None:
             SubElement(root, "background", file=bg, alignment="bottomleft")
 
         for key in ("license", "welcome", "readme", "conclusion"):
-            fn = getattr(target, key, None)
+            fn = self.resource_with_prefix(key)
             if fn is not None:
                 SubElement(root, key, file=fn)
 
@@ -298,6 +308,18 @@ class MacGenerator(PhysicalGenerator):
             )
 
         return dist_fn
+
+    def resource_with_prefix(self, fn_prefix):
+        try:
+            files = os.listdir(self.mac_resources)
+        except Exception:
+            # No directory, no problem.
+            return None
+        
+        for fn in files:
+            if fn_prefix == os.path.splitext(fn)[0]:
+                return os.path.join(self.mac_resources, fn)
+        return None
 
     def create_component_pkg(self, bundle, version, working_dir):
         pkg_name = "%s.pkg" % self.mac_target.package_id

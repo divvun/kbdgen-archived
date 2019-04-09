@@ -12,6 +12,10 @@ const VALID_PROJECT_KEYS = [
 ]
 
 async function main() {
+  if (process.argv.length <= 3) {
+    console.log("Usage: convertor <projectYaml> <outputKbdgen>")
+    return
+  }
   return start(process.argv[2], process.argv[3])
 }
 
@@ -190,14 +194,73 @@ function injectLegacyName(newTargets, guessedTarget, layout) {
   }
 }
 
+function injectProjectTarget(target, key, oldProjectPath, bundlePath) {
+  const resourcesPath = path.join(bundlePath, "resources", key)
+  mkdirp(resourcesPath)
+
+  if (key === "mac") {
+    console.log(target)
+    if (target.resources == null) {
+      return
+    }
+
+    oldResourcesPath = path.resolve(oldProjectPath, target.resources)
+    console.log(oldResourcesPath)
+
+    const prefixes = [
+      "background",
+      "license",
+      "welcome",
+      "readme",
+      "conclusion"
+    ]
+
+    for (const prefix of prefixes) {
+      let thing = null
+
+      if (target[prefix] == null) {
+        // Need to derive the file name from the resources dir
+        const f = fs.readdirSync(oldResourcesPath).find((f) => f.startsWith(`${prefix}.`))
+        if (f != null) {
+          thing = path.join(oldResourcesPath, f)
+        }
+
+      } else {
+        thing = path.resolve(oldResourcesPath, target[prefix])
+      }
+
+      if (thing == null || !fs.existsSync(thing)) {
+        continue
+      }
+
+      const ext = path.extname(thing)
+
+      fs.copyFileSync(thing, path.join(resourcesPath, `${prefix}${ext}`))
+    }
+
+    // resources?: string;
+    // background?: string;
+    // license?: string;
+    // welcome?: string;
+    // readme?: string;
+    // conclusion?: string;
+
+
+  } else if (key === "win") {
+
+  }
+}
+
 async function start(projectYamlPath, bundlePath) {
   const layoutsPath = path.join(bundlePath, "layouts")
   const targetsPath = path.join(bundlePath, "targets")
+  const resourcesPath = path.join(bundlePath, "resources")
 
   // Create new bundle directory first + subdirs
   mkdirp(bundlePath)
   mkdirp(layoutsPath)
   mkdirp(targetsPath)
+  mkdirp(resourcesPath)
 
   const oldProject = yaml.safeLoad(fs.readFileSync(projectYamlPath, "utf8"))
   const newProject = {}
@@ -221,6 +284,8 @@ async function start(projectYamlPath, bundlePath) {
     if (key === "osx") {
       key = "mac"
     }
+
+    injectProjectTarget(target, key, path.resolve(projectYamlPath, ".."), bundlePath)
 
     fs.writeFileSync(path.join(targetsPath, `${key}.yaml`), yaml.safeDump(target), "utf8")
   }

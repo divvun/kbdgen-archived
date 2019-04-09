@@ -270,6 +270,10 @@ class WindowsGenerator(Generator):
     def win_target(self):
         return self._bundle.targets.get("win", {})
 
+    @property
+    def win_resources(self):
+        return self._bundle.resources("win")
+
     def get_or_download_kbdi(self):
         if os.environ.get("KBDI", None) is not None:
             kbdi = os.environ["KBDI"]
@@ -617,34 +621,29 @@ class WindowsGenerator(Generator):
 
     def _generate_inno_languages(self):
         out = []
-        target = self.win_target
+        
+        license_locales = [
+            os.path.splitext(x)[0].split(".").pop()
+            for x in os.listdir(self.win_resources)
+            if os.path.splitext(x)[0].startswith("license.")
+        ]
 
-        license_format = target.get("licenseFormat", "txt")
-        app_license_path = target.get("licensePath", None)
-        license_locales = []
-        if app_license_path is not None:
-            app_license_path = self._bundle.project.relpath(app_license_path)
-            license_locales = [
-                os.path.splitext(x)[0]
-                for x in os.listdir(app_license_path)
-                if x.endswith(".%s" % license_format)
-            ]
+        en_license = None
+        if os.path.exists(os.path.join(self.win_resources, "license.txt")):
             en_license = self._wine_path(
-                os.path.join(app_license_path, "en.%s" % license_format)
+                os.path.join(self.win_resources, "license.txt")
             )
 
-        readme_format = target.get("readmeFormat", "txt")
-        app_readme_path = target.get("readmePath", None)
-        readme_locales = []
-        if app_readme_path is not None:
-            app_readme_path = self._bundle.project.relpath(app_readme_path)
-            readme_locales = [
-                os.path.splitext(x)[0]
-                for x in os.listdir(app_readme_path)
-                if x.endswith(".%s" % readme_format)
-            ]
+        readme_locales = [
+            os.path.splitext(x)[0].split(".").pop()
+            for x in os.listdir(self.win_resources)
+            if os.path.splitext(x)[0].startswith("readme.")
+        ]
+
+        en_readme = None
+        if os.path.exists(os.path.join(self.win_resources, "readme.txt")):
             en_readme = self._wine_path(
-                os.path.join(app_readme_path, "en.%s" % readme_format)
+                os.path.join(self.win_resources, "readme.txt")
             )
 
         for locale, attrs in self._bundle.project.locales.items():
@@ -664,9 +663,9 @@ class WindowsGenerator(Generator):
             p = None
             if locale in license_locales:
                 p = self._wine_path(
-                    os.path.join(app_license_path, "%s.%s" % (locale, license_format))
+                    os.path.join(self.win_resources, "license.%s.txt" % locale)
                 )
-            elif app_license_path is not None:
+            elif en_license is not None:
                 p = en_license
             if p:
                 buf.write('; LicenseFile: "%s"' % p)
@@ -674,9 +673,9 @@ class WindowsGenerator(Generator):
             q = None
             if locale in readme_locales:
                 q = self._wine_path(
-                    os.path.join(app_readme_path, "%s.%s" % (locale, readme_format))
+                    os.path.join(self.win_resources, "readme.%s.txt" % locale)
                 )
-            elif app_readme_path is not None:
+            elif en_readme is not None:
                 q = en_readme
             if q:
                 buf.write('; InfoBeforeFile: "%s"' % q)
