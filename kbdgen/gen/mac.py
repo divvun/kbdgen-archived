@@ -437,7 +437,7 @@ class MacGenerator(PhysicalGenerator):
             mode = layout_view.mode(mode_name)
             if mode is None:
                 msg = "layout '%s' has no mode '%s'" % (name, mode_name)
-                if mode_name.startswith("cmd+"):
+                if mode_name.startswith("cmd") or mode_name.startswith("caps"):
                     logger.debug(msg)
                 else:
                     logger.warning(msg)
