@@ -352,7 +352,9 @@ class MacGenerator(PhysicalGenerator):
 
         component_pkg_path = self.create_component_pkg(bundle, version, working_dir)
 
-        resources = self.mac_resources
+        resources = self.mac_target.resources
+        if resources is not None:
+            resources = self._bundle.relpath(resources)
 
         dist_xml_path = self.generate_distribution_xml(component_pkg_path, working_dir)
 
@@ -369,7 +371,7 @@ class MacGenerator(PhysicalGenerator):
             working_dir.name,
         ]
 
-        if os.path.isdir(resources):
+        if resources is not None:
             cmd += ["--resources", resources]
 
         cmd += [pkg_name]
@@ -435,7 +437,7 @@ class MacGenerator(PhysicalGenerator):
             mode = layout_view.mode(mode_name)
             if mode is None:
                 msg = "layout '%s' has no mode '%s'" % (name, mode_name)
-                if mode_name.startswith("cmd-"):
+                if mode_name.startswith("cmd+"):
                     logger.debug(msg)
                 else:
                     logger.warning(msg)
