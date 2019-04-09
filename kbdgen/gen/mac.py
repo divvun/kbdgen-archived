@@ -352,9 +352,7 @@ class MacGenerator(PhysicalGenerator):
 
         component_pkg_path = self.create_component_pkg(bundle, version, working_dir)
 
-        resources = self.mac_target.resources
-        if resources is not None:
-            resources = self._bundle.relpath(resources)
+        resources = self.mac_resources
 
         dist_xml_path = self.generate_distribution_xml(component_pkg_path, working_dir)
 
@@ -371,7 +369,7 @@ class MacGenerator(PhysicalGenerator):
             working_dir.name,
         ]
 
-        if resources is not None:
+        if os.path.isdir(resources):
             cmd += ["--resources", resources]
 
         cmd += [pkg_name]
