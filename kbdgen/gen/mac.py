@@ -49,7 +49,7 @@ class MacGenerator(PhysicalGenerator):
         if shutil.which("pkgbuild") is None:
             logger.error("'pkgbuild' not found on PATH; are you running on macOS?")
             return False
-            
+
         if shutil.which("productbuild") is None:
             logger.error("'productbuild' not found on PATH; are you running on macOS?")
             return False
@@ -435,7 +435,7 @@ class MacGenerator(PhysicalGenerator):
             mode = layout_view.mode(mode_name)
             if mode is None:
                 msg = "layout '%s' has no mode '%s'" % (name, mode_name)
-                if mode_name.startswith("osx-"):
+                if mode_name.startswith("cmd-"):
                     logger.debug(msg)
                 else:
                     logger.warning(msg)

@@ -199,13 +199,13 @@ function injectProjectTarget(target, key, oldProjectPath, bundlePath) {
   mkdirp(resourcesPath)
 
   if (key === "mac") {
-    console.log(target)
     if (target.resources == null) {
       return
     }
 
     oldResourcesPath = path.resolve(oldProjectPath, target.resources)
-    console.log(oldResourcesPath)
+
+    delete target.resources
 
     const prefixes = [
       "background",
@@ -227,6 +227,7 @@ function injectProjectTarget(target, key, oldProjectPath, bundlePath) {
 
       } else {
         thing = path.resolve(oldResourcesPath, target[prefix])
+        delete target[prefix]
       }
 
       if (thing == null || !fs.existsSync(thing)) {
