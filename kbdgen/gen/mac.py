@@ -424,6 +424,10 @@ class MacGenerator(PhysicalGenerator):
 
         layout_view = DesktopLayoutView(layout, "mac")
 
+        # Create list to ignore false negatives for different targets
+        dead_key_lists = [v for v in [k.values() for k in layout.dead_keys.values()]]
+        all_dead_keys = set(itertools.chain.from_iterable([k for sublist in dead_key_lists for k in sublist]))
+        
         dead_keys = set(itertools.chain.from_iterable(layout_view.dead_keys().values()))
         action_keys = set()
         for x in DictWalker(layout.transforms):
@@ -504,11 +508,14 @@ class MacGenerator(PhysicalGenerator):
 
         class TransformWalker(DictWalker):
             def on_branch(self, base, branch):
-                logger.trace("BRANCH: %r" % branch)
+                logger.debug("BRANCH: %r" % branch)
                 if branch not in dead_keys or not out.actions.has(branch):
-                    logger.error(
-                        "Transform %r not supported; is a deadkey missing?" % branch
-                    )
+                    if branch in all_dead_keys:
+                        logger.debug("Transform %r not supported by current target." % branch)
+                    else:
+                        logger.error(
+                            "Transform %r not supported; is a deadkey missing?" % branch
+                        )
                     return False
 
                 action_id = out.actions.get(branch)  # "Key %s" % branch
@@ -537,7 +544,7 @@ class MacGenerator(PhysicalGenerator):
                     logger.error(
                         "[%s] Error while adding branch transform:\n%s\n%r"
                         % (
-                            layout.internal_name,
+                            name,
                             e,
                             (branch, action_id, when_state, next_state),
                         )
@@ -545,9 +552,10 @@ class MacGenerator(PhysicalGenerator):
 
             def on_leaf(self, base, branch, leaf):
                 if not out.actions.has(branch):
+                    logger.debug(out.actions)
                     logger.debug(
-                        "Leaf transform %r not supported. Is a deadkey missing?"
-                        % branch
+                        "Leaf (%r) transform %r not supported. Is a deadkey missing?"
+                        % (leaf, branch)
                     )
                     return
 
