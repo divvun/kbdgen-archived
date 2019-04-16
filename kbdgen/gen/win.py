@@ -859,8 +859,8 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
         for locale, layout in self.supported_layouts.items():
             kbd_id = self._klc_get_name(locale, layout)
             dll_name = "%s.dll" % kbd_id
-            language_code = self.layout_target(layout).get("locale", layout.locale)
-            language_name = self.layout_target(layout).get("languageName", None)
+            language_code = getattr(self.layout_target(layout), "locale", layout.locale)
+            language_name = getattr(self.layout_target(layout), "languageName", None)
             if language_name is not None:
                 logger.info(
                     "Using language name '%s' for layout '%s'."
