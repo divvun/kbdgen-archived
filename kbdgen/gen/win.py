@@ -885,14 +885,14 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
             run_scr.write(' -g ""{%s""' % guid_str)  # Product code
             run_scr.write(" -d %s" % dll_name)  # Layout DLL
             run_scr.write(
-                ' -n ""%s""' % layout.native_display_name
+                ' -n ""%s""' % layout.display_names[locale]
             )  # Layout native display name
             run_scr.write(" -e")  # Enable layout after installing it
             run_scr.write('"; Flags: runhidden waituntilterminated\n')
 
             # Enablement icon
             icons_scr.write(
-                'Name: "{group}\\{cm:Enable,%s}"; ' % layout.native_display_name
+                'Name: "{group}\\{cm:Enable,%s}"; ' % layout.display_names[locale]
             )
             icons_scr.write('Filename: "{app}\\kbdi.exe"; ')
             icons_scr.write(
