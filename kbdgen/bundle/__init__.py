@@ -297,7 +297,7 @@ class ProjectBundle:
         layouts_path = os.path.join(bundle_path, "layouts")
         targets_path = os.path.join(bundle_path, "targets")
 
-        with open(project_yaml_path) as f:
+        with open(project_yaml_path, encoding="utf-8") as f:
             logger.trace("Loading project: %r" % project_yaml_path)
             project = Project.decode(normalized_yaml_load(f))
 
