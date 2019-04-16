@@ -304,13 +304,13 @@ class ProjectBundle:
         logger.trace("Loading layouts")
         layouts = dict([(
             os.path.splitext(x)[0],
-            decode_layout(normalized_yaml_load(open(os.path.join(layouts_path, x))))
+            decode_layout(normalized_yaml_load(open(os.path.join(layouts_path, x), encoding="utf-8")))
         ) for x in os.listdir(layouts_path)])
         
         logger.trace("Loading targets")
         targets = dict([(
             os.path.splitext(x)[0],
-            decode_target(x, normalized_yaml_load(open(os.path.join(targets_path, x))))
+            decode_target(x, normalized_yaml_load(open(os.path.join(targets_path, x),  encoding="utf-8")))
         ) for x in os.listdir(targets_path)])
 
         return ProjectBundle(bundle_path, project, layouts, targets)
