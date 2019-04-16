@@ -436,12 +436,12 @@ class WindowsGenerator(Generator):
     def sanity_check(self):
         if super().sanity_check() is False:
             return False
-        pfx = self.win_target.code_sign_pfx
+        pfx = self.win_target.code_sign_pfx or os.environ.get("CODESIGN_PFX", None)
         codesign_pw = os.environ.get("CODESIGN_PW", None)
 
         if pfx is not None and codesign_pw is None:
             logger.error(
-                "Environment variable CODESIGN_PW must be set for a release build."
+                "Environment variable CODESIGN_PW and/or CODESIGN_PFX must be set for a release build."
             )
             return False
         elif pfx is None:
