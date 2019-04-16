@@ -808,7 +808,8 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
             self._generate_inno_custom_messages(),
         )
 
-        custom_locales = target.get("customLocales", None)
+        # TODO: add an actual thing for this
+        custom_locales = getattr(target, "customLocales", None)
 
         if custom_locales is not None:
             custom_locales_path = self._bundle.relpath(custom_locales)
