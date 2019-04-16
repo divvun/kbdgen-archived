@@ -433,13 +433,17 @@ class WindowsGenerator(Generator):
             return layout.targets.get("win", {})
         return {}
 
+    @property
+    def codesign_pfx(self):
+        return self.win_target.code_sign_pfx or os.environ.get("CODESIGN_PFX", None)
+
     def sanity_check(self):
         if super().sanity_check() is False:
             return False
-        pfx = self.win_target.code_sign_pfx or os.environ.get("CODESIGN_PFX", None)
+        pfx = self.codesign_pfx
         codesign_pw = os.environ.get("CODESIGN_PW", None)
 
-        if pfx is not None and codesign_pw is None:
+        if pfx is not None or codesign_pw is None:
             logger.error(
                 "Environment variable CODESIGN_PW and/or CODESIGN_PFX must be set for a release build."
             )
@@ -593,7 +597,7 @@ class WindowsGenerator(Generator):
         )
         run_process(cmd, cwd=out_path)
 
-        pfx = self.win_target.code_sign_pfx
+        pfx = self.codesign_pfx
         if pfx is None:
             logger.warn(
                 "'%s' for %s was not code signed due to no codeSignPfx property."
@@ -708,7 +712,7 @@ class WindowsGenerator(Generator):
     
     def _generate_inno_setup(self, app_url, os_):
         o = self._generate_inno_os_config(os_).strip() + "\n"
-        pfx = self.win_target.code_sign_pfx
+        pfx = self.codesign_pfx
         if pfx is None:
             return o
         pfx = self._bundle.relpath(pfx)
