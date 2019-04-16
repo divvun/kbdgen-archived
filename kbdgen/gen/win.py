@@ -486,7 +486,7 @@ class WindowsGenerator(Generator):
                     locale: xyz-Latn
                 """  # noqa: E501
                     )
-                    % layout.internal_name
+                    % locale
                 )
                 return False
 
@@ -513,7 +513,7 @@ class WindowsGenerator(Generator):
                     "Duplicate id found for '%s': '%s'; "
                     + "set targets.win.id to override."
                 )
-                logger.error(msg, layout.internal_name, id_)
+                logger.error(msg, locale, id_)
             else:
                 ids.append(id_)
 
@@ -864,7 +864,7 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
             if language_name is not None:
                 logger.info(
                     "Using language name '%s' for layout '%s'."
-                    % (language_name, layout.internal_name)
+                    % (language_name, locale)
                 )
             else:
                 logger.info(
@@ -873,7 +873,7 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
                         + "can be overridden by providing a value for "
                         + "targets.win.languageName."
                     )
-                    % layout.internal_name
+                    % locale
                 )
             guid_str = "{%s}" % str(guid(kbd_id)).upper()
 
