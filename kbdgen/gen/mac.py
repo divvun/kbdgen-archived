@@ -42,6 +42,10 @@ class MacGenerator(PhysicalGenerator):
                 o[k] = v
         return o
 
+    @property
+    def sign_id(self):
+        return self.mac_target.code_sign_id or os.environ.get("CODE_SIGN_ID")
+
     def sanity_check(self):
         if super().sanity_check() is False:
             return False
@@ -52,6 +56,11 @@ class MacGenerator(PhysicalGenerator):
 
         if shutil.which("productbuild") is None:
             logger.error("'productbuild' not found on PATH; are you running on macOS?")
+            return False
+
+        if self.sign_id is None:
+            logger.error("No signing identify found, release build not possible.")
+            logger.error("Add `codeSignId` property to mac target yaml or set CODE_SIGN_ID environment variable.")
             return False
 
         fail = False
@@ -395,13 +404,7 @@ class MacGenerator(PhysicalGenerator):
 
         signed_path = "%s %s.pkg" % (self.mac_target.bundle_name, version)
 
-        sign_id = self.mac_target.code_sign_id
-
-        if sign_id is None:
-            logger.error("No signing identify found; skipping.")
-            return
-
-        cmd = ["productsign", "--sign", sign_id, pkg_path, signed_path]
+        cmd = ["productsign", "--sign", self.sign_id, pkg_path, signed_path]
         run_process(cmd, self.build_dir)
 
         cmd = ["pkgutil", "--check-signature", signed_path]
