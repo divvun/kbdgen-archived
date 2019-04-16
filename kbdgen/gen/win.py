@@ -443,7 +443,7 @@ class WindowsGenerator(Generator):
         pfx = self.codesign_pfx
         codesign_pw = os.environ.get("CODESIGN_PW", None)
 
-        if pfx is not None or codesign_pw is None:
+        if self.is_release and (pfx is None or codesign_pw is None):
             logger.error(
                 "Environment variable CODESIGN_PW and/or CODESIGN_PFX must be set for a release build."
             )
