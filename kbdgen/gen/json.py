@@ -30,20 +30,37 @@ class QRGenerator(Generator):
             logger.error("`qrencode` not found on PATH.")
             return
 
+        command = self._args.get("command", None)
+        logger.trace("Command: %s" % command)
+        preferred_locale = None
+        if command is not None:
+            preferred_locale = command
+
+        tree = None
         for name, layout in self._bundle.layouts.items():
-            logger.info("Choosing first layout from project: %s" % name)
-            tree = layout
-            break
+            if preferred_locale is not None:
+                if name == preferred_locale:
+                    logger.info("Using given locale: %s", preferred_locale)
+                    tree = layout
+                    break
+            else:
+                logger.info("Choosing first layout from project: %s" % name)
+                tree = layout
+                break
+        
+        if tree is None:
+            logger.error("No locale found.")
+            return
 
         layout_view = MobileLayoutView(tree, "ios")
 
         o = {
-            "name": layout.native_display_name,
-            "space": tree["strings"]["space"],
-            "enter": tree["strings"]["return"],
+            "name": layout.display_names[name],
+            "space": tree.strings.space,
+            "enter": tree.strings._return,
             "normal": layout_view.mode("default"),
             "shifted": layout_view.mode("shift"),
-            "longPress": tree["longpress"]
+            "longPress": tree.longpress
         }
 
         data = json.dumps(o, ensure_ascii=False, separators=(',', ':'))
