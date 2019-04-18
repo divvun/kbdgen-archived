@@ -338,6 +338,7 @@ class WindowsGenerator(Generator):
         build_dir = os.path.abspath(base)
         os.makedirs(build_dir, exist_ok=True)
 
+        signcode = self.get_or_download_signcode()
         executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
         try:
             futures = []
@@ -349,17 +350,17 @@ class WindowsGenerator(Generator):
                 if self.is_release:
                     futures.append(
                         executor.submit(
-                            self.build_dll, name, "i386", klc_path, build_dir
+                            self.build_dll, name, "i386", klc_path, signcode, build_dir
                         )
                     )
                     futures.append(
                         executor.submit(
-                            self.build_dll, name, "amd64", klc_path, build_dir
+                            self.build_dll, name, "amd64", klc_path, signcode, build_dir
                         )
                     )
                     futures.append(
                         executor.submit(
-                            self.build_dll, name, "wow64", klc_path, build_dir
+                            self.build_dll, name, "wow64", klc_path, signcode, build_dir
                         )
                     )
 
@@ -583,7 +584,7 @@ class WindowsGenerator(Generator):
         else:
             return "%s/bin/i386/kbdutool.exe" % self.get_msklc_dir()
 
-    def build_dll(self, name, arch, klc_path, build_dir):
+    def build_dll(self, name, arch, klc_path, signcode, build_dir):
         # x86, x64, wow64
         flags = {"i386": "-x", "amd64": "-m", "wow64": "-o"}
 
@@ -611,7 +612,7 @@ class WindowsGenerator(Generator):
         logger.debug("PFX path: %s", pfx_path)
 
         cmd = self._wine_cmd(
-            self._wine_path(self.get_or_download_signcode()),
+            self._wine_path(signcode),
             "-a",
             "sha1",
             "-t",
