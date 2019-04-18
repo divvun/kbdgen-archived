@@ -15,7 +15,7 @@ def stream_download(url: str, fn: str, output_file: str):
         block_size = 1024
         content_len = None
 
-        for block in r.iter_content(block_size):
+        for block in r.iter_content(block_size, decode_unicode=False):
             if not block:
                 continue
             f.write(block)

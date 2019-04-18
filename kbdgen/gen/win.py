@@ -324,7 +324,8 @@ class WindowsGenerator(Generator):
                 kbdi = self.get_or_download_kbdi()
                 kbdi_legacy = self.get_or_download_kbdi_legacy()
             except Exception as e:
-                logger.critical(e)
+                logger.critical("kbdi did a fail")
+                raise e
                 return
 
         for locale, layout in self.supported_layouts.items():
