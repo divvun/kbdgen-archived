@@ -58,6 +58,8 @@ def truncate_middle(text: str, sz: int) -> str:
 
 
 def write_download_progress(fn: str, cur_sz: int, max_sz: int):
+    if platform.system() == "Windows":
+        return
     if cur_sz < 1000:
         c = "%s B" % cur_sz
     else:
