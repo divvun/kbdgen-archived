@@ -625,12 +625,19 @@ class WindowsGenerator(Generator):
         )
         run_process(cmd, cwd=out_path)
 
+    @property
+    def win_resources_list(self):
+        try:
+            return os.listdir(self.win_resources)
+        except:
+            return []
+
     def _generate_inno_languages(self):
         out = []
         
         license_locales = [
             os.path.splitext(x)[0].split(".").pop()
-            for x in os.listdir(self.win_resources)
+            for x in self.win_resources_list
             if os.path.splitext(x)[0].startswith("license.")
         ]
 
@@ -642,7 +649,7 @@ class WindowsGenerator(Generator):
 
         readme_locales = [
             os.path.splitext(x)[0].split(".").pop()
-            for x in os.listdir(self.win_resources)
+            for x in self.win_resources_list
             if os.path.splitext(x)[0].startswith("readme.")
         ]
 
