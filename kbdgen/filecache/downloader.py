@@ -2,6 +2,7 @@ import humanize
 import requests
 import sys
 import shutil
+import platform
 
 clr_line = "%c[2K\r" % 27
 blocks = " ▏▎▍▌▋▊▉█"
