@@ -592,8 +592,8 @@ class AppleiOSGenerator(Generator):
 
     def all_bundle_ids(self):
         out = []
-        for layout in self.supported_layouts.values():
-            bundle_id = "%s.%s" % (self.pkg_id, layout.internal_name.replace("_", "-"))
+        for locale, layout in self.supported_layouts.items():
+            bundle_id = "%s.%s" % (self.pkg_id, locale.replace("_", "-"))
             out.append(bundle_id)
         return out
 

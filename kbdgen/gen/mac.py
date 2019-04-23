@@ -575,7 +575,7 @@ class MacGenerator(PhysicalGenerator):
                 except Exception as e:
                     logger.error(
                         "[%s] Error while adding leaf transform:\n%s\n%r"
-                        % (layout.internal_name, e, (action_id, when_state, leaf))
+                        % (name, e, (action_id, when_state, leaf))
                     )
 
         if not self.disable_transforms:
