@@ -1059,7 +1059,7 @@ class TargetWindows:
     return "<TargetWindows version:{!r}, app_name:{!r}, url:{!r}, uuid:{!r}, code_sign_pfx:{!r}, custom_locales:{!r}, license_path:{!r}, readme_path:{!r}>".format(self.version, self.app_name, self.url, self.uuid, self.code_sign_pfx, self.custom_locales, self.license_path, self.readme_path)
 
 class TargetMacOS:
-  def __init__(self, version, build, package_id, icon, bundle_name, team_id, code_sign_id, resources, background):
+  def __init__(self, version, build, package_id, icon, bundle_name, team_id, code_sign_id):
     self.version = version
     self.build = build
     self.package_id = package_id
@@ -1067,8 +1067,6 @@ class TargetMacOS:
     self.bundle_name = bundle_name
     self.team_id = team_id
     self.code_sign_id = code_sign_id
-    self.resources = resources
-    self.background = background
 
   def get_version(self):
     return self.version
@@ -1090,12 +1088,6 @@ class TargetMacOS:
 
   def get_code_sign_id(self):
     return self.code_sign_id
-
-  def get_resources(self):
-    return self.resources
-
-  def get_background(self):
-    return self.background
 
   @staticmethod
   def decode(data):
@@ -1146,25 +1138,7 @@ class TargetMacOS:
         if not isinstance(f_code_sign_id, str):
           raise Exception("not a string")
 
-    f_resources = None
-
-    if "resources" in data:
-      f_resources = data["resources"]
-
-      if f_resources is not None:
-        if not isinstance(f_resources, str):
-          raise Exception("not a string")
-
-    f_background = None
-
-    if "background" in data:
-      f_background = data["background"]
-
-      if f_background is not None:
-        if not isinstance(f_background, str):
-          raise Exception("not a string")
-
-    return TargetMacOS(f_version, f_build, f_package_id, f_icon, f_bundle_name, f_team_id, f_code_sign_id, f_resources, f_background)
+    return TargetMacOS(f_version, f_build, f_package_id, f_icon, f_bundle_name, f_team_id, f_code_sign_id)
 
   def encode(self):
     data = dict()
@@ -1198,13 +1172,7 @@ class TargetMacOS:
     if self.code_sign_id is not None:
       data["codeSignId"] = self.code_sign_id
 
-    if self.resources is not None:
-      data["resources"] = self.resources
-
-    if self.background is not None:
-      data["background"] = self.background
-
     return data
 
   def __repr__(self):
-    return "<TargetMacOS version:{!r}, build:{!r}, package_id:{!r}, icon:{!r}, bundle_name:{!r}, team_id:{!r}, code_sign_id:{!r}, resources:{!r}, background:{!r}>".format(self.version, self.build, self.package_id, self.icon, self.bundle_name, self.team_id, self.code_sign_id, self.resources, self.background)
+    return "<TargetMacOS version:{!r}, build:{!r}, package_id:{!r}, icon:{!r}, bundle_name:{!r}, team_id:{!r}, code_sign_id:{!r}>".format(self.version, self.build, self.package_id, self.icon, self.bundle_name, self.team_id, self.code_sign_id)
