@@ -309,6 +309,10 @@ class AppleiOSGenerator(Generator):
             logger.error("Application ended with error code %s." % process.returncode)
             sys.exit(process.returncode)
 
+    @property
+    def sign_id(self):
+        return self.ios_target.code_sign_id or os.environ.get("CODE_SIGN_ID")
+
     def build_release(self, base_dir, deps_dir, pbxproj_path, pbxproj):
         build_dir = deps_dir
         # TODO check signing ID exists in advance (in sanity checks)
@@ -323,7 +327,8 @@ class AppleiOSGenerator(Generator):
         if os.path.exists(ipa):
             os.remove(ipa)
 
-        code_sign_id = self.ios_target.code_sign_id
+
+        code_sign_id = self.sign_id
 
         if code_sign_id is None:
             raise Exception("codeSignId cannot be null")
