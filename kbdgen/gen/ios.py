@@ -140,7 +140,7 @@ class AppleiOSGenerator(Generator):
             self.update_plist(plist, f)
 
         kbd_plist_path = os.path.join(deps_dir, "Keyboard", "Info.plist")
-        dev_team = self.ios_target.team_id
+        dev_team = self.team_id
 
         with open(kbd_plist_path, "rb") as f:
             kbd_plist = plistlib.load(f, dict_type=OrderedDict)
@@ -310,6 +310,10 @@ class AppleiOSGenerator(Generator):
             sys.exit(process.returncode)
 
     @property
+    def team_id(self):
+        return self.ios_target.team_id or os.environ.get("TEAM_ID")
+    
+    @property
     def sign_id(self):
         return self.ios_target.code_sign_id or os.environ.get("CODE_SIGN_ID")
 
@@ -333,7 +337,7 @@ class AppleiOSGenerator(Generator):
         if code_sign_id is None:
             raise Exception("codeSignId cannot be null")
 
-        team_id = self.ios_target.teamId
+        team_id = self.team_id
 
         if team_id is None:
             raise Exception("teamId cannot be null")
