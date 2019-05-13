@@ -83,6 +83,10 @@ class AndroidGenerator(Generator):
     def _build(self):
         return self.android_target.build
 
+    @property
+    def _name(self):
+        return self._bundle.name
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.cache = FileCache()
@@ -456,7 +460,7 @@ class AndroidGenerator(Generator):
         path = os.path.join(base, "deps", self.REPO, "app/build/outputs/apk", suffix)
         fn = "app-%s.apk" % suffix
         out_fn = os.path.join(
-            base, "%s-%s_%s.apk" % (os.path.splitext(os.path.basename(self._bundle.path))[0], self._version, suffix)
+            base, "%s-%s_%s.apk" % (self._name, self._version, suffix)
         )
 
         logger.info("Copying '%s' -> '%s'…" % (fn, out_fn))
