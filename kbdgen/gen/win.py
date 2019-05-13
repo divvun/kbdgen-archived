@@ -2,6 +2,7 @@ import io
 import os
 import os.path
 import ntpath
+import langcodes
 import lcid as lcidlib
 import unicodedata
 import shutil
@@ -972,6 +973,23 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
             return "kbd" + id_
         return "kbd" + re.sub(r"[^A-Za-z0-9-]", "", locale)[:5]
 
+    def override_locale(self, locale, layout):
+        l = self.layout_target(layout).get("locale", locale)
+        if lcidlib.get(l) is not None:
+            logger.trace("Override locale: %r", l)
+            return l
+        
+        o = langcodes.Language.get(l)
+        if o.script is None:
+            o.script = "Latn"
+        if o.region is None:
+            o.region = "001"
+        
+        # The language object is weirdly immutable, so feed it itself.
+        o = langcodes.Language.make(**o.to_dict()).to_tag()
+        logger.trace("Override locale: %r", o)
+        return o
+        
     def _klc_write_headers(self, locale, layout, buf):
         buf.write(
             'KBD\t%s\t"%s"\n\n'
@@ -980,7 +998,7 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
 
         copyright_ = self._bundle.project.copyright or r"¯\_(ツ)_/¯"
         organisation = self._bundle.project.organisation or r"¯\_(ツ)_/¯"
-        override_locale = self.layout_target(layout).get("locale", locale)
+        override_locale = self.override_locale(locale, layout)
 
         buf.write('COPYRIGHT\t"%s"\n\n' % copyright_)
         buf.write('COMPANY\t"%s"\n\n' % organisation)
