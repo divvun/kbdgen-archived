@@ -528,7 +528,6 @@ class WindowsGenerator(Generator):
             return False
 
         if not self.is_release:
-            logger.trace("Yalooo")
             return True
 
         if not is_windows:
