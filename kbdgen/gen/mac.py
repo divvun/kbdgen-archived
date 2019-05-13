@@ -176,12 +176,16 @@ class MacGenerator(PhysicalGenerator):
         return {}
 
     def write_icon(self, res_path, name, layout):
-        for x in os.listdir(self.mac_resources):
-            if x.startswith("icon.%s." % name):
-                icon = x
-                break
-        else:
-            logger.warning("no icon for layout '%s'." % name)
+        try:
+            for x in os.listdir(self.mac_resources):
+                if x.startswith("icon.%s." % name):
+                    icon = x
+                    break
+            else:
+                logger.warning("no icon for layout '%s'." % name)
+                return
+        except:
+            logger.debug("No resources directory.")
             return
 
         iconpath = os.path.join(self.mac_resources, icon)
@@ -363,7 +367,7 @@ class MacGenerator(PhysicalGenerator):
 
         component_pkg_path = self.create_component_pkg(bundle, version, working_dir)
 
-        resources = self.mac_target.resources
+        resources = self.mac_resources
         if resources is not None:
             resources = self._bundle.relpath(resources)
 
