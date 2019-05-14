@@ -120,9 +120,9 @@ class MobileLayoutMode(dict):
 
 class DesktopLayoutMode(dict):
     @staticmethod
-    def decode(obj):
+    def decode(obj, modes=DESKTOP_MODES):
         o = {}
-        for k in DESKTOP_MODES:
+        for k in modes:
             if k in obj:
                 o[k] = parse_desktop_layout(obj[k])
         return DesktopLayoutMode(**o)
@@ -178,8 +178,9 @@ def parse_modes(tree):
         modes["win"] = win_layers
 
     if "mac" in tree:
-        mac_layers = DesktopLayoutMode.decode(tree["mac"])
+        mac_layers = DesktopLayoutMode.decode(tree["mac"], DESKTOP_MODES | MAC_MODES)
         mac_keyset = frozenset(mac_layers.keys())
+        logger.trace("Keyset: %r" % mac_keyset)
         assert_valid_keysets(mac_keyset, desktop_keyset, DESKTOP_MODES | MAC_MODES, "mac", "desktop")
         modes["mac"] = mac_layers
 
