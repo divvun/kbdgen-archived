@@ -180,7 +180,6 @@ def parse_modes(tree):
     if "mac" in tree:
         mac_layers = DesktopLayoutMode.decode(tree["mac"], DESKTOP_MODES | MAC_MODES)
         mac_keyset = frozenset(mac_layers.keys())
-        logger.trace("Keyset: %r" % mac_keyset)
         assert_valid_keysets(mac_keyset, desktop_keyset, DESKTOP_MODES | MAC_MODES, "mac", "desktop")
         modes["mac"] = mac_layers
 
