@@ -326,7 +326,7 @@ class ProjectBundle:
 
     @property
     def name(self):
-        return os.path.splitext(os.path.basename(self._path))[0]
+        return os.path.splitext(os.path.basename(self._path[:-1]))[0]
 
     @property
     def path(self):
