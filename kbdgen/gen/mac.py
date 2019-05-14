@@ -212,6 +212,7 @@ class MacGenerator(PhysicalGenerator):
             self.mac_target.package_id,
             self._bundle.name
         )
+
         bundle_path = os.path.join(path, "%s.bundle" % bundle_id)
         if os.path.exists(bundle_path):
             shutil.rmtree(bundle_path)
@@ -427,6 +428,26 @@ class MacGenerator(PhysicalGenerator):
             )
         )
 
+    def _numpad(self, decimal):
+        return (
+            (65, decimal),
+            (67, "*"),
+            (69, "+"),
+            (75, "/"),
+            (78, "-"),
+            (81, "="),
+            (82, "0"),
+            (83, "1"),
+            (84, "2"),
+            (85, "3"),
+            (86, "4"),
+            (87, "5"),
+            (88, "6"),
+            (89, "7"),
+            (91, "8"),
+            (92, "9")
+        )
+
     def generate_xml(self, name, layout):
         name = self._layout_name(name, layout)
         out = OSXKeyLayout(name, self._layout_id(name))
@@ -514,6 +535,11 @@ class MacGenerator(PhysicalGenerator):
             # Add hardcoded keyboard bits
             for key_id, key in OSX_HARDCODED.items():
                 out.set_key(mode_name, key, key_id)
+
+            # Add numpad
+            decimal = "." if mode_name == "ctrl" else (layout.decimal or ".")
+            for key_id, key in self._numpad(decimal):
+                out.set_key(mode_name, str(key), str(key_id))
 
         class TransformWalker(DictWalker):
             def on_branch(self, base, branch):
