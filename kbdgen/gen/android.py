@@ -292,7 +292,7 @@ class AndroidGenerator(Generator):
             shutil.rmtree(dict_path)
         os.makedirs(dict_path, exist_ok=True)
 
-        files = glob.glob(os.path.join(self._bundle.path, "*.zhfst"))
+        files = glob.glob(os.path.join(self._bundle.path, "../*.zhfst"))
         if len(files) == 0:
             logger.warning("No ZHFST files found.")
             return
