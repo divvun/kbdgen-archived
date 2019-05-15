@@ -443,7 +443,7 @@ class AppleiOSGenerator(Generator):
         use_chfst = self.ios_target.chfst or False
 
         if use_chfst:
-            files = glob.glob(os.path.join(self._bundle.path, "*.chfst"))
+            files = glob.glob(os.path.join(self._bundle.path, "../*.chfst"))
             if len(files) == 0:
                 logger.warning("No CHFST files found.")
                 return
@@ -453,7 +453,7 @@ class AppleiOSGenerator(Generator):
                 logger.info("Adding '%s' to '%s'…" % (bfn, nm))
                 shutil.copytree(fn, os.path.join(path, bfn))
         else:
-            files = glob.glob(os.path.join(self._bundle.path, "*.zhfst"))
+            files = glob.glob(os.path.join(self._bundle.path, "../*.zhfst"))
             if len(files) == 0:
                 logger.warning("No ZHFST files found.")
                 return
