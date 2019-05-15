@@ -94,6 +94,20 @@ class AppleiOSGenerator(Generator):
                 o[k] = v
         return o
 
+    def sanity_check(self):
+        if not super().sanity_check():
+            return False
+
+        if self.is_release and self.team_id is None:
+            logger.error("TEAM_ID must be set.")
+            return False
+
+        if self.is_release and self.sign_id is None:
+            logger.error("CODE_SIGN_ID must be set.")
+            return False
+
+        return True
+
     def generate(self, base="."):
         command = self._args.get("command", None)
         if command is not None:
