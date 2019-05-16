@@ -410,6 +410,14 @@ class AppleiOSGenerator(Generator):
         with open(plist, "wb") as f:
             plistlib.dump(plist_obj, f)
 
+        cmd = "cargo lipo --targets aarch64-apple-ios,x86_64-apple-ios,armv7-apple-ios --release -vv"
+        logger.info("Running divvunspell build...")
+        logger.trace(cmd)
+        returncode = run_process(cmd, cwd=os.path.join(deps_dir, "Dependencies", "hfst-ospell-rs"), shell=True, show_output=True)
+        if returncode != 0:
+            logger.error("Application ended with error code %s." % returncode)
+            sys.exit(returncode)
+
         cmd1 = (
             'xcodebuild archive -archivePath "%s" ' % xcarchive
             + "-workspace GiellaKeyboard.xcworkspace -configuration Release "
