@@ -367,14 +367,17 @@ class AppleiOSGenerator(Generator):
             logger.info("Doing a CI build!")
             logger.info("Setting up keychain…")
 
-            env["MATCH_KEYCHAIN_NAME"] = "build"
-            env["MATCH_KEYCHAIN_PASSWORD"] = "build"
+            match_name = "fastlane_tmp_keychain"
+            match_pw = ""
+
+            env["MATCH_KEYCHAIN_NAME"] = match_name
+            env["MATCH_KEYCHAIN_PASSWORD"] = match_pw
 
             cmds = [
-                "security create-keychain -p build build.keychain",
-                "security default-keychain -s build.keychain",
-                "security unlock-keychain -p build build.keychain",
-                "security set-keychain-settings -t 7200 -u build.keychain"
+                "security create-keychain -p \"%s\" %s.keychain" % (match_pw, match_name),
+                "security default-keychain -s %s.keychain" % match_name,
+                "security unlock-keychain -p \"%s\" %s build.keychain" % (match_pw, match_name),
+                "security set-keychain-settings -t 7200 -u %s.keychain" % match_name
             ]
 
             for cmd in cmds:
@@ -429,8 +432,8 @@ class AppleiOSGenerator(Generator):
             + "DEVELOPMENT_TEAM=%s" % team_id
         )
 
-        if self._args.get("ci", False):
-            cmd1 += " OTHER_CODE_SIGN_FLAGS=\"--keychain build\""
+        # if self._args.get("ci", False):
+        #     cmd1 += " OTHER_CODE_SIGN_FLAGS=\"--keychain build\""
 
         cmd2 = (
             "xcodebuild -exportArchive "
