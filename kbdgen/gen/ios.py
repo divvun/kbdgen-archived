@@ -412,7 +412,7 @@ class AppleiOSGenerator(Generator):
 
         cmd = "cargo lipo --targets aarch64-apple-ios,x86_64-apple-ios,armv7-apple-ios --release -vv"
         logger.info("Running divvunspell build...")
-        logger.trace(cmd)
+        logger.debug(cmd)
         returncode = run_process(cmd, cwd=os.path.join(deps_dir, "Dependencies", "hfst-ospell-rs"), shell=True, show_output=True)
         if returncode != 0:
             logger.error("Application ended with error code %s." % returncode)
@@ -438,7 +438,7 @@ class AppleiOSGenerator(Generator):
         ):
             logger.info(msg)
             logger.debug(cmd)
-            returncode = run_process(cmd, cwd=deps_dir, shell=True, show_output=True)
+            returncode = run_process(cmd, cwd=deps_dir, env=env, shell=True, show_output=True)
             if returncode != 0:
                 logger.error("Application ended with error code %s." % returncode)
                 sys.exit(returncode)
