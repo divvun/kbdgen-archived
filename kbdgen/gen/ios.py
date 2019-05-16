@@ -376,7 +376,7 @@ class AppleiOSGenerator(Generator):
             cmds = [
                 "security create-keychain -p \"%s\" %s.keychain" % (match_pw, match_name),
                 "security default-keychain -s %s.keychain" % match_name,
-                "security unlock-keychain -p \"%s\" %s build.keychain" % (match_pw, match_name),
+                "security unlock-keychain -p \"%s\" %s.keychain" % (match_pw, match_name),
                 "security set-keychain-settings -t 7200 -u %s.keychain" % match_name
             ]
 
