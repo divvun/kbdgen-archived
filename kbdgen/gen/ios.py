@@ -423,7 +423,6 @@ class AppleiOSGenerator(Generator):
             + "-workspace GiellaKeyboard.xcworkspace -configuration Release "
             + "-scheme HostingApp "
             + "-jobs %s " % multiprocessing.cpu_count()
-            + "-quiet "
             + 'CODE_SIGN_IDENTITY="%s" ' % code_sign_id
             + "DEVELOPMENT_TEAM=%s" % team_id
         )
