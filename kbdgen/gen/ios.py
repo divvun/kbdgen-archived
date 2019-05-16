@@ -345,7 +345,6 @@ class AppleiOSGenerator(Generator):
         if os.path.exists(ipa):
             os.remove(ipa)
 
-
         code_sign_id = self.sign_id
 
         if code_sign_id is None:
@@ -362,18 +361,31 @@ class AppleiOSGenerator(Generator):
             "provisioningProfiles": {},
         }
 
-        logger.info("Setting up keychain…")
-        returncode = run_process(
-            "fastlane travis", cwd=deps_dir, shell=True, show_output=True
-        )
-        if returncode != 0:
-            # oN eRrOr GoTo NeXt
-            logger.warn("Application ended with error code %s." % returncode)
+        env = dict(**os.environ)
+
+        if self._args.get("ci", False):
+            logger.info("Doing a CI build!")
+            logger.info("Setting up keychain…")
+            env["MATCH_KEYCHAIN_NAME"] = "build"
+            env["MATCH_KEYCHAIN_PASSWORD"] = "build"
+
+            cmds = [
+                "security create-keychain -p build build.keychain",
+                "security default-keychain -s build.keychain",
+                "security unlock-keychain -p build build.keychain",
+                "security set-keychain-settings -t 3600 -u build.keychain"
+            ]
+
+            for cmd in cmds:
+                returncode = run_process(cmd, env=env, shell=True, show_output=True)
+                if returncode != 0:
+                    # oN eRrOr GoTo NeXt
+                    logger.warn("Application ended with error code %s." % returncode)
 
         logger.info("Downloading signing certificates…")
         cmd = "fastlane match appstore --app_identifier=%s" % self.command_ids()
         logger.debug(cmd)
-        returncode = run_process(cmd, cwd=deps_dir, shell=True, show_output=True)
+        returncode = run_process(cmd, env=env, cwd=deps_dir, shell=True, show_output=True)
         if returncode != 0:
             logger.error("Application ended with error code %s." % returncode)
             sys.exit(returncode)
@@ -386,7 +398,7 @@ class AppleiOSGenerator(Generator):
                 item,
             )
             logger.debug(cmd)
-            returncode = run_process(cmd, cwd=deps_dir, shell=True, show_output=True)
+            returncode = run_process(cmd, env=env, cwd=deps_dir, shell=True, show_output=True)
             if returncode != 0:
                 logger.error("Application ended with error code %s." % returncode)
                 sys.exit(returncode)
