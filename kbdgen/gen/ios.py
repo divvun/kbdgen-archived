@@ -88,7 +88,7 @@ class AppleiOSGenerator(Generator):
         if os.environ.get("PRODUCE_USERNAME", None) is None:
             logger.error("You need to supply your Fastlane username as env var PRODUCE_USERNAME.")
             sys.exit(100)
-            
+
         cmds = []
 
         # Create base ID on the App Store
@@ -97,7 +97,7 @@ class AppleiOSGenerator(Generator):
 
         # Create all sub-ids for given keyboards
         for id_ in self.all_bundle_ids():
-            cmd = ["fastlane", "produce", "-a", id_, "--skip_itc"]
+            cmd = ["fastlane", "produce", "-a", id_, "--app_name", "%s: %s" % (self.app_name, id_.split(".").pop()), "--skip_itc"]
             cmds.append(cmd)
 
         # Create a group for this
