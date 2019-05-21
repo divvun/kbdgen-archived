@@ -328,7 +328,7 @@ class AppleiOSGenerator(Generator):
 
         for item in self.all_bundle_ids() + [self.pkg_id]:
             name = (
-                item.split(".")[-1].replace("-", "_")
+                item.split(".")[-1] # .replace("-", "_")
                 if item != self.pkg_id
                 else "HostingApp"
             )
