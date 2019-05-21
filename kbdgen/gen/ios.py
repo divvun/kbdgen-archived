@@ -77,12 +77,56 @@ class AppleiOSGenerator(Generator):
     def pkg_id(self):
         return self.ios_target.package_id.replace("_", "-")
 
+    @property
+    def app_name(self):
+        return self._bundle.project.locales["en"].name
+
     def command_ids(self):
         return ",".join([self.pkg_id] + self.all_bundle_ids())
+
+    def command_init(self):
+        if os.environ.get("PRODUCE_USERNAME", None) is None:
+            logger.error("You need to supply your Fastlane username as env var PRODUCE_USERNAME.")
+            sys.exit(100)
+            
+        cmds = []
+
+        # Create base ID on the App Store
+        cmd = ["fastlane", "produce", "-a", self.pkg_id, "--app_name", self.app_name]
+        cmds.append(cmd)
+
+        # Create all sub-ids for given keyboards
+        for id_ in self.all_bundle_ids():
+            cmd = ["fastlane", "produce", "-a", id_, "--skip_itc"]
+            cmds.append(cmd)
+
+        # Create a group for this
+        cmd = ["fastlane", "produce", "group", "-g", "group.%s" % self.pkg_id, "-n", "%s Group" % self.app_name]
+        cmds.append(cmd)
+
+        # Enable groups support for each id
+        for id_ in [self.pkg_id] + self.all_bundle_ids():
+            cmd = ["fastlane", "produce", "enable_services", "-a", id_, "--app-group"]
+            cmds.append(cmd)
+
+        # Add all the ids to the group
+        for id_ in [self.pkg_id] + self.all_bundle_ids():
+            cmd = ["fastlane", "produce", "associate_group", "-a", id_, "group.%s" % self.pkg_id]
+            cmds.append(cmd)
+
+        # Run all the commands!
+        for cmd in cmds:
+            return_code = run_process(cmd, show_output=True)
+            if return_code != 0:
+                logger.error("Application ended with error code %s." % (return_code))
+                sys.exit(return_code)
 
     def process_command(self, command):
         if command == "ids":
             print(self.command_ids())
+            return
+        if command == "init":
+            self.command_init()
             return
 
     @property
