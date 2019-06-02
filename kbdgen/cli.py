@@ -114,7 +114,8 @@ def run_cli():
         logger.critical(
             "You should not be seeing this error. Please report this as a bug."
         )
-        logger.critical("URL: https://github.com/divvun/kbdgen/issues/")
+        logger.critical("To receive a more detailed stacktrace, add `--logging trace` to your build command and submit it with your bug report.")
+        logger.critical("URL: <https://github.com/divvun/kbdgen/issues/>")
         return 1
 
     generator = gen.generators.get(args.target, None)

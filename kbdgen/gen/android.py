@@ -176,6 +176,16 @@ class AndroidGenerator(Generator):
 
             self.update_locale_exception(name, kbd, base)
 
+    def _find_ndk_version(self):
+        try:
+            p = os.path.join(os.environ["NDK_HOME"], "source.properties")
+            with open(p) as f:
+                for line in f.readlines():
+                    if line.startswith("Pkg.Revision"):
+                        return [int(x) for x in line.split("=").pop().split(".")]
+        except:
+            return None
+
     def sanity_check(self):
         if super().sanity_check() is False: 
             return False
@@ -192,6 +202,21 @@ class AndroidGenerator(Generator):
 
         if os.environ.get("NDK_HOME", None) is None:
             logger.error("NDK_HOME must be provided and point to the Android NDK directory.")
+            sane = False
+        else:
+            # Check for valid NDK version
+            ndk_version = self._find_ndk_version()
+            logger.debug("NDK version: %r" % ndk_version)
+            if ndk_version is None or ndk_version[0] < 19 or (ndk_version[0] == 19 and ndk_version[1] < 2):
+                logger.error("Your NDK is too old - 19.2 or higher is required. Your version: '%s'" % ".".join(ndk_version))
+                sane = False
+
+        if shutil.which("cargo") is None:
+            logger.error("`cargo` could not be found. Please ensure it is on your PATH, or install Rust from <https://rustup.rs>.")
+            sane = False
+
+        if shutil.which("cargo-ndk") is None:
+            logger.error("`cargo ndk` could not be found. Please run `cargo install cargo-ndk` to continue.")
             sane = False
 
         if self.is_release:
