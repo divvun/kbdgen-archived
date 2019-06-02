@@ -161,7 +161,7 @@ class AndroidGenerator(Generator):
             with open(p) as f:
                 for line in f.readlines():
                     if line.startswith("Pkg.Revision"):
-                        return line.split("=").pop().split(".")
+                        return [int(x) for x in line.split("=").pop().split(".")]
         except:
             return None
 
