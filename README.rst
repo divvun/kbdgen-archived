@@ -67,6 +67,13 @@ Housekeeping
 
 To generate the documentation, run ``asciidoctor index.adoc`` in the ``docs`` directory.
 
+Troubleshooting
+---------------
+
+; no such subcommand ndk
+
+Run `cargo install cargo-ndk` and make sure that `$HOME/.cargo/bin/` is in your `$PATH`.
+
 License
 -------
 
