@@ -28,8 +28,10 @@ repo:
 
 ::
 
-    $ pip install -r requirements.txt
-    $ pip install .
+    $ poetry install
+
+If you are on Linux, ensure you have the development package for Python 3 installed,
+or you will receive build errors when you attempt to install.
 
 You can also use the tools in development easily without installing:
 
