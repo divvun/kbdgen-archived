@@ -533,7 +533,7 @@ table.CodeRay td.code>pre{padding:0}
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
-<li><a href="#introduction_to_kbdgen_0_6_0">1. Introduction to kbdgen 0.6.0</a>
+<li><a href="#introduction_to_kbdgen_1_0_7">1. Introduction to kbdgen 1.0.7</a>
 <ul class="sectlevel2">
 <li><a href="#what_is_kbdgen">1.1. What is kbdgen?</a></li>
 <li><a href="#supported_targets">1.2. Supported targets</a></li>
@@ -647,7 +647,7 @@ an issue on GitHub.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="introduction_to_kbdgen_0_6_0"><a class="link" href="#introduction_to_kbdgen_0_6_0">1. Introduction to kbdgen 0.6.0</a></h2>
+<h2 id="introduction_to_kbdgen_1_0_7"><a class="link" href="#introduction_to_kbdgen_1_0_7">1. Introduction to kbdgen 1.0.7</a></h2>
 <div class="sectionbody">
 <div class="sect2">
 <h3 id="what_is_kbdgen"><a class="link" href="#what_is_kbdgen">1.1. What is kbdgen?</a></h3>
@@ -1864,7 +1864,17 @@ You will need about 2.6 GB of free space to install the Android SDK dependencies
 <li>
 <p>Run <code>cargo install cargo-ndk</code> to add the NDK plugin to <code>cargo</code>.</p>
 </li>
+<li>
+<p>Run the following to install all the required Rust targets for cross-compilation:</p>
+</li>
 </ol>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>rustup target add aarch64-linux-android
+rustup target add armv7-linux-androideabi
+rustup target add i686-linux-android</pre>
+</div>
 </div>
 <div class="admonitionblock note">
 <table>
