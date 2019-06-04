@@ -446,7 +446,7 @@ class AndroidGenerator(Generator):
             logger.info("Building native components…")
             for (target, jni_name) in targets:
                 logger.info("Building %s architecture…" % target)
-                run_process(
+                returncode = run_process(
                     [
                         "cargo",
                         "ndk",
@@ -462,6 +462,14 @@ class AndroidGenerator(Generator):
                     cwd=cwd,
                     show_output=True,
                 )
+
+                if returncode != 0:
+                    logger.error(
+                        "Application ended with error code %s." % returncode
+                    )
+                    # TODO throw exception instead.
+                    sys.exit(returncode)
+
                 jni_dir = os.path.join(res_dir, jni_name)
                 Path(jni_dir).mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(
