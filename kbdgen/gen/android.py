@@ -432,6 +432,7 @@ class AndroidGenerator(Generator):
                         "--",
                         "build",
                         "--release",
+                        "--lib"
                     ],
                     cwd=cwd,
                     show_output=True,
