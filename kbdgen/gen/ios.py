@@ -150,6 +150,10 @@ class AppleiOSGenerator(Generator):
             logger.error("CODE_SIGN_ID must be set.")
             return False
 
+        if shutil.which("convert") is None:
+            logger.error("`convert` not found. Is imagemagick installed?")
+            return False
+
         return True
 
     def generate(self, base="."):
