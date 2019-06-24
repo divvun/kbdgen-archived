@@ -8,6 +8,7 @@ from .x11 import XKBGenerator
 from .svgkbd import SVGGenerator
 from .json import QRGenerator, JSONGenerator
 from .errormodel import ErrorModelGenerator
+from .chromeos import ChromeOSGenerator
 
 generators = OrderedDict(
     (
@@ -20,5 +21,6 @@ generators = OrderedDict(
         ("json", JSONGenerator),
         ("qr", QRGenerator),
         ("errormodel", ErrorModelGenerator),
+        ("chrome", ChromeOSGenerator),
     )
 )

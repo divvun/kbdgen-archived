@@ -177,6 +177,13 @@ def parse_modes(tree):
         assert_valid_keysets(win_keyset, desktop_keyset, DESKTOP_MODES, "win", "desktop")
         modes["win"] = win_layers
 
+    # TODO: deduplicate this mess
+    if "chrome" in tree:
+        chrome_layers = DesktopLayoutMode.decode(tree["chrome"])
+        chrome_keyset = frozenset(chrome_layers.keys())
+        assert_valid_keysets(chrome_keyset, desktop_keyset, DESKTOP_MODES, "chrome", "desktop")
+        modes["chrome"] = chrome_layers
+
     if "mac" in tree:
         mac_layers = DesktopLayoutMode.decode(tree["mac"], DESKTOP_MODES | MAC_MODES)
         mac_keyset = frozenset(mac_layers.keys())

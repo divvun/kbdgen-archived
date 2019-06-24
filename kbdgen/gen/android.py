@@ -113,7 +113,7 @@ class AndroidGenerator(Generator):
         self.repo_dir = os.path.join(deps_dir, self.REPO)
         os.makedirs(deps_dir, exist_ok=True)
 
-        tree_id = self.get_source_tree(base, branch=self.branch)
+        tree_id = self.get_source_tree(base, repo=self.repo, branch=self.branch)
         self.native_locale_workaround(base)
 
         dsn = self.android_target.sentry_dsn
