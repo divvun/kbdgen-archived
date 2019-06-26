@@ -212,6 +212,8 @@ class MacGenerator(PhysicalGenerator):
             self.mac_target.package_id,
             self._bundle.name
         )
+        logger.debug("target.package_id: %r, _bundle.name: %r" % (self.mac_target.package_id,
+            self._bundle.name))
 
         bundle_path = os.path.join(path, "%s.bundle" % bundle_id)
         if os.path.exists(bundle_path):
