@@ -316,7 +316,7 @@ class ProjectBundle:
         return ProjectBundle(bundle_path, project, layouts, targets)
 
     def __init__(self, path, project, layouts, targets):
-        self._path = path
+        self._path = os.path.abspath(path)
         self._project = project
         self._layouts = layouts
         self._targets = targets
