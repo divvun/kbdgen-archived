@@ -1,2 +1,3 @@
-use_small_heuristics = 'Max'
+use_small_heuristics = "Default"
 merge_imports = true
+merge_derives = false

@@ -32,22 +32,9 @@ pub struct DeriveOptions {
     pub transforms: Option<bool>,
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Hash,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    EnumString,
-    Display,
-    EnumIter,
-    Serialize,
-    Deserialize,
-)]
-
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(EnumString, Display, EnumIter)]
+#[derive(Serialize, Deserialize)]
 enum IsoKeys {
     E00,
     E01,
@@ -101,44 +88,18 @@ enum IsoKeys {
     B10,
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Hash,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    EnumString,
-    Display,
-    EnumIter,
-    Serialize,
-    Deserialize,
-)]
-
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(EnumString, Display, EnumIter)]
+#[derive(Serialize, Deserialize)]
 #[strum(serialize_all = "snake_case")]
 enum MobileModes {
     Default,
     Shift,
 }
 
-// #[strum(deserialize_all = "snake_case")]
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Hash,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    EnumString,
-    Display,
-    EnumIter,
-    Serialize,
-    Deserialize,
-)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(EnumString, Display, EnumIter)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ModeKey {
     Win,
@@ -148,25 +109,12 @@ pub enum ModeKey {
     Chrome,
     X11,
     Desktop,
-    Mobile
+    Mobile,
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Hash,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    EnumString,
-    Display,
-    EnumIter,
-    Serialize,
-    Deserialize,
-)]
-
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(EnumString, Display, EnumIter)]
+#[derive(Serialize, Deserialize)]
 enum DesktopModes {
     #[strum(serialize = "default")]
     Default,
@@ -186,21 +134,9 @@ enum DesktopModes {
     Ctrl,
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Hash,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    EnumString,
-    Display,
-    EnumIter,
-    Serialize,
-    Deserialize,
-)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(EnumString, Display, EnumIter)]
+#[derive(Serialize, Deserialize)]
 enum MacModes {
     #[strum(serialize = "cmd")]
     Cmd,
