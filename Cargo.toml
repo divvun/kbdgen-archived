@@ -1,8 +1,9 @@
 [package]
-name = "kbdgen-rs"
+name = "kbdgen"
 version = "0.1.0"
 authors = ["Pascal Hertleif <pascal@technocreatives.com>"]
 edition = "2018"
+license = "Apache-2.0"
 
 [dependencies]
 serde = { version = "1.0.93", features = ["derive"] }
