@@ -1,4 +1,4 @@
-use crate::{DesktopKeyMap, MobileKeyMap};
+use crate::{Desktop, DesktopKeyMap, Mobile, MobileKeyMap};
 use serde::{Deserialize, Serialize};
 use serde_yaml as yaml;
 use std::collections::HashMap;
@@ -100,41 +100,8 @@ pub struct Modes {
     mobile: Option<MobileModes>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-#[derive(Serialize, Deserialize)]
-pub struct MobileModes {
-    pub default: Option<MobileKeyMap>,
-    pub shift: Option<MobileKeyMap>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-#[derive(Serialize, Deserialize)]
-pub struct DesktopModes {
-    #[serde(rename = "default")]
-    pub default: Option<DesktopKeyMap>,
-    #[serde(rename = "shift")]
-    pub shift: Option<DesktopKeyMap>,
-    #[serde(rename = "caps")]
-    pub caps: Option<DesktopKeyMap>,
-    #[serde(rename = "caps+shift")]
-    pub caps_shift: Option<DesktopKeyMap>,
-    #[serde(rename = "alt")]
-    pub alt: Option<DesktopKeyMap>,
-    #[serde(rename = "alt+shift")]
-    pub alt_shift: Option<DesktopKeyMap>,
-    #[serde(rename = "caps+alt")]
-    pub caps_alt: Option<DesktopKeyMap>,
-    #[serde(rename = "ctrl")]
-    pub ctrl: Option<DesktopKeyMap>,
-    #[serde(rename = "cmd")]
-    pub cmd: Option<DesktopKeyMap>,
-    #[serde(rename = "cmd+shift")]
-    pub cmd_shift: Option<DesktopKeyMap>,
-    #[serde(rename = "cmd+alt")]
-    pub cmd_alt: Option<DesktopKeyMap>,
-    #[serde(rename = "cmd+alt+shift")]
-    pub cmd_alt_shift: Option<DesktopKeyMap>,
-}
+pub type MobileModes = Mobile<MobileKeyMap>;
+pub type DesktopModes = Desktop<DesktopKeyMap>;
 
 /// A layout is defined as a file by the name <locale>.yaml or <locale>.<target>.yaml, and lives in the
 /// locales/ directory in the kbdgen project bundle.
@@ -153,12 +120,12 @@ pub struct Layout {
 
     /// An override for space keys on some OSes. Keyed by target.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub space: Option<HashMap<String, yaml::Value>>,
+    pub space: Option<Desktop<char>>,
 
     /// Dead keys present, keyed by layer code.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "deadKeys")]
-    pub dead_keys: Option<HashMap<String, yaml::Value>>,
+    pub dead_keys: Option<Desktop<Vec<char>>>,
 
     /// The items to be shown when a key is long-pressed. Values are space separated in one string.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -166,7 +133,7 @@ pub struct Layout {
 
     /// The chain of inputs necessary to provide an output after a deadkey is pressed. Keyed by each individual input.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub transforms: Option<HashMap<String, yaml::Value>>,
+    pub transforms: Option<HashMap<String, HashMap<String, String>>>,
 
     /// Strings to be shown on some OSes
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -6,6 +6,8 @@ pub mod models;
 
 mod key_map;
 pub use key_map::*;
+mod modes;
+pub use modes::*;
 
 mod loading;
 pub use loading::Load;
