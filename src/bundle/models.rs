@@ -145,7 +145,20 @@ pub struct Layout {
 
     /// Targets...
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub targets: Option<HashMap<String, yaml::Value>>,
+    pub targets: Option<LayoutTarget>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize)]
+pub struct LayoutTarget {
+    win: Option<LayoutTargetWindows>,
+    mac: Option<yaml::Value>,
+    ios: Option<LayoutTargetIOS>,
+    android: Option<LayoutTargetAndroid>,
+    chrome: Option<yaml::Value>,
+    x11: Option<yaml::Value>,
+    desktop: Option<yaml::Value>,
+    mobile: Option<yaml::Value>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -154,8 +167,20 @@ pub struct LayoutTargetWindows {
     pub locale: String,
 
     /// The language name to be cached, in order to try to mask the ugly ISO code name that often shows.
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "languageName")]
-    pub language_name: String,
+    pub language_name: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct LayoutTargetIOS {
+    /// Minimum SDK can be specified for a specific layout
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "legacyName")]
+    pub legacy_name: Option<u32>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -168,6 +193,10 @@ pub struct LayoutTargetAndroid {
     /// Styles
     #[serde(skip_serializing_if = "Option::is_none")]
     pub style: Option<HashMap<String, yaml::Value>>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "legacyName")]
+    pub legacy_name: Option<u32>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
