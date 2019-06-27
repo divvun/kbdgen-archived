@@ -180,7 +180,7 @@ pub struct LayoutTargetIOS {
     /// Minimum SDK can be specified for a specific layout
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "legacyName")]
-    pub legacy_name: Option<u32>,
+    pub legacy_name: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -196,7 +196,7 @@ pub struct LayoutTargetAndroid {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "legacyName")]
-    pub legacy_name: Option<u32>,
+    pub legacy_name: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
