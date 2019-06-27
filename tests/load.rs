@@ -1,4 +1,4 @@
-use kbdgen::bundle::{Load, ProjectBundle};
+use kbdgen::{Load, ProjectBundle};
 
 #[test]
 fn load_fixtures() {

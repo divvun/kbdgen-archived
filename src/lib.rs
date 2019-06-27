@@ -1,2 +1,3 @@
-pub mod bundle;
-pub mod models;
+mod bundle;
+
+pub use bundle::*;

@@ -1,3 +1,4 @@
+use crate::{DesktopKeyMap, MobileKeyMap};
 use serde::{Deserialize, Serialize};
 use serde_yaml as yaml;
 use std::collections::HashMap;
@@ -35,7 +36,7 @@ pub struct DeriveOptions {
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 #[derive(EnumString, Display, EnumIter)]
 #[derive(Serialize, Deserialize)]
-enum IsoKeys {
+pub enum IsoKey {
     E00,
     E01,
     E02,
@@ -66,15 +67,13 @@ enum IsoKeys {
     C03,
     C04,
     C05,
-    // TODO: fix the D13 special case.
     C06,
     C07,
     C08,
     C09,
     C10,
     C11,
-    // C12 -> D13
-    D13,
+    C12,
     B00,
     B01,
     B02,
@@ -88,64 +87,53 @@ enum IsoKeys {
     B10,
 }
 
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
-#[derive(EnumString, Display, EnumIter)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 #[derive(Serialize, Deserialize)]
-#[strum(serialize_all = "snake_case")]
-enum MobileModes {
-    Default,
-    Shift,
+pub struct Modes {
+    win: Option<DesktopModes>,
+    mac: Option<DesktopModes>,
+    ios: Option<MobileModes>,
+    android: Option<MobileModes>,
+    chrome: Option<DesktopModes>,
+    x11: Option<DesktopModes>,
+    desktop: Option<DesktopModes>,
+    mobile: Option<MobileModes>,
 }
 
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
-#[derive(EnumString, Display, EnumIter)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 #[derive(Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum ModeKey {
-    Win,
-    Mac,
-    Ios,
-    Android,
-    Chrome,
-    X11,
-    Desktop,
-    Mobile,
+pub struct MobileModes {
+    pub default: Option<MobileKeyMap>,
+    pub shift: Option<MobileKeyMap>,
 }
 
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
-#[derive(EnumString, Display, EnumIter)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 #[derive(Serialize, Deserialize)]
-enum DesktopModes {
-    #[strum(serialize = "default")]
-    Default,
-    #[strum(serialize = "shift")]
-    Shift,
-    #[strum(serialize = "caps")]
-    Caps,
-    #[strum(serialize = "caps+shift")]
-    CapsShift,
-    #[strum(serialize = "alt")]
-    Alt,
-    #[strum(serialize = "alt+shift")]
-    AltShift,
-    #[strum(serialize = "caps+alt")]
-    CapsAlt,
-    #[strum(serialize = "ctrl")]
-    Ctrl,
-}
-
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
-#[derive(EnumString, Display, EnumIter)]
-#[derive(Serialize, Deserialize)]
-enum MacModes {
-    #[strum(serialize = "cmd")]
-    Cmd,
-    #[strum(serialize = "cmd+shift")]
-    CmdShift,
-    #[strum(serialize = "cmd+alt")]
-    CmdAlt,
-    #[strum(serialize = "cmd+alt+shift")]
-    CmdAltShift,
+pub struct DesktopModes {
+    #[serde(rename = "default")]
+    pub default: Option<DesktopKeyMap>,
+    #[serde(rename = "shift")]
+    pub shift: Option<DesktopKeyMap>,
+    #[serde(rename = "caps")]
+    pub caps: Option<DesktopKeyMap>,
+    #[serde(rename = "caps+shift")]
+    pub caps_shift: Option<DesktopKeyMap>,
+    #[serde(rename = "alt")]
+    pub alt: Option<DesktopKeyMap>,
+    #[serde(rename = "alt+shift")]
+    pub alt_shift: Option<DesktopKeyMap>,
+    #[serde(rename = "caps+alt")]
+    pub caps_alt: Option<DesktopKeyMap>,
+    #[serde(rename = "ctrl")]
+    pub ctrl: Option<DesktopKeyMap>,
+    #[serde(rename = "cmd")]
+    pub cmd: Option<DesktopKeyMap>,
+    #[serde(rename = "cmd+shift")]
+    pub cmd_shift: Option<DesktopKeyMap>,
+    #[serde(rename = "cmd+alt")]
+    pub cmd_alt: Option<DesktopKeyMap>,
+    #[serde(rename = "cmd+alt+shift")]
+    pub cmd_alt_shift: Option<DesktopKeyMap>,
 }
 
 /// A layout is defined as a file by the name <locale>.yaml or <locale>.<target>.yaml, and lives in the
@@ -157,7 +145,7 @@ pub struct Layout {
     pub display_names: HashMap<String, String>,
 
     /// The different modes.
-    pub modes: HashMap<ModeKey, yaml::Value>,
+    pub modes: Modes,
 
     /// The decimal key. Nominally a '.' or ','.
     #[serde(skip_serializing_if = "Option::is_none")]

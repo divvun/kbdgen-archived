@@ -2,7 +2,10 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
-use crate::models;
+pub mod models;
+
+mod key_map;
+pub use key_map::*;
 
 mod loading;
 pub use loading::Load;
