@@ -8,3 +8,6 @@ license = "Apache-2.0"
 [dependencies]
 serde = { version = "1.0.93", features = ["derive"] }
 serde_yaml = "0.8.9"
+strum = "0.15.0"
+strum_macros = "0.15.0"
+log = "0.4.6"
