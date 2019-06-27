@@ -1,11 +1,17 @@
 use log::trace;
 use serde::de::DeserializeOwned;
-use std::{error::Error, ffi::OsStr, fs::read_dir, path::Path};
+use std::{
+    error::Error,
+    ffi::OsStr,
+    fs::{canonicalize, read_dir},
+    path::Path,
+};
 
 use super::*;
 use crate::models;
 
 pub trait Load: Sized {
+    /// Read data from given path into a structure of this type
     fn load(path: impl AsRef<Path>) -> Result<Self, Box<dyn Error>>;
 }
 
@@ -15,7 +21,7 @@ impl Load for ProjectBundle {
         trace!("Loading {:?}", bundle_path);
 
         Ok(ProjectBundle {
-            path: std::fs::canonicalize(bundle_path.to_path_buf())?,
+            path: canonicalize(bundle_path.to_path_buf())?,
             project: Load::load(&bundle_path.join("project.yaml"))?,
             layouts: Load::load(&bundle_path.join("layouts"))?,
             targets: Load::load(&bundle_path.join("targets"))?,
@@ -55,6 +61,7 @@ impl Load for Targets {
 
 fn read_yml<'a, T: DeserializeOwned>(path: &'a Path) -> Result<T, Box<dyn Error>> {
     use std::{fs::File, io::BufReader};
+
     let file = File::open(path)?;
     let reader = BufReader::new(file);
     let parsed = serde_yaml::from_reader(reader)?;
