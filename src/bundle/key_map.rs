@@ -33,9 +33,16 @@ impl<'de> Deserialize<'de> for DesktopKeyMap {
 impl FromStr for DesktopKeyMap {
     type Err = Error;
 
-    // TODO: Implement this, actually
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(DesktopKeyMap(BTreeMap::new()))
+        use strum::IntoEnumIterator;
+
+        Ok(DesktopKeyMap(
+            s.lines()
+                .flat_map(|l| l.split_whitespace().map(String::from))
+                .zip(IsoKey::iter())
+                .map(|(val, key)| (key, val))
+                .collect(),
+        ))
     }
 }
 
