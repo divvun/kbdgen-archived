@@ -15,7 +15,7 @@ impl Load for ProjectBundle {
         trace!("Loading {:?}", bundle_path);
 
         Ok(ProjectBundle {
-            path: bundle_path.to_path_buf(),
+            path: std::fs::canonicalize(bundle_path.to_path_buf())?,
             project: Load::load(&bundle_path.join("project.yaml"))?,
             layouts: Load::load(&bundle_path.join("layouts"))?,
             targets: Load::load(&bundle_path.join("targets"))?,
