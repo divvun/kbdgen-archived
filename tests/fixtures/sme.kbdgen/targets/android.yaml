@@ -1,0 +1,5 @@
+packageId: no.uit.giella.keyboards.sme
+keyStore: $GTPRIV/admin/dev-accounts/dev_keys/sami_keyboard.keystore
+keyAlias: sami_keyboard
+version: 0.1.0
+build: 1
