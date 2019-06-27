@@ -1,29 +1,20 @@
 use serde::{Deserialize, Serialize};
 use serde_yaml as yaml;
 use std::collections::HashMap;
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Bundle {
-    // TODO
-}
+use strum_macros::{Display, EnumIter, EnumString};
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ProjectDesc {
     pub name: String,
-
     pub description: String,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Project {
     pub locales: HashMap<String, ProjectDesc>,
-
     pub author: String,
-
     pub email: String,
-
     pub copyright: String,
-
     pub organisation: String,
 }
 
@@ -32,13 +23,193 @@ pub struct LayoutStrings {
     pub space: String,
 
     #[serde(rename = "return")]
-    pub _return: String,
+    pub return_: String,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct DeriveOptions {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub transforms: Option<bool>,
+}
+
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    Hash,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    EnumString,
+    Display,
+    EnumIter,
+    Serialize,
+    Deserialize,
+)]
+
+enum IsoKeys {
+    E00,
+    E01,
+    E02,
+    E03,
+    E04,
+    E05,
+    E06,
+    E07,
+    E08,
+    E09,
+    E10,
+    E11,
+    E12,
+    D01,
+    D02,
+    D03,
+    D04,
+    D05,
+    D06,
+    D07,
+    D08,
+    D09,
+    D10,
+    D11,
+    D12,
+    C01,
+    C02,
+    C03,
+    C04,
+    C05,
+    // TODO: fix the D13 special case.
+    C06,
+    C07,
+    C08,
+    C09,
+    C10,
+    C11,
+    // C12 -> D13
+    D13,
+    B00,
+    B01,
+    B02,
+    B03,
+    B04,
+    B05,
+    B06,
+    B07,
+    B08,
+    B09,
+    B10,
+}
+
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    Hash,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    EnumString,
+    Display,
+    EnumIter,
+    Serialize,
+    Deserialize,
+)]
+
+#[strum(serialize_all = "snake_case")]
+enum MobileModes {
+    Default,
+    Shift,
+}
+
+// #[strum(deserialize_all = "snake_case")]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    Hash,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    EnumString,
+    Display,
+    EnumIter,
+    Serialize,
+    Deserialize,
+)]
+#[serde(rename_all = "lowercase")]
+pub enum ModeKey {
+    Win,
+    Mac,
+    Ios,
+    Android,
+    Chrome,
+    X11,
+    Desktop,
+    Mobile
+}
+
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    Hash,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    EnumString,
+    Display,
+    EnumIter,
+    Serialize,
+    Deserialize,
+)]
+
+enum DesktopModes {
+    #[strum(serialize = "default")]
+    Default,
+    #[strum(serialize = "shift")]
+    Shift,
+    #[strum(serialize = "caps")]
+    Caps,
+    #[strum(serialize = "caps+shift")]
+    CapsShift,
+    #[strum(serialize = "alt")]
+    Alt,
+    #[strum(serialize = "alt+shift")]
+    AltShift,
+    #[strum(serialize = "caps+alt")]
+    CapsAlt,
+    #[strum(serialize = "ctrl")]
+    Ctrl,
+}
+
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    Hash,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    EnumString,
+    Display,
+    EnumIter,
+    Serialize,
+    Deserialize,
+)]
+enum MacModes {
+    #[strum(serialize = "cmd")]
+    Cmd,
+    #[strum(serialize = "cmd+shift")]
+    CmdShift,
+    #[strum(serialize = "cmd+alt")]
+    CmdAlt,
+    #[strum(serialize = "cmd+alt+shift")]
+    CmdAltShift,
 }
 
 /// A layout is defined as a file by the name <locale>.yaml or <locale>.<target>.yaml, and lives in the
@@ -50,7 +221,7 @@ pub struct Layout {
     pub display_names: HashMap<String, String>,
 
     /// The different modes.
-    pub modes: HashMap<String, yaml::Value>,
+    pub modes: HashMap<ModeKey, yaml::Value>,
 
     /// The decimal key. Nominally a '.' or ','.
     #[serde(skip_serializing_if = "Option::is_none")]
