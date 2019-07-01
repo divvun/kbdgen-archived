@@ -335,6 +335,12 @@ class Parser:
             raise Exception("Error: invalid key-value pair provided.")
 
     def parse(self, proj_path, cfg_pairs=None, cfg_file=None):
+        if not proj_path.endswith(".kbdgen"):
+            items = list(filter(lambda x: x.endswith(".kbdgen"), os.listdir(proj_path)))
+            if len(items) > 1:
+                raise UserException("Could not guess which .kbdgen bundle to load. Specify a full path to a .kbdgen bundle.")
+            if len(items) > 0:
+                proj_path = os.path.join(proj_path, items.pop())
         try:
             project = ProjectBundle.load(proj_path)
         except Exception as e:
