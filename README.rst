@@ -5,6 +5,7 @@ kbdgen
     :target: https://travis-ci.org/divvun/kbdgen
 
 Generate keyboards and keyboard layouts for various operating systems.
+Layout definitions for various languages can be found  `here <https://github.com/giellalt/>`__.
 
 Requires Python 3.4 or higher.
 
