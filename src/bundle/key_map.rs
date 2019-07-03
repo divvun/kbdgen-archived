@@ -1,11 +1,11 @@
-use crate::models::IsoKey;
-use itertools::Itertools;
+pub use crate::bundle::keys::{Error as KeyValueError, KeyValue};
+use crate::{bundle::keys, models::IsoKey};
 use serde::{
     de::{self, Deserializer},
     ser::{SerializeMap, Serializer},
     Deserialize, Serialize,
 };
-use snafu::Snafu;
+use snafu::{ResultExt, Snafu};
 use std::{collections::BTreeMap, fmt, str::FromStr};
 
 /// Map of keys on a desktop keyboard
@@ -19,7 +19,7 @@ use std::{collections::BTreeMap, fmt, str::FromStr};
 /// We will try to serialize everything that is more than half of a full map as
 /// string-based key map; other sizes will be regular maps in YAML.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct DesktopKeyMap(BTreeMap<IsoKey, Option<String>>);
+pub struct DesktopKeyMap(BTreeMap<IsoKey, keys::KeyValue>);
 
 impl<'de> Deserialize<'de> for DesktopKeyMap {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -31,7 +31,7 @@ impl<'de> Deserialize<'de> for DesktopKeyMap {
         #[serde(untagged)]
         enum Wat {
             String(String),
-            Map(BTreeMap<IsoKey, Option<String>>),
+            Map(BTreeMap<IsoKey, keys::KeyValue>),
         }
 
         match Wat::deserialize(deserializer)? {
@@ -65,54 +65,52 @@ impl FromStr for DesktopKeyMap {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use strum::IntoEnumIterator;
 
-        Ok(DesktopKeyMap(
-            s.lines()
-                .flat_map(|l| l.split_whitespace().map(String::from))
-                .map(keys::escape)
-                .zip(IsoKey::iter())
-                .map(|(val, key)| (key, val))
-                .collect(),
-        ))
+        let map: Result<_, Error> = s
+            .lines()
+            .flat_map(|l| l.split_whitespace())
+            .zip(IsoKey::iter())
+            .map(|(val, key)| {
+                Ok((
+                    key,
+                    keys::KeyValue(keys::deserialize(val).context(KeyError { input: val })?),
+                ))
+            })
+            .collect();
+
+        Ok(DesktopKeyMap(map?))
     }
 }
 
 impl fmt::Display for DesktopKeyMap {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use itertools::Itertools;
+
         for keys in &self.0.iter().chunks(12) {
-            let line = keys.map(|(_key_id, value)| keys::decode(value)).join(" ");
+            let line = keys
+                .map(|(_key_id, value)| {
+                    let keys::KeyValue(v) = value;
+                    keys::serialize(v)
+                })
+                .join(" ");
             writeln!(f, "{}", line)?;
         }
         Ok(())
     }
 }
 
-// TODO: Implement proper escaping rules
-//
-// - [x] \u{0} <-> None
-// - [ ] escpae unicode categories "C", "Z", "M"
-// - [ ] proptests
-mod keys {
-    pub fn escape(input: String) -> Option<String> {
-        if input == "\u{0}" {
-            None
-        } else {
-            Some(input)
-        }
-    }
-
-    pub fn decode(input: &Option<String>) -> String {
-        if let Some(key) = input {
-            key.clone()
-        } else {
-            String::from("\u{0}")
-        }
-    }
-}
-
 #[derive(Debug, Snafu)]
 pub enum Error {
     #[snafu(display("{}", description))]
-    ParseError { description: String },
+    ParseError {
+        description: String,
+        backtrace: snafu::Backtrace,
+    },
+    #[snafu(display("failed process key `{}`: {}", input, source))]
+    KeyError {
+        input: String,
+        source: KeyValueError,
+        backtrace: snafu::Backtrace,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
