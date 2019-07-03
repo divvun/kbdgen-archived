@@ -94,15 +94,18 @@ pub enum Error {
     CreateBundle {
         bundle_path: PathBuf,
         source: std::io::Error,
+        backtrace: snafu::Backtrace,
     },
     #[snafu(display("Could not write to `{}`: {}", path.display(), source))]
     WriteFile {
         path: PathBuf,
         source: std::io::Error,
+        backtrace: snafu::Backtrace,
     },
     #[snafu(display("Could not serialize data to `{}`: {}", path.display(), source))]
     WriteData {
         path: PathBuf,
         source: serde_yaml::Error,
+        backtrace: snafu::Backtrace,
     },
 }

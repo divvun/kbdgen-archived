@@ -29,10 +29,16 @@ fn main() -> Result<(), Error> {
 
 #[derive(Snafu)]
 pub enum Error {
-    #[snafu(display("Could not read stdin: {}", source))]
-    CannotLoad { source: kbdgen::LoadError },
-    #[snafu(display("Could not enhance input: {}", source))]
-    CannotSave { source: kbdgen::SaveError },
+    #[snafu(display("Could load kbdgen bundle: {}", source))]
+    CannotLoad {
+        source: kbdgen::LoadError,
+        backtrace: snafu::Backtrace,
+    },
+    #[snafu(display("Could write kbdgen bundle: {}", source))]
+    CannotSave {
+        source: kbdgen::SaveError,
+        backtrace: snafu::Backtrace,
+    },
 }
 
 impl fmt::Debug for Error {

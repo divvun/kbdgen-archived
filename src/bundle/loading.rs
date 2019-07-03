@@ -99,12 +99,17 @@ pub enum Error {
     ReadFile {
         path: PathBuf,
         source: std::io::Error,
+        backtrace: snafu::Backtrace,
     },
     #[snafu(display("Could not parse file with malfolmed name:: `{}`", path.display()))]
-    MalformedFilename { path: PathBuf },
+    MalformedFilename {
+        path: PathBuf,
+        backtrace: snafu::Backtrace,
+    },
     #[snafu(display("Could not parse `{}`: {}", path.display(), source))]
     ParseFile {
         path: PathBuf,
         source: serde_yaml::Error,
+        backtrace: snafu::Backtrace,
     },
 }
