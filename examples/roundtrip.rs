@@ -1,9 +1,6 @@
 use kbdgen::{Load, ProjectBundle, Save};
 use snafu::{ResultExt, Snafu};
-use std::{
-    fmt,
-    path::{PathBuf},
-};
+use std::{fmt, path::PathBuf};
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]

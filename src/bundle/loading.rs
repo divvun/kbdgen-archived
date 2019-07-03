@@ -7,8 +7,10 @@ use serde::de::DeserializeOwned;
 use snafu::{OptionExt, ResultExt, Snafu};
 use std::{
     collections::HashMap,
+    default::Default,
     ffi::OsStr,
     fs::{canonicalize, read_dir},
+    hash::BuildHasher,
     path::{Path, PathBuf},
 };
 
@@ -38,7 +40,7 @@ impl Load for Project {
     }
 }
 
-impl Load for HashMap<String, Layout> {
+impl<S: BuildHasher + Default> Load for HashMap<String, Layout, S> {
     fn load(path: impl AsRef<Path>) -> Result<Self, Error> {
         let path: &Path = path.as_ref();
         let yml_files = read_dir(path)
@@ -74,7 +76,7 @@ impl Load for Targets {
     }
 }
 
-fn read_yml<'a, T: DeserializeOwned>(path: &'a Path) -> Result<T, Error> {
+fn read_yml<T: DeserializeOwned>(path: &Path) -> Result<T, Error> {
     use std::{fs::File, io::BufReader};
 
     let file = File::open(path).context(ReadFile { path })?;
@@ -83,7 +85,7 @@ fn read_yml<'a, T: DeserializeOwned>(path: &'a Path) -> Result<T, Error> {
     Ok(parsed)
 }
 
-fn read_yml_if_exists<'a, T: DeserializeOwned>(path: &'a Path) -> Result<Option<T>, Error> {
+fn read_yml_if_exists<T: DeserializeOwned>(path: impl AsRef<Path>) -> Result<Option<T>, Error> {
     let path: &Path = path.as_ref();
     if !path.is_file() {
         return Ok(None);

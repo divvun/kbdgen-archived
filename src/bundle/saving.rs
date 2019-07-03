@@ -7,6 +7,7 @@ use serde::Serialize;
 use snafu::{ResultExt, Snafu};
 use std::{
     collections::HashMap,
+    hash::BuildHasher,
     path::{Path, PathBuf},
 };
 
@@ -42,7 +43,7 @@ impl Save for Project {
     }
 }
 
-impl Save for HashMap<String, Layout> {
+impl<S: BuildHasher> Save for HashMap<String, Layout, S> {
     fn save(&self, target_path: impl AsRef<Path>) -> Result<(), Error> {
         let path: &Path = target_path.as_ref();
         std::fs::create_dir_all(&path).context(WriteFile { path })?;
@@ -77,7 +78,7 @@ impl Save for Targets {
     }
 }
 
-fn write_yaml<'a, T: Serialize>(path: impl AsRef<Path>, data: T) -> Result<(), Error> {
+fn write_yaml<T: Serialize>(path: impl AsRef<Path>, data: T) -> Result<(), Error> {
     use std::{fs::File, io::BufWriter};
 
     let path: &Path = path.as_ref();
