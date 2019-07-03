@@ -1,6 +1,5 @@
-use std::path::PathBuf;
-
 use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, path::PathBuf};
 
 pub mod models;
 
@@ -23,8 +22,8 @@ pub struct Targets {
 /// A project bundle consists of a project.yaml file, a targets/ directory and a layouts/ directory.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ProjectBundle {
-    pub path: PathBuf,
+    pub path: Option<PathBuf>,
     pub project: models::Project,
-    pub layouts: Vec<models::Layout>,
+    pub layouts: HashMap<String, models::Layout>,
     pub targets: Targets,
 }

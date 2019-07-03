@@ -1,14 +1,16 @@
+use crate::{
+    models::{Layout, Project},
+    ProjectBundle, Targets,
+};
 use log::trace;
 use serde::de::DeserializeOwned;
-use snafu::{ResultExt, Snafu};
+use snafu::{OptionExt, ResultExt, Snafu};
 use std::{
+    collections::HashMap,
     ffi::OsStr,
     fs::{canonicalize, read_dir},
-    path::Path,
+    path::{Path, PathBuf},
 };
-
-use super::*;
-use crate::models;
 
 pub trait Load: Sized {
     /// Read data from given path into a structure of this type
@@ -21,8 +23,7 @@ impl Load for ProjectBundle {
         trace!("Loading {:?}", bundle_path);
 
         Ok(ProjectBundle {
-            path: canonicalize(bundle_path.to_path_buf())
-                .context(ReadFile { path: bundle_path })?,
+            path: Some(canonicalize(&bundle_path).context(ReadFile { path: bundle_path })?),
             project: Load::load(&bundle_path.join("project.yaml"))?,
             layouts: Load::load(&bundle_path.join("layouts"))?,
             targets: Load::load(&bundle_path.join("targets"))?,
@@ -30,14 +31,14 @@ impl Load for ProjectBundle {
     }
 }
 
-impl Load for models::Project {
+impl Load for Project {
     fn load(path: impl AsRef<Path>) -> Result<Self, Error> {
         let path: &Path = path.as_ref();
         Ok(read_yml(path)?)
     }
 }
 
-impl Load for Vec<models::Layout> {
+impl Load for HashMap<String, Layout> {
     fn load(path: impl AsRef<Path>) -> Result<Self, Error> {
         let path: &Path = path.as_ref();
         let yml_files = read_dir(path)
@@ -47,7 +48,17 @@ impl Load for Vec<models::Layout> {
             .filter(|p| p.is_file())
             .filter(|p| p.extension() == Some(OsStr::new("yaml")));
 
-        yml_files.map(|p| read_yml(&p)).collect()
+        yml_files
+            .map(|path| {
+                let name = path
+                    .file_stem()
+                    .context(MalformedFilename { path: path.clone() })?
+                    .to_string_lossy()
+                    .to_string();
+                let data = read_yml(&path)?;
+                Ok((name, data))
+            })
+            .collect()
     }
 }
 
@@ -82,12 +93,14 @@ fn read_yml_if_exists<'a, T: DeserializeOwned>(path: &'a Path) -> Result<Option<
 
 #[derive(Debug, Snafu)]
 pub enum Error {
-    #[snafu(display("Could not read {}: {}", path.display(), source))]
+    #[snafu(display("Could not read `{}`: {}", path.display(), source))]
     ReadFile {
         path: PathBuf,
         source: std::io::Error,
     },
-    #[snafu(display("Could not parse {}: {}", path.display(), source))]
+    #[snafu(display("Could not parse file with malfolmed name:: `{}`", path.display()))]
+    MalformedFilename { path: PathBuf },
+    #[snafu(display("Could not parse `{}`: {}", path.display(), source))]
     ParseFile {
         path: PathBuf,
         source: serde_yaml::Error,
