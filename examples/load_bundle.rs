@@ -2,6 +2,8 @@ use kbdgen::{Load, ProjectBundle};
 use snafu::ErrorCompat;
 
 fn main() {
+    pretty_env_logger::init();
+
     let path = std::env::args()
         .nth(1)
         .expect("Pass path to `.kbdgen` bundle as argument");
