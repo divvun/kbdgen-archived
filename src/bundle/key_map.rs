@@ -30,6 +30,9 @@ impl<'de> Deserialize<'de> for DesktopKeyMap {
     }
 }
 
+// serialize to hashmap when < half the keyboard
+// \u{0} <-> None
+
 impl FromStr for DesktopKeyMap {
     type Err = Error;
 
