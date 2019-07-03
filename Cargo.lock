@@ -145,7 +145,7 @@ dependencies = [
  "log 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "pretty_env_logger 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.94 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde_yaml 0.8.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_yaml 0.8.9 (git+https://github.com/killercup/serde-yaml/?branch=feature/multiline-strings)",
  "snafu 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "structopt 0.2.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "strum 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -292,12 +292,12 @@ dependencies = [
 [[package]]
 name = "serde_yaml"
 version = "0.8.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
+source = "git+https://github.com/killercup/serde-yaml/?branch=feature/multiline-strings#6f1c52b2477391c53011ab2bd9fd3140e037a740"
 dependencies = [
  "dtoa 0.4.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "linked-hash-map 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.94 (registry+https://github.com/rust-lang/crates.io-index)",
- "yaml-rust 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yaml-rust 0.4.3 (git+https://github.com/killercup/yaml-rust/?branch=feature/multiline)",
 ]
 
 [[package]]
@@ -484,7 +484,7 @@ dependencies = [
 [[package]]
 name = "yaml-rust"
 version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
+source = "git+https://github.com/killercup/yaml-rust/?branch=feature/multiline#0f1604a309da4b15e41d51e7d2c09d3c17277bf7"
 dependencies = [
  "linked-hash-map 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -526,7 +526,7 @@ dependencies = [
 "checksum rustc-demangle 0.1.15 (registry+https://github.com/rust-lang/crates.io-index)" = "a7f4dccf6f4891ebcc0c39f9b6eb1a83b9bf5d747cb439ec6fba4f3b977038af"
 "checksum serde 1.0.94 (registry+https://github.com/rust-lang/crates.io-index)" = "076a696fdea89c19d3baed462576b8f6d663064414b5c793642da8dfeb99475b"
 "checksum serde_derive 1.0.94 (registry+https://github.com/rust-lang/crates.io-index)" = "ef45eb79d6463b22f5f9e16d283798b7c0175ba6050bc25c1a946c122727fe7b"
-"checksum serde_yaml 0.8.9 (registry+https://github.com/rust-lang/crates.io-index)" = "38b08a9a90e5260fe01c6480ec7c811606df6d3a660415808c3c3fa8ed95b582"
+"checksum serde_yaml 0.8.9 (git+https://github.com/killercup/serde-yaml/?branch=feature/multiline-strings)" = "<none>"
 "checksum snafu 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)" = "5712353226e5ccb06c8f9b1cab819654b25514479523755ffa94703ceeb00e4f"
 "checksum snafu-derive 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)" = "78178fb0042da2d70bba6e3fb26b6412c4824a22b7fe434f5e082d2ca0b894ee"
 "checksum strsim 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)" = "8ea5119cdb4c55b55d432abb513a0429384878c15dde60cc77b1c99de1a95a6a"
@@ -551,4 +551,4 @@ dependencies = [
 "checksum winapi-util 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "7168bab6e1daee33b4557efd0e95d5ca70a03706d39fa5f3fe7a236f584b03c9"
 "checksum winapi-x86_64-pc-windows-gnu 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 "checksum wincolor 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "561ed901ae465d6185fa7864d63fbd5720d0ef718366c9a4dc83cf6170d7e9ba"
-"checksum yaml-rust 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)" = "65923dd1784f44da1d2c3dbbc5e822045628c590ba72123e1c73d3c230c4434d"
+"checksum yaml-rust 0.4.3 (git+https://github.com/killercup/yaml-rust/?branch=feature/multiline)" = "<none>"

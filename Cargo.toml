@@ -7,7 +7,7 @@ license = "Apache-2.0"
 
 [dependencies]
 serde = { version = "1.0.94", features = ["derive"] }
-serde_yaml = "0.8.9"
+serde_yaml = { version = "0.8.9", git = "https://github.com/killercup/serde-yaml/", branch = "feature/multiline-strings" }
 strum = "0.15.0"
 strum_macros = "0.15.0"
 log = "0.4.6"
