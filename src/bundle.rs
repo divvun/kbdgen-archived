@@ -4,13 +4,14 @@ use std::{collections::HashMap, path::PathBuf};
 pub mod models;
 
 mod key_map;
-pub use key_map::*;
+pub use key_map::{DesktopKeyMap, Error as KeyMapError, MobileKeyMap};
 mod modes;
-pub use modes::*;
+pub use modes::{Desktop, Mobile};
 
 mod loading;
-pub use loading::Load;
+pub use loading::{Error as LoadError, Load};
 mod saving;
+pub use saving::{Error as SaveError, Save};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Targets {
@@ -20,7 +21,8 @@ pub struct Targets {
     windows: Option<models::TargetWindows>,
 }
 
-/// A project bundle consists of a project.yaml file, a targets/ directory and a layouts/ directory.
+/// A project bundle consists of a `project.yaml` file, a `targets/` directory
+/// and a `layouts/` directory.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ProjectBundle {
     pub path: Option<PathBuf>,
