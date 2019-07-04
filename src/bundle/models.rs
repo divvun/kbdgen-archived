@@ -350,3 +350,9 @@ pub struct TargetChrome {
     #[serde(rename = "appId")]
     pub app_id: String,
 }
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct TargetX11 {
+    pub version: String,
+    pub build: u32,
+}
