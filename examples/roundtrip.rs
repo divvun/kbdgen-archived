@@ -9,7 +9,7 @@ struct Cli {
     input: PathBuf,
 
     #[structopt(parse(from_os_str))]
-    output: PathBuf,
+    output: Option<PathBuf>,
 }
 
 fn main() -> Result<(), Error> {
@@ -18,11 +18,15 @@ fn main() -> Result<(), Error> {
 
     let bundle = ProjectBundle::load(&opts.input).context(CannotLoad)?;
     log::info!(
-        "Bundle `{}` loaded, looking great to far!",
+        "Bundle `{}` loaded, looking great!",
         opts.input.display()
     );
-    bundle.save(&opts.output).context(CannotSave)?;
-    log::info!("New bundle written to `{}`.", opts.output.display());
+    if let Some(output) = opts.output {
+        bundle.save(&output).context(CannotSave)?;
+        log::info!("New bundle written to `{}`.", output.display());
+    } else {
+        log::info!("No output path specified, skipping");
+    }
 
     Ok(())
 }
