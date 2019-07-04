@@ -128,8 +128,7 @@ pub enum Error {
     },
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-#[serde(transparent)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MobileKeyMap(pub(crate) Vec<Vec<String>>);
 
 impl<'de> Deserialize<'de> for MobileKeyMap {
@@ -143,5 +142,23 @@ impl<'de> Deserialize<'de> for MobileKeyMap {
                 .map(|l| l.split_whitespace().map(String::from).collect())
                 .collect(),
         ))
+    }
+}
+
+impl Serialize for MobileKeyMap {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let lines: Vec<String> = self.0.iter().map(|line| line.join(" ")).collect();
+        let max_len = lines.iter().map(|x| x.trim().len()).max().unwrap_or(0);
+
+        let mut res = String::new();
+        for line in &lines {
+            res.push_str(&format!("{line:^width$}", line = line, width = max_len));
+            res.push_str("\n");
+        }
+
+        serializer.serialize_str(&res)
     }
 }
