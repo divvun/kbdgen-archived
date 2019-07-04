@@ -72,6 +72,7 @@ impl Load for Targets {
             i_os: read_yml_if_exists(&path.join("ios.yaml"))?,
             mac_os: read_yml_if_exists(&path.join("macos.yaml"))?,
             windows: read_yml_if_exists(&path.join("windows.yaml"))?,
+            chrome: read_yml_if_exists(&path.join("chrome.yaml"))?,
         })
     }
 }

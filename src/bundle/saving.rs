@@ -67,12 +67,14 @@ impl Save for Targets {
             i_os,
             mac_os,
             windows,
+            chrome,
         } = self;
 
         write_yaml(&path.join("android.yaml"), android)?;
         write_yaml(&path.join("ios.yaml"), i_os)?;
         write_yaml(&path.join("macos.yaml"), mac_os)?;
         write_yaml(&path.join("windows.yaml"), windows)?;
+        write_yaml(&path.join("chrome.yaml"), chrome)?;
 
         Ok(())
     }

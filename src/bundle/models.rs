@@ -337,3 +337,12 @@ pub struct TargetMacOS {
     #[serde(rename = "codeSignId")]
     pub code_sign_id: Option<String>,
 }
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct TargetChrome {
+    pub version: String,
+    pub build: u32,
+
+    #[serde(rename = "appId")]
+    pub app_id: String,
+}
