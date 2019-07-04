@@ -115,5 +115,18 @@ mod tests {
         fn doesnt_crash(s in ".") {
             serialize(&deserialize(&s).unwrap())
         }
+
+        #[test]
+        fn escape_unicode_rountrip(c: char) {
+            prop_assume!(c != '\u{0}');
+            let esc = c.escape_unicode().to_string();
+            assert_eq!(c.to_string(), deserialize(&esc).unwrap().unwrap());
+        }
+
+        #[test]
+        fn unescape_unicode_rountrip(c: char) {
+            prop_assume!(c != '\u{0}');
+            assert_eq!(c.to_string(), deserialize(&serialize(&Some(c.to_string()))).unwrap().unwrap());
+        }
     }
 }
