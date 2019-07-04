@@ -90,13 +90,21 @@ pub enum IsoKey {
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[derive(Serialize, Deserialize)]
 pub struct Modes {
+    #[serde(skip_serializing_if = "Option::is_none")]
     win: Option<DesktopModes>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     mac: Option<DesktopModes>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     ios: Option<MobileModes>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     android: Option<MobileModes>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     chrome: Option<DesktopModes>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     x11: Option<DesktopModes>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     desktop: Option<DesktopModes>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     mobile: Option<MobileModes>,
 }
 
@@ -151,13 +159,21 @@ pub struct Layout {
 #[derive(Debug, Clone, PartialEq)]
 #[derive(Serialize, Deserialize)]
 pub struct LayoutTarget {
+    #[serde(skip_serializing_if = "Option::is_none")]
     win: Option<LayoutTargetWindows>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     mac: Option<yaml::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     ios: Option<LayoutTargetIOS>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     android: Option<LayoutTargetAndroid>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     chrome: Option<yaml::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     x11: Option<yaml::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     desktop: Option<yaml::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     mobile: Option<yaml::Value>,
 }
 
