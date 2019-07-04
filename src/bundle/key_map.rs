@@ -83,17 +83,33 @@ impl FromStr for DesktopKeyMap {
 
 impl fmt::Display for DesktopKeyMap {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use itertools::Itertools;
+        let keys: Vec<String> = self.0.values().map(|v| keys::serialize(&v.0)).collect();
+        let width = keys.iter().map(|x| x.chars().count()).max().unwrap_or(1);
+        let lines: Vec<&[String]> = [
+            &keys.get(0..13),
+            &keys.get(13..25),
+            &keys.get(25..37),
+            &keys.get(37..48),
+            &keys.get(48..),
+        ]
+        .into_iter()
+        .filter_map(|x| x.filter(|x| !x.is_empty()))
+        .collect();
 
-        for keys in &self.0.iter().chunks(12) {
-            let line = keys
-                .map(|(_key_id, value)| {
-                    let keys::KeyValue(v) = value;
-                    keys::serialize(v)
-                })
-                .join(" ");
-            writeln!(f, "{}", line)?;
+        for (idx, line) in lines.into_iter().enumerate() {
+            use std::fmt::Write;
+            let mut l = String::new();
+
+            if idx == 1 || idx == 2 {
+                write!(&mut l, "{key:width$} ", key = " ", width = width)?;
+            }
+            for key in line {
+                write!(&mut l, "{key:width$} ", key = key, width = width)?;
+            }
+
+            writeln!(f, "{}", l.trim_end())?;
         }
+
         Ok(())
     }
 }
