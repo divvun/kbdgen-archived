@@ -62,7 +62,7 @@ pub fn serialize(input: &Option<String>) -> String {
 
 fn decode_unicode_escapes(input: &str) -> Result<String, Error> {
     lazy_static! {
-        static ref RE: Regex = Regex::new(r"\\u\{([0-9A-Fa-f]{2,6})\}").expect("valid regex");
+        static ref RE: Regex = Regex::new(r"\\u\{([0-9A-Fa-f]{1,6})\}").expect("valid regex");
     }
 
     let new = RE.replace_all(input, |hex: &regex::Captures| {
@@ -83,4 +83,37 @@ pub enum Error {
     },
     #[snafu(display("Error parsing `{}` as char: {}", input, description))]
     CharFromStrError { input: String, description: String },
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{decode_unicode_escapes, deserialize, serialize};
+    use proptest::prelude::*;
+
+    #[test]
+    fn test_unicode_escapes() {
+        assert_eq!("\u{35}", decode_unicode_escapes(r"\u{35}").unwrap());
+        assert_eq!("5", decode_unicode_escapes(r"\u{35}").unwrap());
+
+        assert_eq!("\u{5}", decode_unicode_escapes(r"\u{5}").unwrap());
+    }
+
+    #[test]
+    fn roundtrips() {
+        let x = r"0 1 2 3 4 5 6 7 8 9 0 \u{1F} = \
+            \u{11} \u{17} \u{5} \u{12} \u{14} \u{19} \u{15} \u{9} \u{F} \u{10} \u{1B} \u{1D} \
+            \u{1} \u{13} \u{4} \u{6} \u{7} \u{8} \u{A} \u{B} \u{C} ; ' \u{1C} \
+            ` \u{1A} \u{18} \u{3} \u{16} \u{2} \u{E} \u{D} , . /";
+
+        for s in x.split_whitespace() {
+            assert_eq!(s.to_lowercase(), serialize(&deserialize(&s).unwrap()));
+        }
+    }
+
+    proptest! {
+        #[test]
+        fn doesnt_crash(s in ".") {
+            serialize(&deserialize(&s).unwrap())
+        }
+    }
 }
