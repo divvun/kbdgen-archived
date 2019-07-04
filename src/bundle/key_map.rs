@@ -5,7 +5,7 @@ use serde::{
     ser::{SerializeMap, Serializer},
     Deserialize, Serialize,
 };
-use snafu::{ResultExt, Snafu};
+use snafu::Snafu;
 use std::{collections::BTreeMap, fmt, str::FromStr};
 
 /// Map of keys on a desktop keyboard

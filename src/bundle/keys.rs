@@ -92,11 +92,11 @@ mod tests {
 
     #[test]
     fn test_unicode_escapes() {
-        assert_eq!("\u{35}", decode_unicode_escapes(r"\u{35}").unwrap());
-        assert_eq!("5", decode_unicode_escapes(r"\u{35}").unwrap());
+        assert_eq!("\u{35}", decode_unicode_escapes(r"\u{35}"));
+        assert_eq!("5", decode_unicode_escapes(r"\u{35}"));
 
-        assert_eq!("\u{5}", decode_unicode_escapes(r"\u{5}").unwrap());
-        assert_eq!("\"", decode_unicode_escapes(r"\u{22}").unwrap());
+        assert_eq!("\u{5}", decode_unicode_escapes(r"\u{5}"));
+        assert_eq!("\"", decode_unicode_escapes(r"\u{22}"));
     }
 
     #[test]
@@ -107,27 +107,27 @@ mod tests {
             ` \u{1A} \u{18} \u{3} \u{16} \u{2} \u{E} \u{D} , . /";
 
         for s in x.split_whitespace() {
-            assert_eq!(s.to_lowercase(), serialize(&deserialize(&s).unwrap()));
+            assert_eq!(s.to_lowercase(), serialize(&deserialize(&s)));
         }
     }
 
     proptest! {
         #[test]
         fn doesnt_crash(s in ".") {
-            serialize(&deserialize(&s).unwrap())
+            serialize(&deserialize(&s))
         }
 
         #[test]
         fn escape_unicode_rountrip(c: char) {
             prop_assume!(c != '\u{0}');
             let esc = c.escape_unicode().to_string();
-            assert_eq!(c.to_string(), deserialize(&esc).unwrap().unwrap());
+            assert_eq!(c.to_string(), deserialize(&esc).unwrap());
         }
 
         #[test]
         fn unescape_unicode_rountrip(c: char) {
             prop_assume!(c != '\u{0}');
-            assert_eq!(c.to_string(), deserialize(&serialize(&Some(c.to_string()))).unwrap().unwrap());
+            assert_eq!(c.to_string(), deserialize(&serialize(&Some(c.to_string()))).unwrap());
         }
     }
 }
