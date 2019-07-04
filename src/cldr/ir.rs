@@ -216,7 +216,7 @@ impl From<&DesktopLayer> for String {
         let mut cur = "Z";
         let mut out = String::new();
 
-        for (letter, n, value) in layer.iter() {
+        for (letter, _n, value) in layer.iter() {
             let v = match value {
                 Some(v) => v,
                 None => "\\u{0}",

@@ -1,7 +1,7 @@
 use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{
-    de::{self, Deserializer},
+    de::{Deserializer},
     ser::Serializer,
     Deserialize, Serialize,
 };

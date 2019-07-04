@@ -1,8 +1,5 @@
-use serde::{Deserialize, Serialize};
-use std::{
-    path::{Path, PathBuf},
-    process::Command,
-};
+use serde::{Deserialize};
+
 
 mod ir;
 mod models;
@@ -103,7 +100,7 @@ impl Keyboard {
     }
 
     pub fn to_mobile_modes(&self) -> MobileModes {
-        use std::str::FromStr;
+        
 
         let mut out = BTreeMap::new();
 
