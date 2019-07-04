@@ -92,7 +92,7 @@ impl fmt::Display for DesktopKeyMap {
             &keys.get(37..48),
             &keys.get(48..),
         ]
-        .into_iter()
+        .iter()
         .filter_map(|x| x.filter(|x| !x.is_empty()))
         .collect();
 

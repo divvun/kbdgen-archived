@@ -17,10 +17,7 @@ fn main() -> Result<(), Error> {
     let opts = Cli::from_args();
 
     let bundle = ProjectBundle::load(&opts.input).context(CannotLoad)?;
-    log::info!(
-        "Bundle `{}` loaded, looking great!",
-        opts.input.display()
-    );
+    log::info!("Bundle `{}` loaded, looking great!", opts.input.display());
     if let Some(output) = opts.output {
         bundle.save(&output).context(CannotSave)?;
         log::info!("New bundle written to `{}`.", output.display());
