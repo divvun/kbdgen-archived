@@ -1,7 +1,7 @@
 use crate::{Desktop, DesktopKeyMap, Mobile, MobileKeyMap};
 use serde::{Deserialize, Serialize};
 use serde_yaml as yaml;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use strum_macros::{Display, EnumIter, EnumString};
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -12,7 +12,7 @@ pub struct ProjectDesc {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Project {
-    pub locales: HashMap<String, ProjectDesc>,
+    pub locales: BTreeMap<String, ProjectDesc>,
     pub author: String,
     pub email: String,
     pub copyright: String,
@@ -109,7 +109,7 @@ pub type DesktopModes = Desktop<DesktopKeyMap>;
 pub struct Layout {
     /// The display names for the layout, keyed by locale.
     #[serde(rename = "displayNames")]
-    pub display_names: HashMap<String, String>,
+    pub display_names: BTreeMap<String, String>,
 
     /// The different modes.
     pub modes: Modes,
@@ -129,11 +129,11 @@ pub struct Layout {
 
     /// The items to be shown when a key is long-pressed. Values are space separated in one string.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub longpress: Option<HashMap<String, String>>,
+    pub longpress: Option<BTreeMap<String, String>>,
 
     /// The chain of inputs necessary to provide an output after a deadkey is pressed. Keyed by each individual input.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub transforms: Option<HashMap<String, HashMap<String, String>>>,
+    pub transforms: Option<BTreeMap<String, BTreeMap<String, String>>>,
 
     /// Strings to be shown on some OSes
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -192,7 +192,7 @@ pub struct LayoutTargetAndroid {
 
     /// Styles
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub style: Option<HashMap<String, yaml::Value>>,
+    pub style: Option<BTreeMap<String, yaml::Value>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "legacyName")]
