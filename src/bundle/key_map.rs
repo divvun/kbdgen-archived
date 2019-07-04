@@ -84,7 +84,11 @@ impl FromStr for DesktopKeyMap {
 impl fmt::Display for DesktopKeyMap {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let keys: Vec<String> = self.0.values().map(|v| keys::serialize(&v.0)).collect();
-        let width = keys.iter().map(|x| x.chars().count()).max().unwrap_or(1);
+        let width = keys
+            .iter()
+            .map(|x| unic_segment::Graphemes::new(x).count())
+            .max()
+            .unwrap_or(1);
         let lines: Vec<&[String]> = [
             &keys.get(0..13),
             &keys.get(13..25),
