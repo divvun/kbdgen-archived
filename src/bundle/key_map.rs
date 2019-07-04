@@ -19,7 +19,7 @@ use std::{collections::BTreeMap, fmt, str::FromStr};
 /// We will try to serialize everything that is more than half of a full map as
 /// string-based key map; other sizes will be regular maps in YAML.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct DesktopKeyMap(BTreeMap<IsoKey, keys::KeyValue>);
+pub struct DesktopKeyMap(pub(crate) BTreeMap<IsoKey, keys::KeyValue>);
 
 impl<'de> Deserialize<'de> for DesktopKeyMap {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -69,12 +69,7 @@ impl FromStr for DesktopKeyMap {
             .lines()
             .flat_map(|l| l.split_whitespace())
             .zip(IsoKey::iter())
-            .map(|(val, key)| {
-                Ok((
-                    key,
-                    keys::KeyValue(keys::deserialize(val).context(KeyError { input: val })?),
-                ))
-            })
+            .map(|(val, key)| Ok((key, keys::KeyValue(keys::deserialize(val)))))
             .collect();
 
         Ok(DesktopKeyMap(map?))
@@ -135,7 +130,7 @@ pub enum Error {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(transparent)]
-pub struct MobileKeyMap(Vec<Vec<String>>);
+pub struct MobileKeyMap(pub(crate) Vec<Vec<String>>);
 
 impl<'de> Deserialize<'de> for MobileKeyMap {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>

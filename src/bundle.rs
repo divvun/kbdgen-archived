@@ -3,7 +3,7 @@ use std::{collections::HashMap, path::PathBuf};
 
 pub mod models;
 
-mod key_map;
+pub mod key_map;
 pub use key_map::{DesktopKeyMap, Error as KeyMapError, MobileKeyMap};
 mod modes;
 pub use modes::{Desktop, Mobile};
@@ -20,7 +20,7 @@ pub use saving::{Error as SaveError, Save};
 // - [ ] proptests
 pub(crate) mod keys;
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct Targets {
     android: Option<models::TargetAndroid>,
     i_os: Option<models::TargetIOS>,
@@ -31,7 +31,7 @@ pub struct Targets {
 
 /// A project bundle consists of a `project.yaml` file, a `targets/` directory
 /// and a `layouts/` directory.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct ProjectBundle {
     pub path: Option<PathBuf>,
     pub project: models::Project,

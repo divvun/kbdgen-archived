@@ -16,7 +16,7 @@ impl<'de> Deserialize<'de> for KeyValue {
         D: Deserializer<'de>,
     {
         let x: &str = Deserialize::deserialize(deserializer)?;
-        Ok(KeyValue(deserialize(x).map_err(de::Error::custom)?))
+        Ok(KeyValue(deserialize(x)))
     }
 }
 
@@ -30,17 +30,17 @@ impl Serialize for KeyValue {
     }
 }
 
-pub fn deserialize(input: &str) -> Result<Option<String>, Error> {
+pub fn deserialize(input: &str) -> Option<String> {
     if input == r"\u{0}" {
-        Ok(None)
+        None
     } else {
-        Ok(Some(decode_unicode_escapes(input)?))
+        Some(decode_unicode_escapes(input))
     }
 }
 
 pub fn serialize(input: &Option<String>) -> String {
     if let Some(input) = input {
-        input
+        decode_unicode_escapes(input)
             .chars()
             .map(|c| {
                 let char_category = unic_ucd_category::GeneralCategory::of(c);
@@ -49,9 +49,9 @@ pub fn serialize(input: &Option<String>) -> String {
                     || char_category.is_separator()
                     || char_category.is_mark()
                 {
-                    input.escape_unicode().to_string()
+                    c.escape_unicode().to_string()
                 } else {
-                    input.to_string()
+                    c.to_string()
                 }
             })
             .collect()
@@ -60,17 +60,17 @@ pub fn serialize(input: &Option<String>) -> String {
     }
 }
 
-fn decode_unicode_escapes(input: &str) -> Result<String, Error> {
+fn decode_unicode_escapes(input: &str) -> String {
     lazy_static! {
         static ref RE: Regex = Regex::new(r"\\u\{([0-9A-Fa-f]{1,6})\}").expect("valid regex");
     }
 
     let new = RE.replace_all(input, |hex: &regex::Captures| {
-        let number = u32::from_str_radix(hex.get(1).unwrap().as_str(), 16).unwrap();
+        let number = u32::from_str_radix(hex.get(1).unwrap().as_str(), 16).unwrap_or(0xfeff);
         std::char::from_u32(number).unwrap().to_string()
     });
 
-    Ok(new.to_string())
+    new.to_string()
 }
 
 #[derive(Debug, Snafu)]
@@ -96,6 +96,7 @@ mod tests {
         assert_eq!("5", decode_unicode_escapes(r"\u{35}").unwrap());
 
         assert_eq!("\u{5}", decode_unicode_escapes(r"\u{5}").unwrap());
+        assert_eq!("\"", decode_unicode_escapes(r"\u{22}").unwrap());
     }
 
     #[test]

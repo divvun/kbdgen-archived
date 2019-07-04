@@ -1,7 +1,7 @@
 use crate::{Desktop, DesktopKeyMap, Mobile, MobileKeyMap};
 use serde::{Deserialize, Serialize};
 use serde_yaml as yaml;
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, default::Default};
 use strum_macros::{Display, EnumIter, EnumString};
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -10,7 +10,7 @@ pub struct ProjectDesc {
     pub description: String,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
 pub struct Project {
     pub locales: BTreeMap<String, ProjectDesc>,
     pub author: String,
@@ -88,32 +88,36 @@ pub enum IsoKey {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default)]
 pub struct Modes {
     #[serde(skip_serializing_if = "Option::is_none")]
-    win: Option<DesktopModes>,
+    pub win: Option<DesktopModes>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    mac: Option<DesktopModes>,
+    pub mac: Option<DesktopModes>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    ios: Option<MobileModes>,
+    pub ios: Option<MobileModes>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    android: Option<MobileModes>,
+    pub android: Option<MobileModes>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    chrome: Option<DesktopModes>,
+    pub chrome: Option<DesktopModes>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    x11: Option<DesktopModes>,
+    pub x11: Option<DesktopModes>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    desktop: Option<DesktopModes>,
+    pub desktop: Option<DesktopModes>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    mobile: Option<MobileModes>,
+    pub mobile: Option<MobileModes>,
 }
 
-pub type MobileModes = Mobile<MobileKeyMap>;
-pub type DesktopModes = Desktop<DesktopKeyMap>;
+pub type MobileModes = BTreeMap<String, MobileKeyMap>;
+pub type DesktopModes = BTreeMap<String, DesktopKeyMap>;
+pub enum Mode {
+    Mobile(MobileModes),
+    Desktop(DesktopModes),
+}
 
 /// A layout is defined as a file by the name <locale>.yaml or <locale>.<target>.yaml, and lives in the
 /// locales/ directory in the kbdgen project bundle.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
 pub struct Layout {
     /// The display names for the layout, keyed by locale.
     #[serde(rename = "displayNames")]
@@ -128,12 +132,12 @@ pub struct Layout {
 
     /// An override for space keys on some OSes. Keyed by target.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub space: Option<Desktop<char>>,
+    pub space: Option<BTreeMap<String, BTreeMap<String, String>>>,
 
     /// Dead keys present, keyed by layer code.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "deadKeys")]
-    pub dead_keys: Option<Desktop<Vec<char>>>,
+    pub dead_keys: Option<BTreeMap<String, BTreeMap<String, Vec<String>>>>,
 
     /// The items to be shown when a key is long-pressed. Values are space separated in one string.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -157,7 +161,7 @@ pub struct Layout {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default)]
 pub struct LayoutTarget {
     #[serde(skip_serializing_if = "Option::is_none")]
     win: Option<LayoutTargetWindows>,
