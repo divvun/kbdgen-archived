@@ -1,7 +1,7 @@
 use crate::{DesktopKeyMap, MobileKeyMap};
 use serde::{Deserialize, Serialize};
 use serde_yaml as yaml;
-use std::{collections::BTreeMap};
+use std::collections::BTreeMap;
 use strum_macros::{Display, EnumIter, EnumString};
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

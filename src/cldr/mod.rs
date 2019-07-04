@@ -1,5 +1,4 @@
-use serde::{Deserialize};
-
+use serde::Deserialize;
 
 mod ir;
 mod models;
@@ -100,8 +99,6 @@ impl Keyboard {
     }
 
     pub fn to_mobile_modes(&self) -> MobileModes {
-        
-
         let mut out = BTreeMap::new();
 
         for key_map in self.key_maps.iter() {

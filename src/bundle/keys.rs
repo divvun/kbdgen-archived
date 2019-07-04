@@ -1,10 +1,6 @@
 use lazy_static::lazy_static;
 use regex::Regex;
-use serde::{
-    de::{Deserializer},
-    ser::Serializer,
-    Deserialize, Serialize,
-};
+use serde::{de::Deserializer, ser::Serializer, Deserialize, Serialize};
 use snafu::Snafu;
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
