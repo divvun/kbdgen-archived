@@ -82,6 +82,7 @@ pub enum Error {
 }
 
 #[cfg(test)]
+#[allow(clippy::unnecessary_operation)]
 mod tests {
     use super::{decode_unicode_escapes, deserialize, serialize};
     use proptest::prelude::*;

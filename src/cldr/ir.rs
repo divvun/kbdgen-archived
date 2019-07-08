@@ -19,16 +19,16 @@ pub(crate) fn parse_modifiers(mods: Option<&String>) -> String {
         None => return "default".into(),
     };
 
-    mess.split(" ")
+    mess.split(' ')
         .map(|chunk| {
             chunk
-                .split("+")
-                .filter(|x| !x.ends_with("?"))
+                .split('+')
+                .filter(|x| !x.ends_with('?'))
                 .map(|v| match v {
                     "shift" | "shiftR" | "shiftL" => "shift".into(),
                     "ctrl" | "ctrlR" | "ctrlL" => "ctrl".into(),
                     "opt" | "optR" | "optL" => "alt".into(),
-                    x if x.ends_with("R") || x.ends_with("L") => x[..x.len() - 1].into(),
+                    x if x.ends_with('R') || x.ends_with('L') => x[..x.len() - 1].into(),
                     _ => v.into(),
                 })
                 .collect::<Vec<String>>()
@@ -55,7 +55,7 @@ impl DesktopLayer {
         DesktopLayer { mode, keys }
     }
 
-    pub fn iter<'a>(&'a self) -> DesktopLayerIterator<'a> {
+    pub fn iter(&self) -> DesktopLayerIterator {
         DesktopLayerIterator::new(self)
     }
 }
