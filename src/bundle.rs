@@ -13,11 +13,6 @@ pub use loading::{Error as LoadError, Load};
 mod saving;
 pub use saving::{Error as SaveError, Save};
 
-// TODO: Implement proper escaping rules
-//
-// - [x] \u{0} <-> None
-// - [ ] escpae unicode categories "C", "Z", "M"
-// - [ ] proptests
 pub(crate) mod keys;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
