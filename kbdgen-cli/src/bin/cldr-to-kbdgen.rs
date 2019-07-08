@@ -14,12 +14,17 @@ pub enum Error {
     },
     #[snafu(display("No locale selected"))]
     NoLocaleSelected { backtrace: snafu::Backtrace },
-    #[snafu(display("Could load kbdgen bundle: {}", source))]
-    CannotLoad {
-        source: kbdgen::LoadError,
+    #[snafu(display("Could load CLDR file"))]
+    CannotOpenFile {
+        source: std::io::Error,
         backtrace: snafu::Backtrace,
     },
-    #[snafu(display("Could write kbdgen bundle: {}", source))]
+    #[snafu(display("Could load CLDR file"))]
+    CannotReadXml {
+        source: serde_xml_rs::Error,
+        backtrace: snafu::Backtrace,
+    },
+    #[snafu(display("Could write kbdgen bundle"))]
     CannotSave {
         source: kbdgen::SaveError,
         backtrace: snafu::Backtrace,
@@ -104,12 +109,12 @@ pub fn select_base_locale() -> Option<(String, BTreeMap<String, Vec<String>>)> {
     Some((result.to_string(), locale_map.remove(result).unwrap()))
 }
 
-pub fn parse_path(os: &str, file: &str) -> Keyboard {
+pub fn parse_path(os: &str, file: &str) -> Result<Keyboard, Error> {
     let fn_ = cldr_dir().join("keyboards").join(os).join(file);
 
-    let f = std::fs::File::open(fn_).unwrap();
-    let kbd: Keyboard = serde_xml_rs::from_reader(f).unwrap();
-    kbd
+    let f = std::fs::File::open(fn_).context(CannotOpenFile)?;
+    let kbd: Keyboard = serde_xml_rs::from_reader(f).context(CannotReadXml)?;
+    Ok(kbd)
 }
 
 #[derive(Debug, StructOpt)]
@@ -123,7 +128,7 @@ struct Cli {
 
 fn main() -> Result<(), Error> {
     let opts = Cli::from_args();
-    let _ = opts.verbose.setup_env_logger("cldr");
+    let _ = opts.verbose.setup_env_logger("cldr-to-kbdgen");
 
     update_cldr_repo().context(CldrRepoUpdate)?;
     let locale = select_base_locale().context(NoLocaleSelected)?;
@@ -133,7 +138,7 @@ fn main() -> Result<(), Error> {
 
     let mut modes = kbdgen::models::Modes::default();
 
-    let xml_map = locale
+    let xml_map: Vec<Keyboard> = locale
         .1
         .into_iter()
         .map(|(key, mut v)| {
@@ -141,9 +146,9 @@ fn main() -> Result<(), Error> {
             let last = v.last().unwrap();
             parse_path(&key, last)
         })
-        .collect::<Vec<_>>();
+        .collect::<Result<_, _>>()?;
 
-    for keyboard in xml_map {
+    for keyboard in dbg!(xml_map) {
         match keyboard.mode_name() {
             "mobile" => modes.mobile = Some(keyboard.to_mobile_modes()),
             "mac" => modes.mac = Some(keyboard.to_desktop_modes()),
