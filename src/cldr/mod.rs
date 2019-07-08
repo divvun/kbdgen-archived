@@ -3,41 +3,43 @@ use serde::Deserialize;
 mod ir;
 mod models;
 pub use models::*;
+mod ser;
+pub use ser::ToXml;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Default)]
 pub struct Name {
     pub value: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Default)]
 pub struct Map {
     pub iso: String,
     pub to: String,
     pub transform: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct KeyMap {
-    #[serde(rename = "map")]
-    pub keys: Vec<Map>,
-    pub modifiers: Option<String>,
     #[serde(rename = "longPress")]
     pub long_press: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Default)]
+pub struct KeyMap {
+    #[serde(rename = "map")]
+    pub keys: Vec<Map>,
+    pub modifiers: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize, Default)]
 pub struct Version {
     pub platform: String,
     pub number: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Default)]
 pub struct Transform {
     pub from: String,
     pub to: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Default)]
 pub struct Transforms {
     #[serde(rename = "type")]
     pub type_: String,
@@ -45,13 +47,13 @@ pub struct Transforms {
     pub values: Vec<Transform>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Default)]
 pub struct Names {
     #[serde(rename = "name")]
     pub values: Vec<Name>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Default)]
 pub struct Keyboard {
     pub locale: String,
     pub names: Vec<Names>,

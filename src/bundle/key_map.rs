@@ -131,6 +131,12 @@ pub enum Error {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MobileKeyMap(pub(crate) Vec<Vec<String>>);
 
+impl MobileKeyMap {
+    pub fn iter(&self) -> impl Iterator<Item = &String> {
+        self.0.iter().flat_map(std::convert::identity)
+    }
+}
+
 impl<'de> Deserialize<'de> for MobileKeyMap {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
