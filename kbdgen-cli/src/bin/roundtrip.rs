@@ -1,7 +1,7 @@
 use kbdgen::{Load, ProjectBundle, Save};
 use snafu::{ResultExt, Snafu};
 use snafu_cli_debug::SnafuCliDebug;
-use std::{fmt, path::PathBuf};
+use std::path::PathBuf;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]

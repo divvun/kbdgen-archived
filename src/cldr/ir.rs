@@ -84,13 +84,13 @@ impl<'a> DesktopLayerIterator<'a> {
     }
 }
 
-static MAX_E: u8 = 12;
-static MIN_D: u8 = 1;
-static MAX_D: u8 = 13;
-static MIN_C: u8 = 1;
-static MAX_C: u8 = 12;
-static MIN_B: u8 = 0;
-static MAX_B: u8 = 10;
+const MAX_E: u8 = 12;
+const MIN_D: u8 = 1;
+const MAX_D: u8 = 13;
+const MIN_C: u8 = 1;
+const MAX_C: u8 = 12;
+const MIN_B: u8 = 0;
+const MAX_B: u8 = 10;
 
 impl<'a> Iterator for DesktopLayerIterator<'a> {
     type Item = (&'a str, u8, Option<&'a str>);

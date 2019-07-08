@@ -6,8 +6,18 @@ use structopt::StructOpt;
 
 #[derive(Snafu, SnafuCliDebug)]
 pub enum Error {
+    #[snafu(display("Cloning CLDR repo failed"))]
+    RepoCloneFailed {
+        source: std::io::Error,
+        backtrace: snafu::Backtrace,
+    },
+    #[snafu(display("Updating CLDR repo failed"))]
+    RepoUpdateFailed {
+        source: std::io::Error,
+        backtrace: snafu::Backtrace,
+    },
     #[snafu(display("No locale selected"))]
-    NoLocaleSelected,
+    NoLocaleSelected { backtrace: snafu::Backtrace },
     #[snafu(display("Could load kbdgen bundle: {}", source))]
     CannotLoad {
         source: kbdgen::LoadError,
@@ -27,29 +37,33 @@ fn cldr_dir() -> PathBuf {
         .join("cldr")
 }
 
-pub fn update_cldr_repo() {
-    if !cldr_dir().exists() {
-        println!("Downloading CLDR repo…");
+pub fn update_cldr_repo() -> Result<(), Error> {
+    let dir = cldr_dir();
+
+    if !dir.exists() {
+        log::info!("Downloading CLDR repo to `{}`…", dir.display());
         let mut command = Command::new("git")
             .args(&[
                 "clone",
                 "--depth",
                 "1",
                 "https://github.com/unicode-org/cldr",
-                &*cldr_dir().to_string_lossy(),
             ])
+            .arg(&dir)
             .spawn()
-            .expect("git clone failed");
-        command.wait().unwrap();
+            .context(RepoCloneFailed)?;
+        command.wait().context(RepoCloneFailed)?;
     } else {
-        println!("Updating CLDR repo…");
+        log::info!("Updating CLDR repo in `{}`…", dir.display());
         let mut command = Command::new("git")
-            .current_dir(cldr_dir())
+            .current_dir(&dir)
             .args(&["pull"])
             .spawn()
-            .expect("git pull failed");
-        command.wait().unwrap();
+            .context(RepoUpdateFailed)?;
+        command.wait().context(RepoUpdateFailed)?;
     }
+
+    Ok(())
 }
 
 pub fn select_base_locale() -> Option<(String, BTreeMap<String, Vec<String>>)> {
@@ -58,7 +72,6 @@ pub fn select_base_locale() -> Option<(String, BTreeMap<String, Vec<String>>)> {
     let mut locale_map = globwalk::GlobWalkerBuilder::new(kbd_path, "*.xml")
         .build()
         .unwrap()
-        .into_iter()
         .filter_map(Result::ok)
         .filter(|entry| {
             !entry
@@ -66,7 +79,7 @@ pub fn select_base_locale() -> Option<(String, BTreeMap<String, Vec<String>>)> {
                 .file_stem()
                 .unwrap()
                 .to_string_lossy()
-                .starts_with("_")
+                .starts_with('_')
         })
         .fold(set, |mut acc, cur| {
             let tag = (&*cur.path().file_stem().unwrap().to_string_lossy())
@@ -84,9 +97,9 @@ pub fn select_base_locale() -> Option<(String, BTreeMap<String, Vec<String>>)> {
                 .to_string();
             let entry = acc
                 .entry(tag)
-                .or_insert(BTreeMap::new())
+                .or_insert_with(BTreeMap::new)
                 .entry(kbd_os)
-                .or_insert(vec![]);
+                .or_insert_with(Vec::new);
             (*entry).push(
                 cur.path()
                     .file_name()
@@ -152,7 +165,7 @@ fn main() -> Result<(), Error> {
     let opts = Cli::from_args();
     let _ = opts.verbose.setup_env_logger("cldr");
 
-    update_cldr_repo();
+    update_cldr_repo()?;
     let locale = select_base_locale().context(NoLocaleSelected)?;
 
     // let locale = match select_base_locale() {
@@ -184,8 +197,7 @@ fn main() -> Result<(), Error> {
         .map(|(key, mut v)| {
             v.sort();
             let last = v.last().unwrap();
-            let xml = parse_path(&key, last);
-            xml
+            parse_path(&key, last)
         })
         .collect::<Vec<_>>();
 

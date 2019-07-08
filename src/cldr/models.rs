@@ -2,20 +2,9 @@ use serde::{Deserialize, Serialize};
 
 use strum_macros::{Display, EnumString};
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Hash,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    Serialize,
-    Deserialize,
-    Display,
-    EnumString
-)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Serialize, Deserialize)]
+#[derive(EnumString, Display)]
 pub enum RawIsoKey {
     E00,
     E01,
