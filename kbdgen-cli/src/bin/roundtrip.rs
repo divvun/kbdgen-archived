@@ -1,5 +1,6 @@
 use kbdgen::{Load, ProjectBundle, Save};
 use snafu::{ResultExt, Snafu};
+use snafu_cli_debug::SnafuCliDebug;
 use std::{fmt, path::PathBuf};
 use structopt::StructOpt;
 
@@ -10,11 +11,14 @@ struct Cli {
 
     #[structopt(parse(from_os_str))]
     output: Option<PathBuf>,
+
+    #[structopt(flatten)]
+    verbose: clap_verbosity_flag::Verbosity,
 }
 
 fn main() -> Result<(), Error> {
-    pretty_env_logger::init();
     let opts = Cli::from_args();
+    let _ = opts.verbose.setup_env_logger("cldr");
 
     let bundle = ProjectBundle::load(&opts.input).context(CannotLoad)?;
     log::info!("Bundle `{}` loaded, looking great!", opts.input.display());
@@ -28,7 +32,7 @@ fn main() -> Result<(), Error> {
     Ok(())
 }
 
-#[derive(Snafu)]
+#[derive(Snafu, SnafuCliDebug)]
 pub enum Error {
     #[snafu(display("Could not load kbdgen bundle: {}", source))]
     CannotLoad {
@@ -40,14 +44,4 @@ pub enum Error {
         source: kbdgen::SaveError,
         backtrace: snafu::Backtrace,
     },
-}
-
-impl fmt::Debug for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "{}", self)?;
-        if let Some(backtrace) = snafu::ErrorCompat::backtrace(&self) {
-            writeln!(f, "{}", backtrace)?;
-        }
-        Ok(())
-    }
 }

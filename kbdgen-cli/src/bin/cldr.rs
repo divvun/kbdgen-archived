@@ -1,9 +1,10 @@
 use kbdgen::{bundle::Save, cldr::Keyboard};
 use snafu::{OptionExt, ResultExt, Snafu};
-use std::{collections::BTreeMap, fmt, path::PathBuf, process::Command};
+use snafu_cli_debug::SnafuCliDebug;
+use std::{collections::BTreeMap, path::PathBuf, process::Command};
 use structopt::StructOpt;
 
-#[derive(Snafu)]
+#[derive(Snafu, SnafuCliDebug)]
 pub enum Error {
     #[snafu(display("No locale selected"))]
     NoLocaleSelected,
@@ -17,16 +18,6 @@ pub enum Error {
         source: kbdgen::SaveError,
         backtrace: snafu::Backtrace,
     },
-}
-
-impl fmt::Debug for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "{}", self)?;
-        if let Some(backtrace) = snafu::ErrorCompat::backtrace(&self) {
-            writeln!(f, "{}", backtrace)?;
-        }
-        Ok(())
-    }
 }
 
 fn cldr_dir() -> PathBuf {
@@ -152,10 +143,14 @@ pub fn parse_path(os: &str, file: &str) -> Keyboard {
 struct Cli {
     #[structopt(parse(from_os_str))]
     output: PathBuf,
+
+    #[structopt(flatten)]
+    verbose: clap_verbosity_flag::Verbosity,
 }
 
 fn main() -> Result<(), Error> {
     let opts = Cli::from_args();
+    let _ = opts.verbose.setup_env_logger("cldr");
 
     update_cldr_repo();
     let locale = select_base_locale().context(NoLocaleSelected)?;
@@ -178,8 +173,8 @@ fn main() -> Result<(), Error> {
 
     // Ok(())
 
-    println!("Selected locale: '{}'", &locale.0);
-    println!("Files: {:#?}", &locale.1);
+    log::debug!("Selected locale: '{}'", &locale.0);
+    log::debug!("Files: {:#?}", &locale.1);
 
     let mut modes = kbdgen::models::Modes::default();
 
