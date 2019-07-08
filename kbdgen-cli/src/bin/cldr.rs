@@ -146,7 +146,7 @@ pub fn select_base_locale() -> Option<(String, BTreeMap<String, Vec<String>>)> {
 
 pub fn parse_path(os: &str, file: &str) -> Keyboard {
     let fn_ = cldr_dir().join("keyboards").join(os).join(file);
-    // println!("{:?}", &fn_);
+
     let f = std::fs::File::open(fn_).unwrap();
     let kbd: Keyboard = serde_xml_rs::from_reader(f).unwrap();
     kbd
@@ -167,24 +167,6 @@ fn main() -> Result<(), Error> {
 
     update_cldr_repo()?;
     let locale = select_base_locale().context(NoLocaleSelected)?;
-
-    // let locale = match select_base_locale() {
-    //     Some(v) => v,
-    //     None => {
-    //         println!("No valid locale selected; aborting.");
-    //         return Ok(());
-    //     }
-    // };
-
-    // let bundle = ProjectBundle::load(&opts.input).context(CannotLoad)?;
-    // log::info!(
-    //     "Bundle `{}` loaded, looking great to far!",
-    //     opts.input.display()
-    // );
-    // bundle.save(&opts.output).context(CannotSave)?;
-    // log::info!("New bundle written to `{}`.", opts.output.display());
-
-    // Ok(())
 
     log::debug!("Selected locale: '{}'", &locale.0);
     log::debug!("Files: {:#?}", &locale.1);
@@ -217,27 +199,9 @@ fn main() -> Result<(), Error> {
     let mut bundle = kbdgen::bundle::ProjectBundle::default();
     bundle.layouts.insert(locale.0, layout);
 
-    // if let Some(output) = opts.output {
     let output = opts.output;
     bundle.save(&output).context(CannotSave)?;
     log::info!("New bundle written to `{}`.", output.display());
-    // } else {
-    //     log::info!("No output path specified, skipping");
-    // }
 
     Ok(())
 }
-
-// fn main() {
-//     use kbdgen_init::ir::Layer;
-//     use kbdgen_init::*;
-
-//     // let k = locale.1.keys().next().unwrap();
-//     // let xml = parse_path(&k, &locale.1[k][0]);
-//     // let layer = Layer::from(&xml.key_maps[0]);
-
-//     // let mut map = std::collections::HashMap::new();
-//     // map.insert("test", serde_yaml::Value::from(&layer));
-//     // let v = serde_yaml::to_string(&map).unwrap();
-//     // println!("{}", v);
-// }
