@@ -1,19 +1,15 @@
 use kbdgen::{bundle::Save, cldr::Keyboard};
+use kbdgen_cli::{cldr_dir, update_cldr_repo};
 use snafu::{OptionExt, ResultExt, Snafu};
 use snafu_cli_debug::SnafuCliDebug;
-use std::{collections::BTreeMap, path::PathBuf, process::Command};
+use std::{collections::BTreeMap, path::PathBuf};
 use structopt::StructOpt;
 
 #[derive(Snafu, SnafuCliDebug)]
 pub enum Error {
-    #[snafu(display("Cloning CLDR repo failed"))]
-    RepoCloneFailed {
-        source: std::io::Error,
-        backtrace: snafu::Backtrace,
-    },
     #[snafu(display("Updating CLDR repo failed"))]
-    RepoUpdateFailed {
-        source: std::io::Error,
+    CldrRepoUpdate {
+        source: kbdgen_cli::Error,
         backtrace: snafu::Backtrace,
     },
     #[snafu(display("No locale selected"))]
@@ -28,42 +24,6 @@ pub enum Error {
         source: kbdgen::SaveError,
         backtrace: snafu::Backtrace,
     },
-}
-
-fn cldr_dir() -> PathBuf {
-    directories::ProjectDirs::from("", "", "kbdgen")
-        .expect("project dir")
-        .cache_dir()
-        .join("cldr")
-}
-
-pub fn update_cldr_repo() -> Result<(), Error> {
-    let dir = cldr_dir();
-
-    if !dir.exists() {
-        log::info!("Downloading CLDR repo to `{}`…", dir.display());
-        let mut command = Command::new("git")
-            .args(&[
-                "clone",
-                "--depth",
-                "1",
-                "https://github.com/unicode-org/cldr",
-            ])
-            .arg(&dir)
-            .spawn()
-            .context(RepoCloneFailed)?;
-        command.wait().context(RepoCloneFailed)?;
-    } else {
-        log::info!("Updating CLDR repo in `{}`…", dir.display());
-        let mut command = Command::new("git")
-            .current_dir(&dir)
-            .args(&["pull"])
-            .spawn()
-            .context(RepoUpdateFailed)?;
-        command.wait().context(RepoUpdateFailed)?;
-    }
-
-    Ok(())
 }
 
 pub fn select_base_locale() -> Option<(String, BTreeMap<String, Vec<String>>)> {
@@ -165,7 +125,7 @@ fn main() -> Result<(), Error> {
     let opts = Cli::from_args();
     let _ = opts.verbose.setup_env_logger("cldr");
 
-    update_cldr_repo()?;
+    update_cldr_repo().context(CldrRepoUpdate)?;
     let locale = select_base_locale().context(NoLocaleSelected)?;
 
     log::debug!("Selected locale: '{}'", &locale.0);
