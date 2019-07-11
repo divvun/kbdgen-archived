@@ -1,9 +1,10 @@
 use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{de::Deserializer, ser::Serializer, Deserialize, Serialize};
+use shrinkwraprs::Shrinkwrap;
 use snafu::Snafu;
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Shrinkwrap)]
 pub struct KeyValue(pub(crate) Option<String>);
 
 impl<'de> Deserialize<'de> for KeyValue {

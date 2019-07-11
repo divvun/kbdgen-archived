@@ -5,6 +5,7 @@ use serde::{
     ser::{SerializeMap, Serializer},
     Deserialize, Serialize,
 };
+use shrinkwraprs::Shrinkwrap;
 use snafu::Snafu;
 use std::{collections::BTreeMap, fmt, str::FromStr};
 
@@ -18,7 +19,7 @@ use std::{collections::BTreeMap, fmt, str::FromStr};
 ///
 /// We will try to serialize everything that is more than half of a full map as
 /// string-based key map; other sizes will be regular maps in YAML.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Shrinkwrap)]
 pub struct DesktopKeyMap(pub(crate) BTreeMap<IsoKey, keys::KeyValue>);
 
 impl<'de> Deserialize<'de> for DesktopKeyMap {
