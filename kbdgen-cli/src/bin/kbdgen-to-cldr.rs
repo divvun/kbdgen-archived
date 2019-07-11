@@ -69,62 +69,32 @@ fn layout_to_cldr(
 
     let mut res = vec![];
 
-    if let Some(a) = layout.modes.android.as_ref() {
-        log::debug!("android: check");
-        res.push((
-            String::from("android"),
-            mobile_mode_to_keyboard(name, "android", a, layout.longpress.as_ref(), layout),
-        ));
+    macro_rules! mode {
+        (mobile: $name:ident) => {
+            mode!(mobile_mode_to_keyboard -> $name)
+        };
+        (desktop: $name:ident) => {
+            mode!(desktop_mode_to_keyboard -> $name)
+        };
+        ($fn:ident -> $name:ident) => {
+            if let Some(a) = layout.modes.$name.as_ref() {
+                log::debug!("{}: check", stringify!($name));
+                res.push((
+                    String::from(stringify!($name)),
+                    $fn(name, stringify!($name), a, layout.longpress.as_ref(), layout),
+                ));
+            }
+        };
     }
-    if let Some(a) = layout.modes.ios.as_ref() {
-        log::debug!("ios: check");
-        res.push((
-            String::from("ios"),
-            mobile_mode_to_keyboard(name, "ios", a, layout.longpress.as_ref(), layout),
-        ));
-    }
-    if let Some(a) = layout.modes.mobile.as_ref() {
-        log::debug!("generic mobile: check");
-        res.push((
-            String::from("mobile"),
-            mobile_mode_to_keyboard(name, "mobile", a, layout.longpress.as_ref(), layout),
-        ));
-    }
-    if let Some(a) = layout.modes.win.as_ref() {
-        log::debug!("generic win: check");
-        res.push((
-            String::from("win"),
-            desktop_mode_to_keyboard(name, "win", a, layout.longpress.as_ref(), layout),
-        ));
-    }
-    if let Some(a) = layout.modes.mac.as_ref() {
-        log::debug!("generic mac: check");
-        res.push((
-            String::from("mac"),
-            desktop_mode_to_keyboard(name, "mac", a, layout.longpress.as_ref(), layout),
-        ));
-    }
-    if let Some(a) = layout.modes.chrome.as_ref() {
-        log::debug!("generic chrome: check");
-        res.push((
-            String::from("chrome"),
-            desktop_mode_to_keyboard(name, "chrome", a, layout.longpress.as_ref(), layout),
-        ));
-    }
-    if let Some(a) = layout.modes.x11.as_ref() {
-        log::debug!("generic x11: check");
-        res.push((
-            String::from("x11"),
-            desktop_mode_to_keyboard(name, "x11", a, layout.longpress.as_ref(), layout),
-        ));
-    }
-    if let Some(a) = layout.modes.desktop.as_ref() {
-        log::debug!("generic desktop: check");
-        res.push((
-            String::from("desktop"),
-            desktop_mode_to_keyboard(name, "desktop", a, layout.longpress.as_ref(), layout),
-        ));
-    }
+
+    mode!(mobile: android);
+    mode!(mobile: ios);
+    mode!(mobile: mobile);
+    mode!(desktop: win);
+    mode!(desktop: mac);
+    mode!(desktop: chrome);
+    mode!(desktop: x11);
+    mode!(desktop: desktop);
 
     Ok(res)
 }
