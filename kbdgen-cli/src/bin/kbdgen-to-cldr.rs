@@ -1,9 +1,14 @@
-use kbdgen::{cldr::Keyboard, Load, ProjectBundle};
+use kbdgen::{
+    cldr::{Keyboard, *},
+    models::{DesktopModes, IsoKey, MobileModes},
+    Load, ProjectBundle,
+};
 use log::{debug, log_enabled};
 use snafu::{ResultExt, Snafu};
 use snafu_cli_debug::SnafuCliDebug;
-use std::{fs::File, io::BufWriter, path::PathBuf};
+use std::{collections::BTreeMap, fs::File, io::BufWriter, path::PathBuf};
 use structopt::StructOpt;
+use strum::IntoEnumIterator;
 
 #[derive(Debug, StructOpt)]
 struct Cli {
@@ -36,10 +41,8 @@ fn main() -> Result<(), Error> {
     bundle
         .layouts
         .iter()
-        .map(|(name, layout)| (name, layout_to_cldr(&name, layout)))
+        .map(|(name, layout)| (name, layout_to_cldr(&name, layout, &bundle)))
         .try_for_each(|(name, keyboards)| {
-            use kbdgen::cldr::ToXml;
-
             for (platform, keyboard) in keyboards? {
                 let path = &opts.output.join(name).join(platform).with_extension("xml");
                 std::fs::create_dir_all(path.parent().unwrap())
@@ -60,80 +63,167 @@ fn main() -> Result<(), Error> {
 fn layout_to_cldr(
     name: &str,
     layout: &kbdgen::models::Layout,
+    _project: &kbdgen::ProjectBundle,
 ) -> Result<Vec<(String, Keyboard)>, SavingError> {
     log::debug!("to cldr with you, {}!", name);
 
-    use kbdgen::{
-        cldr::*,
-        models::{IsoKey, MobileModes},
-    };
-    use std::collections::BTreeMap;
-    use strum::IntoEnumIterator;
-
     let mut res = vec![];
-
-    fn mobile_mode_to_keyboard(
-        name: &str,
-        mobile: &MobileModes,
-        long_presses: Option<&BTreeMap<String, String>>,
-    ) -> Keyboard {
-        let mut key_maps = vec![];
-
-        for (modifiers, mapping) in mobile {
-            let keys = IsoKey::iter()
-                .zip(mapping.iter())
-                .map(|(iso, value)| {
-                    let long_press = long_presses.and_then(|l| l.get(value)).cloned();
-                    Map {
-                        iso: iso.to_string(),
-                        to: value.to_string(),
-                        transform: None,
-                        long_press,
-                    }
-                })
-                .collect();
-
-            key_maps.push(KeyMap {
-                keys,
-                modifiers: Some(modifiers.to_string()),
-            })
-        }
-
-        Keyboard {
-            locale: name.to_string(),
-            names: vec![Names {
-                values: vec![Name {
-                    value: name.to_string(),
-                }],
-            }],
-            key_maps,
-            ..Keyboard::default()
-        }
-    }
 
     if let Some(a) = layout.modes.android.as_ref() {
         log::debug!("android: check");
         res.push((
             String::from("android"),
-            mobile_mode_to_keyboard(name, a, layout.longpress.as_ref()),
+            mobile_mode_to_keyboard(name, "android", a, layout.longpress.as_ref(), layout),
         ));
     }
     if let Some(a) = layout.modes.ios.as_ref() {
         log::debug!("ios: check");
         res.push((
             String::from("ios"),
-            mobile_mode_to_keyboard(name, a, layout.longpress.as_ref()),
+            mobile_mode_to_keyboard(name, "ios", a, layout.longpress.as_ref(), layout),
         ));
     }
     if let Some(a) = layout.modes.mobile.as_ref() {
         log::debug!("generic mobile: check");
         res.push((
             String::from("mobile"),
-            mobile_mode_to_keyboard(name, a, layout.longpress.as_ref()),
+            mobile_mode_to_keyboard(name, "mobile", a, layout.longpress.as_ref(), layout),
+        ));
+    }
+    if let Some(a) = layout.modes.win.as_ref() {
+        log::debug!("generic win: check");
+        res.push((
+            String::from("win"),
+            desktop_mode_to_keyboard(name, "win", a, layout.longpress.as_ref(), layout),
+        ));
+    }
+    if let Some(a) = layout.modes.mac.as_ref() {
+        log::debug!("generic mac: check");
+        res.push((
+            String::from("mac"),
+            desktop_mode_to_keyboard(name, "mac", a, layout.longpress.as_ref(), layout),
+        ));
+    }
+    if let Some(a) = layout.modes.chrome.as_ref() {
+        log::debug!("generic chrome: check");
+        res.push((
+            String::from("chrome"),
+            desktop_mode_to_keyboard(name, "chrome", a, layout.longpress.as_ref(), layout),
+        ));
+    }
+    if let Some(a) = layout.modes.x11.as_ref() {
+        log::debug!("generic x11: check");
+        res.push((
+            String::from("x11"),
+            desktop_mode_to_keyboard(name, "x11", a, layout.longpress.as_ref(), layout),
+        ));
+    }
+    if let Some(a) = layout.modes.desktop.as_ref() {
+        log::debug!("generic desktop: check");
+        res.push((
+            String::from("desktop"),
+            desktop_mode_to_keyboard(name, "desktop", a, layout.longpress.as_ref(), layout),
         ));
     }
 
     Ok(res)
+}
+
+fn desktop_mode_to_keyboard(
+    name: &str,
+    target: &str,
+    desktop: &DesktopModes,
+    long_presses: Option<&BTreeMap<String, String>>,
+    layout: &kbdgen::models::Layout,
+) -> Keyboard {
+    let mut key_maps = vec![];
+
+    for (modifiers, mapping) in desktop {
+        let keys = mapping
+            .iter()
+            .filter_map(|(iso, value)| {
+                if let Some(value) = value.as_ref() {
+                    Some((iso, value))
+                } else {
+                    None
+                }
+            })
+            .map(|(iso, value)| {
+                let long_press = long_presses.and_then(|l| l.get(value.as_str())).cloned();
+                Map {
+                    iso: iso.to_string(),
+                    to: value.to_string(),
+                    transform: None,
+                    long_press,
+                }
+            })
+            .collect();
+
+        key_maps.push(KeyMap {
+            keys,
+            modifiers: Some(modifiers.to_string()),
+        })
+    }
+
+    Keyboard {
+        locale: format!("{}-t-k0-{}", name, target),
+        names: vec![Names {
+            values: vec![Name {
+                value: pick_name_from_display_names(&layout.display_names),
+            }],
+        }],
+        key_maps,
+        ..Keyboard::default()
+    }
+}
+
+fn mobile_mode_to_keyboard(
+    name: &str,
+    target: &str,
+    mobile: &MobileModes,
+    long_presses: Option<&BTreeMap<String, String>>,
+    layout: &kbdgen::models::Layout,
+) -> Keyboard {
+    let mut key_maps = vec![];
+
+    for (modifiers, mapping) in mobile {
+        let keys = IsoKey::iter()
+            .zip(mapping.iter())
+            .map(|(iso, value)| {
+                let long_press = long_presses.and_then(|l| l.get(value)).cloned();
+                Map {
+                    iso: iso.to_string(),
+                    to: value.to_string(),
+                    transform: None,
+                    long_press,
+                }
+            })
+            .collect();
+
+        key_maps.push(KeyMap {
+            keys,
+            modifiers: Some(modifiers.to_string()),
+        })
+    }
+
+    Keyboard {
+        locale: format!("{}-t-k0-{}", name, target),
+        names: vec![Names {
+            values: vec![Name {
+                value: pick_name_from_display_names(&layout.display_names),
+            }],
+        }],
+        key_maps,
+        ..Keyboard::default()
+    }
+}
+
+fn pick_name_from_display_names(names: &BTreeMap<String, String>) -> String {
+    names
+        .get("en")
+        .or_else(|| names.values().next())
+        .cloned()
+        .unwrap_or_default()
 }
 
 #[derive(Snafu, SnafuCliDebug)]
