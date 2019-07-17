@@ -12,6 +12,9 @@ pub fn cldr_dir() -> PathBuf {
     kbdgen_dirs().cache_dir().join("cldr")
 }
 
+pub fn xkb_dir() -> PathBuf {
+    kbdgen_dirs().cache_dir().join("cldr")
+}
 
 pub fn update_repo(name: &str, dir: &Path, repo: &str) -> Result<(), Error> {
     if !dir.exists() {

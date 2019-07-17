@@ -17,3 +17,4 @@ log = "0.4.6"
 clap-verbosity-flag = "0.2.0"
 snafu-cli-debug = "0.1.0"
 strum = "0.15.0"
+xkb-parser = { git = "https://github.com/divvun/xkb-parser" }
