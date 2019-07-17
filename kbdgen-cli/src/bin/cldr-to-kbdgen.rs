@@ -1,9 +1,11 @@
 use kbdgen::{bundle::Save, cldr::Keyboard};
-use kbdgen_cli::{cldr_dir, update_cldr_repo};
+use kbdgen_cli::{cldr_dir, update_repo};
 use snafu::{OptionExt, ResultExt, Snafu};
 use snafu_cli_debug::SnafuCliDebug;
 use std::{collections::BTreeMap, path::PathBuf};
 use structopt::StructOpt;
+
+const REPO_URL: &str = "https://github.com/unicode-org/cldr";
 
 #[derive(Snafu, SnafuCliDebug)]
 pub enum Error {
@@ -130,7 +132,7 @@ fn main() -> Result<(), Error> {
     let opts = Cli::from_args();
     let _ = opts.verbose.setup_env_logger("cldr-to-kbdgen");
 
-    update_cldr_repo().context(CldrRepoUpdate)?;
+    update_repo("cldr", &cldr_dir(), REPO_URL).context(CldrRepoUpdate)?;
     let locale = select_base_locale().context(NoLocaleSelected)?;
 
     log::debug!("Selected locale: '{}'", &locale.0);
