@@ -13,7 +13,7 @@ pub fn cldr_dir() -> PathBuf {
 }
 
 pub fn xkb_dir() -> PathBuf {
-    kbdgen_dirs().cache_dir().join("cldr")
+    kbdgen_dirs().cache_dir().join("xkb")
 }
 
 pub fn update_repo(name: &str, dir: &Path, repo: &str) -> Result<(), Error> {

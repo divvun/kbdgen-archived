@@ -14,15 +14,16 @@ mod saving;
 pub use saving::{Error as SaveError, Save};
 
 pub(crate) mod keys;
+pub use keys::KeyValue;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct Targets {
-    android: Option<models::TargetAndroid>,
-    i_os: Option<models::TargetIOS>,
-    mac_os: Option<models::TargetMacOS>,
-    windows: Option<models::TargetWindows>,
-    chrome: Option<models::TargetChrome>,
-    x11: Option<models::TargetX11>,
+    pub android: Option<models::TargetAndroid>,
+    pub i_os: Option<models::TargetIOS>,
+    pub mac_os: Option<models::TargetMacOS>,
+    pub windows: Option<models::TargetWindows>,
+    pub chrome: Option<models::TargetChrome>,
+    pub x11: Option<models::TargetX11>,
 }
 
 /// A project bundle consists of a `project.yaml` file, a `targets/` directory
