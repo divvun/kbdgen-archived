@@ -1,31 +1,32 @@
 use snafu::{ResultExt, Snafu};
-use std::{path::PathBuf, process::Command};
+use std::{
+    path::{Path, PathBuf},
+    process::Command,
+};
 
-pub fn cldr_dir() -> PathBuf {
-    directories::ProjectDirs::from("", "", "kbdgen")
-        .expect("project dir")
-        .cache_dir()
-        .join("cldr")
+fn kbdgen_dirs() -> directories::ProjectDirs {
+    directories::ProjectDirs::from("", "", "kbdgen").expect("project dir")
 }
 
-pub fn update_cldr_repo() -> Result<(), Error> {
-    let dir = cldr_dir();
+pub fn cldr_dir() -> PathBuf {
+    kbdgen_dirs().cache_dir().join("cldr")
+}
 
+pub fn xkb_dir() -> PathBuf {
+    kbdgen_dirs().cache_dir().join("xkb")
+}
+
+pub fn update_repo(name: &str, dir: &Path, repo: &str) -> Result<(), Error> {
     if !dir.exists() {
-        log::info!("Downloading CLDR repo to `{}`…", dir.display());
+        log::info!("Downloading {} repo to `{}`…", name, dir.display());
         let mut command = Command::new("git")
-            .args(&[
-                "clone",
-                "--depth",
-                "1",
-                "https://github.com/unicode-org/cldr",
-            ])
+            .args(&["clone", "--depth", "1", repo])
             .arg(&dir)
             .spawn()
             .context(RepoCloneFailed)?;
         command.wait().context(RepoCloneFailed)?;
     } else {
-        log::info!("Updating CLDR repo in `{}`…", dir.display());
+        log::info!("Updating {} repo in `{}`…", name, dir.display());
         let mut command = Command::new("git")
             .current_dir(&dir)
             .args(&["pull"])

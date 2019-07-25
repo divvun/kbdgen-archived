@@ -7,6 +7,18 @@ use snafu::Snafu;
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Shrinkwrap)]
 pub struct KeyValue(pub(crate) Option<String>);
 
+impl From<Option<String>> for KeyValue {
+    fn from(x: Option<String>) -> Self {
+        KeyValue(x)
+    }
+}
+
+impl From<String> for KeyValue {
+    fn from(x: String) -> Self {
+        KeyValue(Some(x))
+    }
+}
+
 impl<'de> Deserialize<'de> for KeyValue {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where

@@ -22,6 +22,12 @@ use std::{collections::BTreeMap, fmt, str::FromStr};
 #[derive(Debug, Clone, PartialEq, Eq, Shrinkwrap)]
 pub struct DesktopKeyMap(pub(crate) BTreeMap<IsoKey, keys::KeyValue>);
 
+impl From<BTreeMap<IsoKey, keys::KeyValue>> for DesktopKeyMap {
+    fn from(x: BTreeMap<IsoKey, keys::KeyValue>) -> Self {
+        DesktopKeyMap(x)
+    }
+}
+
 impl<'de> Deserialize<'de> for DesktopKeyMap {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
