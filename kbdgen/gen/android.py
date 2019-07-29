@@ -93,7 +93,10 @@ class AndroidGenerator(Generator):
         self.repo_dir = os.path.join(deps_dir, self.REPO)
         os.makedirs(deps_dir, exist_ok=True)
 
-        tree_id = self.get_source_tree(base, repo=self.repo, branch=self.branch)
+        # Quick workaround for local repos
+        is_local = self.repo is not None and (self.repo.count("/") != 1 or self.repo.count(".") != 0)
+
+        tree_id = self.get_source_tree(base, repo=self.repo, branch=self.branch, is_local=is_local)
         self.native_locale_workaround(base)
 
         dsn = self._project.target("android").get("sentryDsn", None)
@@ -608,30 +611,50 @@ class AndroidGenerator(Generator):
             os.makedirs(str(target_dir.parent), exist_ok=True)
             shutil.move(target, target_dir)
 
-    def get_source_tree(self, base, repo="divvun/giella-ime", branch="master"):
+    def _get_local_source_tree(self, deps_dir, path):
+        logger.info("Copying source files from %s…" % path)
+
+        shutil.rmtree(str(deps_dir), ignore_errors=True)
+        shutil.copytree(path, deps_dir / self.REPO, 
+            ignore=shutil.ignore_patterns(".git", ".svn"))
+
+    def get_source_tree(self, base, repo, branch, is_local=False):
         """
         Downloads the IME source from Github as a tarball, then extracts to deps
         dir.
         """
-        logger.info("Getting source files from %s %s branch…" % (repo, branch))
+
+        if repo is None:
+            repo = "divvun/giella-ime"
+        if branch is None:
+            branch = "master"
 
         deps_dir = Path(os.path.join(base, "deps"))
-        shutil.rmtree(str(deps_dir), ignore_errors=True)
 
-        tarball = self.cache.download_latest_from_github(
-            repo,
-            branch,
-            username=self._args.get("github_username", None),
-            password=self._args.get("github_token", None),
-        )
+        if is_local:
+            self._get_local_source_tree(deps_dir, repo)
+        else:
+            logger.info("Getting source files from %s %s branch…" % (repo, branch))
+
+            shutil.rmtree(str(deps_dir), ignore_errors=True)
+
+            tarball = self.cache.download_latest_from_github(
+                repo,
+                branch,
+                username=self._args.get("github_username", None),
+                password=self._args.get("github_token", None),
+            )
+
+            self._unfurl_tarball(tarball, deps_dir / self.REPO)
+
+        logger.info("Getting source files for divvunspell…")
+        
         hfst_ospell_tbl = self.cache.download_latest_from_github(
             "divvun/divvunspell",
             "master",
             username=self._args.get("github_username", None),
             password=self._args.get("github_token", None),
         )
-
-        self._unfurl_tarball(tarball, deps_dir / self.REPO)
 
         shutil.rmtree(str(deps_dir / "../hfst-ospell-rs"), ignore_errors=True)
         self._unfurl_tarball(hfst_ospell_tbl, deps_dir / "hfst-ospell-rs")
