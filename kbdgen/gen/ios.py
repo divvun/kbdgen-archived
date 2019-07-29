@@ -191,7 +191,7 @@ class AppleiOSGenerator(Generator):
 
         fn = os.path.join(deps_dir, "Keyboard", "KeyboardDefinitions.json")
         with open(fn, "w") as f:
-            json.dump(layouts, f, indent=2)
+            json.dump(layouts, f, indent=2, ensure_ascii=False)
 
         plist_path = os.path.join(deps_dir, "HostingApp", "Info.plist")
 
@@ -740,5 +740,24 @@ class AppleiOSGenerator(Generator):
 
         out["normal"] = view.mode("default")
         out["shifted"] = view.mode("shift")
+
+        # Add shift etc assuming default, add configuration later
+        for k in ["normal", "shifted"]:
+            out[k][2].insert(0, {
+                "id": "_shift",
+                "width": 1.5
+            })
+            out[k][2].insert(1, {
+                "id": "_spacer",
+                "width": 0.5
+            })
+            out[k][2].append({
+                "id": "_spacer",
+                "width": 0.5
+            })
+            out[k][2].append({
+                "id": "_backspace",
+                "width": 1.5
+            })
 
         return out
