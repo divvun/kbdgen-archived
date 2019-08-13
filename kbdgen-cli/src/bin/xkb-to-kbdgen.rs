@@ -53,6 +53,7 @@ fn main() -> Result<(), Error> {
     update_repo("xkb", &xkb_dir(), REPO_URL).context(FailedRepoUpdate)?;
 
     let (locale, file_path) = select_base_locale()?;
+    log::debug!("opening `{}`", file_path.display());
     let file = std::fs::read_to_string(&file_path).context(CannotOpenFile { path: &file_path })?;
     let section = select_sub_locale(&file).context(CannotReadXkb { path: &file_path })?;
     log::info!(
@@ -197,7 +198,10 @@ fn resolve_keys(
     // Collect dead keys while iterating.
     let mut dead_keys: BTreeMap<String, Vec<String>> = BTreeMap::new();
 
-    for key in &extract_keys(symbols, include_dir)? {
+    let keys = extract_keys(symbols, include_dir)?;
+    log::debug!("found {} keys in {}", keys.len(), symbols.name.content);
+
+    for key in &keys {
         for (codepoint, mode) in key.values.iter().zip(layers) {
             map.entry(mode.to_string())
                 .or_default()
@@ -285,6 +289,7 @@ fn parse_include_name(include: &str) -> Result<(&str, Option<&str>), Error> {
 fn read_include(name: &str, include_dir: &Path) -> Result<Vec<Key>, Error> {
     let (name, section_name) = parse_include_name(name)?;
     let file_path = include_dir.join(name);
+    log::debug!("opening `{}` to fetch includes", file_path.display());
     let file = std::fs::read_to_string(&file_path).context(CannotOpenFile { path: &file_path })?;
     let sections = fetch_symbols(&file).context(CannotReadXkb { path: &file_path })?;
     let symbols = if let Some(section_name) = section_name {
