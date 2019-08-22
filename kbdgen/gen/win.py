@@ -379,8 +379,8 @@ class WindowsGenerator(Generator):
         possibles = [os.environ.get("INNO_PATH", None)]
         if is_windows:
             possibles += [
-                "C:\\Program Files\\Inno Setup 5",
-                "C:\\Program Files (x86)\\Inno Setup 5",
+                "C:\\Program Files\\Inno Setup 6",
+                "C:\\Program Files (x86)\\Inno Setup 6",
             ]
         for p in possibles:
             if p is None:
@@ -521,8 +521,8 @@ class WindowsGenerator(Generator):
         # Check for INNO_PATH
         if self.get_inno_setup_dir() is None:
             logger.error(
-                "Inno Setup 5 must be installed or INNO_PATH environment variable must "
-                + "point to the Inno Setup 5 directory."
+                "Inno Setup 6 must be installed or INNO_PATH environment variable must "
+                + "point to the Inno Setup 6 directory."
             )
             return False
 
