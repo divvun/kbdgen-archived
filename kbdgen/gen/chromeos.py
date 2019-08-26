@@ -71,9 +71,9 @@ KEY_MAP = bind_iso_keys((
 ))
 
 LAYOUT_NAMES = {
-    "nb": "{} testatur",
-    "no": "{} testatur",
-    "nn": "{} testatur",
+    "nb": "{} tastatur",
+    "no": "{} tastatur",
+    "nn": "{} tastatur",
     "sv": "{} tangentbord",
     "en": "{} keyboard"
 }
@@ -114,7 +114,7 @@ class ChromeOSGenerator(PhysicalGenerator):
     @property
     def chrome_target(self):
         return self._bundle.targets.get("chrome", {})
-    
+
     def layout_target(self, layout):
         if layout.targets is not None:
             return layout.targets.get("chrome", {})
@@ -141,7 +141,7 @@ class ChromeOSGenerator(PhysicalGenerator):
         for locale, desc in self._bundle.project.locales.items():
             if locale not in messages:
                 messages[locale] = {}
-            
+
             messages[locale]["name"] = self._msg(desc.name)
             messages[locale]["description"] = self._msg(desc.description)
 
@@ -229,7 +229,7 @@ class ChromeOSGenerator(PhysicalGenerator):
     @property
     def app_id(self):
         return self._app_id
-        
+
     def sanity_check(self):
         if self.is_release:
             if self.chrome_target.get("build", None) is None:
@@ -321,7 +321,7 @@ class ChromeOSGenerator(PhysicalGenerator):
             modes = {}
             for (name, mode) in layout_view.modes().items():
                 modes[name] = replace_iso_keys(mode)
-                
+
             layout_descriptor = {
                 "deadKeys": layout_view.dead_keys(),
                 "transforms": layout.transforms,
@@ -334,14 +334,14 @@ class ChromeOSGenerator(PhysicalGenerator):
         logger.info("Writing keyboard layouts…")
         descriptor = "const descriptor = %s\n" % json.dumps(layouts, indent=2, ensure_ascii=False)
         start_line = "Keyboard.install(descriptor)"
-        
+
         logger.info("Merging IME and keyboard descriptor…")
         with open(
             os.path.join(
                 os.path.dirname(__file__), "bin", "keyboard.js"
             )) as f:
             background_js = "%s\n%s\n%s\n" % (f.read(), descriptor, start_line)
-        
+
         logger.info("Writing background.js…")
         logger.trace(background_js)
 
