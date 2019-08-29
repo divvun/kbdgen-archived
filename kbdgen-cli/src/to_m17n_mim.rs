@@ -1,6 +1,6 @@
 use kbdgen::{
-    m17n_mim::{self as m17n, *},
-    models::{DesktopModes, IsoKey, MobileModes},
+    m17n_mim::*,
+    models::{DesktopModes, MobileModes},
     Load, ProjectBundle,
 };
 use log::{debug, log_enabled};
@@ -8,7 +8,6 @@ use snafu::{ResultExt, Snafu};
 use snafu_cli_debug::SnafuCliDebug;
 use std::{collections::BTreeMap, convert::TryFrom, fs::File, io::BufWriter, path::PathBuf};
 use structopt::StructOpt;
-use strum::IntoEnumIterator;
 
 #[derive(Debug, StructOpt)]
 pub struct Cli {
@@ -23,7 +22,7 @@ pub struct Cli {
 }
 
 pub fn kbdgen_to_mim(opts: &Cli) -> Result<(), Error> {
-    let _ = opts.verbose.setup_env_logger("kbdgen-to-mim");
+    let _ = opts.verbose.setup_env_logger("kbdgen-cli");
 
     let bundle = ProjectBundle::load(&opts.input).context(CannotLoad)?;
     if log_enabled!(log::Level::Debug) {
@@ -47,10 +46,12 @@ pub fn kbdgen_to_mim(opts: &Cli) -> Result<(), Error> {
                 std::fs::create_dir_all(path.parent().unwrap())
                     .context(CannotCreateFile { path })?;
                 let file = File::create(path).context(CannotCreateFile { path })?;
+                debug!("Created file `{}`", path.display());
                 let mut writer = BufWriter::new(file);
                 keyboard
                     .write_mim(&mut writer)
                     .context(CannotSerializeMim)?;
+                log::info!("Wrote to file `{}`", path.display());
             }
             Ok(())
         })
@@ -101,8 +102,42 @@ fn desktop_mode_to_keyboard(
     let mut maps = vec![];
 
     for (key_combo, mapping) in desktop {
-        let modifiers = if key_combo == "default" { vec![] } else { Modifier::parse_keycombo(key_combo).context(CannotSerializeKeyCombo)? };
+        let mut rules = vec![];
+        let key_combo = if key_combo == "default" {
+            vec![]
+        } else {
+            Modifier::parse_keycombo(key_combo).context(CannotSerializeKeyCombo)?
+        };
+
+        for (iso_key, key_val) in mapping.iter() {
+            let key_code = KeyDef::CharacterCode(
+                Integer::try_from(format!("{:#x}", iso_key.to_character_code()))
+                    .context(InvalidCharacterCodeIndex)?,
+            );
+
+            let keyseq = KeySeq::KeyCombo(KeyCombo {
+                modifiers: key_combo.clone(),
+                key: key_code,
+            });
+
+            if let Some(key) = key_val.0.as_ref() {
+                rules.push(Rule {
+                    keyseq,
+                    action: MapAction::Insert(Insert::Character(
+                        Text::try_from(key.to_string()).context(CannotSerializeSymbol)?,
+                    )),
+                });
+            }
+        }
+
+        maps.push(Map {
+            name: Symbol::try_from(String::from("mapping")).context(CannotSerializeSymbol)?,
+            rules,
+        });
     }
+
+    // TODO: Add more maps for transforms based on dead keys
+    // TODO: Add map for space transforms
 
     Ok(Root {
         input_method: InputMethod {
@@ -112,8 +147,9 @@ fn desktop_mode_to_keyboard(
             version: None,
         },
         title: Text::try_from(name.to_string()).context(CannotSerializeSymbol)?,
-        description: Some(Text::try_from(format!("{} ({})", name, target))
-            .context(CannotSerializeSymbol)?),
+        description: Some(
+            Text::try_from(format!("{} ({})", name, target)).context(CannotSerializeSymbol)?,
+        ),
         maps,
         states: vec![],
     })
@@ -154,13 +190,18 @@ pub enum SavingError {
         source: std::io::Error,
         backtrace: snafu::Backtrace,
     },
-    #[snafu(display("Could serialize MIM symbol: {}", source))]
+    #[snafu(display("Could serialize MIM symbol"))]
     CannotSerializeSymbol {
         source: MimConversion,
         backtrace: snafu::Backtrace,
     },
-    #[snafu(display("Could serialize key combo: {}", source))]
+    #[snafu(display("Could serialize key combo"))]
     CannotSerializeKeyCombo {
+        source: MimConversion,
+        backtrace: snafu::Backtrace,
+    },
+    #[snafu(display("Invalid character code index"))]
+    InvalidCharacterCodeIndex {
         source: MimConversion,
         backtrace: snafu::Backtrace,
     },

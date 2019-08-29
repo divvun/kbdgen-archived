@@ -35,7 +35,7 @@ pub struct Cli {
 }
 
 pub fn xkb_to_kbdgen(opts: &Cli) -> Result<(), Error> {
-    let _ = opts.verbose.setup_env_logger("xkb-to-kbdgen");
+    let _ = opts.verbose.setup_env_logger("kbdgen-cli");
 
     let mut bundle = if opts.update_bundle {
         let b = ProjectBundle::load(&opts.output).context(CannotLoadBundle)?;

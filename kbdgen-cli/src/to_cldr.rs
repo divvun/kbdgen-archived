@@ -23,7 +23,7 @@ pub struct Cli {
 }
 
 pub fn kbdgen_to_cldr(opts: &Cli) -> Result<(), Error> {
-    let _ = opts.verbose.setup_env_logger("kbdgen-to-cldr");
+    let _ = opts.verbose.setup_env_logger("kbdgen-cli");
 
     let bundle = ProjectBundle::load(&opts.input).context(CannotLoad)?;
     if log_enabled!(log::Level::Debug) {
