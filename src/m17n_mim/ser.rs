@@ -17,7 +17,7 @@ impl ToMim for Root {
         writeln!(w, r#"(title "{}")"#, *self.title)?;
 
         if !self.maps.is_empty() {
-            writeln!(w, "(map ")?;
+            writeln!(w, "(map")?;
 
             let mut inner = PadAdapter::wrap(&mut w);
             for map in &self.maps {
@@ -28,7 +28,7 @@ impl ToMim for Root {
         }
 
         if !self.states.is_empty() {
-            writeln!(w, "(state ")?;
+            write!(w, "(state")?;
 
             let mut inner = PadAdapter::wrap(&mut w);
             for state in &self.states {
@@ -44,14 +44,14 @@ impl ToMim for Root {
 
 impl ToMim for InputMethod {
     fn write_mim(&self, mut w: impl Write) -> Result<()> {
-        writeln!(w, "(input-method")?;
-        writeln!(w, " {}", self.language)?;
-        writeln!(w, " {}", self.name)?;
+        write!(w, "(input-method")?;
+        write!(w, " {}", self.language)?;
+        write!(w, " {}", self.name)?;
         if let Some(extra_id) = self.extra_id.as_ref() {
-            writeln!(w, " {}", extra_id)?;
+            write!(w, " {}", extra_id)?;
         }
         if let Some(version) = self.version.as_ref() {
-            writeln!(w, " {}", version)?;
+            write!(w, " {}", version)?;
         }
         writeln!(w, ")")?;
         Ok(())
@@ -60,11 +60,12 @@ impl ToMim for InputMethod {
 
 impl ToMim for Map {
     fn write_mim(&self, mut w: impl Write) -> Result<()> {
-        writeln!(w, r"({}", self.name)?;
+        write!(w, r"({}", self.name)?;
 
         let mut inner = PadAdapter::wrap(&mut w);
         for state in &self.rules {
             state.write_mim(&mut inner)?;
+            writeln!(&mut inner)?;
         }
 
         writeln!(w, ")")?;
@@ -75,11 +76,11 @@ impl ToMim for Map {
 
 impl ToMim for Rule {
     fn write_mim(&self, mut w: impl Write) -> Result<()> {
-        writeln!(w, "(")?;
+        write!(w, "(")?;
         self.keyseq.write_mim(&mut w)?;
-        writeln!(w, " ")?;
+        write!(w, " ")?;
         self.action.write_mim(&mut w)?;
-        writeln!(w, ")")?;
+        write!(w, ")")?;
 
         Ok(())
     }
@@ -88,12 +89,11 @@ impl ToMim for Rule {
 impl ToMim for KeySeq {
     fn write_mim(&self, mut w: impl Write) -> Result<()> {
         match self {
-            KeySeq::Character(c) => writeln!(w, r#""{}""#, c.as_ref()),
-            KeySeq::CharacterCode(num) => writeln!(w, r#"{}"#, num.as_ref()),
+            KeySeq::Character(c) => write!(w, r#""{}""#, c.as_ref()),
             KeySeq::KeyCombo(s) => {
-                writeln!(w, "(")?;
+                write!(w, "(")?;
                 s.write_mim(&mut w)?;
-                writeln!(w, ")")?;
+                write!(w, ")")?;
                 Ok(())
             },
         }
@@ -111,17 +111,17 @@ impl ToMim for MapAction {
 impl ToMim for Insert {
     fn write_mim(&self, mut w: impl Write) -> Result<()> {
         match self {
-            Insert::Character(c) => writeln!(w, r#""{}""#, c.as_ref()),
-            Insert::CharacterCode(num) => writeln!(w, r#"{}"#, num.as_ref()),
+            Insert::Character(c) => write!(w, r#""{}""#, c.as_ref()),
+            Insert::CharacterCode(num) => write!(w, r#"{}"#, num.as_ref()),
         }
     }
 }
 
 impl ToMim for State {
     fn write_mim(&self, mut w: impl Write) -> Result<()> {
-        writeln!(w, "({}", self.name)?;
+        write!(w, "({}", self.name)?;
         if let Some(title) = self.title.as_ref() {
-            writeln!(w, " {}", title.as_ref())?;
+            write!(w, " {}", title.as_ref())?;
         }
 
         let mut inner = PadAdapter::wrap(&mut w);
@@ -137,7 +137,7 @@ impl ToMim for State {
 
 impl ToMim for Branch {
     fn write_mim(&self, mut w: impl Write) -> Result<()> {
-        writeln!(w, "{}", self.map_name)
+        write!(w, "{}", self.map_name)
     }
 }
 
@@ -145,23 +145,32 @@ impl ToMim for KeyCombo {
     fn write_mim(&self, mut w: impl Write) -> Result<()> {
         for modifier in &self.modifiers {
             modifier.write_mim(&mut w)?;
-            writeln!(w, "-")?;
+            write!(w, "-")?;
         }
-        writeln!(w, "{}", self.key.as_ref())?;
+        self.key.write_mim(&mut w)?;
         Ok(())
+    }
+}
+
+impl ToMim for KeyDef {
+    fn write_mim(&self, mut w: impl Write) -> Result<()> {
+        match self {
+            KeyDef::CharacterCode(int) => write!(w, "{}", int.as_ref()),
+            KeyDef::Character(sym) => write!(w, "{}", sym),
+        }
     }
 }
 
 impl ToMim for Modifier {
     fn write_mim(&self, mut w: impl Write) -> Result<()> {
         match self {
-            Modifier::Shift => writeln!(w, "S"),
-            Modifier::Control => writeln!(w, "C"),
-            Modifier::Meta => writeln!(w, "M"),
-            Modifier::Alt => writeln!(w, "A"),
-            Modifier::AltGr => writeln!(w, "G"),
-            Modifier::Super => writeln!(w, "s"),
-            Modifier::Hyper => writeln!(w, "H"),
+            Modifier::Shift => write!(w, "S"),
+            Modifier::Control => write!(w, "C"),
+            Modifier::Meta => write!(w, "M"),
+            Modifier::Alt => write!(w, "A"),
+            Modifier::AltGr => write!(w, "G"),
+            Modifier::Super => write!(w, "s"),
+            Modifier::Hyper => write!(w, "H"),
         }
     }
 }

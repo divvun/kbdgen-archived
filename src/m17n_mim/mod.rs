@@ -6,6 +6,7 @@
 //! [1]: https://www.nongnu.org/m17n/manual-en/m17nDBFormat.html
 
 use shrinkwraprs::Shrinkwrap;
+use snafu::ResultExt;
 use std::{convert::TryFrom, fmt, str::FromStr};
 
 mod ser;
@@ -59,7 +60,11 @@ pub struct Map {
 
 // RULE ::= '(' KEYSEQ MAP-ACTION * ')'
 pub struct Rule {
+    /// Keys to press to produce mapping
     pub keyseq: KeySeq,
+    /// The mapping describes what to do
+    ///
+    /// Right now we only support inserting characters.
     pub action: MapAction,
 }
 
@@ -71,13 +76,6 @@ pub enum KeySeq {
     /// > instance, with a West European keyboard, MTEXT may contain Latin-1
     /// > characters.
     Character(Text),
-    /// > INTEGER in the definition of `KEYSEQ` must be a valid character code.
-    CharacterCode(Integer),
-    /// > SYMBOL in the definition of `KEYSEQ` must be the return value of the
-    /// > `minput_event_to_key()` function. Under the X window system, you can
-    /// > quickly check the value using the `xev` command. For example, the
-    /// > return key, the backspace key, and the 0 key on the keypad are
-    /// > represented as `(Return)`, `(BackSpace)`, and `(KP_0)` respectively.
     /// > If the shift, control, meta, alt, super, and hyper modifiers are used,
     /// > they are represented by the `S-`, `C-`, `M-`, `A-`, `s-`, and `H-`
     /// > prefixes respectively in this order. Thus, "return with shift with
@@ -88,23 +86,43 @@ pub enum KeySeq {
 }
 
 pub struct KeyCombo {
+    /// Represents something like `C-S` for "Control + Shift"
     pub modifiers: Vec<Modifier>,
-    pub key: Text,
+    // Can be TEXT or INTEGER but let's be conservative and expect a character
+    // code.
+    pub key: KeyDef,
 }
 
-// "S-" (Shift), "C-" (Control), "M-" (Meta), "A-" (Alt), "G-" (AltGr), "s-" (Super), and "H-" (Hyper)
+pub enum KeyDef {
+    /// > INTEGER in the definition of `KEYSEQ` must be a valid character code.
+    CharacterCode(Integer),
+    /// > SYMBOL in the definition of `KEYSEQ` must be the return value of the
+    /// > `minput_event_to_key()` function. Under the X window system, you can
+    /// > quickly check the value using the `xev` command. For example, the
+    /// > return key, the backspace key, and the 0 key on the keypad are
+    /// > represented as `(Return)`, `(BackSpace)`, and `(KP_0)` respectively.
+    Character(Symbol),
+}
+
+/// Modifier keys
+///
+/// > "S-" (Shift), "C-" (Control), "M-" (Meta), "A-" (Alt), "G-" (AltGr), "s-"
+/// > (Super), and "H-" (Hyper)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(strum_macros::EnumString, strum_macros::Display)]
 #[strum(serialize_all = "snake_case")]
 pub enum Modifier {
     Shift,
-    #[strum(serialize="ctrl", serialize="control")]
+    #[strum(serialize = "ctrl", serialize = "control")]
     Control,
+    /// Often one of the Alt keys in terminals
     Meta,
     Alt,
     AltGr,
-    #[strum(serialize="super", serialize="cmd")]
+    /// Super key is assumed to be Command key on macOS
+    #[strum(serialize = "super", serialize = "cmd")]
     Super,
+    /// Mo layers, mo fun
     Hyper,
 }
 
@@ -133,7 +151,10 @@ impl Modifier {
             if let Ok(m) = Modifier::from_str(m) {
                 res.push(m);
             } else {
-                InvalidKeyCombo { input: format!("unknown modifier `{}`", m) }.fail()?;
+                InvalidKeyCombo {
+                    input: format!("unknown modifier `{}`", m),
+                }
+                .fail()?;
             }
         }
         Ok(res)
@@ -331,16 +352,34 @@ impl TryFrom<String> for Text {
 #[derive(snafu::Snafu, Debug)]
 pub enum MimConversion {
     #[snafu(display("Could serialize MIM symbol"))]
-    InvalidSymbol {
-        backtrace: snafu::Backtrace,
-    },
+    InvalidSymbol { backtrace: snafu::Backtrace },
     #[snafu(display("Could serialize MIM text"))]
-    InvalidText {
-        backtrace: snafu::Backtrace,
-    },
+    InvalidText { backtrace: snafu::Backtrace },
     #[snafu(display("Could serialize MIM key combo: {}", input))]
     InvalidKeyCombo {
         input: String,
+        backtrace: snafu::Backtrace,
+    },
+    #[snafu(display("Could not map index `{}` to a character code", index))]
+    InvalidCharactorCodeIndex {
+        index: usize,
+        backtrace: snafu::Backtrace,
+    },
+    #[snafu(display(
+        "Assumed hexadecimal MIM integer but there was no `0x` prefix in `{}`",
+        input
+    ))]
+    InvalidIntegerHexPrefix {
+        input: String,
+        backtrace: snafu::Backtrace,
+    },
+    #[snafu(display(
+        "Assumed hexadecimal MIM integer but `{}` is not a valid hex value",
+        input
+    ))]
+    InvalidIntegerHexValue {
+        input: String,
+        source: std::num::ParseIntError,
         backtrace: snafu::Backtrace,
     },
 }
@@ -360,3 +399,22 @@ pub enum MimConversion {
 /// > in decimal.
 #[derive(Shrinkwrap)]
 pub struct Integer(String);
+
+impl TryFrom<String> for Integer {
+    type Error = MimConversion;
+
+    fn try_from(input: String) -> Result<Self, Self::Error> {
+        // decimal
+        if let Ok(_) = u32::from_str_radix(&input, 10) {
+            return Ok(Integer(input));
+        }
+
+        // hex
+        if !(input.starts_with("0x") || input.starts_with("0X")) {
+            return InvalidIntegerHexPrefix { input }.fail();
+        }
+        let _parsed =
+            u64::from_str_radix(&input[2..], 16).with_context(|| InvalidIntegerHexValue { input: &input })?;
+        Ok(Integer(input))
+    }
+}

@@ -5,7 +5,7 @@ use shrinkwraprs::Shrinkwrap;
 use snafu::Snafu;
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Shrinkwrap)]
-pub struct KeyValue(pub(crate) Option<String>);
+pub struct KeyValue(pub Option<String>);
 
 impl From<Option<String>> for KeyValue {
     fn from(x: Option<String>) -> Self {
