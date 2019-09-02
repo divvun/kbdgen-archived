@@ -140,7 +140,7 @@ pub struct MobileKeyMap(pub(crate) Vec<Vec<String>>);
 
 impl MobileKeyMap {
     pub fn iter(&self) -> impl Iterator<Item = &String> {
-        self.0.iter().flat_map(std::convert::identity)
+        self.0.iter().flatten()
     }
 }
 

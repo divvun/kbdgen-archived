@@ -363,7 +363,7 @@ impl TryFrom<String> for Integer {
 
     fn try_from(input: String) -> Result<Self, Self::Error> {
         // decimal
-        if let Ok(_) = u32::from_str_radix(&input, 10) {
+        if u32::from_str_radix(&input, 10).is_ok() {
             return Ok(Integer(input));
         }
 
