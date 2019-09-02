@@ -6,7 +6,7 @@
 //! [1]: https://www.nongnu.org/m17n/manual-en/m17nDBFormat.html
 
 use regex::Regex;
-use snafu::ResultExt;
+use snafu::IntoError;
 use std::{convert::TryFrom, str::FromStr};
 
 mod ser;
@@ -371,9 +371,10 @@ impl TryFrom<String> for Integer {
         if !(input.starts_with("0x") || input.starts_with("0X")) {
             return InvalidIntegerHexPrefix { input }.fail();
         }
-        let _parsed = u64::from_str_radix(&input[2..], 16)
-            .with_context(|| InvalidIntegerHexValue { input: &input })?;
-        Ok(Integer(input))
+        match u64::from_str_radix(&input[2..], 16) {
+            Ok(_) => Ok(Integer(input)),
+            Err(source) => Err(InvalidIntegerHexValue { input }.into_error(source)),
+        }
     }
 }
 
