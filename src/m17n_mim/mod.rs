@@ -5,9 +5,9 @@
 //!
 //! [1]: https://www.nongnu.org/m17n/manual-en/m17nDBFormat.html
 
-use shrinkwraprs::Shrinkwrap;
+use regex::Regex;
 use snafu::ResultExt;
-use std::{convert::TryFrom, fmt, str::FromStr};
+use std::{convert::TryFrom, str::FromStr};
 
 mod ser;
 pub use ser::ToMim;
@@ -122,7 +122,8 @@ pub enum Modifier {
     /// Super key is assumed to be Command key on macOS
     #[strum(serialize = "super", serialize = "cmd")]
     Super,
-    /// Mo layers, mo fun
+    /// Mo layers, mo fun. Let's pick caps lock for this.
+    #[strum(serialize = "hyper", serialize = "caps")]
     Hyper,
 }
 
@@ -265,19 +266,19 @@ pub enum Insert {
 // STATE-TITLE-TEXT ::= MTEXT
 // STATE-INCLUSION ::= '(' 'include' TAGS 'state' STATE-NAME ? ')'
 pub struct State {
-    name: Symbol,
-    title: Option<Text>,
-    branches: Vec<Branch>,
+    pub name: Symbol,
+    pub title: Option<Text>,
+    pub branches: Vec<Branch>,
 }
 
 // BRANCH ::= '(' MAP-NAME BRANCH-ACTION * ')'
 // 	   | '(' 'nil' BRANCH-ACTION * ')'
 // 	   | '(' 't' BRANCH-ACTION * ')'
 pub struct Branch {
-    map_name: Symbol,
+    pub map_name: Symbol,
 
     #[cfg(sorry_not_yet_implemented)]
-    actions: Vec<Action>,
+    pub actions: Vec<Action>,
 }
 
 /// The "MSymbol" type
@@ -293,7 +294,7 @@ pub struct Branch {
 /// >
 /// > For instance, the element `abc\ def` represents a property whose value is
 /// > the symbol having the name "abc def".
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Symbol(String);
 
 impl TryFrom<String> for Symbol {
@@ -302,25 +303,6 @@ impl TryFrom<String> for Symbol {
     fn try_from(x: String) -> Result<Self, Self::Error> {
         // FIXME: Escaping and stuff
         Ok(Symbol(x))
-    }
-}
-
-impl fmt::Display for Symbol {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let t = self
-            .0
-            .replace(r"(", r"\(")
-            .replace(r")", r"\)")
-            .replace(r"]", r"\]")
-            .replace(r"[", r"\[")
-            .replace(r";", r"\;")
-            .replace(r"'", r"\'")
-            .replace(r#"""#, r#"\""#)
-            .replace(r"\", r"\\");
-
-        writeln!(f, "{}", t)?;
-
-        Ok(())
     }
 }
 
@@ -337,18 +319,65 @@ impl fmt::Display for Symbol {
 /// > After having resolved the backslash escapes, the byte sequence between the
 /// > double quotes is interpreted as a UTF-8 sequence and decoded into an
 /// > M-text. This M-text is the value of the property.
-#[derive(Shrinkwrap)]
+#[derive(Clone, Debug)]
 pub struct Text(String);
 
 impl TryFrom<String> for Text {
     type Error = MimConversion;
 
-    fn try_from(x: String) -> Result<Self, Self::Error> {
+    fn try_from(input: String) -> Result<Self, Self::Error> {
         // FIXME: Escaping and stuff
-        Ok(Text(x))
+        // FIXME: transforming existing escapes like `\u{30A}` to `\x30A`
+
+        lazy_static::lazy_static! {
+            static ref RE: Regex = Regex::new(r"\\u\{([0-9A-Fa-f]{1,6})\}").expect("valid regex");
+        }
+
+        let new = RE.replace_all(&input, |cap: &regex::Captures| {
+            let hex = cap.get(1).unwrap().as_str();
+            format!("\\x{}", hex)
+        });
+
+        Ok(Text(new.to_string()))
     }
 }
 
+/// The "Minteger" type
+///
+/// [Defined](https://www.nongnu.org/m17n/manual-en/m17nDBFormat.html) as:
+///
+/// > An element that matches the regular expression `-?[0-9]+ or
+/// > 0[xX][0-9A-Fa-f]+` represents a property whose key is `Minteger`. An
+/// > element matching the former expression is interpreted as an integer in
+/// > decimal notation, and one matching the latter is interpreted as an integer
+/// > in hexadecimal notation. The value of the property is the result of
+/// > interpretation.
+/// >
+/// > For instance, the element `0xA0` represents a property whose value is 160
+/// > in decimal.
+#[derive(Clone, Debug)]
+pub struct Integer(String);
+
+impl TryFrom<String> for Integer {
+    type Error = MimConversion;
+
+    fn try_from(input: String) -> Result<Self, Self::Error> {
+        // decimal
+        if let Ok(_) = u32::from_str_radix(&input, 10) {
+            return Ok(Integer(input));
+        }
+
+        // hex
+        if !(input.starts_with("0x") || input.starts_with("0X")) {
+            return InvalidIntegerHexPrefix { input }.fail();
+        }
+        let _parsed = u64::from_str_radix(&input[2..], 16)
+            .with_context(|| InvalidIntegerHexValue { input: &input })?;
+        Ok(Integer(input))
+    }
+}
+
+/// Possible errors when converting values to their MIM representation
 #[derive(snafu::Snafu, Debug)]
 pub enum MimConversion {
     #[snafu(display("Could serialize MIM symbol"))]
@@ -382,39 +411,4 @@ pub enum MimConversion {
         source: std::num::ParseIntError,
         backtrace: snafu::Backtrace,
     },
-}
-
-/// The "Minteger" type
-///
-/// [Defined](https://www.nongnu.org/m17n/manual-en/m17nDBFormat.html) as:
-///
-/// > An element that matches the regular expression `-?[0-9]+ or
-/// > 0[xX][0-9A-Fa-f]+` represents a property whose key is `Minteger`. An
-/// > element matching the former expression is interpreted as an integer in
-/// > decimal notation, and one matching the latter is interpreted as an integer
-/// > in hexadecimal notation. The value of the property is the result of
-/// > interpretation.
-/// >
-/// > For instance, the element `0xA0` represents a property whose value is 160
-/// > in decimal.
-#[derive(Shrinkwrap)]
-pub struct Integer(String);
-
-impl TryFrom<String> for Integer {
-    type Error = MimConversion;
-
-    fn try_from(input: String) -> Result<Self, Self::Error> {
-        // decimal
-        if let Ok(_) = u32::from_str_radix(&input, 10) {
-            return Ok(Integer(input));
-        }
-
-        // hex
-        if !(input.starts_with("0x") || input.starts_with("0X")) {
-            return InvalidIntegerHexPrefix { input }.fail();
-        }
-        let _parsed =
-            u64::from_str_radix(&input[2..], 16).with_context(|| InvalidIntegerHexValue { input: &input })?;
-        Ok(Integer(input))
-    }
 }

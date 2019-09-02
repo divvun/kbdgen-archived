@@ -69,6 +69,7 @@ pub fn serialize(input: &Option<String>) -> String {
     }
 }
 
+/// Decode unicode escapes like `\u{30A}`
 fn decode_unicode_escapes(input: &str) -> String {
     lazy_static! {
         static ref RE: Regex = Regex::new(r"\\u\{([0-9A-Fa-f]{1,6})\}").expect("valid regex");
