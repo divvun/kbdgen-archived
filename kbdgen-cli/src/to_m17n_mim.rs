@@ -1,8 +1,4 @@
-use kbdgen::{
-    m17n_mim::*,
-    models::{DesktopModes, MobileModes},
-    Load, ProjectBundle,
-};
+use kbdgen::{m17n_mim::*, models::DesktopModes, Load, ProjectBundle};
 use log::{debug, log_enabled};
 use snafu::{ResultExt, Snafu};
 use snafu_cli_debug::SnafuCliDebug;
@@ -65,20 +61,23 @@ fn layout_to_mim(
     layout: &kbdgen::models::Layout,
     _project: &kbdgen::ProjectBundle,
 ) -> Result<Vec<(String, Root)>, SavingError> {
-    log::debug!("to cldr with you, {}!", name);
+    log::debug!("to mim with you, {}!", name);
 
     let mut res = vec![];
 
     macro_rules! mode {
-        (desktop: $name:ident) => {
-            mode!(desktop_mode_to_keyboard -> $name)
+        (desktop: $platform:ident) => {
+            mode!(desktop_mode_to_keyboard -> $platform)
         };
-        ($fn:ident -> $name:ident) => {
-            if let Some(a) = layout.modes.$name.as_ref() {
-                log::debug!("{}: check", stringify!($name));
+        ($fn:ident -> $platform:ident) => {
+            if let Some(a) = layout.modes.$platform.as_ref() {
+                log::debug!("{}: check", stringify!($platform));
+                let dead_key_rules = dead_key_transforms(&layout, stringify!($platform))
+                    .context(CannotCreateTransformMap)?;
+
                 res.push((
-                    String::from(stringify!($name)),
-                    $fn(name, stringify!($name), a, layout)?,
+                    String::from(stringify!($platform)),
+                    $fn(name, stringify!($platform), a, dead_key_rules)?,
                 ));
             }
         };
@@ -97,12 +96,11 @@ fn desktop_mode_to_keyboard(
     name: &str,
     target: &str,
     desktop: &DesktopModes,
-    layout: &kbdgen::models::Layout,
+    dead_key_transforms: Vec<Rule>,
 ) -> Result<Root, SavingError> {
-    let mut maps = vec![];
+    let mut rules = vec![];
 
     for (key_combo, mapping) in desktop {
-        let mut rules = vec![];
         let key_combo = if key_combo == "default" {
             vec![]
         } else {
@@ -129,15 +127,10 @@ fn desktop_mode_to_keyboard(
                 });
             }
         }
-
-        maps.push(Map {
-            name: Symbol::try_from(String::from("mapping")).context(CannotSerializeSymbol)?,
-            rules,
-        });
     }
 
-    // TODO: Add more maps for transforms based on dead keys
     // TODO: Add map for space transforms
+    rules.extend(dead_key_transforms);
 
     Ok(Root {
         input_method: InputMethod {
@@ -150,17 +143,69 @@ fn desktop_mode_to_keyboard(
         description: Some(
             Text::try_from(format!("{} ({})", name, target)).context(CannotSerializeSymbol)?,
         ),
-        maps,
-        states: vec![],
+        maps: vec![Map {
+            name: Symbol::try_from(String::from("mapping")).context(CannotSerializeSymbol)?,
+            rules,
+        }],
+        // (state (init (mapping)))
+        states: vec![State {
+            name: Symbol::try_from("init".to_string()).context(CannotSerializeSymbol)?,
+            title: None,
+            branches: vec![Branch {
+                map_name: Symbol::try_from("mapping".to_string()).context(CannotSerializeSymbol)?,
+            }],
+        }],
     })
 }
 
-fn pick_name_from_display_names(names: &BTreeMap<String, String>) -> String {
-    names
-        .get("en")
-        .or_else(|| names.values().next())
-        .cloned()
-        .unwrap_or_default()
+/// Combine dead keys with transforms
+///
+/// Generates MIM rules in the style of `(("´" "a") "á")`.
+fn dead_key_transforms(
+    layout: &kbdgen::models::Layout,
+    platform: &str,
+) -> Result<Vec<Rule>, MimConversion> {
+    let mut rules = vec![];
+
+    let empty_dead_keys = BTreeMap::new();
+    let empty_transforms = BTreeMap::new();
+
+    let dead_key_map = layout
+        .dead_keys
+        .as_ref()
+        .and_then(|dead_keys| dead_keys.get(platform))
+        .unwrap_or_else(|| &empty_dead_keys);
+    let transforms = layout
+        .transforms
+        .as_ref()
+        .unwrap_or_else(|| &empty_transforms);
+
+    let dead_keys = dead_key_map.iter().flat_map(|(_modifier, keys)| keys);
+
+    for first_key in dead_keys {
+        let mapping = match transforms.get(first_key) {
+            Some(map) => map,
+            None => {
+                log::warn!(
+                    "dead key map for `{}` contains `{}` but no transforms found",
+                    platform,
+                    first_key
+                );
+                continue;
+            }
+        };
+
+        for (second_key, transformed_char) in mapping {
+            rules.push(Rule {
+                keyseq: KeySeq::Character(Text::try_from(format!("{}{}", first_key, second_key))?),
+                action: MapAction::Insert(Insert::Character(Text::try_from(
+                    transformed_char.to_string(),
+                )?)),
+            });
+        }
+    }
+
+    Ok(rules)
 }
 
 #[derive(Snafu, SnafuCliDebug)]
@@ -202,6 +247,11 @@ pub enum SavingError {
     },
     #[snafu(display("Invalid character code index"))]
     InvalidCharacterCodeIndex {
+        source: MimConversion,
+        backtrace: snafu::Backtrace,
+    },
+    #[snafu(display("Cannot create transform map"))]
+    CannotCreateTransformMap {
         source: MimConversion,
         backtrace: snafu::Backtrace,
     },
