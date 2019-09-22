@@ -59,10 +59,9 @@ pub fn kbdgen_to_mim(opts: &Cli) -> Result<(), Error> {
 fn layout_to_mim(
     name: &str,
     layout: &kbdgen::models::Layout,
-    _project: &kbdgen::ProjectBundle,
+    project: &kbdgen::ProjectBundle,
 ) -> Result<Vec<(String, Root)>, SavingError> {
     log::debug!("to mim with you, {}!", name);
-
     let mut res = vec![];
 
     macro_rules! mode {
@@ -77,7 +76,7 @@ fn layout_to_mim(
 
                 res.push((
                     String::from(stringify!($platform)),
-                    $fn(name, stringify!($platform), a, dead_key_rules)?,
+                    $fn(name, stringify!($platform), a, dead_key_rules, project)?,
                 ));
             }
         };
@@ -97,8 +96,10 @@ fn desktop_mode_to_keyboard(
     target: &str,
     desktop: &DesktopModes,
     dead_key_transforms: Vec<Rule>,
+    project: &kbdgen::ProjectBundle,
 ) -> Result<Root, SavingError> {
     let mut rules = vec![];
+    let mim_config = project.targets.mim.as_ref();
 
     for (key_combo, mapping) in desktop {
         let key_combo = if key_combo == "default" {
@@ -108,10 +109,20 @@ fn desktop_mode_to_keyboard(
         };
 
         for (iso_key, key_val) in mapping.iter() {
-            let key_code = KeyDef::CharacterCode(
-                Integer::try_from(format!("{:#x}", iso_key.to_character_code()))
-                    .context(InvalidCharacterCodeIndex)?,
-            );
+            // At least on Ubuntu 19.04, using the symbol name for key combos
+            // with no modifier didn't trigger. Thus, we'll have to use the
+            // keycode here.
+            let key_code = if key_combo.is_empty() {
+                KeyDef::CharacterCode(
+                    Integer::try_from(format!("{:#x}", iso_key.to_character_code()))
+                        .context(CannotSerializeInteger)?,
+                )
+            } else {
+                KeyDef::Character(
+                    Symbol::try_from(format!("{}", iso_key.to_character()))
+                        .context(CannotSerializeSymbol)?,
+                )
+            };
 
             let keyseq = KeySeq::KeyCombo(KeyCombo {
                 modifiers: key_combo.clone(),
@@ -119,6 +130,13 @@ fn desktop_mode_to_keyboard(
             });
 
             if let Some(key) = key_val.0.as_ref() {
+                if key.is_empty() {
+                    continue;
+                }
+                if key == " " {
+                    continue;
+                }
+
                 rules.push(Rule {
                     keyseq,
                     action: MapAction::Insert(Insert::Character(
@@ -134,15 +152,27 @@ fn desktop_mode_to_keyboard(
 
     Ok(Root {
         input_method: InputMethod {
-            language: Symbol::try_from(name.to_string()).context(CannotSerializeSymbol)?,
-            name: Symbol::try_from(name.to_string()).context(CannotSerializeSymbol)?,
+            // TODO: Convert language code automatically
+            // cf. https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
+            language: Symbol::try_from(
+                mim_config
+                    .map(|x| x.language_code.clone())
+                    .unwrap_or_else(|| name.to_string()),
+            )
+            .context(CannotSerializeSymbol)?,
+            name: Symbol::try_from(format!("{}-kbdgen", target)).context(CannotSerializeSymbol)?,
             extra_id: None,
             version: None,
         },
         title: Text::try_from(name.to_string()).context(CannotSerializeSymbol)?,
-        description: Some(
-            Text::try_from(format!("{} ({})", name, target)).context(CannotSerializeSymbol)?,
-        ),
+        description: if let Some(d) = mim_config.and_then(|x| x.description.as_ref()) {
+            Some(
+                Text::try_from(format!("{} ({} {})", d, name, target))
+                    .context(CannotSerializeSymbol)?,
+            )
+        } else {
+            None
+        },
         maps: vec![Map {
             name: Symbol::try_from(String::from("mapping")).context(CannotSerializeSymbol)?,
             rules,
@@ -237,6 +267,11 @@ pub enum SavingError {
     },
     #[snafu(display("Could serialize MIM symbol"))]
     CannotSerializeSymbol {
+        source: MimConversion,
+        backtrace: snafu::Backtrace,
+    },
+    #[snafu(display("Could serialize MIM integer"))]
+    CannotSerializeInteger {
         source: MimConversion,
         backtrace: snafu::Backtrace,
     },

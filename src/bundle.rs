@@ -24,6 +24,7 @@ pub struct Targets {
     pub windows: Option<models::TargetWindows>,
     pub chrome: Option<models::TargetChrome>,
     pub x11: Option<models::TargetX11>,
+    pub mim: Option<models::TargetMim>,
 }
 
 /// A project bundle consists of a `project.yaml` file, a `targets/` directory

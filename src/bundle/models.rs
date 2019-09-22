@@ -92,13 +92,14 @@ pub enum IsoKey {
     B10,
 }
 
+/// US keyboard layout
+static INDEX_TO_KEYCODE: &[u8] = br"`1234567890-=qwertyuiop[]asdfghjkl;'\`zxcvbnm,./";
+
 impl IsoKey {
     /// Returns the X11 character code
-    pub fn to_character_code(self) -> usize {
+    pub fn to_character_code(self) -> u8 {
         let index = self as u8;
 
-        /// US keyboard layout
-        static INDEX_TO_KEYCODE: &[u8] = br"`1234567890-=qwertyuiop[]\asdfghjkl;'\zxcvbnm,./";
         let c = if let Some(i) = INDEX_TO_KEYCODE.get(index as usize) {
             i
         } else {
@@ -108,7 +109,12 @@ impl IsoKey {
             );
         };
 
-        usize::from(*c)
+        *c
+    }
+
+    /// Returns the X11 character code
+    pub fn to_character(self) -> char {
+        std::char::from_u32(u32::from(self.to_character_code())).expect("keycode is ascii")
     }
 }
 
@@ -380,4 +386,10 @@ pub struct TargetChrome {
 pub struct TargetX11 {
     pub version: String,
     pub build: u32,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct TargetMim {
+    pub language_code: String,
+    pub description: Option<String>,
 }

@@ -70,8 +70,9 @@ impl ToMim for InputMethod {
 
 impl ToMim for Map {
     fn write_mim(&self, mut w: impl Write) -> Result<()> {
-        writeln!(w, r"(")?;
+        write!(w, r"(")?;
         self.name.write_mim(&mut w)?;
+        writeln!(w)?;
 
         let mut inner = PadAdapter::wrap(&mut w);
         for state in &self.rules {
@@ -193,20 +194,21 @@ impl ToMim for Modifier {
     }
 }
 
+/// Apply backslash escapes for Symbol and Text
+fn sanitize_text(x: &str) -> String {
+    x.replace(r"(", r"\(")
+        .replace(r"\", r"\\")
+        .replace(r")", r"\)")
+        .replace(r"]", r"\]")
+        .replace(r"[", r"\[")
+        .replace(r";", r"\;")
+        .replace(r"'", r"\'")
+        .replace(r#"""#, r#"\""#)
+}
+
 impl ToMim for Symbol {
     fn write_mim(&self, mut w: impl Write) -> Result<()> {
-        let t = self
-            .0
-            .replace(r"(", r"\(")
-            .replace(r")", r"\)")
-            .replace(r"]", r"\]")
-            .replace(r"[", r"\[")
-            .replace(r";", r"\;")
-            .replace(r"'", r"\'")
-            .replace(r#"""#, r#"\""#)
-            .replace(r"\", r"\\");
-
-        write!(w, "{}", t)?;
+        write!(w, "{}", sanitize_text(&self.0))?;
 
         Ok(())
     }
@@ -214,12 +216,12 @@ impl ToMim for Symbol {
 
 impl ToMim for Text {
     fn write_mim(&self, mut w: impl Write) -> Result<()> {
-        write!(w, "\"{}\"", self.0)
+        write!(w, "\"{}\"", sanitize_text(&self.0))
     }
 }
 
 impl ToMim for Integer {
     fn write_mim(&self, mut w: impl Write) -> Result<()> {
-        write!(w, "\"{}\"", self.0)
+        write!(w, "{}", self.0)
     }
 }
