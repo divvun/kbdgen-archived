@@ -74,6 +74,7 @@ impl Load for Targets {
             windows: read_yml_if_exists(&path.join("windows.yaml"))?,
             chrome: read_yml_if_exists(&path.join("chrome.yaml"))?,
             x11: read_yml_if_exists(&path.join("x11.yaml"))?,
+            mim: read_yml_if_exists(&path.join("mim.yaml"))?,
         })
     }
 }

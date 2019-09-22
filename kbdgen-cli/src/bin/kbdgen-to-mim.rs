@@ -1,7 +1,7 @@
-use kbdgen_cli::from_xkb::{xkb_to_kbdgen, Cli, Error};
+use kbdgen_cli::to_m17n_mim::{kbdgen_to_mim, Cli, Error};
 use structopt::StructOpt;
 
 fn main() -> Result<(), Error> {
     let opts = Cli::from_args();
-    xkb_to_kbdgen(&opts)
+    kbdgen_to_mim(&opts)
 }

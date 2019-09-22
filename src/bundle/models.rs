@@ -33,11 +33,16 @@ pub struct DeriveOptions {
     pub transforms: Option<bool>,
 }
 
+/// ISO key codes
+///
+/// cf. <https://commons.wikimedia.org/wiki/File:Keyboard-sections-zones-grid-ISOIEC-9995-1.jpg>
+/// and <https://commons.wikimedia.org/wiki/File:Keyboard-alphanumeric-section-ISOIEC-9995-2-2009-with-amd1-2012.png>
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 #[derive(EnumString, Display, EnumIter)]
 #[derive(Serialize, Deserialize)]
+#[repr(u8)]
 pub enum IsoKey {
-    E00,
+    E00 = 0,
     E01,
     E02,
     E03,
@@ -85,6 +90,32 @@ pub enum IsoKey {
     B08,
     B09,
     B10,
+}
+
+/// US keyboard layout
+static INDEX_TO_KEYCODE: &[u8] = br"`1234567890-=qwertyuiop[]asdfghjkl;'\`zxcvbnm,./";
+
+impl IsoKey {
+    /// Returns the X11 character code
+    pub fn to_character_code(self) -> u8 {
+        let index = self as u8;
+
+        let c = if let Some(i) = INDEX_TO_KEYCODE.get(index as usize) {
+            i
+        } else {
+            panic!(
+                "character code map covers all ISO keys, but got {} for {}",
+                index, self
+            );
+        };
+
+        *c
+    }
+
+    /// Returns the X11 character code
+    pub fn to_character(self) -> char {
+        std::char::from_u32(u32::from(self.to_character_code())).expect("keycode is ascii")
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -355,4 +386,10 @@ pub struct TargetChrome {
 pub struct TargetX11 {
     pub version: String,
     pub build: u32,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct TargetMim {
+    pub language_code: String,
+    pub description: Option<String>,
 }

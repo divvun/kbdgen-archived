@@ -5,7 +5,7 @@ use shrinkwraprs::Shrinkwrap;
 use snafu::Snafu;
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Shrinkwrap)]
-pub struct KeyValue(pub(crate) Option<String>);
+pub struct KeyValue(pub Option<String>);
 
 impl From<Option<String>> for KeyValue {
     fn from(x: Option<String>) -> Self {
@@ -69,6 +69,7 @@ pub fn serialize(input: &Option<String>) -> String {
     }
 }
 
+/// Decode unicode escapes like `\u{30A}`
 fn decode_unicode_escapes(input: &str) -> String {
     lazy_static! {
         static ref RE: Regex = Regex::new(r"\\u\{([0-9A-Fa-f]{1,6})\}").expect("valid regex");
