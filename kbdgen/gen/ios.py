@@ -288,6 +288,9 @@ class AppleiOSGenerator(Generator):
         logger.info("Installing CocoaPods dependencies…")
         run_process(["pod", "install", "--repo-update"], cwd=deps_dir)
 
+        # Azure cache doesn't clear...
+        run_process(["pod", "update"], cwd=deps_dir)
+
     def _update_app_group_entitlements(self, group_id, subpath, deps_dir):
         plist_path = os.path.join(deps_dir, subpath)
         with open(plist_path, "rb") as f:
