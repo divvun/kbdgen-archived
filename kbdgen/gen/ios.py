@@ -233,7 +233,7 @@ class AppleiOSGenerator(Generator):
                 kbd_pkg_id = self.kbd_pkg_id(locale)
                 suffix = kbd_pkg_id.split(".")[-1]
 
-                os.makedirs(os.path.join(deps_dir, "Keyboard", kbd_pkg_id), exist_ok=True)
+                os.makedirs(os.path.join(deps_dir, "Keyboard", suffix), exist_ok=True)
                 plist_gpath = os.path.join("Keyboard", suffix, "Info.plist")
                 ref = pbxproj.create_plist_file("Info.plist")
                 pbxproj.add_path(["Keyboard", suffix])
