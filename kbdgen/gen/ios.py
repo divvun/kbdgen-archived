@@ -228,28 +228,28 @@ class AppleiOSGenerator(Generator):
         with open(kbd_plist_path, "rb") as f:
             kbd_plist = plistlib.load(f, dict_type=OrderedDict)
 
-            for n, (name, layout) in enumerate(self.supported_layouts.items()):
-                native_name = layout.display_names[name]
-                kbd_pkg_id = self.kbd_pkg_id(name)
-                name = kbd_pkg_id.split(".")[-1]
+            for n, (locale, layout) in enumerate(self.supported_layouts.items()):
+                native_name = layout.display_names[locale]
+                kbd_pkg_id = self.kbd_pkg_id(locale)
+                suffix = kbd_pkg_id.split(".")[-1]
 
-                os.makedirs(os.path.join(deps_dir, "Keyboard", name), exist_ok=True)
-                plist_gpath = os.path.join("Keyboard", name, "Info.plist")
+                os.makedirs(os.path.join(deps_dir, "Keyboard", kbd_pkg_id), exist_ok=True)
+                plist_gpath = os.path.join("Keyboard", suffix, "Info.plist")
                 ref = pbxproj.create_plist_file("Info.plist")
-                pbxproj.add_path(["Keyboard", name])
-                pbxproj.add_ref_to_group(ref, ["Keyboard", name])
+                pbxproj.add_path(["Keyboard", suffix])
+                pbxproj.add_ref_to_group(ref, ["Keyboard", suffix])
 
                 new_plist_path = os.path.join(deps_dir, plist_gpath)
                 with open(new_plist_path, "wb") as f:
-                    self.update_kbd_plist(kbd_plist, f, name, native_name, layout, n)
+                    self.update_kbd_plist(kbd_plist, f, locale, native_name, layout, n)
                 # pbx_target, appex_ref =
-                pbxproj.duplicate_target("Keyboard", name, plist_gpath)
-                pbxproj.set_target_package_id(name, kbd_pkg_id)
+                pbxproj.duplicate_target("Keyboard", suffix, plist_gpath)
+                pbxproj.set_target_package_id(suffix, kbd_pkg_id)
                 if dev_team is not None:
-                    pbxproj.set_target_build_setting(name, "DEVELOPMENT_TEAM", dev_team)
+                    pbxproj.set_target_build_setting(suffix, "DEVELOPMENT_TEAM", dev_team)
 
                 pbxproj.add_appex_to_target_embedded_binaries(
-                    "%s.appex" % name, "HostingApp"
+                    "%s.appex" % suffix, "HostingApp"
                 )
 
         pbxproj.remove_target("Keyboard")
