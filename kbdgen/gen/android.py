@@ -647,6 +647,20 @@ class AndroidGenerator(Generator):
         shutil.copytree(path, deps_dir / self.REPO, 
             ignore=shutil.ignore_patterns(".git", ".svn"))
 
+    @property
+    def github_username(self):
+        x = self._args.get("github_username", None)
+        if x is None:
+            x = os.environ.get("GITHUB_USERNAME", None)
+        return x
+
+    @property
+    def github_token(self):
+        x = self._args.get("github_token", None)
+        if x is None:
+            x = os.environ.get("GITHUB_TOKEN", None)
+        return x
+        
     def get_source_tree(self, base, repo, branch, is_local=False):
         """
         Downloads the IME source from Github as a tarball, then extracts to deps
@@ -670,20 +684,20 @@ class AndroidGenerator(Generator):
             tarball = self.cache.download_latest_from_github(
                 repo,
                 branch,
-                username=self._args.get("github_username", None),
-                password=self._args.get("github_token", None),
+                username=self.github_username,
+                password=self.github_token,
             )
 
             self._unfurl_tarball(tarball, deps_dir / self.REPO)
 
-        logger.info("Getting source files for divvunspell…")
+        # logger.info("Getting source files for divvunspell…")
         
-        hfst_ospell_tbl = self.cache.download_latest_from_github(
-            "divvun/divvunspell",
-            branch,
-            username=self._args.get("github_username", None),
-            password=self._args.get("github_token", None),
-        )
+        # hfst_ospell_tbl = self.cache.download_latest_from_github(
+        #     "divvun/divvunspell",
+        #     branch,
+        #     username=self._args.get("github_username", None),
+        #     password=self._args.get("github_token", None),
+        # )
 
         shutil.rmtree(str(deps_dir / "../hfst-ospell-rs"), ignore_errors=True)
         self._unfurl_tarball(hfst_ospell_tbl, deps_dir / "hfst-ospell-rs")

@@ -87,7 +87,7 @@ type TargetAndroid {
 
     minimum_sdk?: u32;
 
-    chfst?: boolean;
+    bhfst?: boolean;
 
     // DEPRECATED
     key_store?: string;
@@ -115,7 +115,7 @@ type TargetIOS {
 
     about_dir?: string;
 
-    chfst?: boolean;
+    bhfst?: boolean;
 }
 
 type TargetWindows {

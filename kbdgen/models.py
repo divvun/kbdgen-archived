@@ -588,7 +588,7 @@ class LayoutTargetAndroid:
     return "<LayoutTargetAndroid minimum_sdk:{!r}, style:{!r}>".format(self.minimum_sdk, self.style)
 
 class TargetAndroid:
-  def __init__(self, version, build, package_id, icon, sentry_dsn, show_number_hints, minimum_sdk, chfst, key_store, key_alias):
+  def __init__(self, version, build, package_id, icon, sentry_dsn, show_number_hints, minimum_sdk, bhfst, key_store, key_alias):
     self.version = version
     self.build = build
     self.package_id = package_id
@@ -596,7 +596,7 @@ class TargetAndroid:
     self.sentry_dsn = sentry_dsn
     self.show_number_hints = show_number_hints
     self.minimum_sdk = minimum_sdk
-    self.chfst = chfst
+    self.bhfst = bhfst
     self.key_store = key_store
     self.key_alias = key_alias
 
@@ -621,8 +621,8 @@ class TargetAndroid:
   def get_minimum_sdk(self):
     return self.minimum_sdk
 
-  def get_chfst(self):
-    return self.chfst
+  def get_bhfst(self):
+    return self.bhfst
 
   def get_key_store(self):
     return self.key_store
@@ -683,13 +683,13 @@ class TargetAndroid:
         if not isinstance(f_minimum_sdk, int):
           raise Exception("not an integer")
 
-    f_chfst = None
+    f_bhfst = None
 
-    if "chfst" in data:
-      f_chfst = data["chfst"]
+    if "bhfst" in data:
+      f_bhfst = data["bhfst"]
 
-      if f_chfst is not None:
-        if not isinstance(f_chfst, bool):
+      if f_bhfst is not None:
+        if not isinstance(f_bhfst, bool):
           raise Exception("not a boolean")
 
     f_key_store = None
@@ -710,7 +710,7 @@ class TargetAndroid:
         if not isinstance(f_key_alias, str):
           raise Exception("not a string")
 
-    return TargetAndroid(f_version, f_build, f_package_id, f_icon, f_sentry_dsn, f_show_number_hints, f_minimum_sdk, f_chfst, f_key_store, f_key_alias)
+    return TargetAndroid(f_version, f_build, f_package_id, f_icon, f_sentry_dsn, f_show_number_hints, f_minimum_sdk, f_bhfst, f_key_store, f_key_alias)
 
   def encode(self):
     data = dict()
@@ -742,8 +742,8 @@ class TargetAndroid:
     if self.minimum_sdk is not None:
       data["minimumSdk"] = self.minimum_sdk
 
-    if self.chfst is not None:
-      data["chfst"] = self.chfst
+    if self.bhfst is not None:
+      data["bhfst"] = self.bhfst
 
     if self.key_store is not None:
       data["keyStore"] = self.key_store
@@ -754,10 +754,10 @@ class TargetAndroid:
     return data
 
   def __repr__(self):
-    return "<TargetAndroid version:{!r}, build:{!r}, package_id:{!r}, icon:{!r}, sentry_dsn:{!r}, show_number_hints:{!r}, minimum_sdk:{!r}, chfst:{!r}, key_store:{!r}, key_alias:{!r}>".format(self.version, self.build, self.package_id, self.icon, self.sentry_dsn, self.show_number_hints, self.minimum_sdk, self.chfst, self.key_store, self.key_alias)
+    return "<TargetAndroid version:{!r}, build:{!r}, package_id:{!r}, icon:{!r}, sentry_dsn:{!r}, show_number_hints:{!r}, minimum_sdk:{!r}, bhfst:{!r}, key_store:{!r}, key_alias:{!r}>".format(self.version, self.build, self.package_id, self.icon, self.sentry_dsn, self.show_number_hints, self.minimum_sdk, self.bhfst, self.key_store, self.key_alias)
 
 class TargetIOS:
-  def __init__(self, version, build, package_id, icon, bundle_name, team_id, code_sign_id, sentry_dsn, about_dir, chfst):
+  def __init__(self, version, build, package_id, icon, bundle_name, team_id, code_sign_id, sentry_dsn, about_dir, bhfst):
     self.version = version
     self.build = build
     self.package_id = package_id
@@ -767,7 +767,7 @@ class TargetIOS:
     self.code_sign_id = code_sign_id
     self.sentry_dsn = sentry_dsn
     self.about_dir = about_dir
-    self.chfst = chfst
+    self.bhfst = bhfst
 
   def get_version(self):
     return self.version
@@ -796,8 +796,8 @@ class TargetIOS:
   def get_about_dir(self):
     return self.about_dir
 
-  def get_chfst(self):
-    return self.chfst
+  def get_bhfst(self):
+    return self.bhfst
 
   @staticmethod
   def decode(data):
@@ -866,16 +866,16 @@ class TargetIOS:
         if not isinstance(f_about_dir, str):
           raise Exception("not a string")
 
-    f_chfst = None
+    f_bhfst = None
 
-    if "chfst" in data:
-      f_chfst = data["chfst"]
+    if "bhfst" in data:
+      f_bhfst = data["bhfst"]
 
-      if f_chfst is not None:
-        if not isinstance(f_chfst, bool):
+      if f_bhfst is not None:
+        if not isinstance(f_bhfst, bool):
           raise Exception("not a boolean")
 
-    return TargetIOS(f_version, f_build, f_package_id, f_icon, f_bundle_name, f_team_id, f_code_sign_id, f_sentry_dsn, f_about_dir, f_chfst)
+    return TargetIOS(f_version, f_build, f_package_id, f_icon, f_bundle_name, f_team_id, f_code_sign_id, f_sentry_dsn, f_about_dir, f_bhfst)
 
   def encode(self):
     data = dict()
@@ -915,13 +915,13 @@ class TargetIOS:
     if self.about_dir is not None:
       data["aboutDir"] = self.about_dir
 
-    if self.chfst is not None:
-      data["chfst"] = self.chfst
+    if self.bhfst is not None:
+      data["bhfst"] = self.bhfst
 
     return data
 
   def __repr__(self):
-    return "<TargetIOS version:{!r}, build:{!r}, package_id:{!r}, icon:{!r}, bundle_name:{!r}, team_id:{!r}, code_sign_id:{!r}, sentry_dsn:{!r}, about_dir:{!r}, chfst:{!r}>".format(self.version, self.build, self.package_id, self.icon, self.bundle_name, self.team_id, self.code_sign_id, self.sentry_dsn, self.about_dir, self.chfst)
+    return "<TargetIOS version:{!r}, build:{!r}, package_id:{!r}, icon:{!r}, bundle_name:{!r}, team_id:{!r}, code_sign_id:{!r}, sentry_dsn:{!r}, about_dir:{!r}, bhfst:{!r}>".format(self.version, self.build, self.package_id, self.icon, self.bundle_name, self.team_id, self.code_sign_id, self.sentry_dsn, self.about_dir, self.bhfst)
 
 class TargetWindows:
   def __init__(self, version, app_name, url, uuid, code_sign_pfx, custom_locales, license_path, readme_path):

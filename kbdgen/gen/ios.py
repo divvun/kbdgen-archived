@@ -42,6 +42,20 @@ class AppleiOSGenerator(Generator):
             os.makedirs(str(target_dir.parent), exist_ok=True)
             shutil.move(target, target_dir)
 
+    @property
+    def github_username(self):
+        x = self._args.get("github_username", None)
+        if x is None:
+            x = os.environ.get("GITHUB_USERNAME", None)
+        return x
+
+    @property
+    def github_token(self):
+        x = self._args.get("github_token", None)
+        if x is None:
+            x = os.environ.get("GITHUB_TOKEN", None)
+        return x
+
     def get_source_tree(self, base, repo="divvun/giellakbd-ios", branch="master"):
         """
         Downloads the IME source from Github as a tarball, then extracts to deps dir.
@@ -51,23 +65,25 @@ class AppleiOSGenerator(Generator):
         deps_dir = Path(os.path.join(base, "ios-build"))
         shutil.rmtree(str(deps_dir), ignore_errors=True)
 
+        logger.trace("Github username: %r", self.github_username)
+
         tarball = self.cache.download_latest_from_github(
             repo,
             branch,
-            username=self._args.get("github_username", None),
-            password=self._args.get("github_token", None),
+            username=self.github_username,
+            password=self.github_token,
         )
-        hfst_ospell_tbl = self.cache.download_latest_from_github(
-            "divvun/divvunspell",
-            "develop",
-            username=self._args.get("github_username", None),
-            password=self._args.get("github_token", None),
-        )
+        # hfst_ospell_tbl = self.cache.download_latest_from_github(
+        #     "divvun/divvunspell",
+        #     "develop",
+        #     username=self._args.get("github_username", None),
+        #     password=self._args.get("github_token", None),
+        # )
 
         self._unfurl_tarball(tarball, deps_dir)
 
-        shutil.rmtree(str(deps_dir / "Dependencies/hfst-ospell-rs"), ignore_errors=True)
-        self._unfurl_tarball(hfst_ospell_tbl, deps_dir / "Dependencies/hfst-ospell-rs")
+        # shutil.rmtree(str(deps_dir / "Dependencies/hfst-ospell-rs"), ignore_errors=True)
+        # self._unfurl_tarball(hfst_ospell_tbl, deps_dir / "Dependencies/hfst-ospell-rs")
 
     @property
     def ios_target(self):
@@ -76,6 +92,11 @@ class AppleiOSGenerator(Generator):
     @property
     def pkg_id(self):
         return self.ios_target.package_id.replace("_", "-")
+
+    def layout_target(self, layout):
+        if layout.targets is not None:
+            return layout.targets.get("ios", {})
+        return {}
 
     @property
     def app_name(self):
@@ -208,6 +229,10 @@ class AppleiOSGenerator(Generator):
             kbd_plist = plistlib.load(f, dict_type=OrderedDict)
 
             for n, (name, layout) in enumerate(self.supported_layouts.items()):
+                native_name = layout.display_names[name]
+                kbd_pkg_id = self.kbd_pkg_id(name)
+                name = kbd_pkg_id.split(".")[-1]
+
                 os.makedirs(os.path.join(deps_dir, "Keyboard", name), exist_ok=True)
                 plist_gpath = os.path.join("Keyboard", name, "Info.plist")
                 ref = pbxproj.create_plist_file("Info.plist")
@@ -215,13 +240,11 @@ class AppleiOSGenerator(Generator):
                 pbxproj.add_ref_to_group(ref, ["Keyboard", name])
 
                 new_plist_path = os.path.join(deps_dir, plist_gpath)
-                native_name = layout.display_names[name]
                 with open(new_plist_path, "wb") as f:
                     self.update_kbd_plist(kbd_plist, f, name, native_name, layout, n)
                 # pbx_target, appex_ref =
                 pbxproj.duplicate_target("Keyboard", name, plist_gpath)
-                id_ = "%s.%s" % (self.pkg_id, name.replace("_", "-"))
-                pbxproj.set_target_package_id(name, id_)
+                pbxproj.set_target_package_id(name, kbd_pkg_id)
                 if dev_team is not None:
                     pbxproj.set_target_build_setting(name, "DEVELOPMENT_TEAM", dev_team)
 
@@ -332,10 +355,12 @@ class AppleiOSGenerator(Generator):
 
         for item in self.all_bundle_ids() + [self.pkg_id]:
             name = (
-                item.split(".")[-1] # .replace("-", "_")
+                item.split(".")[-1]
                 if item != self.pkg_id
                 else "HostingApp"
             )
+            logger.trace("Profile name: %r" % name)
+            
             profile = self.load_provisioning_profile(item, deps_dir)
             logger.debug(
                 "Profile: %s %s -> %s" % (profile["UUID"], profile["Name"], name)
@@ -463,13 +488,13 @@ class AppleiOSGenerator(Generator):
         with open(plist, "wb") as f:
             plistlib.dump(plist_obj, f)
 
-        cmd = "cargo lipo --targets aarch64-apple-ios,x86_64-apple-ios,armv7-apple-ios --release -vv"
-        logger.info("Running divvunspell build...")
-        logger.debug(cmd)
-        returncode = run_process(cmd, cwd=os.path.join(deps_dir, "Dependencies", "hfst-ospell-rs"), shell=True, show_output=True)
-        if returncode != 0:
-            logger.error("Application ended with error code %s." % returncode)
-            sys.exit(returncode)
+        # cmd = "cargo lipo --targets aarch64-apple-ios,x86_64-apple-ios,armv7-apple-ios --release -vv"
+        # logger.info("Running divvunspell build...")
+        # logger.debug(cmd)
+        # returncode = run_process(cmd, cwd=os.path.join(deps_dir, "Dependencies", "hfst-ospell-rs"), shell=True, show_output=True)
+        # if returncode != 0:
+        #     logger.error("Application ended with error code %s." % returncode)
+        #     sys.exit(returncode)
 
         cmd1 = (
             'xcodebuild archive -archivePath "%s" ' % xcarchive
@@ -516,12 +541,12 @@ class AppleiOSGenerator(Generator):
             shutil.rmtree(path)
         os.makedirs(path, exist_ok=True)
 
-        use_chfst = self.ios_target.chfst or False
+        use_bhfst = self.ios_target.bhfst or False
 
-        if use_chfst:
-            files = glob.glob(os.path.join(self._bundle.path, "../*.chfst"))
+        if use_bhfst:
+            files = glob.glob(os.path.join(self._bundle.path, "../*.bhfst"))
             if len(files) == 0:
-                logger.warning("No CHFST files found.")
+                logger.warning("No BHFST files found.")
                 return
 
             for fn in files:
@@ -547,7 +572,11 @@ class AppleiOSGenerator(Generator):
         icon = os.path.join(self.ios_resources, "icon.png")
 
         if not os.path.exists(icon):
-            logger.warning("no icon supplied!")
+            if self.is_release:
+                logger.error("No icon supplied, but is required for a release build!")
+                sys.exit(1)
+            else:
+                logger.warning("no icon supplied!")
             return
 
         path = os.path.join(
@@ -680,11 +709,16 @@ class AppleiOSGenerator(Generator):
 
         f.write(str(pbxproj))
 
+    def kbd_pkg_id(self, locale):
+        layout = self.supported_layouts[locale]
+        suffix = self.layout_target(layout).get("legacyName", locale).replace("_", "-")
+        bundle_id = "%s.%s" % (self.pkg_id, suffix)
+        return bundle_id
+
     def all_bundle_ids(self):
         out = []
-        for locale, layout in self.supported_layouts.items():
-            bundle_id = "%s.%s" % (self.pkg_id, locale.replace("_", "-"))
-            out.append(bundle_id)
+        for locale in self.supported_layouts.keys():
+            out.append(self.kbd_pkg_id(locale))
         return out
 
     def update_kbd_plist(self, plist, f, locale, native_name, layout, n):
@@ -731,7 +765,7 @@ class AppleiOSGenerator(Generator):
         out = OrderedDict()
 
         out["name"] = local_name
-        out["internalName"] = name
+        out["locale"] = name
         out["return"] = layout.strings._return
         out["space"] = layout.strings.space
         out["longPress"] = layout.longpress
@@ -742,22 +776,22 @@ class AppleiOSGenerator(Generator):
         out["shifted"] = view.mode("shift")
 
         # Add shift etc assuming default, add configuration later
-        for k in ["normal", "shifted"]:
-            out[k][2].insert(0, {
-                "id": "_shift",
-                "width": 1.5
-            })
-            out[k][2].insert(1, {
-                "id": "_spacer",
-                "width": 0.5
-            })
-            out[k][2].append({
-                "id": "_spacer",
-                "width": 0.5
-            })
-            out[k][2].append({
-                "id": "_backspace",
-                "width": 1.5
-            })
+        # for k in ["normal", "shifted"]:
+        #     out[k][2].insert(0, {
+        #         "id": "_shift",
+        #         "width": 1.5
+        #     })
+        #     out[k][2].insert(1, {
+        #         "id": "_spacer",
+        #         "width": 0.5
+        #     })
+        #     out[k][2].append({
+        #         "id": "_spacer",
+        #         "width": 0.5
+        #     })
+        #     out[k][2].append({
+        #         "id": "_backspace",
+        #         "width": 1.5
+        #     })
 
         return out
