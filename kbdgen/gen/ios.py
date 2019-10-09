@@ -549,7 +549,7 @@ class AppleiOSGenerator(Generator):
             for fn in files:
                 bfn = os.path.basename(fn)
                 logger.info("Adding '%s' to '%s'…" % (bfn, nm))
-                shutil.copytree(fn, os.path.join(path, bfn))
+                shutil.copyfile(fn, os.path.join(path, bfn))
         else:
             files = glob.glob(os.path.join(self._bundle.path, "../*.zhfst"))
             if len(files) == 0:
