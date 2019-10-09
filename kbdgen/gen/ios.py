@@ -285,11 +285,8 @@ class AppleiOSGenerator(Generator):
             logger.info("You may now open '%s/GiellaKeyboard.xcworkspace'." % deps_dir)
 
     def run_cocoapods(self, deps_dir):
-        logger.info("Updating CocoaPods repository (this may take quite some time)…")
-        run_process(["pod", "repo", "update"])
-
         logger.info("Installing CocoaPods dependencies…")
-        run_process(["pod", "install"], cwd=deps_dir)
+        run_process(["pod", "install", "--repo-update"], cwd=deps_dir)
 
     def _update_app_group_entitlements(self, group_id, subpath, deps_dir):
         plist_path = os.path.join(deps_dir, subpath)
