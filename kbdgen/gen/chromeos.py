@@ -74,14 +74,16 @@ LAYOUT_NAMES = {
     "nb": "{} tastatur",
     "no": "{} tastatur",
     "nn": "{} tastatur",
+    "da": "{} tastatur",
     "sv": "{} tangentbord",
-    "en": "{} keyboard"
+    "en": "{} keyboard",
+    "fi": "{} näppäimistö"
 }
 
 def layout_name(locale, name):
     s = LAYOUT_NAMES.get(locale, LAYOUT_NAMES.get(locale.split("-")[0], None))
     if s is None:
-        logger.warn("No layout format string found for locale '%s'; falling back to 'en'." % locale)
+        logger.warn("No layout format string found for locale '%s' (%s); falling back to 'en'." % (locale, name))
         s = LAYOUT_NAMES["en"]
     return s.format(name)
 
@@ -177,7 +179,7 @@ class ChromeOSGenerator(PhysicalGenerator):
 
         manifest = {
             "name": "__MSG_name__",
-            "version": self.chrome_target.get("build", 1),
+            "version": "%s" % self.chrome_target.get("build", 1),
             "version_name": self.chrome_target.get("version", "0.0.0"),
             "manifest_version": 2,
             "description": "__MSG_description__",

@@ -59,7 +59,7 @@ class AppleiOSGenerator(Generator):
         )
         hfst_ospell_tbl = self.cache.download_latest_from_github(
             "divvun/divvunspell",
-            branch,
+            "develop",
             username=self._args.get("github_username", None),
             password=self._args.get("github_token", None),
         )
