@@ -113,10 +113,9 @@ class AndroidGenerator(Generator):
         self.repo_dir = os.path.join(deps_dir, self.REPO)
         os.makedirs(deps_dir, exist_ok=True)
 
-        tree_id = self.get_source_tree(base, repo=self.repo, branch=self.branch)
-
         # Quick workaround for local repos
         is_local = self.repo is not None and (self.repo.count("/") != 1 or self.repo.count(".") != 0)
+        logger.trace("Is local? %s" % is_local)
 
         tree_id = self.get_source_tree(base, repo=self.repo, branch=self.branch, is_local=is_local)
         self.native_locale_workaround(base)
@@ -133,13 +132,14 @@ class AndroidGenerator(Generator):
 
         logger.info("Updating XML strings…")
         for name, kbd in self.supported_layouts.items():
+            kbd_id = self.kbd_pkg_id(name)
             clean_name = name.lower().replace('-', '_')
             files += [
                 (
-                    "app/src/main/res/xml/keyboard_layout_set_%s.xml" % clean_name,
-                    self.kbd_layout_set(clean_name, kbd),
+                    "app/src/main/res/xml/keyboard_layout_set_%s.xml" % kbd_id,
+                    self.kbd_layout_set(kbd_id, kbd),
                 ),
-                ("app/src/main/res/xml/kbd_%s.xml" % clean_name, self.keyboard(clean_name, kbd)),
+                ("app/src/main/res/xml/kbd_%s.xml" % kbd_id, self.keyboard(kbd_id, kbd)),
             ]
 
             for style, prefix in styles:
@@ -147,24 +147,24 @@ class AndroidGenerator(Generator):
 
                 files.append(
                     (
-                        "app/src/main/res/%s/rows_%s.xml" % (prefix, clean_name),
-                        self.rows(clean_name, kbd, style),
+                        "app/src/main/res/%s/rows_%s.xml" % (prefix, kbd_id),
+                        self.rows(kbd_id, kbd, style),
                     )
                 )
 
-                for row in self.rowkeys(clean_name, kbd, style):
+                for row in self.rowkeys(kbd_id, kbd, style):
                     row = ("app/src/main/res/%s/%s" % (prefix, row[0]), row[1])
                     files.append(row)
 
-            layouts[self.layout_target(kbd).get("minimumSdk", None)].append((clean_name, kbd))
+            layouts[self.layout_target(kbd).get("minimumSdk", None)].append((kbd_id, clean_name, kbd))
             self.update_strings_xml(clean_name, kbd, base)
 
         self.update_method_xmls(layouts, base)
         self.create_gradle_properties(base, self.is_release)
         self.save_files(files, base)
 
-        # Add zhfst files if found
-        self.add_zhfst_files(base)
+        # Add bhfst files if found
+        self.add_bhfst_files(base)
         # self.update_dict_authority(base)
         self.update_localisation(base)
         self.generate_icons(base)
@@ -315,16 +315,16 @@ class AndroidGenerator(Generator):
     #     self._update_dict_auth_xml(auth, base)
     #     self._update_dict_auth_java(auth, base)
 
-    def add_zhfst_files(self, build_dir):
+    def add_bhfst_files(self, build_dir):
         nm = "app/src/main/assets/dicts"
         dict_path = os.path.join(build_dir, "deps", self.REPO, nm)
         if os.path.exists(dict_path):
             shutil.rmtree(dict_path)
         os.makedirs(dict_path, exist_ok=True)
 
-        files = glob.glob(os.path.join(self._bundle.path, "../*.zhfst"))
+        files = glob.glob(os.path.join(self._bundle.path, "../*.bhfst"))
         if len(files) == 0:
-            logger.warning("No ZHFST files found.")
+            logger.warning("No BHFST files found.")
             return
 
         path = os.path.join(
@@ -445,7 +445,7 @@ class AndroidGenerator(Generator):
             ("aarch64-linux-android", "arm64-v8a"),
         ]
         res_dir = os.path.join(base, "deps", self.REPO, "app/src/main/jniLibs")
-        cwd = os.path.join(self.repo_dir, "..", "hfst-ospell-rs")
+        cwd = os.path.join(self.repo_dir, "..", "hfst-ospell-rs", "divvunspell")
 
         if not self.cache.inject_directory_tree(tree_id, res_dir, self.repo_dir):
             logger.info("Building native components…")
@@ -462,7 +462,9 @@ class AndroidGenerator(Generator):
                         "--",
                         "build",
                         "--release",
-                        "--lib"
+                        "--lib",
+                        "--no-default-features",
+                        "--features", "ffi"
                     ],
                     cwd=cwd,
                     show_output=True,
@@ -478,7 +480,7 @@ class AndroidGenerator(Generator):
                 jni_dir = os.path.join(res_dir, jni_name)
                 Path(jni_dir).mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(
-                    os.path.join(cwd, "target", target, "release/libdivvunspell.so"),
+                    os.path.join(cwd, "..", "target", target, "release/libdivvunspell.so"),
                     os.path.join(jni_dir, "libdivvunspell.so"),
                 )
 
@@ -579,10 +581,14 @@ class AndroidGenerator(Generator):
                 val_dir = os.path.join(res_dir, "values-%s" % locale)
             self._str_xml(val_dir, name, kbd_name.lower())
 
+    def kbd_pkg_id(self, locale):
+        layout = self.supported_layouts[locale]
+        return self.layout_target(layout).get("legacyName", locale).lower().replace('-', '_')
+
     def gen_method_xml(self, kbds, tree):
         root = tree.getroot()
 
-        for (name, kbd) in kbds:
+        for (id_, name, kbd) in kbds:
             self._android_subelement(
                 root,
                 "subtype",
@@ -591,7 +597,7 @@ class AndroidGenerator(Generator):
                 imeSubtypeLocale=name,
                 imeSubtypeMode="keyboard",
                 imeSubtypeExtraValue="KeyboardLayoutSet=%s,AsciiCapable,EmojiCapable"
-                % name.lower()
+                % id_.lower()
             )
 
         return self._tostring(tree)
@@ -690,14 +696,14 @@ class AndroidGenerator(Generator):
 
             self._unfurl_tarball(tarball, deps_dir / self.REPO)
 
-        # logger.info("Getting source files for divvunspell…")
+        logger.info("Getting source files for divvunspell…")
         
-        # hfst_ospell_tbl = self.cache.download_latest_from_github(
-        #     "divvun/divvunspell",
-        #     branch,
-        #     username=self._args.get("github_username", None),
-        #     password=self._args.get("github_token", None),
-        # )
+        hfst_ospell_tbl = self.cache.download_latest_from_github(
+            "divvun/divvunspell",
+            "swift", #branch,
+            username=self._args.get("github_username", None),
+            password=self._args.get("github_token", None),
+        )
 
         shutil.rmtree(str(deps_dir / "../hfst-ospell-rs"), ignore_errors=True)
         self._unfurl_tarball(hfst_ospell_tbl, deps_dir / "hfst-ospell-rs")
