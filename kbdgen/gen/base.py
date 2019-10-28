@@ -4,6 +4,7 @@ import os
 import os.path
 import subprocess
 import sys
+import re
 
 from functools import lru_cache
 from collections import OrderedDict
@@ -12,6 +13,8 @@ from ..base import ISO_KEYS, KbdgenException
 
 logger = logging.getLogger()
 
+# Parses "\s{foo:42.12}", "\s{foo}" and "\{foo:42}"
+RE_SPECIAL_KEY = re.compile(r"^\\s{([^}:]+)(?::(\d+(?:\.\d+)?))?}$")
 
 class MissingApplicationException(KbdgenException):
     pass
@@ -24,6 +27,24 @@ class GenerationError(KbdgenException):
 def bind_iso_keys(other):
     return OrderedDict(((k, v) for k, v in zip(ISO_KEYS, other)))
 
+def interpret_special_keys(rows):
+    # Parse out all the \s keys
+    for row in rows:
+        for (n, key) in enumerate(row):
+            match = RE_SPECIAL_KEY.match(key)
+            if match is not None:
+                (id_, width) = match.groups()
+                if width is None:
+                    width = 1.0
+                else:
+                    width = float(width)
+
+                if id_.startswith('"') and id_.endswith('"'):
+                    id_ = id_[1:-1]
+                else:
+                    id_ = "_%s" % id_
+                row[n] = { "id": id_, "width": width }
+
 class MobileLayoutView:
     def __init__(self, layout, target):
         self._layout = layout
@@ -33,7 +54,37 @@ class MobileLayoutView:
         o = {}
         o.update(self._layout.modes.get("mobile", {}))
         o.update(self._layout.modes.get(self._target, {}))
-        return o[mode]
+        rows = o.get(mode, None)
+        if rows is None:
+            return None
+        interpret_special_keys(rows)
+        return rows
+
+    def modes(self):
+        o = {}
+        o.update(self._layout.modes.get("mobile", {}))
+        o.update(self._layout.modes.get(self._target, {}))
+        return o
+
+
+class TabletLayoutView:
+    def __init__(self, layout, target):
+        self._layout = layout
+        self._target = target
+
+    def mode(self, mode):
+        o = {}
+        o.update(self._layout.modes.get(self._target, {}))
+        rows = o.get(mode, None)
+        if rows is None:
+            return None
+        interpret_special_keys(rows)
+        return rows
+
+    def modes(self):
+        o = {}
+        o.update(self._layout.modes.get(self._target, {}))
+        return o
 
 class DesktopLayoutView:
     def __init__(self, layout, target):

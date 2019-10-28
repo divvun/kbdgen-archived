@@ -15,7 +15,7 @@ from pathlib import Path
 
 from ..base import get_logger
 from ..filecache import FileCache
-from .base import Generator, run_process, MobileLayoutView
+from .base import Generator, run_process, MobileLayoutView, TabletLayoutView
 from .osxutil import Pbxproj
 
 logger = get_logger(__file__)
@@ -770,28 +770,28 @@ class AppleiOSGenerator(Generator):
         out["space"] = layout.strings.space
         out["longPress"] = layout.longpress
 
+        iphone = out["iphone"] = {}
+        ipad_9in = out["ipad-9in"] = {}
+        ipad_12in = out["ipad-12in"] = {}
+
         view = MobileLayoutView(layout, "ios")
+        iphone["normal"] = view.mode("default")
+        iphone["shifted"] = view.mode("shift")
+        iphone["symbols-1"] = view.mode("symbols-1")
+        iphone["symbols-2"] = view.mode("symbols-2")
 
-        out["normal"] = view.mode("default")
-        out["shifted"] = view.mode("shift")
+        view = TabletLayoutView(layout, "ipad-9in")
+        ipad_9in["normal"] = view.mode("default")
+        ipad_9in["shifted"] = view.mode("shift")
+        ipad_9in["alt"] = view.mode("alt")
+        ipad_9in["alt+shift"] = view.mode("alt+shift")
+        ipad_9in["symbols-1"] = view.mode("symbols-1")
+        ipad_9in["symbols-2"] = view.mode("symbols-2")
 
-        # Add shift etc assuming default, add configuration later
-        # for k in ["normal", "shifted"]:
-        #     out[k][2].insert(0, {
-        #         "id": "_shift",
-        #         "width": 1.5
-        #     })
-        #     out[k][2].insert(1, {
-        #         "id": "_spacer",
-        #         "width": 0.5
-        #     })
-        #     out[k][2].append({
-        #         "id": "_spacer",
-        #         "width": 0.5
-        #     })
-        #     out[k][2].append({
-        #         "id": "_backspace",
-        #         "width": 1.5
-        #     })
+        view = TabletLayoutView(layout, "ipad-12in")
+        ipad_12in["normal"] = view.mode("default")
+        ipad_12in["shifted"] = view.mode("shift")
+        ipad_12in["symbols-1"] = view.mode("symbols-1")
+        ipad_12in["symbols-2"] = view.mode("symbols-2")
 
         return out

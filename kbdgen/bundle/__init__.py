@@ -66,7 +66,11 @@ ISO_KEYS = (
 
 MOBILE_MODES = frozenset((
     "default",
-    "shift"
+    "shift",
+    "alt",
+    "alt+shift",
+    "symbols-1",
+    "symbols-2"
 ))
 
 DESKTOP_MODES = frozenset((
@@ -136,10 +140,9 @@ def assert_valid_keysets(cand_keys, parent_keys, base_keys, cand, parent):
     # if len(diff) > 0:
     #     raise Exception("Missing modes in `%s` relative to `%s`: %s" % (cand, parent, ", ".join(diff)))
 
-
 def parse_modes(tree):
     # We support these top levels:
-    # mobile, ios, android, desktop, win, mac
+    # mobile, ios, android, desktop, win, mac, ipad-9in, ipad-12in
     #
     # If ios and/or android exist, if any of their children exist, the same must not exist in mobile
     # If win and/or mac exist, if any of their children exist, the same must not exist in desktop
@@ -170,6 +173,18 @@ def parse_modes(tree):
         ios_keyset = frozenset(ios_layers.keys())
         assert_valid_keysets(ios_keyset, mobile_keyset, MOBILE_MODES, "ios", "mobile")
         modes["ios"] = ios_layers
+
+    if "ipad-9in" in tree:
+        ipad_layers = MobileLayoutMode.decode(tree["ipad-9in"])
+        ipad_keyset = frozenset(ipad_layers.keys())
+        # assert_valid_keysets(ipad_keyset, mobile_keyset, MOBILE_MODES, "ipad-9in", "mobile")
+        modes["ipad-9in"] = ipad_layers
+    
+    if "ipad-12in" in tree:
+        ipad_layers = MobileLayoutMode.decode(tree["ipad-12in"])
+        ipad_keyset = frozenset(ipad_layers.keys())
+        # assert_valid_keysets(ipad_keyset, mobile_keyset, MOBILE_MODES, "ipad-12in", "mobile")
+        modes["ipad-12in"] = ipad_layers
 
     if "win" in tree:
         win_layers = DesktopLayoutMode.decode(tree["win"])
@@ -292,7 +307,13 @@ def decode_layout(tree):
 
 def normalized_yaml_load(f):
     data = unicodedata.normalize("NFC", f.read())
-    return orderedyaml.loads(data)
+    try:
+        return orderedyaml.loads(data)
+    except Exception as e:
+        layout_name = os.path.basename(f.name).split(".")[0]
+        logger.error("Error while parsing layout %r" % layout_name)
+        logger.error(e)
+        raise e
 
 class ProjectBundle:
     """A project bundle consists of a project.yaml file, a targets/ directory and a layouts/ directory."""
