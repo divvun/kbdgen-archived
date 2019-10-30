@@ -1074,7 +1074,8 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
                     glyphbombs.append((filtered, (vk, str(n)) + win_glyphbomb(key)))
                 else:
                     buf.write("\t%s" % win_filter(key))
-                    if key in layout.dead_keys.get(mode, []):
+                    dead_keys = layout.dead_keys or {}
+                    if key in dead_keys.get(mode, []):
                         buf.write("@")
 
             buf.write("\t// %s %s %s %s %s\n" % (c0, c1, c2, c6, c7))
@@ -1137,10 +1138,11 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
             buf.write("\n")
 
         # Deadkeys!
-        for basekey, o in layout.transforms.items():
+        transforms = layout.transforms or {}
+        for basekey, o in transforms.items():
             if len(basekey) != 1:
                 logger.warning(
-                    ("Base key '%s' invalid for Windows " + "deadkeys; skipping.")
+                    ("Base key '%s' invalid for Windows deadkeys; skipping.")
                     % basekey
                 )
                 continue
@@ -1171,7 +1173,8 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
     def _klc_write_deadkey_names(self, layout, buf):
         buf.write("KEYNAME_DEAD\n\n")
 
-        for basekey, o in layout.transforms.items():
+        transforms = layout.transforms or {}
+        for basekey, o in transforms.items():
             if len(basekey) != 1:
                 logger.warning(
                     ("Base key '%s' invalid for Windows " + "deadkeys; skipping.")

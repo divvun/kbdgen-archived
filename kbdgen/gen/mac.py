@@ -457,12 +457,13 @@ class MacGenerator(PhysicalGenerator):
         layout_view = DesktopLayoutView(layout, "mac")
 
         # Create list to ignore false negatives for different targets
-        dead_key_lists = [v for v in [k.values() for k in layout.dead_keys.values()]]
+        dead_keys = layout.dead_keys or {}
+        dead_key_lists = [v for v in [k.values() for k in dead_keys.values()]]
         all_dead_keys = set(itertools.chain.from_iterable([k for sublist in dead_key_lists for k in sublist]))
         
         dead_keys = set(itertools.chain.from_iterable(layout_view.dead_keys().values()))
         action_keys = set()
-        for x in DictWalker(layout.transforms):
+        for x in DictWalker(layout.transforms or {}):
             for i in x[0] + (x[1],):
                 action_keys.add(str(i))
 
@@ -484,7 +485,7 @@ class MacGenerator(PhysicalGenerator):
 
             logger.trace(
                 "Dead keys - mode:%r keys:%r"
-                % (mode_name, layout.dead_keys.get(mode_name, []))
+                % (mode_name, (layout.dead_keys or {}).get(mode_name, []))
             )
 
             for iso, key in mode.items():
@@ -497,16 +498,18 @@ class MacGenerator(PhysicalGenerator):
                     out.set_key(mode_name, key, key_id)
                     continue
 
-                if key in layout.dead_keys.get(mode_name, []):
+                dead_keys = layout.dead_keys or {}
+                if key in dead_keys.get(mode_name, []):
                     logger.trace("Dead key found - mode:%r key:%r" % (mode_name, key))
 
-                    if key in layout.transforms:
+                    transforms = layout.transforms or {}
+                    if key in transforms:
                         logger.trace(
                             "Set deadkey - mode:%r key:%r id:%r"
                             % (mode_name, key, key_id)
                         )
                         out.set_deadkey(
-                            mode_name, key, key_id, layout.transforms[key].get(" ", key)
+                            mode_name, key, key_id, transforms[key].get(" ", key)
                         )
                     else:
                         logger.warning(
@@ -531,7 +534,7 @@ class MacGenerator(PhysicalGenerator):
                 sp = " "
 
             out.set_key(mode_name, sp, "49")
-            if not self.disable_transforms and len(layout.transforms) > 0:
+            if not self.disable_transforms and len(layout.transforms or {}) > 0:
                 out.set_transform_key(mode_name, sp, "49")
 
             # Add hardcoded keyboard bits
@@ -611,6 +614,6 @@ class MacGenerator(PhysicalGenerator):
                     )
 
         if not self.disable_transforms:
-            TransformWalker(layout.transforms)()
+            TransformWalker(layout.transforms or {})()
 
         return bytes(out).decode("utf-8")
