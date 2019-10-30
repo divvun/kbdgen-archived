@@ -257,16 +257,17 @@ class AndroidGenerator(Generator):
                 if dn_locale in ["zz", name]:
                     continue
 
-            for mode, rows in kbd.modes.items():
-                for n, row in enumerate(rows):
+            layout_view = MobileLayoutView(kbd, "default")
+            for mode in layout_view.modes():
+                for n, row in enumerate(layout_view.mode(mode)):
                     if len(row) > 12:
                         logger.warning(
                             (
-                                "[%s] row %s has %s keys. It is "
+                                "[%s] row %s in mode '%s' has %s keys. It is "
                                 + "recommended to have 12 keys or less per "
                                 + "row."
                             )
-                            % (name, n + 1, len(row))
+                            % (name, mode, n + 1, len(row))
                         )
             for api_v in [21, 23]:
                 if not self.detect_unavailable_glyphs(name, kbd, api_v):
@@ -445,7 +446,7 @@ class AndroidGenerator(Generator):
             ("aarch64-linux-android", "arm64-v8a"),
         ]
         res_dir = os.path.join(base, "deps", self.REPO, "app/src/main/jniLibs")
-        cwd = os.path.join(self.repo_dir, "..", "hfst-ospell-rs", "divvunspell")
+        cwd = os.path.join(self.repo_dir, "..", "divvunspell", "divvunspell")
 
         if not self.cache.inject_directory_tree(tree_id, res_dir, self.repo_dir):
             logger.info("Building native components…")
@@ -705,8 +706,8 @@ class AndroidGenerator(Generator):
             password=self._args.get("github_token", None),
         )
 
-        shutil.rmtree(str(deps_dir / "../hfst-ospell-rs"), ignore_errors=True)
-        self._unfurl_tarball(hfst_ospell_tbl, deps_dir / "hfst-ospell-rs")
+        shutil.rmtree(str(deps_dir / "../divvunspell"), ignore_errors=True)
+        self._unfurl_tarball(hfst_ospell_tbl, deps_dir / "divvunspell")
         return hfst_ospell_tbl.split("/")[-1].split(".")[0]
 
     def environ_or_target(self, env_key, target_key):
