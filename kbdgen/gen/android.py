@@ -165,7 +165,6 @@ class AndroidGenerator(Generator):
 
         # Add bhfst files if found
         self.add_bhfst_files(base)
-        # self.update_dict_authority(base)
         self.update_localisation(base)
         self.generate_icons(base)
         self.build(base, tree_id, self.is_release)
@@ -174,10 +173,6 @@ class AndroidGenerator(Generator):
         for name, kbd in self.supported_layouts.items():
             if len(name) <= 2:
                 continue
-
-            # locale = 'zz_%s' % kbd.locale
-            # kbd.display_names[locale] = kbd.display_names[kbd.locale]
-            # kbd._tree['locale'] = locale
 
             self.update_locale_exception(name, kbd, base)
 
@@ -274,47 +269,6 @@ class AndroidGenerator(Generator):
                     sane = False
 
         return sane
-
-    def _update_dict_auth_xml(self, auth, base):
-        path = os.path.join(
-            base, "deps", self.REPO, "app/src/main/res/values/dictionary-pack.xml"
-        )
-        with open(path) as f:
-            tree = etree.parse(f)
-
-        nodes = tree.xpath("string[@name='authority']")
-        if len(nodes) == 0:
-            logger.error("No authority string found in XML!")
-            return
-
-        nodes[0].text = auth
-
-        with open(path, "w") as f:
-            f.write(self._tostring(tree))
-
-    def _update_dict_auth_java(self, auth, base):
-        # ಠ_ಠ
-        target = "com.android.inputmethod.dictionarypack.aosp"
-
-        # (╯°□°）╯︵ ┻━┻
-        src_path = (
-            "app/src/main/java/com/android/inputmethod/"
-            + "dictionarypack/DictionaryPackConstants.java"
-        )
-        path = os.path.join(base, "deps", self.REPO, src_path)
-
-        # (┛◉Д◉)┛彡┻━┻
-        with open(path) as f:
-            o = f.read().replace(target, auth)
-        with open(path, "w") as f:
-            f.write(o)
-
-    # def update_dict_authority(self, base):
-    #     auth = "%s.dictionarypack" % self.android_target.package_id
-    #     logger.info("Updating dict authority string to '%s'…" % auth)
-
-    #     self._update_dict_auth_xml(auth, base)
-    #     self._update_dict_auth_java(auth, base)
 
     def add_bhfst_files(self, build_dir):
         nm = "app/src/main/assets/dicts"
