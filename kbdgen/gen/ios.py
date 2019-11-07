@@ -764,16 +764,25 @@ class AppleiOSGenerator(Generator):
 
         out = OrderedDict()
 
+        all_dead_keys = layout.dead_keys or {}
+        dead_keys = {
+            "iphone": all_dead_keys.get("ios", {}),
+            "ipad-9in": all_dead_keys.get("ipad-9in", {}),
+            "ipad-12in": all_dead_keys.get("ipad-12in", {})
+        }
+
         out["name"] = local_name
         out["locale"] = name
         out["return"] = layout.strings._return
         out["space"] = layout.strings.space
         out["longPress"] = layout.longpress
-
+        out["deadKeys"] = dead_keys
+        out["transforms"] = layout.transforms
+        
         iphone = out["iphone"] = {}
         ipad_9in = out["ipad-9in"] = {}
         ipad_12in = out["ipad-12in"] = {}
-
+        
         view = MobileLayoutView(layout, "ios")
         iphone["normal"] = view.mode("default")
         iphone["shifted"] = view.mode("shift")
@@ -791,6 +800,8 @@ class AppleiOSGenerator(Generator):
         view = TabletLayoutView(layout, "ipad-12in")
         ipad_12in["normal"] = view.mode("default")
         ipad_12in["shifted"] = view.mode("shift")
+        ipad_12in["alt"] = view.mode("alt")
+        ipad_12in["alt+shift"] = view.mode("alt+shift")
         ipad_12in["symbols-1"] = view.mode("symbols-1")
         ipad_12in["symbols-2"] = view.mode("symbols-2")
 

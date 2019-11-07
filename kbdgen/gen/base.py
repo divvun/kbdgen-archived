@@ -66,6 +66,13 @@ class MobileLayoutView:
         o.update(self._layout.modes.get(self._target, {}))
         return o
 
+    def dead_keys(self):
+        o = {}
+        if self._layout.dead_keys is None:
+            return o
+        o.update(self._layout.dead_keys.get("mobile", {}))
+        o.update(self._layout.dead_keys.get(self._target, {}))
+        return o
 
 class TabletLayoutView:
     def __init__(self, layout, target):
@@ -77,7 +84,7 @@ class TabletLayoutView:
         o.update(self._layout.modes.get(self._target, {}))
         rows = o.get(mode, None)
         if rows is None:
-            return None
+            return []
         interpret_special_keys(rows)
         return rows
 
