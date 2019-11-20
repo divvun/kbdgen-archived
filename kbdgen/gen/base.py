@@ -304,7 +304,7 @@ class DictWalker:
             pass
 
 
-def run_process(cmd, cwd=None, env=os.environ, show_output=False, return_process=False, shell=False):
+def run_process(cmd, cwd=None, env=os.environ, show_output=False, return_process=False, shell=False, pipe=None):
     logger.trace("%r cwd=%r" % (cmd, cwd))
     try:
         process = subprocess.Popen(
@@ -314,7 +314,10 @@ def run_process(cmd, cwd=None, env=os.environ, show_output=False, return_process
             env=env,
             stderr=None if show_output else subprocess.PIPE,
             stdout=None if show_output else subprocess.PIPE,
+            stdin=None if pipe is None else subprocess.PIPE
         )
+        if pipe is not None:
+            process.stdin.write(pipe)
     except Exception as e:
         logger.error("Process failed to launch with the following error message:")
         logger.error(e)

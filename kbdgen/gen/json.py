@@ -5,6 +5,7 @@ from collections import OrderedDict
 
 from .base import Generator, run_process, MobileLayoutView
 from ..base import get_logger
+from .ios import AppleiOSGenerator
 import json
 
 logger = get_logger(__file__)
@@ -24,8 +25,9 @@ class JSONGenerator(Generator):
         with open(fn, "w") as f:
             json.dump({"layouts": layouts}, f, indent=2, ensure_ascii=False)
 
-class QRGenerator(Generator):
+class QRGenerator(AppleiOSGenerator):
     def generate(self, base="."):
+        import brotli
         if not shutil.which("qrencode"):
             logger.error("`qrencode` not found on PATH.")
             return
@@ -36,35 +38,24 @@ class QRGenerator(Generator):
         if command is not None:
             preferred_locale = command
 
-        tree = None
-        for name, layout in self._bundle.layouts.items():
+        for name, layout in self.supported_layouts.items():
             if preferred_locale is not None:
                 if name == preferred_locale:
                     logger.info("Using given locale: %s", preferred_locale)
-                    tree = layout
                     break
             else:
                 logger.info("Choosing first layout from project: %s" % name)
-                tree = layout
                 break
-        
-        if tree is None:
+        else:
             logger.error("No locale found.")
             return
 
-        layout_view = MobileLayoutView(tree, "ios")
-
-        o = {
-            "name": layout.display_names[name],
-            "space": tree.strings.space,
-            "enter": tree.strings._return,
-            "normal": layout_view.mode("default"),
-            "shifted": layout_view.mode("shift"),
-            "longPress": tree.longpress
-        }
-
+        o = self.generate_json_layout(name, layout)
         data = json.dumps(o, ensure_ascii=False, separators=(',', ':'))
-        logger.debug(data)
+        compressed = brotli.compress(data.encode("utf-8"))
+        logger.debug(["%02x" % x for x in compressed])
+        logger.debug("%s %s" % (len(data), len(compressed)))
         fn_path = os.path.abspath(os.path.join(base, "%s.png" % name))
-        run_process(["qrencode", data, "-o", fn_path], shell=False)
+        
+        run_process(["qrencode", "-8o", fn_path], shell=False, pipe=compressed)
         logger.info("QR code generated at: %s" % fn_path)
