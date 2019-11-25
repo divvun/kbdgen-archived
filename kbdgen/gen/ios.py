@@ -299,6 +299,14 @@ class AppleiOSGenerator(Generator):
         with open(plist_path, "wb") as f:
             plistlib.dump(plist, f)
 
+    def _update_settings_bundle_group_id(self, group_id, subpath, deps_dir):
+        plist_path = os.path.join(deps_dir, subpath)
+        with open(plist_path, "rb") as f:
+            plist = plistlib.load(f, dict_type=OrderedDict)
+            plist["ApplicationGroupContainerIdentifier"] = group_id
+        with open(plist_path, "wb") as f:
+            plistlib.dump(plist, f)
+
     def update_app_group_entitlements(self, deps_dir):
         group_id = "group.%s" % self.pkg_id
         logger.info("Setting app group to '%s'…" % group_id)
@@ -308,6 +316,10 @@ class AppleiOSGenerator(Generator):
         )
         self._update_app_group_entitlements(
             group_id, "Keyboard/Keyboard.entitlements", deps_dir
+        )
+
+        self._update_settings_bundle_group_id(
+            group_id, "HostingApp/Settings.bundle/Root.plist", deps_dir
         )
 
     def ensure_cocoapods(self):
