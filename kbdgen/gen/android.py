@@ -190,6 +190,11 @@ class AndroidGenerator(Generator):
         if super().sanity_check() is False: 
             return False
 
+        logger.trace("Supported layouts: %s" % ",".join(self.supported_layouts.keys()))
+        if len(self.supported_layouts) == 0:
+            logger.error("No supported layouts found; aborting.")
+            return False
+
         sane = True
 
         if os.environ.get("JAVA_HOME", None) and not shutil.which("java"):
@@ -252,7 +257,7 @@ class AndroidGenerator(Generator):
                 if dn_locale in ["zz", name]:
                     continue
 
-            layout_view = MobileLayoutView(kbd, "default")
+            layout_view = MobileLayoutView(kbd, "android")
             for mode in layout_view.modes():
                 for n, row in enumerate(layout_view.mode(mode)):
                     if len(row) > 12:
@@ -262,7 +267,7 @@ class AndroidGenerator(Generator):
                                 + "recommended to have 12 keys or less per "
                                 + "row."
                             )
-                            % (name, mode, n + 1, len(row))
+                            % (name, n + 1, mode, len(row))
                         )
             for api_v in [21, 23]:
                 if not self.detect_unavailable_glyphs(name, kbd, api_v):
@@ -655,7 +660,7 @@ class AndroidGenerator(Generator):
         
         hfst_ospell_tbl = self.cache.download_latest_from_github(
             "divvun/divvunspell",
-            "swift", #branch,
+            "develop",
             username=self._args.get("github_username", None),
             password=self._args.get("github_token", None),
         )
@@ -766,7 +771,7 @@ ext.app = [
 
         self._subelement(out, "include", keyboardLayout="@xml/key_styles_common")
 
-        layout_view = MobileLayoutView(kbd, "default")
+        layout_view = MobileLayoutView(kbd, "android")
         for n, values in enumerate(layout_view.mode("default")):
             n += 1
 
