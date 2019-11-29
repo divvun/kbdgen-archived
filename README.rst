@@ -8,7 +8,7 @@ Generate keyboards and keyboard layouts for various operating systems.
 Layout definitions for various languages can be found  `here <https://github.com/giellalt/>`__
 (all repos starting with ``keyboard-``).
 
-Requires Python 3.4 or higher.
+Requires Python 3.7 or higher.
 
 * `Documentation <https://divvun.github.io/kbdgen/>`__
 

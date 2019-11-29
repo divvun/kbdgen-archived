@@ -2,9 +2,8 @@ language: python
 dist: xenial
 sudo: true
 python:
-    - 3.5
-    - 3.6
     - 3.7
+    - 3.8
 before_install:
     - sudo apt-get -qq update
     - sudo apt-get install -y libicu-dev build-essential
