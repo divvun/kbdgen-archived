@@ -46,8 +46,8 @@ class MacGenerator(PhysicalGenerator):
     def sign_id(self):
         return self.mac_target.code_sign_id or os.environ.get("CODE_SIGN_ID")
 
-    def sanity_check(self):
-        if super().sanity_check() is False:
+    def validates_requirements(self):
+        if super().validates_requirements() is False:
             return False
 
         if shutil.which("pkgbuild") is None:
@@ -82,7 +82,7 @@ class MacGenerator(PhysicalGenerator):
         return not fail
 
     def generate(self, base="."):
-        if not self.sanity_check():
+        if not self.validates_requirements():
             return
 
         self.build_dir = os.path.abspath(base)

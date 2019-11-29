@@ -37,7 +37,7 @@ class XKBGenerator(Generator):
         return o
 
     def generate(self, base="."):
-        if not self.sanity_check():
+        if not self.validates_requirements():
             return
 
         self.build_dir = os.path.abspath(base)

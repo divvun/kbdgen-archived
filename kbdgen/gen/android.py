@@ -96,7 +96,7 @@ class AndroidGenerator(Generator):
         return o
 
     def generate(self, base="."):
-        if not self.sanity_check():
+        if not self.validates_requirements():
             logger.error("Sanity checks failed; aborting.")
             return
 
@@ -190,8 +190,8 @@ class AndroidGenerator(Generator):
         except:
             return None
 
-    def sanity_check(self):
-        if super().sanity_check() is False:
+    def validates_requirements(self):
+        if super().validates_requirements() is False:
             return False
 
         logger.trace("Supported layouts: %s" % ",".join(self.supported_layouts.keys()))

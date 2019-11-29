@@ -182,8 +182,8 @@ class AppleiOSGenerator(Generator):
                 o[k] = v
         return o
 
-    def sanity_check(self):
-        if not super().sanity_check():
+    def validates_requirements(self):
+        if not super().validates_requirements():
             return False
 
         if self.is_release and self.team_id is None:
@@ -212,7 +212,7 @@ class AppleiOSGenerator(Generator):
         if not self.ensure_cocoapods():
             return
 
-        if not self.sanity_check():
+        if not self.validates_requirements():
             return
 
         if self.dry_run:

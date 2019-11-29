@@ -163,7 +163,7 @@ class Generator:
     def output_dir(self):
         return self._args.get("output", ".")
 
-    def sanity_check(self) -> bool:
+    def validates_requirements(self) -> bool:
         # if len(self.supported_layouts) == 0:
         #     logger.error("This project defines no supported layouts for this target.")
         #     return False
