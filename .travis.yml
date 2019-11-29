@@ -7,7 +7,7 @@ python:
 before_install:
     - sudo apt-get -qq update
     - sudo apt-get install -y libicu-dev build-essential
-    - curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python3
+    - curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python
 install:
     - source $HOME/.poetry/env
     - poetry install
