@@ -7,63 +7,6 @@ import shutil
 import tempfile
 
 from ..base import get_logger
-KEY_MAP = bind_iso_keys((
-    # Row E
-    "Backquote",
-    "Digit1",
-    "Digit2",
-    "Digit3",
-    "Digit4",
-    "Digit5",
-    "Digit6",
-    "Digit7",
-    "Digit8",
-    "Digit9",
-    "Digit0",
-    "Minus",
-    "Equal",
-
-    # Row D
-    "KeyQ",
-    "KeyW",
-    "KeyE",
-    "KeyR",
-    "KeyT",
-    "KeyY",
-    "KeyU",
-    "KeyI",
-    "KeyO",
-    "KeyP",
-    "BracketLeft",
-    "BracketRight",
-
-    # Row C
-    "KeyA",
-    "KeyS",
-    "KeyD",
-    "KeyF",
-    "KeyG",
-    "KeyH",
-    "KeyJ",
-    "KeyK",
-    "KeyL",
-    "Semicolon",
-    "Quote",
-    "Backslash",
-
-    # Row B
-    "IntlBackslash",
-    "KeyZ",
-    "KeyX",
-    "KeyC",
-    "KeyV",
-    "KeyB",
-    "KeyN",
-    "KeyM",
-    "Comma",
-    "Period",
-    "Slash"
-))
 from .base import (
     PhysicalGenerator,
     run_process,
@@ -74,6 +17,62 @@ from .base import (
 
 logger = get_logger(__name__)
 
+KEY_MAP = bind_iso_keys(
+    (
+        # Row E
+        "Backquote",
+        "Digit1",
+        "Digit2",
+        "Digit3",
+        "Digit4",
+        "Digit5",
+        "Digit6",
+        "Digit7",
+        "Digit8",
+        "Digit9",
+        "Digit0",
+        "Minus",
+        "Equal",
+        # Row D
+        "KeyQ",
+        "KeyW",
+        "KeyE",
+        "KeyR",
+        "KeyT",
+        "KeyY",
+        "KeyU",
+        "KeyI",
+        "KeyO",
+        "KeyP",
+        "BracketLeft",
+        "BracketRight",
+        # Row C
+        "KeyA",
+        "KeyS",
+        "KeyD",
+        "KeyF",
+        "KeyG",
+        "KeyH",
+        "KeyJ",
+        "KeyK",
+        "KeyL",
+        "Semicolon",
+        "Quote",
+        "Backslash",
+        # Row B
+        "IntlBackslash",
+        "KeyZ",
+        "KeyX",
+        "KeyC",
+        "KeyV",
+        "KeyB",
+        "KeyN",
+        "KeyM",
+        "Comma",
+        "Period",
+        "Slash",
+    )
+)
 
 LAYOUT_NAMES = {
     "nb": "{} tastatur",
@@ -82,15 +81,20 @@ LAYOUT_NAMES = {
     "da": "{} tastatur",
     "sv": "{} tangentbord",
     "en": "{} keyboard",
-    "fi": "{} näppäimistö"
+    "fi": "{} näppäimistö",
 }
+
 
 def layout_name(locale, name):
     s = LAYOUT_NAMES.get(locale, LAYOUT_NAMES.get(locale.split("-")[0], None))
     if s is None:
-        logger.warn("No layout format string found for locale '%s' (%s); falling back to 'en'." % (locale, name))
+        logger.warn(
+            "No layout format string found for locale '%s' (%s); falling back to 'en'."
+            % (locale, name)
+        )
         s = LAYOUT_NAMES["en"]
     return s.format(name)
+
 
 def replace_iso_keys(obj):
     o = {}
@@ -103,11 +107,9 @@ def replace_iso_keys(obj):
             del o[k]
     return o
 
-ICONS = {
-    "16": "icon16.png",
-    "48": "icon48.png",
-    "128": "icon128.png"
-}
+
+ICONS = {"16": "icon16.png", "48": "icon48.png", "128": "icon128.png"}
+
 
 class ChromeOSGenerator(PhysicalGenerator):
     @property
@@ -137,9 +139,7 @@ class ChromeOSGenerator(PhysicalGenerator):
         return self.layout_target(layout).get("locale", "en-US")
 
     def _msg(self, text):
-        return {
-            "message": text
-        }
+        return {"message": text}
 
     def generate_manifest(self):
         messages = {}
@@ -163,13 +163,15 @@ class ChromeOSGenerator(PhysicalGenerator):
                 "id": locale,
                 "description": locale_msg,
                 "language": self.base_locale(layout),
-                "layouts": [self.xkb_base_layout(layout)]
+                "layouts": [self.xkb_base_layout(layout)],
             }
 
             for display_locale, display_name in layout.display_names.items():
                 if display_locale not in messages:
                     messages[display_locale] = {}
-                messages[display_locale][lookup_locale] = self._msg(layout_name(display_locale, display_name))
+                messages[display_locale][lookup_locale] = self._msg(
+                    layout_name(display_locale, display_name)
+                )
 
             components.append(component)
 
@@ -188,24 +190,17 @@ class ChromeOSGenerator(PhysicalGenerator):
             "version_name": self.chrome_target.get("version", "0.0.0"),
             "manifest_version": 2,
             "description": "__MSG_description__",
-            "background": {
-                "scripts": ["background.js"]
-            },
-            "permissions": [
-                "input"
-            ],
+            "background": {"scripts": ["background.js"]},
+            "permissions": ["input"],
             "input_components": components,
             "default_locale": "en",
-            "icons": ICONS
+            "icons": ICONS,
         }
 
-        return {
-            "manifest": manifest,
-            "messages": messages
-        }
+        return {"manifest": manifest, "messages": messages}
 
     def open_w(self, *args):
-        return open(os.path.join(*args), 'w', encoding="utf-8")
+        return open(os.path.join(*args), "w", encoding="utf-8")
 
     @property
     def chrome_resources(self):
@@ -240,28 +235,40 @@ class ChromeOSGenerator(PhysicalGenerator):
     def sanity_check(self):
         if self.is_release:
             if self.chrome_target.get("build", None) is None:
-                logger.error("No `build` property found in chrome target; cannot generator.")
+                logger.error(
+                    "No `build` property found in chrome target; cannot generator."
+                )
                 return False
 
             if self.chrome_target.get("version", None) is None:
-                logger.error("No `version` property found in chrome target; cannot generator.")
+                logger.error(
+                    "No `version` property found in chrome target; cannot generator."
+                )
                 return False
 
             if os.environ.get("CHROME_CLIENT_ID", None) is None:
-                logger.error("No `CHROME_CLIENT_ID` env var specified; cannot publish package to Chrome Web Store.")
+                logger.error(
+                    "No `CHROME_CLIENT_ID` env var specified; cannot publish package to Chrome Web Store."
+                )
                 return False
 
             if os.environ.get("CHROME_CLIENT_SECRET", None) is None:
-                logger.error("No `CHROME_CLIENT_SECRET` env var specified; cannot publish package to Chrome Web Store.")
+                logger.error(
+                    "No `CHROME_CLIENT_SECRET` env var specified; cannot publish package to Chrome Web Store."
+                )
                 return False
 
             if os.environ.get("CHROME_REFRESH_TOKEN", None) is None:
-                logger.error("No `CHROME_REFRESH_TOKEN` env var specified; cannot publish package to Chrome Web Store.")
+                logger.error(
+                    "No `CHROME_REFRESH_TOKEN` env var specified; cannot publish package to Chrome Web Store."
+                )
                 return False
 
             self._app_id = self.chrome_target.get("appId", None)
             if self._app_id is None:
-                logger.error("No appId found in `chrome` target configuration; cannot publish.")
+                logger.error(
+                    "No appId found in `chrome` target configuration; cannot publish."
+                )
                 return False
 
         return super().sanity_check()
@@ -271,10 +278,12 @@ class ChromeOSGenerator(PhysicalGenerator):
             "grant_type": "refresh_token",
             "client_id": os.environ["CHROME_CLIENT_ID"],
             "client_secret": os.environ["CHROME_CLIENT_SECRET"],
-            "refresh_token": os.environ["CHROME_REFRESH_TOKEN"]
+            "refresh_token": os.environ["CHROME_REFRESH_TOKEN"],
         }
 
-        oauth_response = requests.post("https://www.googleapis.com/oauth2/v4/token", data=data).json()
+        oauth_response = requests.post(
+            "https://www.googleapis.com/oauth2/v4/token", data=data
+        ).json()
 
         logger.info("Generating .zip for upload…")
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -282,16 +291,21 @@ class ChromeOSGenerator(PhysicalGenerator):
             logger.trace("p: %r, b: %r" % (p, build_dir))
             run_process(["zip", "-r9", p, "."], cwd=build_dir, show_output=True)
 
-            url = "https://www.googleapis.com/upload/chromewebstore/v1.1/items/%s" % self.app_id
+            url = (
+                "https://www.googleapis.com/upload/chromewebstore/v1.1/items/%s"
+                % self.app_id
+            )
             headers = {
                 "Authorization": "Bearer %s" % oauth_response["access_token"],
-                "x-goog-api-version": "2"
+                "x-goog-api-version": "2",
             }
             logger.info("Uploading…")
-            result = requests.put(url, headers=headers, data=open(p, 'rb').read())
+            result = requests.put(url, headers=headers, data=open(p, "rb").read())
             logger.debug("%r" % result)
 
-            shutil.copyfile(p, os.path.join(build_dir, "..", "chrome-%s.zip" % self.app_id))
+            shutil.copyfile(
+                p, os.path.join(build_dir, "..", "chrome-%s.zip" % self.app_id)
+            )
 
     def generate(self, base="."):
         if not self.sanity_check():
@@ -333,20 +347,19 @@ class ChromeOSGenerator(PhysicalGenerator):
                 "deadKeys": layout_view.dead_keys(),
                 "transforms": layout.transforms,
                 "layers": modes,
-                "space": layout_view.space()
+                "space": layout_view.space(),
             }
 
             layouts[locale] = layout_descriptor
 
         logger.info("Writing keyboard layouts…")
-        descriptor = "const descriptor = %s\n" % json.dumps(layouts, indent=2, ensure_ascii=False)
+        descriptor = "const descriptor = %s\n" % json.dumps(
+            layouts, indent=2, ensure_ascii=False
+        )
         start_line = "Keyboard.install(descriptor)"
 
         logger.info("Merging IME and keyboard descriptor…")
-        with open(
-            os.path.join(
-                os.path.dirname(__file__), "bin", "keyboard.js"
-            )) as f:
+        with get_bin_resource("keyboard.js", text=True) as f:
             background_js = "%s\n%s\n%s\n" % (f.read(), descriptor, start_line)
 
         logger.info("Writing background.js…")
@@ -361,5 +374,3 @@ class ChromeOSGenerator(PhysicalGenerator):
         if self.is_release:
             self.upload_package(deps_dir)
         logger.info("Done!")
-
-

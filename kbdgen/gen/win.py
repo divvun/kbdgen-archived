@@ -330,7 +330,9 @@ class WindowsGenerator(Generator):
                 return
 
         for locale, layout in self.supported_layouts.items():
-            outputs[self._klc_get_name(locale, layout, False)] = self.generate_klc(locale, layout)
+            outputs[self._klc_get_name(locale, layout, False)] = self.generate_klc(
+                locale, layout
+            )
 
         if self.dry_run:
             logger.info("Dry run completed.")
@@ -497,7 +499,10 @@ class WindowsGenerator(Generator):
                 )
                 return False
 
-            if lcid is None and self.layout_target(layout).get("languageName", None) is None:
+            if (
+                lcid is None
+                and self.layout_target(layout).get("languageName", None) is None
+            ):
                 logger.error(
                     dedent(
                         """\
@@ -634,7 +639,7 @@ class WindowsGenerator(Generator):
 
     def _generate_inno_languages(self):
         out = []
-        
+
         license_locales = [
             os.path.splitext(x)[0].split(".").pop()
             for x in self.win_resources_list
@@ -655,9 +660,7 @@ class WindowsGenerator(Generator):
 
         en_readme = None
         if os.path.exists(os.path.join(self.win_resources, "readme.txt")):
-            en_readme = self._wine_path(
-                os.path.join(self.win_resources, "readme.txt")
-            )
+            en_readme = self._wine_path(os.path.join(self.win_resources, "readme.txt"))
 
         for locale, attrs in self._bundle.project.locales.items():
             if locale not in inno_langs:
@@ -714,11 +717,11 @@ class WindowsGenerator(Generator):
             return "%s_%s.win7.exe" % (name, version)
         else:
             return "%s_%s.exe" % (name, version)
-    
+
     def first_locale(self):
         tag = next(iter(self._bundle.project.locales.keys()))
         return self._bundle.project.locales[tag]
-    
+
     def _generate_inno_setup(self, app_url, os_):
         o = self._generate_inno_os_config(os_).strip() + "\n"
         pfx = self.codesign_pfx
@@ -977,18 +980,18 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
         if lcidlib.get(l) is not None:
             logger.trace("Override locale: %r", l)
             return l
-        
+
         o = langcodes.Language.get(l)
         if o.script is None:
             o.script = "Latn"
         if o.region is None:
             o.region = "001"
-        
+
         # The language object is weirdly immutable, so feed it itself.
         o = langcodes.Language.make(**o.to_dict()).to_tag()
         logger.trace("Override locale: %r", o)
         return o
-        
+
     def _klc_write_headers(self, locale, layout, buf):
         buf.write(
             'KBD\t%s\t"%s"\n\n'
@@ -1003,7 +1006,9 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
         buf.write('COMPANY\t"%s"\n\n' % organisation)
         buf.write('LOCALENAME\t"%s"\n\n' % override_locale)
 
-        lcid = lcidlib.get_hex8(override_locale) or lcidlib.get_hex8(locale) or "00002000"
+        lcid = (
+            lcidlib.get_hex8(override_locale) or lcidlib.get_hex8(locale) or "00002000"
+        )
 
         buf.write('LOCALEID\t"%s"\n\n' % lcid)
         buf.write("VERSION\t1.0\n\n")
@@ -1142,8 +1147,7 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
         for basekey, o in transforms.items():
             if len(basekey) != 1:
                 logger.warning(
-                    ("Base key '%s' invalid for Windows deadkeys; skipping.")
-                    % basekey
+                    ("Base key '%s' invalid for Windows deadkeys; skipping.") % basekey
                 )
                 continue
 

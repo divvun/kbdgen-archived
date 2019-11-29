@@ -69,10 +69,7 @@ class AppleiOSGenerator(Generator):
         logger.trace("Github username: %r", self.github_username)
 
         tarball = self.cache.download_latest_from_github(
-            repo,
-            branch,
-            username=self.github_username,
-            password=self.github_token,
+            repo, branch, username=self.github_username, password=self.github_token,
         )
         # hfst_ospell_tbl = self.cache.download_latest_from_github(
         #     "divvun/divvunspell",
@@ -108,7 +105,9 @@ class AppleiOSGenerator(Generator):
 
     def command_init(self):
         if os.environ.get("PRODUCE_USERNAME", None) is None:
-            logger.error("You need to supply your Fastlane username as env var PRODUCE_USERNAME.")
+            logger.error(
+                "You need to supply your Fastlane username as env var PRODUCE_USERNAME."
+            )
             sys.exit(100)
 
         cmds = []
@@ -119,11 +118,27 @@ class AppleiOSGenerator(Generator):
 
         # Create all sub-ids for given keyboards
         for id_ in self.all_bundle_ids():
-            cmd = ["fastlane", "produce", "-a", id_, "--app_name", "%s: %s" % (self.app_name, id_.split(".").pop()), "--skip_itc"]
+            cmd = [
+                "fastlane",
+                "produce",
+                "-a",
+                id_,
+                "--app_name",
+                "%s: %s" % (self.app_name, id_.split(".").pop()),
+                "--skip_itc",
+            ]
             cmds.append(cmd)
 
         # Create a group for this
-        cmd = ["fastlane", "produce", "group", "-g", "group.%s" % self.pkg_id, "-n", "%s Group" % self.app_name]
+        cmd = [
+            "fastlane",
+            "produce",
+            "group",
+            "-g",
+            "group.%s" % self.pkg_id,
+            "-n",
+            "%s Group" % self.app_name,
+        ]
         cmds.append(cmd)
 
         # Enable groups support for each id
@@ -133,7 +148,14 @@ class AppleiOSGenerator(Generator):
 
         # Add all the ids to the group
         for id_ in [self.pkg_id] + self.all_bundle_ids():
-            cmd = ["fastlane", "produce", "associate_group", "-a", id_, "group.%s" % self.pkg_id]
+            cmd = [
+                "fastlane",
+                "produce",
+                "associate_group",
+                "-a",
+                id_,
+                "group.%s" % self.pkg_id,
+            ]
             cmds.append(cmd)
 
         # Run all the commands!
@@ -247,7 +269,9 @@ class AppleiOSGenerator(Generator):
                 pbxproj.duplicate_target("Keyboard", suffix, plist_gpath)
                 pbxproj.set_target_package_id(suffix, kbd_pkg_id)
                 if dev_team is not None:
-                    pbxproj.set_target_build_setting(suffix, "DEVELOPMENT_TEAM", dev_team)
+                    pbxproj.set_target_build_setting(
+                        suffix, "DEVELOPMENT_TEAM", dev_team
+                    )
 
                 pbxproj.add_appex_to_target_embedded_binaries(
                     "%s.appex" % suffix, "HostingApp"
@@ -367,13 +391,9 @@ class AppleiOSGenerator(Generator):
         o = {}
 
         for item in self.all_bundle_ids() + [self.pkg_id]:
-            name = (
-                item.split(".")[-1]
-                if item != self.pkg_id
-                else "HostingApp"
-            )
+            name = item.split(".")[-1] if item != self.pkg_id else "HostingApp"
             logger.trace("Profile name: %r" % name)
-            
+
             profile = self.load_provisioning_profile(item, deps_dir)
             logger.debug(
                 "Profile: %s %s -> %s" % (profile["UUID"], profile["Name"], name)
@@ -412,7 +432,7 @@ class AppleiOSGenerator(Generator):
     @property
     def team_id(self):
         return self.ios_target.team_id or os.environ.get("TEAM_ID")
-    
+
     @property
     def sign_id(self):
         return self.ios_target.code_sign_id or os.environ.get("CODE_SIGN_ID")
@@ -460,10 +480,10 @@ class AppleiOSGenerator(Generator):
             env["MATCH_KEYCHAIN_PASSWORD"] = match_pw
 
             cmds = [
-                "security create-keychain -p \"%s\" %s.keychain" % (match_pw, match_name),
+                'security create-keychain -p "%s" %s.keychain' % (match_pw, match_name),
                 "security default-keychain -s %s.keychain" % match_name,
-                "security unlock-keychain -p \"%s\" %s.keychain" % (match_pw, match_name),
-                "security set-keychain-settings -t 7200 -u %s.keychain" % match_name
+                'security unlock-keychain -p "%s" %s.keychain' % (match_pw, match_name),
+                "security set-keychain-settings -t 7200 -u %s.keychain" % match_name,
             ]
 
             for cmd in cmds:
@@ -476,7 +496,9 @@ class AppleiOSGenerator(Generator):
         logger.info("Downloading signing certificates…")
         cmd = "fastlane match appstore --app_identifier=%s" % self.command_ids()
         logger.debug(cmd)
-        returncode = run_process(cmd, env=env, cwd=deps_dir, shell=True, show_output=True)
+        returncode = run_process(
+            cmd, env=env, cwd=deps_dir, shell=True, show_output=True
+        )
         if returncode != 0:
             logger.error("Application ended with error code %s." % returncode)
             sys.exit(returncode)
@@ -489,7 +511,9 @@ class AppleiOSGenerator(Generator):
                 item,
             )
             logger.debug(cmd)
-            returncode = run_process(cmd, env=env, cwd=deps_dir, shell=True, show_output=True)
+            returncode = run_process(
+                cmd, env=env, cwd=deps_dir, shell=True, show_output=True
+            )
             if returncode != 0:
                 logger.error("Application ended with error code %s." % returncode)
                 sys.exit(returncode)
@@ -533,7 +557,9 @@ class AppleiOSGenerator(Generator):
         ):
             logger.info(msg)
             logger.debug(cmd)
-            returncode = run_process(cmd, cwd=deps_dir, env=env, shell=True, show_output=True)
+            returncode = run_process(
+                cmd, cwd=deps_dir, env=env, shell=True, show_output=True
+            )
             if returncode != 0:
                 logger.error("Application ended with error code %s." % returncode)
                 sys.exit(returncode)
@@ -744,7 +770,7 @@ class AppleiOSGenerator(Generator):
         plist["LSApplicationQueriesSchemes"][0] = pkg_id
         plist["NSExtension"]["NSExtensionAttributes"]["PrimaryLanguage"] = locale
         plist["DivvunKeyboardIndex"] = n
-        
+
         dsn = self.ios_target.sentry_dsn
         if dsn is not None:
             plist["SentryDSN"] = dsn
@@ -771,8 +797,7 @@ class AppleiOSGenerator(Generator):
         local_name = layout.display_names.get(name, None)
         if local_name is None:
             raise Exception(
-                ("Keyboard '%s' requires localisation " + "into its own locale.")
-                % name
+                ("Keyboard '%s' requires localisation " + "into its own locale.") % name
             )
 
         out = OrderedDict()
@@ -781,7 +806,7 @@ class AppleiOSGenerator(Generator):
         dead_keys = {
             "iphone": all_dead_keys.get("ios", {}),
             "ipad-9in": all_dead_keys.get("ipad-9in", {}),
-            "ipad-12in": all_dead_keys.get("ipad-12in", {})
+            "ipad-12in": all_dead_keys.get("ipad-12in", {}),
         }
 
         out["name"] = local_name
@@ -791,11 +816,11 @@ class AppleiOSGenerator(Generator):
         out["longPress"] = layout.longpress
         out["deadKeys"] = dead_keys
         out["transforms"] = layout.transforms
-        
+
         iphone = out["iphone"] = {}
         ipad_9in = out["ipad-9in"] = {}
         ipad_12in = out["ipad-12in"] = {}
-        
+
         view = MobileLayoutView(layout, "ios")
         iphone["normal"] = view.mode("default")
         iphone["shifted"] = view.mode("shift")

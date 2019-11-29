@@ -25,9 +25,11 @@ class JSONGenerator(Generator):
         with open(fn, "w") as f:
             json.dump({"layouts": layouts}, f, indent=2, ensure_ascii=False)
 
+
 class QRGenerator(AppleiOSGenerator):
     def generate(self, base="."):
         import brotli
+
         if not shutil.which("qrencode"):
             logger.error("`qrencode` not found on PATH.")
             return
@@ -51,11 +53,11 @@ class QRGenerator(AppleiOSGenerator):
             return
 
         o = self.generate_json_layout(name, layout)
-        data = json.dumps(o, ensure_ascii=False, separators=(',', ':'))
+        data = json.dumps(o, ensure_ascii=False, separators=(",", ":"))
         compressed = brotli.compress(data.encode("utf-8"))
         logger.debug(["%02x" % x for x in compressed])
         logger.debug("%s %s" % (len(data), len(compressed)))
         fn_path = os.path.abspath(os.path.join(base, "%s.png" % name))
-        
+
         run_process(["qrencode", "-8o", fn_path], shell=False, pipe=compressed)
         logger.info("QR code generated at: %s" % fn_path)

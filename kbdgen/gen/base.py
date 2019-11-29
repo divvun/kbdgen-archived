@@ -18,6 +18,7 @@ logger = logging.getLogger()
 # Parses "\s{foo:42.12}", "\s{foo}" and "\{foo:42}"
 RE_SPECIAL_KEY = re.compile(r"^\\s{([^}:]+)(?::(\d+(?:\.\d+)?))?}$")
 
+
 class MissingApplicationException(KbdgenException):
     pass
 
@@ -36,6 +37,7 @@ def get_bin_resource(res, text=False):
 def bind_iso_keys(other):
     return OrderedDict(((k, v) for k, v in zip(ISO_KEYS, other)))
 
+
 def interpret_special_keys(rows):
     # Parse out all the \s keys
     for row in rows:
@@ -52,7 +54,8 @@ def interpret_special_keys(rows):
                     id_ = id_[1:-1]
                 else:
                     id_ = "_%s" % id_
-                row[n] = { "id": id_, "width": width }
+                row[n] = {"id": id_, "width": width}
+
 
 class MobileLayoutView:
     def __init__(self, layout, target):
@@ -83,6 +86,7 @@ class MobileLayoutView:
         o.update(self._layout.dead_keys.get(self._target, {}))
         return o
 
+
 class TabletLayoutView:
     def __init__(self, layout, target):
         self._layout = layout
@@ -102,6 +106,7 @@ class TabletLayoutView:
         o.update(self._layout.modes.get(self._target, {}))
         return o
 
+
 class DesktopLayoutView:
     def __init__(self, layout, target):
         self._layout = layout
@@ -109,7 +114,7 @@ class DesktopLayoutView:
 
     def mode(self, mode):
         return self.modes().get(mode, None)
-    
+
     def modes(self):
         o = {}
         o.update(self._layout.modes.get("desktop", {}))
@@ -131,6 +136,7 @@ class DesktopLayoutView:
         o.update(self._layout.space.get("desktop", {}))
         o.update(self._layout.space.get(self._target, {}))
         return o
+
 
 class Generator:
     def __init__(self, bundle, args=None):
@@ -170,7 +176,7 @@ class Generator:
 class PhysicalGenerator(Generator):
     def validate_layout(self, layout, target):
         view = DesktopLayoutView(layout, target)
-        
+
         mode_keys = set(view.modes().keys())
         deadkey_keys = set(view.dead_keys().keys())
 
@@ -183,7 +189,10 @@ class PhysicalGenerator(Generator):
             #     "Dead key modes are defined for undefined modes: %r"
             #     % (list(undefined_modes),)
             # )
-            logger.warn("Dead key modes are defined for undefined modes: %r" % (list(undefined_modes),))
+            logger.warn(
+                "Dead key modes are defined for undefined modes: %r"
+                % (list(undefined_modes),)
+            )
 
         for mode, keys in view.dead_keys().items():
             dead_keys = set(keys)
@@ -313,7 +322,15 @@ class DictWalker:
             pass
 
 
-def run_process(cmd, cwd=None, env=os.environ, show_output=False, return_process=False, shell=False, pipe=None):
+def run_process(
+    cmd,
+    cwd=None,
+    env=os.environ,
+    show_output=False,
+    return_process=False,
+    shell=False,
+    pipe=None,
+):
     logger.trace("%r cwd=%r" % (cmd, cwd))
     try:
         process = subprocess.Popen(
@@ -323,7 +340,7 @@ def run_process(cmd, cwd=None, env=os.environ, show_output=False, return_process
             env=env,
             stderr=None if show_output else subprocess.PIPE,
             stdout=None if show_output else subprocess.PIPE,
-            stdin=None if pipe is None else subprocess.PIPE
+            stdin=None if pipe is None else subprocess.PIPE,
         )
         if pipe is not None:
             process.stdin.write(pipe)

@@ -70,10 +70,7 @@ def parse_args():
         default=".",
         help="Output directory (default: current working directory)",
     )
-    p.add_argument(
-        "project",
-        help="Keyboard generation bundle (.kbdgen)"
-    )
+    p.add_argument("project", help="Keyboard generation bundle (.kbdgen)")
     p.add_argument(
         "-f",
         "--flag",
@@ -82,7 +79,9 @@ def parse_args():
         help="Generator-specific flags (for debugging)",
         default=[],
     )
-    p.add_argument("-l", "--layout", help="Apply target to specified layout only (EXPERIMENTAL)")
+    p.add_argument(
+        "-l", "--layout", help="Apply target to specified layout only (EXPERIMENTAL)"
+    )
     p.add_argument("--github-username", help="GitHub username for source getting")
     p.add_argument("--github-token", help="GitHub token for source getting")
     p.add_argument("-c", "--command", help="Command to run for a given generators")
@@ -90,21 +89,25 @@ def parse_args():
 
     return p.parse_args()
 
+
 def assert_not_inside_mod(output_dir):
     abs_output = os.path.abspath(output_dir)
     abs_current = os.path.abspath(os.path.join(__package__, ".."))
-    
+
     if abs_output == abs_current:
         logger.fatal("Your output directory must NOT be the kbdgen module itself!")
         logger.fatal("Provided output path: '%s'" % abs_output)
         sys.exit(1)
 
+
 def enable_verbose_requests_log():
     from http.client import HTTPConnection
+
     HTTPConnection.debuglevel = 1
     requests_log = logging.getLogger("urllib3")
     requests_log.setLevel(logging.DEBUG)
     requests_log.propagate = True
+
 
 def print_diagnostics():
     logging.debug("Python version: %r" % " ".join(sys.version.split("\n")))
@@ -142,7 +145,9 @@ def run_cli():
         logger.critical(
             "You should not be seeing this error. Please report this as a bug."
         )
-        logger.critical("To receive a more detailed stacktrace, add `--logging trace` to your build command and submit it with your bug report.")
+        logger.critical(
+            "To receive a more detailed stacktrace, add `--logging trace` to your build command and submit it with your bug report."
+        )
         logger.critical("URL: <https://github.com/divvun/kbdgen/issues/>")
         return 1
 

@@ -74,6 +74,7 @@ def convert_phy_mode(mode):
 
     return rows
 
+
 def generate_att(coords):
     # find end point of all items
     c = 1
@@ -112,13 +113,17 @@ class ErrorModelGenerator(Generator):
         selected_layout = self._args.get("layout", None)
         if selected_layout is None:
             logger.error("No layout provided with the -l flag; aborting.")
-            logger.info("Available layouts: %s" % ", ".join(self._bundle.layouts.keys()))
+            logger.info(
+                "Available layouts: %s" % ", ".join(self._bundle.layouts.keys())
+            )
             return 1
-        
+
         layout = self._bundle.layouts.get(selected_layout, None)
         if layout is None:
             logger.error("Invalid layout selected.")
-            logger.info("Available layouts: %s" % ", ".join(self._bundle.layouts.keys()))
+            logger.info(
+                "Available layouts: %s" % ", ".join(self._bundle.layouts.keys())
+            )
             return 1
 
         mode = MobileLayoutView(layout, "ios").mode("default")

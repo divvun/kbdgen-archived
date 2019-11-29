@@ -109,10 +109,14 @@ class AndroidGenerator(Generator):
         os.makedirs(deps_dir, exist_ok=True)
 
         # Quick workaround for local repos
-        is_local = self.repo is not None and (self.repo.count("/") != 1 or self.repo.count(".") != 0)
+        is_local = self.repo is not None and (
+            self.repo.count("/") != 1 or self.repo.count(".") != 0
+        )
         logger.trace("Is local? %s" % is_local)
 
-        tree_id = self.get_source_tree(base, repo=self.repo, branch=self.branch, is_local=is_local)
+        tree_id = self.get_source_tree(
+            base, repo=self.repo, branch=self.branch, is_local=is_local
+        )
         self.native_locale_workaround(base)
 
         dsn = self.android_target.sentry_dsn
@@ -128,13 +132,16 @@ class AndroidGenerator(Generator):
         logger.info("Updating XML strings…")
         for name, kbd in self.supported_layouts.items():
             kbd_id = self.kbd_pkg_id(name)
-            clean_name = name.lower().replace('-', '_')
+            clean_name = name.lower().replace("-", "_")
             files += [
                 (
                     "app/src/main/res/xml/keyboard_layout_set_%s.xml" % kbd_id,
                     self.kbd_layout_set(kbd_id, kbd),
                 ),
-                ("app/src/main/res/xml/kbd_%s.xml" % kbd_id, self.keyboard(kbd_id, kbd)),
+                (
+                    "app/src/main/res/xml/kbd_%s.xml" % kbd_id,
+                    self.keyboard(kbd_id, kbd),
+                ),
             ]
 
             for style, prefix in styles:
@@ -151,7 +158,9 @@ class AndroidGenerator(Generator):
                     row = ("app/src/main/res/%s/%s" % (prefix, row[0]), row[1])
                     files.append(row)
 
-            layouts[self.layout_target(kbd).get("minimumSdk", None)].append((kbd_id, clean_name, kbd))
+            layouts[self.layout_target(kbd).get("minimumSdk", None)].append(
+                (kbd_id, clean_name, kbd)
+            )
             self.update_strings_xml(clean_name, kbd, base)
 
         self.update_method_xmls(layouts, base)
@@ -182,7 +191,7 @@ class AndroidGenerator(Generator):
             return None
 
     def sanity_check(self):
-        if super().sanity_check() is False: 
+        if super().sanity_check() is False:
             return False
 
         logger.trace("Supported layouts: %s" % ",".join(self.supported_layouts.keys()))
@@ -197,26 +206,41 @@ class AndroidGenerator(Generator):
             sane = False
 
         if os.environ.get("ANDROID_HOME", None) is None:
-            logger.error("ANDROID_HOME must be provided and point to the Android SDK directory.")
+            logger.error(
+                "ANDROID_HOME must be provided and point to the Android SDK directory."
+            )
             sane = False
 
         if os.environ.get("NDK_HOME", None) is None:
-            logger.error("NDK_HOME must be provided and point to the Android NDK directory.")
+            logger.error(
+                "NDK_HOME must be provided and point to the Android NDK directory."
+            )
             sane = False
         else:
             # Check for valid NDK version
             ndk_version = self._find_ndk_version()
             logger.debug("NDK version: %r" % ndk_version)
-            if ndk_version is None or ndk_version[0] < 19 or (ndk_version[0] == 19 and ndk_version[1] < 2):
-                logger.error("Your NDK is too old - 19.2 or higher is required. Your version: '%s'" % ".".join(ndk_version))
+            if (
+                ndk_version is None
+                or ndk_version[0] < 19
+                or (ndk_version[0] == 19 and ndk_version[1] < 2)
+            ):
+                logger.error(
+                    "Your NDK is too old - 19.2 or higher is required. Your version: '%s'"
+                    % ".".join(ndk_version)
+                )
                 sane = False
 
         if shutil.which("cargo") is None:
-            logger.error("`cargo` could not be found. Please ensure it is on your PATH, or install Rust from <https://rustup.rs>.")
+            logger.error(
+                "`cargo` could not be found. Please ensure it is on your PATH, or install Rust from <https://rustup.rs>."
+            )
             sane = False
 
         if shutil.which("cargo-ndk") is None:
-            logger.error("`cargo ndk` could not be found. Please run `cargo install cargo-ndk` to continue.")
+            logger.error(
+                "`cargo ndk` could not be found. Please run `cargo install cargo-ndk` to continue."
+            )
             sane = False
 
         if self.is_release:
@@ -419,23 +443,24 @@ class AndroidGenerator(Generator):
                         "--release",
                         "--lib",
                         "--no-default-features",
-                        "--features", "ffi"
+                        "--features",
+                        "ffi",
                     ],
                     cwd=cwd,
                     show_output=True,
                 )
 
                 if returncode != 0:
-                    logger.error(
-                        "Application ended with error code %s." % returncode
-                    )
+                    logger.error("Application ended with error code %s." % returncode)
                     # TODO throw exception instead.
                     sys.exit(returncode)
 
                 jni_dir = os.path.join(res_dir, jni_name)
                 Path(jni_dir).mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(
-                    os.path.join(cwd, "..", "target", target, "release/libdivvunspell.so"),
+                    os.path.join(
+                        cwd, "..", "target", target, "release/libdivvunspell.so"
+                    ),
                     os.path.join(jni_dir, "libdivvunspell.so"),
                 )
 
@@ -538,7 +563,12 @@ class AndroidGenerator(Generator):
 
     def kbd_pkg_id(self, locale):
         layout = self.supported_layouts[locale]
-        return self.layout_target(layout).get("legacyName", locale).lower().replace('-', '_')
+        return (
+            self.layout_target(layout)
+            .get("legacyName", locale)
+            .lower()
+            .replace("-", "_")
+        )
 
     def gen_method_xml(self, kbds, tree):
         root = tree.getroot()
@@ -552,7 +582,7 @@ class AndroidGenerator(Generator):
                 imeSubtypeLocale=name,
                 imeSubtypeMode="keyboard",
                 imeSubtypeExtraValue="KeyboardLayoutSet=%s,AsciiCapable,EmojiCapable"
-                % id_.lower()
+                % id_.lower(),
             )
 
         return self._tostring(tree)
@@ -605,8 +635,9 @@ class AndroidGenerator(Generator):
         logger.info("Copying source files from %s…" % path)
 
         shutil.rmtree(str(deps_dir), ignore_errors=True)
-        shutil.copytree(path, deps_dir / self.REPO, 
-            ignore=shutil.ignore_patterns(".git", ".svn"))
+        shutil.copytree(
+            path, deps_dir / self.REPO, ignore=shutil.ignore_patterns(".git", ".svn")
+        )
 
     @property
     def github_username(self):
@@ -621,7 +652,7 @@ class AndroidGenerator(Generator):
         if x is None:
             x = os.environ.get("GITHUB_TOKEN", None)
         return x
-        
+
     def get_source_tree(self, base, repo, branch, is_local=False):
         """
         Downloads the IME source from Github as a tarball, then extracts to deps
@@ -643,16 +674,13 @@ class AndroidGenerator(Generator):
             shutil.rmtree(str(deps_dir), ignore_errors=True)
 
             tarball = self.cache.download_latest_from_github(
-                repo,
-                branch,
-                username=self.github_username,
-                password=self.github_token,
+                repo, branch, username=self.github_username, password=self.github_token,
             )
 
             self._unfurl_tarball(tarball, deps_dir / self.REPO)
 
         logger.info("Getting source files for divvunspell…")
-        
+
         hfst_ospell_tbl = self.cache.download_latest_from_github(
             "divvun/divvunspell",
             "develop",
@@ -665,9 +693,7 @@ class AndroidGenerator(Generator):
         return hfst_ospell_tbl.split("/")[-1].split(".")[0]
 
     def environ_or_target(self, env_key, target_key):
-        return os.environ.get(
-            env_key, getattr(self.android_target, target_key, None)
-        )
+        return os.environ.get(env_key, getattr(self.android_target, target_key, None))
 
     def create_gradle_properties(self, base, release_mode=False):
         key_store_path = self.environ_or_target("ANDROID_KEYSTORE", "keyStore") or ""
@@ -747,14 +773,11 @@ ext.app = [
             return {
                 "backspace": [1, "right", "fill"],
                 "enter": [2, "right", "fill"],
-                "shift": [3, "both", "fill"]
+                "shift": [3, "both", "fill"],
             }
         else:
-            return {
-                "shift": [3, "left", "fill"],
-                "backspace": [3, "right", "fill"]
-            }
-    
+            return {"shift": [3, "left", "fill"], "backspace": [3, "right", "fill"]}
+
     def row_has_special_keys(self, kbd, n, style):
         for key, action in self.get_actions(kbd, style).items():
             if Action(*action).row == n:
@@ -772,9 +795,7 @@ ext.app = [
 
             row = self._subelement(out, "Row")
             include = self._subelement(
-                row,
-                "include",
-                keyboardLayout="@xml/rowkeys_%s%s" % (name.lower(), n),
+                row, "include", keyboardLayout="@xml/rowkeys_%s%s" % (name.lower(), n),
             )
 
             if not self.row_has_special_keys(kbd, n, style):
@@ -803,9 +824,7 @@ ext.app = [
 
         self._attrib(out, **kwargs)
 
-        self._subelement(
-            out, "include", keyboardLayout="@xml/rows_%s" % name.lower()
-        )
+        self._subelement(out, "include", keyboardLayout="@xml/rows_%s" % name.lower())
 
         return self._tostring(out)
 

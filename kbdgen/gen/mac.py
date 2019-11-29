@@ -60,7 +60,9 @@ class MacGenerator(PhysicalGenerator):
 
         if self.sign_id is None:
             logger.error("No signing identify found, release build not possible.")
-            logger.error("Add `codeSignId` property to mac target yaml or set CODE_SIGN_ID environment variable.")
+            logger.error(
+                "Add `codeSignId` property to mac target yaml or set CODE_SIGN_ID environment variable."
+            )
             return False
 
         fail = False
@@ -97,10 +99,7 @@ class MacGenerator(PhysicalGenerator):
             try:
                 self.validate_layout(layout, "mac")
             except Exception as e:
-                logger.error(
-                    "[%s] Error while validating layout:\n%s"
-                    % (name, e)
-                )
+                logger.error("[%s] Error while validating layout:\n%s" % (name, e))
                 raise e
                 return
 
@@ -210,10 +209,12 @@ class MacGenerator(PhysicalGenerator):
         # Failure to do so and the bundle will not be detected as a keyboard bundle
         bundle_id = "%s.keyboardlayout.%s" % (
             self.mac_target.package_id,
-            self._bundle.name
+            self._bundle.name,
         )
-        logger.debug("target.package_id: %r, _bundle.name: %r" % (self.mac_target.package_id,
-            self._bundle.name))
+        logger.debug(
+            "target.package_id: %r, _bundle.name: %r"
+            % (self.mac_target.package_id, self._bundle.name)
+        )
 
         bundle_path = os.path.join(path, "%s.bundle" % bundle_id)
         if os.path.exists(bundle_path):
@@ -245,9 +246,7 @@ class MacGenerator(PhysicalGenerator):
         targets = []
         for name, layout in self.supported_layouts.items():
             layout_name = self._layout_name(name, layout)
-            targets.append(
-                target_tmpl % (layout_name, bundle_id, layout_name, name)
-            )
+            targets.append(target_tmpl % (layout_name, bundle_id, layout_name, name))
 
         with open(os.path.join(bundle_path, "Contents", "Info.plist"), "w") as f:
             f.write(
@@ -333,7 +332,7 @@ class MacGenerator(PhysicalGenerator):
         except Exception:
             # No directory, no problem.
             return None
-        
+
         for fn in files:
             if fn_prefix == os.path.splitext(fn)[0]:
                 return os.path.join(self.mac_resources, fn)
@@ -423,12 +422,7 @@ class MacGenerator(PhysicalGenerator):
         )
 
     def _layout_id(self, name) -> str:
-        return str(
-            -min(
-                max(binascii.crc_hqx(name.encode("utf-8"), 0) // 2, 1),
-                32768,
-            )
-        )
+        return str(-min(max(binascii.crc_hqx(name.encode("utf-8"), 0) // 2, 1), 32768,))
 
     def _numpad(self, decimal):
         return (
@@ -447,7 +441,7 @@ class MacGenerator(PhysicalGenerator):
             (88, "6"),
             (89, "7"),
             (91, "8"),
-            (92, "9")
+            (92, "9"),
         )
 
     def generate_xml(self, name, layout):
@@ -459,8 +453,12 @@ class MacGenerator(PhysicalGenerator):
         # Create list to ignore false negatives for different targets
         dead_keys = layout.dead_keys or {}
         dead_key_lists = [v for v in [k.values() for k in dead_keys.values()]]
-        all_dead_keys = set(itertools.chain.from_iterable([k for sublist in dead_key_lists for k in sublist]))
-        
+        all_dead_keys = set(
+            itertools.chain.from_iterable(
+                [k for sublist in dead_key_lists for k in sublist]
+            )
+        )
+
         dead_keys = set(itertools.chain.from_iterable(layout_view.dead_keys().values()))
         action_keys = set()
         for x in DictWalker(layout.transforms or {}):
@@ -551,7 +549,9 @@ class MacGenerator(PhysicalGenerator):
                 logger.debug("BRANCH: %r" % branch)
                 if branch not in dead_keys or not out.actions.has(branch):
                     if branch in all_dead_keys:
-                        logger.debug("Transform %r not supported by current target." % branch)
+                        logger.debug(
+                            "Transform %r not supported by current target." % branch
+                        )
                     else:
                         logger.error(
                             "Transform %r not supported; is a deadkey missing?" % branch
@@ -583,11 +583,7 @@ class MacGenerator(PhysicalGenerator):
                 except Exception as e:
                     logger.error(
                         "[%s] Error while adding branch transform:\n%s\n%r"
-                        % (
-                            name,
-                            e,
-                            (branch, action_id, when_state, next_state),
-                        )
+                        % (name, e, (branch, action_id, when_state, next_state),)
                     )
 
             def on_leaf(self, base, branch, leaf):

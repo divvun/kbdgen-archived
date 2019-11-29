@@ -116,7 +116,6 @@ modes:
 """
 
 
-
 # class Project:
 #     def __init__(self, tree):
 #         self._tree = tree
@@ -338,7 +337,9 @@ class Parser:
         if not proj_path.endswith(".kbdgen"):
             items = list(filter(lambda x: x.endswith(".kbdgen"), os.listdir(proj_path)))
             if len(items) > 1:
-                raise UserException("Could not guess which .kbdgen bundle to load. Specify a full path to a .kbdgen bundle.")
+                raise UserException(
+                    "Could not guess which .kbdgen bundle to load. Specify a full path to a .kbdgen bundle."
+                )
             if len(items) > 0:
                 proj_path = os.path.join(proj_path, items.pop())
         try:
@@ -349,4 +350,3 @@ class Parser:
             logger.trace("cfg_pairs: %r", cfg_pairs)
             self._overrides(project, self._parse_cfg_pairs(cfg_pairs))
         return project
-

@@ -48,9 +48,7 @@ class XKBGenerator(Generator):
             return
 
         xkb_fn = os.path.join(self.build_dir, "%s.xkb" % (self._bundle.name))
-        xcompose_fn = os.path.join(
-            self.build_dir, "%s.xcompose" % (self._bundle.name)
-        )
+        xcompose_fn = os.path.join(self.build_dir, "%s.xcompose" % (self._bundle.name))
 
         # First char in Supplemental Private Use Area-A
         self.surrogate = 0xF0000

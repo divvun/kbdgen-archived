@@ -188,9 +188,7 @@ class SVGGenerator(Generator):
             )
 
             sk = decode_u(shift.get(k, "")) or None
-            sk_dead = sk is not None and shift[k] in layout.dead_keys.get(
-                "shift", {}
-            )
+            sk_dead = sk is not None and shift[k] in layout.dead_keys.get("shift", {})
 
             ack = decode_u(alt_caps.get(k, "")) or None
             ack_dead = ack is not None and alt_caps[k] in layout.dead_keys.get(

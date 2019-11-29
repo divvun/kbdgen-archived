@@ -64,32 +64,16 @@ ISO_KEYS = (
     "B10",
 )
 
-MOBILE_MODES = frozenset((
-    "default",
-    "shift",
-    "alt",
-    "alt+shift",
-    "symbols-1",
-    "symbols-2"
-))
+MOBILE_MODES = frozenset(
+    ("default", "shift", "alt", "alt+shift", "symbols-1", "symbols-2")
+)
 
-DESKTOP_MODES = frozenset((
-    "default",
-    "shift",
-    "caps",
-    "caps+shift",
-    "alt",
-    "alt+shift",
-    "caps+alt",
-    "ctrl"
-))
+DESKTOP_MODES = frozenset(
+    ("default", "shift", "caps", "caps+shift", "alt", "alt+shift", "caps+alt", "ctrl")
+)
 
-MAC_MODES = frozenset((
-    "cmd",
-    "cmd+shift",
-    "cmd+alt",
-    "cmd+alt+shift"
-))
+MAC_MODES = frozenset(("cmd", "cmd+shift", "cmd+alt", "cmd+alt+shift"))
+
 
 def parse_desktop_layout(data, length_check=True):
     if isinstance(data, dict):
@@ -113,6 +97,7 @@ def parse_desktop_layout(data, length_check=True):
 def parse_touch_layout(data):
     return [re.split(r"\s+", x.strip()) for x in data.strip().split("\n")]
 
+
 class MobileLayoutMode(dict):
     @staticmethod
     def decode(obj):
@@ -122,6 +107,7 @@ class MobileLayoutMode(dict):
                 o[k] = parse_touch_layout(obj[k])
         return MobileLayoutMode(**o)
 
+
 class DesktopLayoutMode(dict):
     @staticmethod
     def decode(obj, modes=DESKTOP_MODES):
@@ -130,15 +116,18 @@ class DesktopLayoutMode(dict):
             if k in obj:
                 o[k] = parse_desktop_layout(obj[k])
         return DesktopLayoutMode(**o)
-        
+
 
 def assert_valid_keysets(cand_keys, parent_keys, base_keys, cand, parent):
     overlap = cand_keys & parent_keys
     diff = base_keys - parent_keys - cand_keys
     if len(overlap) > 0:
-        raise Exception("Conflicting modes found for `%s` and `%s`: %r" % (cand, parent, overlap))
+        raise Exception(
+            "Conflicting modes found for `%s` and `%s`: %r" % (cand, parent, overlap)
+        )
     # if len(diff) > 0:
     #     raise Exception("Missing modes in `%s` relative to `%s`: %s" % (cand, parent, ", ".join(diff)))
+
 
 def parse_modes(tree):
     # We support these top levels:
@@ -161,11 +150,13 @@ def parse_modes(tree):
         modes["desktop"] = desktop_layers
     else:
         desktop_keyset = frozenset()
-    
+
     if "android" in tree:
         android_layers = MobileLayoutMode.decode(tree["android"])
         android_keyset = frozenset(android_layers.keys())
-        assert_valid_keysets(android_keyset, mobile_keyset, MOBILE_MODES, "android", "mobile")
+        assert_valid_keysets(
+            android_keyset, mobile_keyset, MOBILE_MODES, "android", "mobile"
+        )
         modes["android"] = android_layers
 
     if "ios" in tree:
@@ -179,7 +170,7 @@ def parse_modes(tree):
         ipad_keyset = frozenset(ipad_layers.keys())
         # assert_valid_keysets(ipad_keyset, mobile_keyset, MOBILE_MODES, "ipad-9in", "mobile")
         modes["ipad-9in"] = ipad_layers
-    
+
     if "ipad-12in" in tree:
         ipad_layers = MobileLayoutMode.decode(tree["ipad-12in"])
         ipad_keyset = frozenset(ipad_layers.keys())
@@ -189,20 +180,26 @@ def parse_modes(tree):
     if "win" in tree:
         win_layers = DesktopLayoutMode.decode(tree["win"])
         win_keyset = frozenset(win_layers.keys())
-        assert_valid_keysets(win_keyset, desktop_keyset, DESKTOP_MODES, "win", "desktop")
+        assert_valid_keysets(
+            win_keyset, desktop_keyset, DESKTOP_MODES, "win", "desktop"
+        )
         modes["win"] = win_layers
 
     # TODO: deduplicate this mess
     if "chrome" in tree:
         chrome_layers = DesktopLayoutMode.decode(tree["chrome"])
         chrome_keyset = frozenset(chrome_layers.keys())
-        assert_valid_keysets(chrome_keyset, desktop_keyset, DESKTOP_MODES, "chrome", "desktop")
+        assert_valid_keysets(
+            chrome_keyset, desktop_keyset, DESKTOP_MODES, "chrome", "desktop"
+        )
         modes["chrome"] = chrome_layers
 
     if "mac" in tree:
         mac_layers = DesktopLayoutMode.decode(tree["mac"], DESKTOP_MODES | MAC_MODES)
         mac_keyset = frozenset(mac_layers.keys())
-        assert_valid_keysets(mac_keyset, desktop_keyset, DESKTOP_MODES | MAC_MODES, "mac", "desktop")
+        assert_valid_keysets(
+            mac_keyset, desktop_keyset, DESKTOP_MODES | MAC_MODES, "mac", "desktop"
+        )
         modes["mac"] = mac_layers
 
     return modes
@@ -212,8 +209,9 @@ def try_decode_target(cls, target, obj):
     try:
         return cls.decode(obj)
     except KeyError as e:
-        raise Exception("Error decoding target '%s', missing key: %s" % (
-            target, str(e)))
+        raise Exception(
+            "Error decoding target '%s', missing key: %s" % (target, str(e))
+        )
 
 
 def decode_target(name, obj):
@@ -287,6 +285,7 @@ def derive_transforms(layout, allow_glyphbombs=False):
             logger.trace("Adding transform: %s%s -> %s" % (d, ch, normalised))
             layout.transforms[d][ch] = normalised
 
+
 def decode_layout(tree):
     layout = Layout.decode(tree)
     layout.modes = parse_modes(layout.modes)
@@ -299,11 +298,16 @@ def decode_layout(tree):
         lp[longpress] = re.split(r"\s+", strings.strip())
     layout.longpress = lp
 
-    transforms_derive = layout.derive is not None and layout.derive.get("transforms", False)
+    transforms_derive = layout.derive is not None and layout.derive.get(
+        "transforms", False
+    )
     if transforms_derive is True:
-        derive_transforms(layout, False) # TODO: allow strange, non-standard interactions
+        derive_transforms(
+            layout, False
+        )  # TODO: allow strange, non-standard interactions
 
     return layout
+
 
 def normalized_yaml_load(f):
     data = unicodedata.normalize("NFC", f.read())
@@ -315,9 +319,10 @@ def normalized_yaml_load(f):
         logger.error(e)
         raise e
 
+
 class ProjectBundle:
     """A project bundle consists of a project.yaml file, a targets/ directory and a layouts/ directory."""
-    
+
     @staticmethod
     def load(bundle_path):
         logger.trace("Loading %r" % bundle_path)
@@ -330,16 +335,35 @@ class ProjectBundle:
             project = Project.decode(normalized_yaml_load(f))
 
         logger.trace("Loading layouts")
-        layouts = dict([(
-            os.path.splitext(x)[0],
-            decode_layout(normalized_yaml_load(open(os.path.join(layouts_path, x), encoding="utf-8")))
-        ) for x in os.listdir(layouts_path)])
-        
+        layouts = dict(
+            [
+                (
+                    os.path.splitext(x)[0],
+                    decode_layout(
+                        normalized_yaml_load(
+                            open(os.path.join(layouts_path, x), encoding="utf-8")
+                        )
+                    ),
+                )
+                for x in os.listdir(layouts_path)
+            ]
+        )
+
         logger.trace("Loading targets")
-        targets = dict([(
-            os.path.splitext(x)[0],
-            decode_target(x, normalized_yaml_load(open(os.path.join(targets_path, x),  encoding="utf-8")))
-        ) for x in os.listdir(targets_path)])
+        targets = dict(
+            [
+                (
+                    os.path.splitext(x)[0],
+                    decode_target(
+                        x,
+                        normalized_yaml_load(
+                            open(os.path.join(targets_path, x), encoding="utf-8")
+                        ),
+                    ),
+                )
+                for x in os.listdir(targets_path)
+            ]
+        )
 
         return ProjectBundle(bundle_path, project, layouts, targets)
 
@@ -363,11 +387,11 @@ class ProjectBundle:
     @property
     def project(self):
         return self._project
-    
+
     @property
     def layouts(self):
         return self._layouts
-    
+
     @property
     def targets(self):
         return self._targets
