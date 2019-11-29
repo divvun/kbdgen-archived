@@ -15,7 +15,7 @@ from ..base import get_logger
 from .base import PhysicalGenerator, run_process, DictWalker, DesktopLayoutView
 from .osxutil import OSXKeyLayout, OSX_HARDCODED, OSX_KEYMAP
 
-logger = get_logger(__file__)
+logger = get_logger(__name__)
 
 INVERTED_ID_RE = re.compile(r"[^A-Za-z0-9]")
 

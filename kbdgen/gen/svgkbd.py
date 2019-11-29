@@ -8,10 +8,10 @@ from textwrap import dedent
 from collections import OrderedDict
 
 from ..base import get_logger
-from .base import Generator, mode_dict, ISO_KEYS
+from .base import Generator, mode_dict, ISO_KEYS, get_bin_resource
 from ..cldr import decode_u
 
-logger = get_logger(__file__)
+logger = get_logger(__name__)
 
 
 class SVGGenerator(Generator):
@@ -25,9 +25,7 @@ class SVGGenerator(Generator):
         return o
 
     def generate(self, base="."):
-        with open(
-            os.path.join(os.path.dirname(__file__), "bin", "keyboard-iso.svg")
-        ) as f:
+        with get_bin_resource("keyboard-iso.svg", text=True) as f:
             tree = etree.parse(f)
         root = tree.getroot()
 

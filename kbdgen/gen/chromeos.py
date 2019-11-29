@@ -4,14 +4,9 @@ import json
 import os
 import os.path
 import shutil
-import requests
 import tempfile
 
 from ..base import get_logger
-from .base import PhysicalGenerator, run_process, DesktopLayoutView, bind_iso_keys
-
-logger = get_logger(__file__)
-
 KEY_MAP = bind_iso_keys((
     # Row E
     "Backquote",
@@ -69,6 +64,16 @@ KEY_MAP = bind_iso_keys((
     "Period",
     "Slash"
 ))
+from .base import (
+    PhysicalGenerator,
+    run_process,
+    DesktopLayoutView,
+    bind_iso_keys,
+    get_bin_resource,
+)
+
+logger = get_logger(__name__)
+
 
 LAYOUT_NAMES = {
     "nb": "{} tastatur",

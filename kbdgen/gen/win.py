@@ -21,7 +21,7 @@ from ..filecache import FileCache
 from .base import Generator, bind_iso_keys, run_process, mode_iter, DesktopLayoutView
 from ..cldr import decode_u
 
-logger = get_logger(__file__)
+logger = get_logger(__name__)
 
 KBDGEN_NAMESPACE = uuid.uuid5(uuid.NAMESPACE_DNS, "divvun.no")
 

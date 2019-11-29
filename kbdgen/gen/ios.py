@@ -18,9 +18,10 @@ from ..filecache import FileCache
 from .base import Generator, run_process, MobileLayoutView, TabletLayoutView
 from .osxutil import Pbxproj
 
-logger = get_logger(__file__)
+logger = get_logger(__name__)
 
 VERSION_RE = re.compile(r"Xcode (\d+)\.(\d+)")
+
 
 class AppleiOSGenerator(Generator):
     @property

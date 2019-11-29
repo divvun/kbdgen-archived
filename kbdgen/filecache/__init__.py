@@ -11,7 +11,7 @@ from pathlib import Path
 from ..base import get_logger
 from .downloader import stream_download
 
-logger = get_logger(__file__)
+logger = get_logger(__name__)
 
 if sys.platform.startswith("win"):
     default_cache_dir = Path(os.getenv("LOCALAPPDATA")) / "kbdgen" / "cache"

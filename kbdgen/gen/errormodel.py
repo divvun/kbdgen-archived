@@ -6,7 +6,7 @@ from math import sqrt
 from .base import Generator, MobileLayoutView
 from ..base import get_logger
 
-logger = get_logger(__file__)
+logger = get_logger(__name__)
 Key = namedtuple("Key", ["x", "y", "dist"])
 
 MAX_DIST = 1.5

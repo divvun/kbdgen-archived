@@ -11,7 +11,7 @@ from collections import OrderedDict, namedtuple
 
 from .base import get_logger
 
-logger = get_logger(__file__)
+logger = get_logger(__name__)
 
 CP_REGEX = re.compile(r"\\u{(.+?)}")
 ENTITY_REGEX = re.compile(r"&#(\d+);")

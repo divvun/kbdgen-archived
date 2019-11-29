@@ -12,12 +12,12 @@ from lxml.etree import Element, SubElement
 import tarfile
 import tempfile
 
-from .base import Generator, run_process, MobileLayoutView
+from .base import Generator, run_process, MobileLayoutView, get_bin_resource
 from ..filecache import FileCache
 from ..base import get_logger
 from .. import boolmap
 
-logger = get_logger(__file__)
+logger = get_logger(__name__)
 
 
 Action = namedtuple("Action", ["row", "position", "width"])
@@ -25,12 +25,7 @@ Action = namedtuple("Action", ["row", "position", "width"])
 ANDROID_GLYPHS = {}
 
 for api in (21, 23):
-    with open(
-        os.path.join(
-            os.path.dirname(__file__), "bin", "android-glyphs-api%s.bin" % api
-        ),
-        "rb",
-    ) as f:
+    with get_bin_resource("android-glyphs-api%s.bin" % api) as f:
         ANDROID_GLYPHS[api] = boolmap.BoolMap(f.read())
 
 

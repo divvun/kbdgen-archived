@@ -5,10 +5,12 @@ import os.path
 import subprocess
 import sys
 import re
+import io
 
 from functools import lru_cache
 from collections import OrderedDict
 
+from . import bin as resources
 from ..base import ISO_KEYS, KbdgenException
 
 logger = logging.getLogger()
@@ -22,6 +24,13 @@ class MissingApplicationException(KbdgenException):
 
 class GenerationError(KbdgenException):
     pass
+
+
+def get_bin_resource(res, text=False):
+    o = resources.__loader__.open_resource(res)
+    if text:
+        return io.TextIOWrapper(o)
+    return o
 
 
 def bind_iso_keys(other):

@@ -14,7 +14,7 @@ from ..bundle import parse_desktop_layout
 from ..base import get_logger
 from ..cldr import CP_REGEX
 
-logger = get_logger(__file__)
+logger = get_logger(__name__)
 
 OSX_KEYMAP = OrderedDict(
     (

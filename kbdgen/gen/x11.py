@@ -2,14 +2,14 @@ import os
 from collections import OrderedDict
 
 from ..base import get_logger
-from .base import Generator, filepath, mode_iter, ISO_KEYS
+from .base import Generator, filepath, mode_iter, ISO_KEYS, get_bin_resource
 from ..cldr import CP_REGEX
 
-logger = get_logger(__file__)
+logger = get_logger(__name__)
 
 keysym_to_str = {}
 
-with open(filepath(__file__, "bin", "keysym.tsv")) as f:
+with get_bin_resource("keysym.tsv", text=True) as f:
     line = f.readline()
     while line:
         if line.startswith("*"):

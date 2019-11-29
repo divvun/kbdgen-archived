@@ -22,8 +22,8 @@ class UserException(Exception):
 log.monkey_patch_trace_logging()
 
 
-def get_logger(path):
-    return logging.getLogger(os.path.basename(os.path.splitext(path)[0]))
+def get_logger(name):
+    return logging.getLogger(name)
 
 
 log.enable_pretty_logging(
