@@ -232,7 +232,7 @@ class ChromeOSGenerator(PhysicalGenerator):
     def app_id(self):
         return self._app_id
 
-    def validates_requirements(self):
+    def satisfies_requirements(self):
         if self.is_release:
             if self.chrome_target.get("build", None) is None:
                 logger.error(
@@ -271,7 +271,7 @@ class ChromeOSGenerator(PhysicalGenerator):
                 )
                 return False
 
-        return super().validates_requirements()
+        return super().satisfies_requirements()
 
     def upload_package(self, build_dir):
         data = {
@@ -308,7 +308,7 @@ class ChromeOSGenerator(PhysicalGenerator):
             )
 
     def generate(self, base="."):
-        if not self.validates_requirements():
+        if not self.satisfies_requirements():
             return
 
         deps_dir = os.path.join(os.path.abspath(base), "chrome-build")

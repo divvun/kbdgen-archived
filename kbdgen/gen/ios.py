@@ -182,8 +182,8 @@ class AppleiOSGenerator(Generator):
                 o[k] = v
         return o
 
-    def validates_requirements(self):
-        if not super().validates_requirements():
+    def satisfies_requirements(self):
+        if not super().satisfies_requirements():
             return False
 
         if self.is_release and self.team_id is None:
@@ -212,7 +212,7 @@ class AppleiOSGenerator(Generator):
         if not self.ensure_cocoapods():
             return
 
-        if not self.validates_requirements():
+        if not self.satisfies_requirements():
             return
 
         if self.dry_run:
@@ -439,7 +439,6 @@ class AppleiOSGenerator(Generator):
 
     def build_release(self, base_dir, deps_dir, pbxproj_path, pbxproj):
         build_dir = deps_dir
-        # TODO check signing ID exists in advance (in sanity checks)
         xcarchive = os.path.abspath(
             os.path.join(build_dir, "%s.xcarchive" % self.pkg_id)
         )

@@ -96,7 +96,7 @@ class AndroidGenerator(Generator):
         return o
 
     def generate(self, base="."):
-        if not self.validates_requirements():
+        if not self.satisfies_requirements():
             logger.error("Sanity checks failed; aborting.")
             return
 
@@ -190,8 +190,8 @@ class AndroidGenerator(Generator):
         except:
             return None
 
-    def validates_requirements(self):
-        if super().validates_requirements() is False:
+    def satisfies_requirements(self):
+        if super().satisfies_requirements() is False:
             return False
 
         logger.trace("Supported layouts: %s" % ",".join(self.supported_layouts.keys()))
@@ -547,8 +547,6 @@ class AndroidGenerator(Generator):
             f.write(self._tostring(tree.getroot()))
 
     def update_strings_xml(self, kbd_name, kbd, base):
-        # TODO sanity check for non-existence directories
-        # TODO run this only once preferably
         res_dir = os.path.join(base, "deps", self.REPO, "app/src/main/res")
 
         for locale, name in kbd.display_names.items():

@@ -39,7 +39,7 @@ def parse_args():
         "-D",
         "--dry-run",
         action="store_true",
-        help="Don't build, just do sanity checks.",
+        help="Don't build, just do requirement validation.",
     )
     p.add_argument(
         "-R",

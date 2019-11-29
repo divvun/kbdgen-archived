@@ -317,7 +317,7 @@ class WindowsGenerator(Generator):
     def generate(self, base="."):
         outputs = OrderedDict()
 
-        if not self.validates_requirements():
+        if not self.satisfies_requirements():
             return
 
         if self.is_release:
@@ -442,8 +442,8 @@ class WindowsGenerator(Generator):
     def codesign_pfx(self):
         return self.win_target.code_sign_pfx or os.environ.get("CODESIGN_PFX", None)
 
-    def validates_requirements(self):
-        if super().validates_requirements() is False:
+    def satisfies_requirements(self):
+        if super().satisfies_requirements() is False:
             return False
         pfx = self.codesign_pfx
         codesign_pw = os.environ.get("CODESIGN_PW", None)
