@@ -4,8 +4,8 @@ import os.path
 import re
 import unicodedata
 
-import lxml.etree
-from lxml.etree import SubElement
+import xml.etree.ElementTree as etree
+from xml.etree.ElementTree import SubElement
 from io import StringIO
 from collections import OrderedDict, namedtuple
 
@@ -134,7 +134,7 @@ def filtered(v):
 
 
 def to_xml(yaml_tree):
-    tree = lxml.etree.fromstring(
+    tree = etree.fromstring(
         """<keyboard locale="%s"/>""" % yaml_tree["internalName"]
     )
 
@@ -192,7 +192,7 @@ def to_xml(yaml_tree):
             n.attrib["from"] = "%s%s" % (base, tr_from)
             n.attrib["to"] = tr_to
 
-    out = lxml.etree.tostring(
+    out = etree.tostring(
         tree, xml_declaration=True, encoding="utf-8", pretty_print=True
     ).decode()
     return ENTITY_REGEX.sub(lambda x: "\\u{%s}" % hex(int(x.group(1)))[2:].upper(), out)
@@ -224,29 +224,29 @@ class CLDRKeyboard:
 
         self._space = OrderedDict()
 
-        tree = lxml.etree.fromstring(data)
+        tree = etree.fromstring(data)
 
         self._internal_name = tree.attrib["locale"]
         self._locale = self._internal_name.split("-")[0]
-        self._name = tree.xpath("names/name")[0].attrib["value"]
+        self._name = tree.findall("names/name")[0].attrib["value"]
 
         self._generate_keyset(tree)
         self._parse_transforms(tree)
         self._parse_keymaps(tree)
 
     def _generate_keyset(self, tree):
-        self._key_set = {decode_u(n.attrib["to"]) for n in tree.xpath("keyMap/map")}
+        self._key_set = {decode_u(n.attrib["to"]) for n in tree.findall("keyMap/map")}
         self._key_set.add(" ")
 
     def _parse_keymaps(self, tree):
         is_osx = self._internal_name.endswith("osx")
 
-        for keymap in tree.xpath("keyMap"):
+        for keymap in tree.findall("keyMap"):
             mode = CLDRMode(keymap.attrib.get("modifiers", "default"))
             new_mode = mode.kbdgen[0]
             self._comments[new_mode] = mode.cldr
             o = {}
-            for key in keymap.xpath("map"):
+            for key in keymap.findall("map"):
                 iso_key = key.attrib["iso"]
                 # Special case for layout differences.
                 if iso_key == "D13":
@@ -300,7 +300,7 @@ class CLDRKeyboard:
                 last = last[k]
             last[ng[-1]] = v
 
-        for transform in tree.xpath("transforms[@type='simple']/transform"):
+        for transform in tree.findall("transforms[@type='simple']/transform"):
             ngrams = split_for_set(self._key_set, decode_u(transform.attrib["from"]))
             self._deadkey_set.add(ngrams[0])
             o_add(ngrams, decode_u(transform.attrib["to"]))

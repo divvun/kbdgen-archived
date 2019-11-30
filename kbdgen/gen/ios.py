@@ -9,7 +9,8 @@ import tempfile
 import os
 import json
 import subprocess
-from lxml import etree
+import xml.etree.ElementTree as etree
+
 from collections import OrderedDict
 from pathlib import Path
 
@@ -654,7 +655,7 @@ class AppleiOSGenerator(Generator):
         o = []
         for key, node, attr_node in [
             (n.attrib["value"], n.getparent().getparent(), n)
-            for n in tree.xpath("//*[@keyPath='translate']")
+            for n in tree.findall("//*[@keyPath='translate']")
         ]:
             if "placeholder" in node.attrib:
                 o.append(("%s.placeholder" % node.attrib["id"], key))

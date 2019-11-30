@@ -2,8 +2,8 @@ import copy
 import os.path
 import itertools
 
-from lxml import etree
-from lxml.etree import Element, SubElement
+import xml.etree.ElementTree as etree
+from xml.etree.ElementTree import Element, SubElement
 from textwrap import dedent
 from collections import OrderedDict
 
@@ -216,7 +216,7 @@ class SVGGenerator(Generator):
                 "caps+shift", {}
             )
 
-            g = root.xpath("//*[contains(@class,'%s')]" % k.lower())[0]
+            g = root.findall("//*[contains(@class,'%s')]" % k.lower())[0]
 
             if True:  # has_group1:
                 group1, p1, s1 = self._make_key_group(dk, sk, "key-group-1")

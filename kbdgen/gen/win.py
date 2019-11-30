@@ -2,14 +2,13 @@ import io
 import os
 import os.path
 import ntpath
-import langcodes
-import lcid as lcidlib
 import unicodedata
 import shutil
 import concurrent.futures
 import uuid
 import re
 import sys
+import json
 import subprocess
 
 from collections import OrderedDict
@@ -18,7 +17,7 @@ from textwrap import dedent
 
 from ..base import get_logger
 from ..filecache import FileCache
-from .base import Generator, bind_iso_keys, run_process, mode_iter, DesktopLayoutView
+from .base import Generator, bind_iso_keys, run_process, mode_iter, DesktopLayoutView, get_bin_resource
 from ..cldr import decode_u
 
 logger = get_logger(__name__)
@@ -26,6 +25,22 @@ logger = get_logger(__name__)
 KBDGEN_NAMESPACE = uuid.uuid5(uuid.NAMESPACE_DNS, "divvun.no")
 
 is_windows = sys.platform.startswith("win32") or sys.platform.startswith("cygwin")
+
+with get_bin_resource("lcids.json", text=True) as f:
+    _lcid_data = json.load(f)
+
+def lcid_get(tag: str) -> int:
+    return _lcid_data.get(tag, None)
+
+def lcid_get_hex8(tag: str) -> str:
+    x = _lcid_data.get(tag, None)
+    if x is not None:
+        return "{:08x}".format(x)
+
+def lcid_get_hex4(tag: str) -> str:
+    x = _lcid_data.get(tag, None)
+    if x is not None:
+        return "{:04x}".format(x)
 
 
 def guid(kbd_id):
@@ -482,7 +497,7 @@ class WindowsGenerator(Generator):
             return False
 
         for locale, layout in self.supported_layouts.items():
-            lcid = lcidlib.get(locale)
+            lcid = lcid_get(locale)
             if lcid is None and self.layout_target(layout).get("locale", None) is None:
                 logger.error(
                     dedent(
@@ -977,18 +992,19 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
 
     def override_locale(self, locale, layout):
         l = self.layout_target(layout).get("locale", locale)
-        if lcidlib.get(l) is not None:
+        if lcid_get(l) is not None:
             logger.trace("Override locale: %r", l)
             return l
 
-        o = langcodes.Language.get(l)
-        if o.script is None:
-            o.script = "Latn"
-        if o.region is None:
-            o.region = "001"
+        return l
+        # o = langcodes.Language.get(l)
+        # if o.script is None:
+        #     o.script = "Latn"
+        # if o.region is None:
+        #     o.region = "001"
 
-        # The language object is weirdly immutable, so feed it itself.
-        o = langcodes.Language.make(**o.to_dict()).to_tag()
+        # # The language object is weirdly immutable, so feed it itself.
+        # o = langcodes.Language.make(**o.to_dict()).to_tag()
         logger.trace("Override locale: %r", o)
         return o
 
@@ -1007,7 +1023,7 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
         buf.write('LOCALENAME\t"%s"\n\n' % override_locale)
 
         lcid = (
-            lcidlib.get_hex8(override_locale) or lcidlib.get_hex8(locale) or "00002000"
+            lcid_get_hex8(override_locale) or lcid_get_hex8(locale) or "00002000"
         )
 
         buf.write('LOCALEID\t"%s"\n\n' % lcid)
@@ -1192,7 +1208,7 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
 
     def _klc_write_footer(self, locale, layout, buf):
         language_name = self.layout_target(layout).get("languageName", "Undefined")
-        lcid = lcidlib.get(locale) or 0x0C00
+        lcid = lcid_get(locale) or 0x0C00
         layout_name = layout.display_names[locale]
 
         buf.write("\nDESCRIPTIONS\n\n")

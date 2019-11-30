@@ -3,12 +3,13 @@ import os.path
 import shutil
 import sys
 import glob
+import io
 import subprocess
 from collections import defaultdict, OrderedDict, namedtuple
 from pathlib import Path
 
-from lxml import etree
-from lxml.etree import Element, SubElement
+import xml.etree.ElementTree as etree
+from xml.etree.ElementTree import Element, SubElement
 import tarfile
 import tempfile
 
@@ -62,8 +63,11 @@ class AndroidGenerator(Generator):
         return SubElement(*args, **o)
 
     def _tostring(self, tree):
+        if not getattr(tree, "tag", None):
+            tree = tree.getroot()
         return etree.tostring(
-            tree, pretty_print=True, xml_declaration=True, encoding="utf-8"
+            tree, encoding="utf-8"
+            # , xml_declaration=True, 
         ).decode()
 
     @property
@@ -341,7 +345,7 @@ class AndroidGenerator(Generator):
         if os.path.exists(fn):
             with open(fn) as f:
                 tree = etree.parse(f)
-            nodes = tree.xpath("string[@name='english_ime_name']")
+            nodes = tree.findall("string[@name='english_ime_name']")
             if len(nodes) > 0:
                 node = nodes[0]
         else:
@@ -515,10 +519,10 @@ class AndroidGenerator(Generator):
         clean_name = name.replace("-", "_")
 
         # Add to exception keys
-        node = tree.xpath("string-array[@name='subtype_locale_exception_keys']")[0]
+        node = tree.findall("string-array[@name='subtype_locale_exception_keys']")[0]
         SubElement(node, "item").text = clean_name
 
-        node = tree.xpath(
+        node = tree.findall(
             "string-array[@name='subtype_locale_displayed_in_root_locale']"
         )[0]
         SubElement(node, "item").text = clean_name
@@ -540,7 +544,7 @@ class AndroidGenerator(Generator):
             tree = etree.parse(f)
 
         # Add to exception keys
-        node = tree.xpath("string[@name='sentry_dsn']")[0]
+        node = tree.findall("string[@name='sentry_dsn']")[0]
         node.text = dsn
 
         with open(fn, "w") as f:

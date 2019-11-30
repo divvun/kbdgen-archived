@@ -7,8 +7,8 @@ import subprocess
 import re
 from collections import OrderedDict
 
-from lxml import etree
-from lxml.etree import Element, SubElement
+import xml.etree.ElementTree as etree
+from xml.etree.ElementTree import Element, SubElement
 
 from ..bundle import parse_desktop_layout
 from ..base import get_logger
@@ -675,8 +675,8 @@ class OSXKeyLayout:
     def __str__(self):
         root = copy.deepcopy(self.elements["root"])
 
-        actions = root.xpath("actions")[0]
-        terminators = root.xpath("terminators")[0]
+        actions = root.findall("actions")[0]
+        terminators = root.findall("terminators")[0]
 
         if len(actions) == 0:
             root.remove(actions)
@@ -792,7 +792,7 @@ class OSXKeyLayout:
             self.action_cache[action_id] = action
 
     def _set_terminator(self, action_id, output):
-        termin = self.elements["terminators"].xpath(
+        termin = self.elements["terminators"].findall(
             'when[@state="%s"]' % action_id.replace('"', r"&quot;")
         )
 
@@ -812,7 +812,7 @@ class OSXKeyLayout:
             action = SubElement(self.elements["actions"], "action", id=action_id)
             self.action_cache[action_id] = action
 
-        if len(action.xpath('when[@state="none"]')) == 0:
+        if len(action.findall('when[@state="none"]')) == 0:
             logger.trace(
                 "Create 'none' when - action:%r output:%r" % (action_id, output)
             )

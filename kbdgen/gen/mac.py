@@ -4,10 +4,10 @@ import itertools
 import tempfile
 import sys
 import re
-from lxml import etree
 import binascii
+import xml.etree.ElementTree as etree
 
-from lxml.etree import SubElement
+from xml.etree.ElementTree import SubElement
 from collections import defaultdict, OrderedDict
 from textwrap import indent, dedent
 
@@ -563,7 +563,7 @@ class MacGenerator(PhysicalGenerator):
                 if base == ():
                     action = out.action_cache.get(action_id, None)
                     if action is not None:
-                        if len(action.xpath('when[@state="none"]')) > 0:
+                        if len(action.findall('when[@state="none"]')) > 0:
                             return
                     when_state = "none"
                     next_state = out.states.get(branch)  # "State %s" % branch

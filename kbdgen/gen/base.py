@@ -28,7 +28,8 @@ class GenerationError(KbdgenException):
 
 
 def get_bin_resource(res, text=False):
-    o = resources.__loader__.open_resource(res)
+    r = resources.__loader__.get_resource_reader("kbdgen.gen.bin")
+    o = r.open_resource(res)
     if text:
         return io.TextIOWrapper(o)
     return o

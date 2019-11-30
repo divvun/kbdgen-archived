@@ -8,7 +8,7 @@ from ..base import get_logger
 from .ios import AppleiOSGenerator
 import json
 
-logger = get_logger(__file__)
+logger = get_logger(__name__)
 
 
 class JSONGenerator(Generator):

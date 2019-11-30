@@ -1,10 +1,12 @@
 import sys
 import os
 import hashlib
-import requests
-from requests.auth import HTTPBasicAuth
 import tempfile
+import urllib.request
+import urllib
 import shutil
+import json
+import base64
 from urllib.parse import urlparse
 from pathlib import Path
 
@@ -95,10 +97,15 @@ class FileCache:
             repo=repo, branch=branch
         )
 
+        request = urllib.request.Request(url)
         if username is not None and password is not None:
-            repo_meta = requests.get(url, auth=HTTPBasicAuth(username, password)).json()
-        else:
-            repo_meta = requests.get(url).json()
+            base64string = base64.b64encode("%s:%s" % (username, password))
+            request.add_header("Authorization", "Basic %s" % base64string)
+            # repo_meta = requests.get(url, auth=HTTPBasicAuth(username, password)).json()
+        # else:
+        #     repo_meta = requests.get(url).json()
+        response = urllib.request.urlopen(request)
+        repo_meta = json.load(response)
 
         sha = repo_meta.get("sha", None)
         if sha is None:
