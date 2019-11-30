@@ -9,22 +9,22 @@ license = "Apache-2.0/MIT"
 pyembed = { path = "pyembed" }
 py-language-tags = { path = "py-language-tags" }
 
-serde = { version = "1.0.94", features = ["derive"] }
+serde = { version = "1.0.103", features = ["derive"] }
 serde_yaml = { version = "0.8.9", git = "https://github.com/killercup/serde-yaml/", branch = "feature/multiline-strings" }
-strum = "0.15.0"
-strum_macros = "0.15.0"
-log = "0.4.6"
-snafu = "0.5.0"
+strum = "0.16.0"
+strum_macros = "0.16.0"
+log = "0.4.8"
+snafu = "0.6.0"
 unic-ucd-category = "0.9.0"
-lazy_static = "1.3.0"
-regex = "1.1.7"
+lazy_static = "1.4.0"
+regex = "1.3.1"
 unic-segment = "0.9.0"
-shrinkwraprs = "0.2.1"
+shrinkwraprs = "0.2.3"
 xml-rs = "0.8.0"
 jemallocator-global = { version = "0.3", optional = true }
 
 [dev-dependencies]
-pretty_env_logger = "0.3.0"
+pretty_env_logger = "0.3.1"
 proptest = "0.9.4"
 
 [features]
