@@ -10,6 +10,7 @@ import re
 import sys
 import json
 import subprocess
+import language_tags
 
 from collections import OrderedDict
 from distutils.dir_util import copy_tree
@@ -455,6 +456,7 @@ class WindowsGenerator(Generator):
 
     @property
     def codesign_pfx(self):
+        logger.trace(self.win_target)
         return self.win_target.code_sign_pfx or os.environ.get("CODESIGN_PFX", None)
 
     def satisfies_requirements(self):
@@ -992,21 +994,22 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
 
     def override_locale(self, locale, layout):
         l = self.layout_target(layout).get("locale", locale)
+        logger.trace("Got locale: %s", l)
+
         if lcid_get(l) is not None:
             logger.trace("Override locale: %r", l)
             return l
 
-        return l
-        # o = langcodes.Language.get(l)
-        # if o.script is None:
-        #     o.script = "Latn"
-        # if o.region is None:
-        #     o.region = "001"
+        o = language_tags.LanguageTag(l)
+        if o.script() is None:
+            o.set_script("Latn")
+        if o.region() is None:
+            o.set_region("001")
 
         # # The language object is weirdly immutable, so feed it itself.
         # o = langcodes.Language.make(**o.to_dict()).to_tag()
-        logger.trace("Override locale: %r", o)
-        return o
+        logger.trace("Override locale: %s", o)
+        return str(o)
 
     def _klc_write_headers(self, locale, layout, buf):
         buf.write(

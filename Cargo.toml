@@ -6,6 +6,9 @@ edition = "2018"
 license = "Apache-2.0/MIT"
 
 [dependencies]
+pyembed = { path = "pyembed" }
+py-language-tags = { path = "py-language-tags" }
+
 serde = { version = "1.0.94", features = ["derive"] }
 serde_yaml = { version = "0.8.9", git = "https://github.com/killercup/serde-yaml/", branch = "feature/multiline-strings" }
 strum = "0.15.0"
@@ -18,10 +21,15 @@ regex = "1.1.7"
 unic-segment = "0.9.0"
 shrinkwraprs = "0.2.1"
 xml-rs = "0.8.0"
+jemallocator-global = { version = "0.3", optional = true }
 
 [dev-dependencies]
 pretty_env_logger = "0.3.0"
 proptest = "0.9.4"
+
+[features]
+default = []
+jemalloc = ["jemallocator-global", "pyembed/jemalloc"]
 
 [profile.release]
 debug = true
@@ -30,4 +38,5 @@ debug = true
 members = [
     ".",
     "kbdgen-cli",
+    "py-language-tags",
 ]
