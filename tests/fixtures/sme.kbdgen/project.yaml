@@ -1,0 +1,13 @@
+locales:
+  en:
+    name: North Sami Keyboard
+    description: >-
+      Mobile OS keyboards for the North Sami language from the Divvun group at
+      UiT.
+  nb:
+    name: Nordsamisk tastatur
+    description: Mobiltastatur for nordsamisk fra Divvun-gruppa.
+author: 'The Divvun Group, UiT Norgga árktalaš universitehta'
+copyright: (c) 2017 Divvun/Giellatekno/UiT
+email: feedback@divvun.no
+organisation: UiT Norgga árktalaš universitehta

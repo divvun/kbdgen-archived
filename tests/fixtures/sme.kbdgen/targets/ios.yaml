@@ -1,0 +1,6 @@
+codeSignId: "iPhone Distribution: The University of Tromso (2K5J2584NX)"
+provisioningProfileId: Test
+packageId: no.uit.giella.keyboards.sme
+bundleName: North Sami Keyboard
+version: 0.1.0
+build: 1

@@ -1,0 +1,25 @@
+jobs:
+  - job: 'Pretty'
+    pool:
+      vmImage: 'ubuntu-16.04'
+    container: 'rust:1.35.0'
+    steps:
+      - script: rustup component add rustfmt
+        displayName: Install Rustfmt
+      - script: cargo fmt --all -- --check
+        displayName: Run fmt
+  - job: 'Petty'
+    pool:
+      vmImage: 'ubuntu-16.04'
+    container: 'rust:1.35.0'
+    steps:
+      - script: rustup component add clippy
+        displayName: Install clippy
+      - script: cargo clippy --all --all-targets --verbose
+        displayName: Run Clippy
+  - job: 'Test'
+    pool:
+      vmImage: 'ubuntu-16.04'
+    container: 'rust:1.35.0'
+    steps:
+      - script: cargo test --all --all-targets --verbose

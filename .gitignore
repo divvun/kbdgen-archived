@@ -5,3 +5,8 @@ deps
 .vscode
 .envrc
 outputs
+
+/target
+**/*.rs.bk
+tmp
+vendor

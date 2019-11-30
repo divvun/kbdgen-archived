@@ -1,0 +1,23 @@
+[package]
+name = "kbdgen-cli"
+version = "0.1.0"
+authors = ["Pascal Hertleif <pascal@technocreatives.com>"]
+edition = "2018"
+
+[dependencies]
+kbdgen = { path = ".." }
+directories = "2.0.1"
+console = "0.7.7"
+skim = "0.6.8"
+globwalk = "0.7.1"
+serde-xml-rs = "0.3.1"
+structopt = "0.2.18"
+snafu = "0.5.0"
+log = "0.4.6"
+clap-verbosity-flag = "0.2.0"
+snafu-cli-debug = "0.1.0"
+strum = "0.15.0"
+xkb-parser = "0.1"
+x11-keysymdef = "0.2"
+nom = "5.0.0"
+chrono = "0.4.7"
