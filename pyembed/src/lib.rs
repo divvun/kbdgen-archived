@@ -29,7 +29,7 @@ mod pystr;
 pub use python3_sys as pyffi;
 
 #[allow(unused_imports)]
-pub use crate::config::{PythonConfig, ExtensionModule};
+pub use crate::config::{ExtensionModule, PythonConfig};
 
 #[allow(unused_imports)]
 pub use crate::data::default_python_config;

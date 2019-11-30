@@ -58,7 +58,7 @@ class AppleiOSGenerator(Generator):
             x = os.environ.get("GITHUB_TOKEN", None)
         return x
 
-    def get_source_tree(self, base, repo="divvun/giellakbd-ios", branch="master"):
+    def get_source_tree(self, base):
         """
         Downloads the IME source from Github as a tarball, then extracts to deps dir.
         """
@@ -69,20 +69,13 @@ class AppleiOSGenerator(Generator):
 
         logger.trace("Github username: %r", self.github_username)
 
+        repo = self._args["kbd_repo"]
+        branch = self._args["kbd_branch"]
         tarball = self.cache.download_latest_from_github(
             repo, branch, username=self.github_username, password=self.github_token,
         )
-        # hfst_ospell_tbl = self.cache.download_latest_from_github(
-        #     "divvun/divvunspell",
-        #     "develop",
-        #     username=self._args.get("github_username", None),
-        #     password=self._args.get("github_token", None),
-        # )
 
         self._unfurl_tarball(tarball, deps_dir)
-
-        # shutil.rmtree(str(deps_dir / "Dependencies/hfst-ospell-rs"), ignore_errors=True)
-        # self._unfurl_tarball(hfst_ospell_tbl, deps_dir / "Dependencies/hfst-ospell-rs")
 
     @property
     def ios_target(self):
@@ -220,7 +213,7 @@ class AppleiOSGenerator(Generator):
             logger.info("Dry run completed.")
             return
 
-        self.get_source_tree(base, branch=self.branch)
+        self.get_source_tree(base)
         deps_dir = os.path.join(base, "ios-build")
 
         path = os.path.join(deps_dir, "GiellaKeyboard.xcodeproj", "project.pbxproj")

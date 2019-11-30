@@ -6,8 +6,10 @@
 
 use libc::{c_void, size_t, wchar_t};
 use python3_sys as pyffi;
-use std::ffi::{CString, OsString};
-use std::ptr::null_mut;
+use std::{
+    ffi::{CString, OsString},
+    ptr::null_mut,
+};
 
 #[cfg(target_family = "unix")]
 use std::os::unix::ffi::OsStrExt;

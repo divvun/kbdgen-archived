@@ -8,7 +8,7 @@ def main():
     try:
         from .cli import run_cli
 
-        sys.exit(run_cli())
+        sys.exit(run_cli(sys.argv[1:]))
     except KeyboardInterrupt:
         sys.exit(255)
 

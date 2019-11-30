@@ -1,9 +1,12 @@
 [package]
 name = "kbdgen"
-version = "0.1.0"
-authors = ["Pascal Hertleif <pascal@technocreatives.com>"]
+version = "2.0.0-alpha.0"
+authors = [
+    "Brendan Molloy <brendan@bbqsrc.net>",
+    "Pascal Hertleif <pascal@technocreatives.com>"
+]
 edition = "2018"
-license = "Apache-2.0/MIT"
+license = "Apache-2.0 OR MIT"
 
 [dependencies]
 pyembed = { path = "pyembed" }
@@ -22,6 +25,7 @@ unic-segment = "0.9.0"
 shrinkwraprs = "0.2.3"
 xml-rs = "0.8.0"
 jemallocator-global = { version = "0.3", optional = true }
+structopt = "0.3.5"
 
 [dev-dependencies]
 pretty_env_logger = "0.3.1"

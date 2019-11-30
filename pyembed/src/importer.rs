@@ -9,15 +9,17 @@ This module defines a Python meta path importer and associated functionality
 for importing Python modules from memory.
 */
 
-use std::cell::RefCell;
-use std::collections::{HashMap, HashSet};
-use std::ffi::CStr;
-use std::io::Cursor;
-use std::sync::Arc;
+use std::{
+    cell::RefCell,
+    collections::{HashMap, HashSet},
+    ffi::CStr,
+    io::Cursor,
+    sync::Arc,
+};
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use cpython::exc::{FileNotFoundError, ImportError, RuntimeError, ValueError};
 use cpython::{
+    exc::{FileNotFoundError, ImportError, RuntimeError, ValueError},
     py_class, py_class_impl, py_coerce_item, py_fn, NoArgs, ObjectProtocol, PyClone, PyDict, PyErr,
     PyList, PyModule, PyObject, PyResult, PyString, PyTuple, Python, PythonObject, ToPyObject,
 };

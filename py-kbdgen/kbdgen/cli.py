@@ -9,7 +9,7 @@ from . import __version__, gen
 from .base import KbdgenException, Parser, logger, UserException
 
 
-def parse_args():
+def parse_args(args):
     def logging_type(string):
         n = {
             "critical": 50,
@@ -53,10 +53,12 @@ def parse_args():
         type=argparse.FileType("r"),
         help="Override the global.yaml file",
     )
-    p.add_argument("-r", "--repo", help="Git repo to generate output from")
+    p.add_argument("-r", "--kbd-repo", help="Git repo to generate output from")
     p.add_argument(
-        "-b", "--branch", default="master", help="Git branch (default: master)"
+        "-b", "--kbd-branch", default="master", help="Git branch (default: master)"
     )
+    p.add_argument("--divvunspell-repo")
+    p.add_argument("--divvunspell-branch")
     p.add_argument(
         "-t",
         "--target",
@@ -87,17 +89,17 @@ def parse_args():
     p.add_argument("-c", "--command", help="Command to run for a given generators")
     p.add_argument("--ci", action="store_true", help="Continuous integration build")
 
-    return p.parse_args()
+    return p.parse_args(args)
 
 
-def assert_not_inside_mod(output_dir):
-    abs_output = os.path.abspath(output_dir)
-    abs_current = os.path.abspath(os.path.join(__package__, ".."))
+# def assert_not_inside_mod(output_dir):
+#     abs_output = os.path.abspath(output_dir)
+#     abs_current = os.path.abspath(os.path.join(__package__, ".."))
 
-    if abs_output == abs_current:
-        logger.fatal("Your output directory must NOT be the kbdgen module itself!")
-        logger.fatal("Provided output path: '%s'" % abs_output)
-        sys.exit(1)
+#     if abs_output == abs_current:
+#         logger.fatal("Your output directory must NOT be the kbdgen module itself!")
+#         logger.fatal("Provided output path: '%s'" % abs_output)
+#         sys.exit(1)
 
 
 def enable_verbose_requests_log():
@@ -114,8 +116,8 @@ def print_diagnostics():
     logging.debug("Platform: %r" % platform.platform())
 
 
-def run_cli():
-    args = parse_args()
+def run_cli(cli_args):
+    args = parse_args(cli_args)
     logger.setLevel(args.logging)
 
     print_diagnostics()
@@ -160,7 +162,7 @@ def run_cli():
 
     x = generator(project, dict(args._get_kwargs()))
 
-    assert_not_inside_mod(x.output_dir)
+    # assert_not_inside_mod(x.output_dir)
     try:
         x.generate(x.output_dir)
     except KbdgenException as e:

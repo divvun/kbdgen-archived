@@ -8,10 +8,9 @@
 use jemalloc_sys as jemallocffi;
 use libc::{c_void, size_t};
 use python3_sys as pyffi;
-use std::alloc;
-use std::collections::HashMap;
 #[cfg(feature = "jemalloc-sys")]
 use std::ptr::null_mut;
+use std::{alloc, collections::HashMap};
 
 const MIN_ALIGN: usize = 16;
 

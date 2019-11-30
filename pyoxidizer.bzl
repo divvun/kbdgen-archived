@@ -86,13 +86,13 @@ packaging_rules.append(PipRequirementsFile("./py-kbdgen/requirements.txt"))
 # Python interpreter is invoked, this section is not relevant.
 
 # Run an interactive Python interpreter.
-#python_run_mode = python_run_mode_repl()
+python_run_mode = python_run_mode_repl()
 
 # Import a Python module and run it.
 # python_run_mode = python_run_mode_module("mypackage.__main__")
 
 # Evaluate some Python code.
-python_run_mode = python_run_mode_eval("import kbdgen.cli; kbdgen.cli.run_cli()")
+# python_run_mode = python_run_mode_eval("import kbdgen.cli; kbdgen.cli.run_cli()")
 
 Config(
     application_name="kbdgen",

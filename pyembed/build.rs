@@ -2,9 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-use std::env;
-use std::path::PathBuf;
-use std::process;
+use std::{env, path::PathBuf, process};
 
 /// Path to pyoxidizer executable this file was created with.
 const DEFAULT_PYOXIDIZER_EXE: &str = r#"/Users/brendan/.cargo/bin/pyoxidizer"#;

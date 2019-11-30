@@ -6,27 +6,23 @@
 
 use libc::c_char;
 use python3_sys as pyffi;
-use std::collections::BTreeSet;
-use std::env;
-use std::ffi::CString;
-use std::fs;
-use std::io::Write;
-use std::path::PathBuf;
-use std::ptr::null;
+use std::{collections::BTreeSet, env, ffi::CString, fs, io::Write, path::PathBuf, ptr::null};
 
-use cpython::exc::{SystemExit, ValueError};
 use cpython::{
+    exc::{SystemExit, ValueError},
     GILGuard, NoArgs, ObjectProtocol, PyClone, PyDict, PyErr, PyList, PyModule, PyObject, PyResult,
     PyString, Python, PythonObject, ToPyObject,
 };
 
-use super::config::{PythonConfig, PythonRawAllocator, PythonRunMode, TerminfoResolution};
-use super::importer::PyInit__pyoxidizer_importer;
-use super::osutils::resolve_terminfo_dirs;
 #[cfg(feature = "jemalloc-sys")]
 use super::pyalloc::make_raw_jemalloc_allocator;
-use super::pyalloc::{make_raw_rust_memory_allocator, RawAllocator};
-use super::pystr::{osstring_to_bytes, osstring_to_str, OwnedPyStr};
+use super::{
+    config::{PythonConfig, PythonRawAllocator, PythonRunMode, TerminfoResolution},
+    importer::PyInit__pyoxidizer_importer,
+    osutils::resolve_terminfo_dirs,
+    pyalloc::{make_raw_rust_memory_allocator, RawAllocator},
+    pystr::{osstring_to_bytes, osstring_to_str, OwnedPyStr},
+};
 
 pub const PYOXIDIZER_IMPORTER_NAME: &[u8] = b"_pyoxidizer_importer\0";
 

@@ -119,7 +119,7 @@ class AndroidGenerator(Generator):
         logger.trace("Is local? %s" % is_local)
 
         tree_id = self.get_source_tree(
-            base, repo=self.repo, branch=self.branch, is_local=is_local
+            base, is_local=is_local
         )
         self.native_locale_workaround(base)
 
@@ -655,16 +655,13 @@ class AndroidGenerator(Generator):
             x = os.environ.get("GITHUB_TOKEN", None)
         return x
 
-    def get_source_tree(self, base, repo, branch, is_local=False):
+    def get_source_tree(self, base, is_local=False):
         """
         Downloads the IME source from Github as a tarball, then extracts to deps
         dir.
         """
-
-        if repo is None:
-            repo = "divvun/giella-ime"
-        if branch is None:
-            branch = "master"
+        repo = self._args["kbd_repo"]
+        branch = self._args["kbd_branch"]
 
         deps_dir = Path(os.path.join(base, "deps"))
 
@@ -683,9 +680,11 @@ class AndroidGenerator(Generator):
 
         logger.info("Getting source files for divvunspell…")
 
+        divvunspell_repo = self._args["divvunspell_repo"]
+        divvunspell_branch = self._args["divvunspell_branch"]
         hfst_ospell_tbl = self.cache.download_latest_from_github(
-            "divvun/divvunspell",
-            "develop",
+            divvunspell_repo,
+            divvunspell_branch,
             username=self._args.get("github_username", None),
             password=self._args.get("github_token", None),
         )
