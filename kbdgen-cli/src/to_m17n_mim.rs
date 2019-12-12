@@ -18,7 +18,7 @@ pub struct Cli {
 }
 
 pub fn kbdgen_to_mim(opts: &Cli) -> Result<(), Error> {
-    let _ = opts.verbose.setup_env_logger("kbdgen-cli");
+    // let _ = opts.verbose.setup_env_logger("kbdgen-cli");
 
     let bundle = ProjectBundle::load(&opts.input).context(CannotLoad)?;
     if log_enabled!(log::Level::Debug) {

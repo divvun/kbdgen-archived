@@ -1,3 +1,4 @@
+use strum::IntoEnumIterator;
 use kbdgen::{
     cldr::{Keyboard, *},
     models::{DesktopModes, IsoKey, MobileModes},
@@ -8,7 +9,6 @@ use snafu::{ResultExt, Snafu};
 use snafu_cli_debug::SnafuCliDebug;
 use std::{collections::BTreeMap, fs::File, io::BufWriter, path::PathBuf};
 use structopt::StructOpt;
-use strum::IntoEnumIterator;
 
 #[derive(Debug, StructOpt)]
 pub struct Cli {
@@ -23,7 +23,7 @@ pub struct Cli {
 }
 
 pub fn kbdgen_to_cldr(opts: &Cli) -> Result<(), Error> {
-    let _ = opts.verbose.setup_env_logger("kbdgen-cli");
+    // let _ = opts.verbose.setup_env_logger("kbdgen-cli");
 
     let bundle = ProjectBundle::load(&opts.input).context(CannotLoad)?;
     if log_enabled!(log::Level::Debug) {
@@ -156,6 +156,7 @@ fn mobile_mode_to_keyboard(
     let mut key_maps = vec![];
 
     for (modifiers, mapping) in mobile {
+        use strum::IntoEnumIterator;
         let keys = IsoKey::iter()
             .zip(mapping.iter())
             .map(|(iso, value)| {

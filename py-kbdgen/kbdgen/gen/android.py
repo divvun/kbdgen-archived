@@ -230,9 +230,7 @@ class AndroidGenerator(Generator):
                 or (ndk_version[0] == 19 and ndk_version[1] < 2)
             ):
                 logger.error(
-                    "Your NDK is too old - 19.2 or higher is required. Your version: '%s'"
-                    % ".".join(ndk_version)
-                )
+                    "Your NDK is too old - 19.2 or higher is required. Your version: %r" % ndk_version)
                 sane = False
 
         if shutil.which("cargo") is None:
@@ -448,7 +446,7 @@ class AndroidGenerator(Generator):
                         "--lib",
                         "--no-default-features",
                         "--features",
-                        "ffi",
+                        "internal_ffi",
                     ],
                     cwd=cwd,
                     show_output=True,

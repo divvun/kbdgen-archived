@@ -18,7 +18,7 @@ struct Cli {
 
 fn main() -> Result<(), Error> {
     let opts = Cli::from_args();
-    let _ = opts.verbose.setup_env_logger("cldr");
+    // let _ = opts.verbose.setup_env_logger("cldr");
 
     let bundle = ProjectBundle::load(&opts.input).context(CannotLoad)?;
     log::info!("Bundle `{}` loaded, looking great!", opts.input.display());

@@ -17,7 +17,7 @@ pub struct Cli {
 }
 
 pub fn cldr_to_kbdgen(opts: &Cli) -> Result<(), Error> {
-    let _ = opts.verbose.setup_env_logger("kbdgen-cli");
+    // let _ = opts.verbose.setup_env_logger("kbdgen-cli");
 
     update_repo("cldr", &cldr_dir(), REPO_URL).context(CldrRepoUpdate)?;
     let locale = select_base_locale().context(NoLocaleSelected)?;

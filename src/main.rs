@@ -3,6 +3,12 @@ use std::path::PathBuf;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
+enum IOSCommands {
+    Init,
+    Ids
+}
+
+#[derive(Debug, StructOpt)]
 enum KbdgenCommands {
     Svg {
         #[structopt(short, long = "output", default_value = ".", parse(from_os_str))]
@@ -40,6 +46,9 @@ enum KbdgenCommands {
         project_path: PathBuf,
     },
     IOS {
+        #[structopt(subcommand)]
+        command: Option<IOSCommands>,
+
         #[structopt(long = "kbd-repo", default_value = "divvun/giellakbd-ios")]
         kbd_repo: String,
 
@@ -228,6 +237,7 @@ impl KbdgenOpts {
                 args
             }
             IOS {
+                command,
                 kbd_repo,
                 kbd_branch,
                 output_path,
@@ -257,6 +267,18 @@ impl KbdgenOpts {
 
                 if *ci {
                     args.push("--ci");
+                }
+
+                match command {
+                    Some(IOSCommands::Init) => {
+                        args.push("--command");
+                        args.push("init");
+                    }
+                    Some(IOSCommands::Ids) => {
+                        args.push("--command");
+                        args.push("ids");
+                    },
+                    _ => {}
                 }
 
                 args.push(&*project_path.to_str().unwrap());
