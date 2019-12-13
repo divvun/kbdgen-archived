@@ -1,25 +1,97 @@
+# trigger:
+#   - master
+
+variables:
+  pyoxidizer_rev: e50a704fc778db9222e70b7ad4b08f68178483b5
+
 jobs:
-  - job: 'Pretty'
+  - job: "linux"
     pool:
-      vmImage: 'ubuntu-16.04'
-    container: 'rust:1.35.0'
+      vmImage: "ubuntu-16.04"
     steps:
-      - script: rustup component add rustfmt
-        displayName: Install Rustfmt
-      - script: cargo fmt --all -- --check
-        displayName: Run fmt
-  - job: 'Petty'
+      - script: |
+          set -e
+          curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain nightly -y
+          cargo install --git https://github.com/indygreg/PyOxidizer.git --rev $(pyoxidizer_rev) pyoxidizer
+          # git clone https://github.com/divvun/divvun-ci-config.git
+        displayName: "Install prerequisites"
+      - script: |
+          set -e
+          source $HOME/.cargo/env
+          pyoxidizer build --release
+          cp build/apps/kbdgen/*/release/kbdgen .
+        displayName: "Build"
+      - task: PublishPipelineArtifact@0
+        inputs:
+          targetPath: "$(System.DefaultWorkingDirectory)/kbdgen"
+          artifactName: linux
+        displayName: "Publish artifact"
+
+  - job: "macOS"
     pool:
-      vmImage: 'ubuntu-16.04'
-    container: 'rust:1.35.0'
+      vmImage: "macOS-10.14"
     steps:
-      - script: rustup component add clippy
-        displayName: Install clippy
-      - script: cargo clippy --all --all-targets --verbose
-        displayName: Run Clippy
-  - job: 'Test'
+      - script: |
+          set -e
+          curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain nightly -y
+          cargo install --git https://github.com/indygreg/PyOxidizer.git --rev $(pyoxidizer_rev) pyoxidizer
+          # git clone https://github.com/divvun/divvun-ci-config.git
+        displayName: "Install prerequisites"
+      - script: |
+          set -e
+          source $HOME/.cargo/env
+          pyoxidizer build --release
+          cp build/apps/kbdgen/*/release/kbdgen .
+        displayName: "Build"
+      - task: PublishPipelineArtifact@0
+        inputs:
+          targetPath: "$(System.DefaultWorkingDirectory)/kbdgen"
+          artifactName: macos
+        displayName: "Publish artifact"
+      # - script: |
+      #     set -e
+      #     echo "version $(VERSION)"
+      #     export PATH="$PATH:$(System.DefaultWorkingDirectory)"
+      #     sh divvun-ci-config/repo/scripts/pahkat_deploy_svn.sh https://pahkat.uit.no/repo/macos "$(System.DefaultWorkingDirectory)/$(package_name)" divvunspell-mso $(VERSION)
+      #     sh divvun-ci-config/repo/scripts/pahkat_deploy_svn.sh https://pahkat.uit.no/repo/canada-macos "$(System.DefaultWorkingDirectory)/$(package_name)" divvunspell-mso $(VERSION)
+      #   displayName: "Deploy to nightly channel"
+      #   env:
+      #     DEPLOY_SVN_USER: $(svnUser)
+      #     DEPLOY_SVN_PASSWORD: $(svnPassword)
+      #     DEPLOY_SVN_COMMIT: $(svnCommit)
+  - job: "Windows"
     pool:
-      vmImage: 'ubuntu-16.04'
-    container: 'rust:1.35.0'
+      vmImage: "vs2017-win2016"
     steps:
-      - script: cargo test --all --all-targets --verbose
+      - script: |
+          PATH=%PATH%;%USERPROFILE%\.cargo\bin
+          curl -sLo rustup-init.exe https://win.rustup.rs/
+          ./rustup-init.exe -y --default-host=i686-pc-windows-msvc --default-toolchain=nightly-i686-pc-windows-msvc
+          cargo install --git https://github.com/indygreg/PyOxidizer.git --rev e50a704fc778db9222e70b7ad4b08f68178483b5 pyoxidizer
+        displayName: "Install prerequisites"
+        # env:
+        #   DIVVUN_KEY: $(divvunKey)
+      - script: |
+          PATH=%PATH%;%USERPROFILE%\.cargo\bin
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          rustup default nightly-x86_64-pc-windows-msvc
+          pyoxidizer build --release
+          ls -lah apps/kbdgen/
+        displayName: "Build"
+      - task: PublishBuildArtifacts@1
+        inputs:
+          pathtoPublish: "$(System.DefaultWorkingDirectory)/kbdgen.exe"
+          artifactName: windows
+      # - powershell: |
+      #     . .\divvun-ci-config\repo\scripts\PahkatDeploySvn.ps1
+      #     $Env:PATH += ";$(System.DefaultWorkingDirectory)"
+      #     cd divvunspell-mso\divvunspell-mso
+      #     $version = Select-String -Path .\Cargo.toml -Pattern "^version.*=.*$"
+      #     $version = $version.Matches[0].Value.Replace('"', '').Replace(' ','').Replace('version=','')
+      #     PahkatDeploySvn -SvnUrl https://pahkat.uit.no/repo/windows -Artifact "$(System.DefaultWorkingDirectory)\divvunspell-mso.exe" -Package divvunspell-mso -Version $version
+      #     PahkatDeploySvn -SvnUrl https://pahkat.uit.no/repo/canada-win -Artifact "$(System.DefaultWorkingDirectory)\divvunspell-mso.exe" -Package divvunspell-mso -Version $version
+      #   displayName: "Deploy to nightly channel"
+      #   env:
+      #     DEPLOY_SVN_USER: $(svnUser)
+      #     DEPLOY_SVN_PASSWORD: $(svnPassword)
+      #     DEPLOY_SVN_COMMIT: $(svnCommit)
