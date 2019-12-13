@@ -34,6 +34,7 @@ jobs:
       - script: |
           set -e
           curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain nightly -y
+          source $HOME/.cargo/env
           cargo install --git https://github.com/indygreg/PyOxidizer.git --rev $(pyoxidizer_rev) pyoxidizer
           # git clone https://github.com/divvun/divvun-ci-config.git
         displayName: "Install prerequisites"
@@ -66,7 +67,7 @@ jobs:
       - script: |
           PATH=%PATH%;%USERPROFILE%\.cargo\bin
           curl -sLo rustup-init.exe https://win.rustup.rs/
-          ./rustup-init.exe -y --default-host=i686-pc-windows-msvc --default-toolchain=nightly-i686-pc-windows-msvc
+          ./rustup-init.exe -y --default-host=i686-pc-windows-msvc --default-toolchain=stable-i686-pc-windows-msvc
           cargo install --git https://github.com/indygreg/PyOxidizer.git --rev e50a704fc778db9222e70b7ad4b08f68178483b5 pyoxidizer
         displayName: "Install prerequisites"
         # env:
@@ -74,9 +75,9 @@ jobs:
       - script: |
           PATH=%PATH%;%USERPROFILE%\.cargo\bin
           call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          rustup default nightly-x86_64-pc-windows-msvc
+          rustup default stable-x86_64-pc-windows-msvc
           pyoxidizer build --release
-          ls -lah apps/kbdgen/
+          cp build/apps/kbdgen/*/release/kbdgen.exe .
         displayName: "Build"
       - task: PublishBuildArtifacts@1
         inputs:
