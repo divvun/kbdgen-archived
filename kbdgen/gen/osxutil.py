@@ -648,12 +648,6 @@ class Pbxproj:
         base_ref = Pbxproj.gen_key()
         self.objects[base_ref] = base_clone
 
-        new_phases = []
-        for phase in base_clone["buildPhases"]:
-            ref = Pbxproj.gen_key()
-            new_phases.append(ref)
-            self.objects[ref] = copy.deepcopy(self.objects[phase])
-        base_clone["buildPhases"] = new_phases
         base_clone["name"] = dst_name
 
         conf_ref = Pbxproj.gen_key()
