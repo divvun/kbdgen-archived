@@ -231,7 +231,6 @@ class AppleiOSGenerator(Generator):
         layouts = []
         for name, layout in self.supported_layouts.items():
             layouts.append(self.generate_json_layout(name, layout))
-        logger.trace("Layouts: %r", layouts)
 
         fn = os.path.join(deps_dir, "Keyboard", "KeyboardDefinitions.json")
         with open(fn, "w") as f:
@@ -265,7 +264,6 @@ class AppleiOSGenerator(Generator):
                 new_plist_path = os.path.join(deps_dir, plist_gpath)
                 with open(new_plist_path, "wb") as f:
                     self.update_kbd_plist(kbd_plist, f, locale, native_name, layout, n)
-                # pbx_target, appex_ref =
                 pbxproj.duplicate_target("Keyboard", suffix, plist_gpath)
                 pbxproj.set_target_package_id(suffix, kbd_pkg_id)
                 if dev_team is not None:
@@ -277,6 +275,9 @@ class AppleiOSGenerator(Generator):
                     "%s.appex" % suffix, "HostingApp"
                 )
 
+        pbxproj.remove_appex_from_target_embedded_binaries(
+            "Keyboard.appex", "HostingApp"
+        )
         pbxproj.remove_target("Keyboard")
 
         # Set package ids properly
