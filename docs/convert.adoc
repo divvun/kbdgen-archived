@@ -1,0 +1,25 @@
+=== Fundamental differences between kbdgen 1.x and 2.x:
+
+* A directory layout is now enforced in the form of a project bundle (ie "foo.kbdgen/")
+* Layouts are no longer specified in the project.yaml, and are instead determined by a `layouts/` directory inside the bundle
+* Layouts no longer have an "internalName", and instead are designated by their locale
+* Layouts no longer require separate layout files for each platform, and are now only separated by locale distinctions
+  * This means that you can have one layout file containing multiple targets, limiting duplication of such things as transforms and dead keys
+* The command line interface has been improved and made easier to understand
+  * Each target has its own flags and help information
+* Target resources are now constrained to a `resources/` directory inside the project bundle
+* More helpful error messages when resources are missing
+* Improved support for iPad and the introduction of new modes for supporting these layouts
+* The introduction of the `m17n` and `chrome` targets
+* The inclusion of tools to simplify generating template projects from CLDR keyboard sources
+
+=== Converting a kbdgen 1.x project to 2.x
+
+This is a work in progress. For now, you may use the Node.js script in our GitHub repository.
+
+There are some known issues with this script. Current known issues:
+
+* TODO
+
+We intend to integrate a `convert` command to the kbdgen tool Soon™. If you wish to help port 
+this functionality to the Rust codebase, please let us know in this issue. TODO

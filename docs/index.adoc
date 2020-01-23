@@ -6,8 +6,8 @@ Brendan Molloy <brendan@bbqsrc.net>
 :icons: font
 :toc: left
 :toclevels: 3
-:kbdgenversion: 1.0.7
-:pyversion: 3.4
+:kbdgenversion: 2.0.0-alpha.0
+:pyversion: 3.7
 :sectlinks:
 :sectnums:
 :linkattrs:
@@ -37,6 +37,10 @@ an issue on GitHub.
 
 include::intro.adoc[]
 
+== Transitioning from kbdgen 1.x to 2.x
+
+include::convert.adoc[]
+
 == Installation
 
 include::install.adoc[]
@@ -65,3 +69,7 @@ include::targets/svg.adoc[]
 include::targets/windows.adoc[]
 
 include::targets/x11.adoc[]
+
+include::targets/m17n.adoc[]
+
+include::targets/chrome.adoc[]

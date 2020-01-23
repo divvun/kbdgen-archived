@@ -1,26 +1,33 @@
 WARNING: Each target may have separate requirements for generating and building the output that `kbdgen` provides. Please check the Installation section of your desired target before proceeding.
 
-=== From Source
+It is recommended to use a prebuilt version of `kbdgen` where possible.
 
-==== Unix-like (Linux, macOS, etc)
+=== Pre-built
 
-You will need Python {pyversion} or higher installed to continue. Use your operating system's package manager to install the `python3` package or equivalent. You will also need to install `poetry`, a Python package management tool.
+==== macOS
 
-[source]
-----
-poetry install
-----
+TODO
 
-You will also need to install `imagemagick` or icon generation (and therefore the build) will fail for several targets. On 
-macOS, this can be installed with MacPorts or Homebrew. (`brew install imagemagick` or `port install imagemagick`).
+==== Linux
+
+TODO
 
 ==== Windows
 
-Ensure Python {pyversion} or higher is installed on your system and Python's executables are available in your `%PATH%`. You will also need to install `poetry`, a Python package management tool. Using the Command Prompt, run the following commands:
+TODO
 
-[source]
-----
-poetry install
-----
+=== From Source
 
-It is left an exercise for the reader to work out how to install `imagemagick` on Windows and add it to the `%PATH%`.
+The same instructions apply for all operating systems where Rust is supported.
+
+Install Rust from rustup.rs. Install `pyoxidizer` with cargo (`cargo install pyoxidizer`).
+
+Then run:
+
+-----
+pyoxidizer build --release
+-----
+
+Upon completion, the path to the generated self-contained executable will be printed.
+
+
