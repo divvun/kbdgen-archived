@@ -9,7 +9,7 @@ enum IOSCommands {
 }
 
 #[derive(Debug, StructOpt)]
-enum KbdgenCommands {
+enum KbdgenBuildCommands {
     Svg {
         #[structopt(short, long = "output", default_value = ".", parse(from_os_str))]
         output_path: PathBuf,
@@ -164,26 +164,34 @@ enum KbdgenCommands {
 }
 
 #[derive(Debug, StructOpt)]
+enum KbdgenCommands {
+    Build {
+        #[structopt(long = "github-username")]
+        github_username: Option<String>,
+    
+        #[structopt(long = "github-token")]
+        github_token: Option<String>,
+    
+        #[structopt(subcommand)]
+        command: KbdgenBuildCommands,
+    }
+}
+
+#[derive(Debug, StructOpt)]
 #[structopt(name = "kbdgen", about = "An example of StructOpt usage.")]
 struct KbdgenOpts {
-    #[structopt(long = "github-username")]
-    github_username: Option<String>,
-
-    #[structopt(long = "github-token")]
-    github_token: Option<String>,
-
     #[structopt(long = "logging", default_value = "info")]
     logging: String,
 
     #[structopt(subcommand)]
-    command: KbdgenCommands,
+    command: KbdgenCommands
 }
 
-impl KbdgenOpts {
-    fn to_py_args<'a>(&'a self) -> Result<Vec<&'a str>, Box<dyn std::error::Error>> {
-        use KbdgenCommands::*;
+impl KbdgenBuildCommands {
+    fn to_py_args<'a>(&'a self, github_username: Option<&'a str>, github_token: Option<&'a str>, logging: &'a str) -> Result<Vec<&'a str>, Box<dyn std::error::Error>> {
+        use KbdgenBuildCommands::*;
 
-        let mut args = match &self.command {
+        let mut args = match self {
             Svg {
                 output_path,
                 project_path,
@@ -391,18 +399,18 @@ impl KbdgenOpts {
             ],
         };
 
-        if let Some(gh_username) = self.github_username.as_ref() {
+        if let Some(gh_username) = github_username {
             args.push("--github-username");
             args.push(&*gh_username);
         }
 
-        if let Some(gh_token) = self.github_token.as_ref() {
+        if let Some(gh_token) = github_token {
             args.push("--github-token");
             args.push(&*gh_token);
         }
 
         args.push("--logging");
-        args.push(&self.logging);
+        args.push(logging);
 
         Ok(args)
     }
@@ -495,13 +503,17 @@ fn py_main(args: &[&str]) -> i32 {
 fn main() {
     let opt = KbdgenOpts::from_args();
 
-    println!("{:?}", &opt.to_py_args());
+    // println!("{:?}", &opt.to_py_args());
 
-    match opt.to_py_args() {
-        Ok(args) => std::process::exit(py_main(&args)),
-        Err(e) => {
-            eprintln!("{:?}", e);
-            std::process::exit(1);
+    match opt.command {
+        KbdgenCommands::Build { github_username, github_token, command } => {
+            match command.to_py_args(github_username.as_ref().map(|x| &**x), github_token.as_ref().map(|x| &**x), &opt.logging) {
+                Ok(args) => std::process::exit(py_main(&args)),
+                Err(e) => {
+                    eprintln!("{:?}", e);
+                    std::process::exit(1);
+                }
+            }
         }
     }
 }
