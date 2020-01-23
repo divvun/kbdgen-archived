@@ -159,6 +159,8 @@ class Pbxproj:
         return self.objects[self.root["mainGroup"]]
 
     def find_ref_for_name(self, name, isa=None):
+        logger.trace("find_ref_for_name: %s %r" % (name, isa))
+
         for ref, o in self.objects.items():
             if o.get("name", None) == name and (
                 isa is None or o.get("isa", None) == isa
@@ -167,6 +169,7 @@ class Pbxproj:
         return None
 
     def find_resource_build_phase(self, target_name):
+        logger.trace("find_resource_build_phase: %s" % target_name)
         targets = [self.objects[t] for t in self.root["targets"]]
         target = None
 
@@ -225,6 +228,7 @@ class Pbxproj:
         return o
 
     def set_target_build_setting(self, target, key, value):
+        logger.trace("set_target_build_setting: %r %r %r" % (target, key, value))
         o = self.find_target(target)
         build_cfg_list = self.objects[o["buildConfigurationList"]]
         build_cfgs = [self.objects[x] for x in build_cfg_list["buildConfigurations"]]
@@ -233,6 +237,7 @@ class Pbxproj:
             cfg["buildSettings"][key] = value
 
     def set_target_package_id(self, target, new_id):
+        logger.trace("set_target_package_id: %r %r" % (target, new_id))
         o = self.find_target(target)
         build_cfg_list = self.objects[o["buildConfigurationList"]]
         build_cfgs = [self.objects[x] for x in build_cfg_list["buildConfigurations"]]
@@ -255,6 +260,7 @@ class Pbxproj:
         return o
 
     def add_ref_to_group(self, ref, group_list):
+        logger.trace("add_ref_to_group: %r %r" % (ref, group_list))
         o = self.main_group
         n = False
 
@@ -287,6 +293,7 @@ class Pbxproj:
         return True
 
     def create_file_reference(self, file_type, locale, name, **kwargs):
+        logger.trace("create_file_reference: %r %r %r %r" % (file_type, locale, name, kwargs))
         o = {
             "isa": "PBXFileReference",
             "lastKnownFileType": file_type,
@@ -302,6 +309,7 @@ class Pbxproj:
         return k
 
     def create_plist_file(self, plist_path):
+        logger.trace("create_plist_file: %r" % plist_path)
         o = {
             "isa": "PBXFileReference",
             "lastKnownFileType": "text.plist.xml",
@@ -416,7 +424,7 @@ class Pbxproj:
         logger.debug(target)
 
     def add_appex_to_target_dependencies(self, appex, target):
-        logger.debug("%s %s" % (appex, target))
+        logger.debug("add_appex_to_target_dependencies: %s %s" % (appex, target))
         # Find target
         appex_ref = self.find_ref_for_name(appex, isa="PBXNativeTarget")
         logger.debug("Appex ref: " + appex_ref)
@@ -436,7 +444,86 @@ class Pbxproj:
         logger.debug(target_ref)
         self.add_dependency_to_target(target_ref, dep_ref)
 
+    def remove_appex_from_target_embedded_binaries(self, appex, target):
+        logger.trace("remove_appex_from_target_embedded_binaries: %s %s" % (appex, target))
+        for appex_ref, o in self.objects.items():
+            if (
+                o.get("isa", None) == "PBXFileReference"
+                and o.get("path", None) == appex
+            ):
+                break
+        else:
+            raise Exception("No appex src found.")
+        logger.trace("appex_ref: %r" % appex_ref)
+
+        for appex_file_ref, o in self.objects.items():
+            if (
+                o.get("isa", None) == "PBXBuildFile"
+                and o.get("fileRef", None) == appex_ref
+            ):
+                break
+        else:
+            raise Exception("No appex src found.")
+
+        for appex_native_ref, o in self.objects.items():
+            if (
+                o.get("isa", None) == "PBXNativeTarget"
+                and o.get("productReference", None) == appex_ref
+            ):
+                break
+        else:
+            raise Exception("No target src found.")
+
+        for native_ref, o in self.objects.items():
+            if (
+                o.get("isa", None) == "PBXNativeTarget"
+                and o.get("name", None) == target
+            ):
+                break
+        else:
+            raise Exception("No target src found.")
+        logger.trace("native_ref: %r" % native_ref)
+        target_o = o
+
+        for o in [self.objects[x] for x in target_o["buildPhases"]]:
+            if (
+                o.get("isa", None) == "PBXCopyFilesBuildPhase"
+                and o.get("name", None) == "Embed App Extensions"
+            ):
+                break
+        else:
+            raise Exception("No src found.")
+
+        # native_target = o
+
+        for target_dep_ref, o in self.objects.items():
+            if o.get("isa", None) == "PBXTargetDependency":
+                logger.trace(o)
+            if (
+                o.get("isa", None) == "PBXTargetDependency"
+                and o.get("target", None) == appex_native_ref
+            ):
+                break
+        else:
+            raise Exception("No dependency target src found.")
+
+        # target_dep = o
+
+        target_o["dependencies"].remove(target_dep_ref)
+        for o in [self.objects[x] for x in target_o["buildPhases"]]:
+            if (
+                o.get("isa", None) == "PBXCopyFilesBuildPhase"
+                and o.get("name", None) == "Embed App Extensions"
+            ):
+                o["files"].remove(appex_file_ref)
+                break
+        else:
+            raise Exception("No src found.")
+
+        # del self.objects[appex_ref]
+
     def add_appex_to_target_embedded_binaries(self, appex, target):
+        logger.trace("add_appex_to_target_embedded_binaries: %s %s" % (appex, target))
         for appex_ref, o in self.objects.items():
             if (
                 o.get("isa", None) == "PBXFileReference"
@@ -486,6 +573,7 @@ class Pbxproj:
             raise Exception("No src found.")
 
     def add_source_ref_to_build_phase(self, ref, target):
+        logger.trace("add_source_ref_to_build_phase: %r %r" % (ref, target))
         target_o = self.find_target(target)
 
         for o in [self.objects[x] for x in target_o["buildPhases"]]:
@@ -500,6 +588,7 @@ class Pbxproj:
         o["files"].append(nref)
 
     def remove_target(self, target):
+        logger.trace("remove_target: %r" % target)
         for ref, o in self.objects.items():
             if (
                 o.get("isa", None) == "PBXNativeTarget"
@@ -509,7 +598,20 @@ class Pbxproj:
         else:
             raise Exception("No src found.")
         prod_ref = o["productReference"]
+        logger.trace("remove_target productReference: %r" % prod_ref)
+
         del self.objects[o["productReference"]]
+
+        delete_refs = []
+        for target_ref, o in self.objects.items():
+            if (
+                o.get("isa", None) == "PBXTargetDependency"
+                and o.get("target", None) == ref
+            ):
+                delete_refs.append(target_ref)
+
+        for dref in delete_refs:
+            del self.objects[dref]
 
         for nref, o in self.objects.items():
             if (
@@ -529,7 +631,10 @@ class Pbxproj:
         o["children"].remove(prod_ref)
         self.root["targets"].remove(ref)
 
+        del self.objects[ref]
+
     def duplicate_target(self, src_name, dst_name, plist_path):
+        logger.trace("duplicate_target: %r %r %r" % (src_name, dst_name, plist_path))
         for o in self.objects.values():
             if (
                 o.get("isa", None) == "PBXNativeTarget"
@@ -543,12 +648,6 @@ class Pbxproj:
         base_ref = Pbxproj.gen_key()
         self.objects[base_ref] = base_clone
 
-        new_phases = []
-        for phase in base_clone["buildPhases"]:
-            ref = Pbxproj.gen_key()
-            new_phases.append(ref)
-            self.objects[ref] = copy.deepcopy(self.objects[phase])
-        base_clone["buildPhases"] = new_phases
         base_clone["name"] = dst_name
 
         conf_ref = Pbxproj.gen_key()
