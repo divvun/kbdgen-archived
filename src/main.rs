@@ -416,58 +416,25 @@ impl KbdgenBuildCommands {
     }
 }
 
-/*
-$ python -m kbdgen --help
-usage: kbdgen [-h] [--version] [--logging LOGGING]
-              [-K [CFG_PAIRS [CFG_PAIRS ...]]] [-D] [-R] [-G GLOBAL] [-r REPO]
-              [-b BRANCH] -t
-              {win,mac,x11,svg,android,ios,json,qr,errormodel,chrome}
-              [-o OUTPUT] [-f [FLAGS [FLAGS ...]]] [-l LAYOUT]
-              [--github-username GITHUB_USERNAME]
-              [--github-token GITHUB_TOKEN] [-c COMMAND] [--ci]
-              project
-
-positional arguments:
-  project               Keyboard generation bundle (.kbdgen)
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --version             show program's version number and exit
-  --logging LOGGING     Logging level
-  -K [CFG_PAIRS [CFG_PAIRS ...]], --key [CFG_PAIRS [CFG_PAIRS ...]]
-                        Key-value overrides (eg -K target.thing.foo=42)
-  -D, --dry-run         Don't build, just do requirement validation.
-  -R, --release         Compile in 'release' mode (where necessary).
-  -G GLOBAL, --global GLOBAL
-                        Override the global.yaml file
-  -r REPO, --repo REPO  Git repo to generate output from
-  -b BRANCH, --branch BRANCH
-                        Git branch (default: master)
-  -t {win,mac,x11,svg,android,ios,json,qr,errormodel,chrome}, --target {win,mac,x11,svg,android,ios,json,qr,errormodel,chrome}
-                        Target output.
-  -o OUTPUT, --output OUTPUT
-                        Output directory (default: current working directory)
-  -f [FLAGS [FLAGS ...]], --flag [FLAGS [FLAGS ...]]
-                        Generator-specific flags (for debugging)
-  -l LAYOUT, --layout LAYOUT
-                        Apply target to specified layout only (EXPERIMENTAL)
-  --github-username GITHUB_USERNAME
-                        GitHub username for source getting
-  --github-token GITHUB_TOKEN
-                        GitHub token for source getting
-  -c COMMAND, --command COMMAND
-                        Command to run for a given generators
-  --ci                  Continuous integration build
-*/
-
 fn py_main(args: &[&str]) -> i32 {
     // Load the default Python configuration as derived by the PyOxidizer config
     // file used at build time.
     let mut config = default_python_config();
-    config.extra_extension_modules = vec![ExtensionModule {
+
+    let mod_language_tags = ExtensionModule {
         name: std::ffi::CString::new("language_tags").unwrap(),
         init_func: py_language_tags::PyInit_language_tags,
-    }];
+    };
+    
+    let mod_logger = ExtensionModule {
+        name: std::ffi::CString::new("rust_logger").unwrap(),
+        init_func: py_logger::PyInit_rust_logger,
+    };
+
+    config.extra_extension_modules = vec![
+        mod_language_tags,
+        mod_logger,
+    ];
 
     // Construct a new Python interpreter using that config, handling any errors
     // from construction.
@@ -501,9 +468,9 @@ fn py_main(args: &[&str]) -> i32 {
 }
 
 fn main() {
+    env_logger::init();
+    
     let opt = KbdgenOpts::from_args();
-
-    // println!("{:?}", &opt.to_py_args());
 
     match opt.command {
         KbdgenCommands::Build { github_username, github_token, command } => {

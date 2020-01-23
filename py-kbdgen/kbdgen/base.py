@@ -19,19 +19,10 @@ class UserException(Exception):
     pass
 
 
-log.monkey_patch_trace_logging()
-
-
 def get_logger(name):
-    return logging.getLogger(name)
+    return log.get_logger(name)
 
-
-log.enable_pretty_logging(
-    fmt="%(color)s[%(levelname)1.1s %(module)s:%(lineno)d]%(end_color)s"
-    + " %(message)s"
-)
-
-logger = logging.getLogger()
+logger = get_logger(__name__)
 
 ProjectLocaleData = namedtuple("ProjectLocaleData", ["name", "description"])
 

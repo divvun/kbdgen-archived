@@ -67,8 +67,8 @@ class AppleiOSGenerator(Generator):
         deps_dir = Path(os.path.join(base, "ios-build"))
         shutil.rmtree(str(deps_dir), ignore_errors=True)
 
-        logger.trace("Github username: %r", self.github_username)
-
+        logger.trace("Github username: %r" % self.github_username)
+        
         repo = self._args["kbd_repo"]
         branch = self._args["kbd_branch"]
         tarball = self.cache.download_latest_from_github(

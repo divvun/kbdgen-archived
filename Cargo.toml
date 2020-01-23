@@ -11,6 +11,7 @@ license = "Apache-2.0 OR MIT"
 [dependencies]
 pyembed = { path = "pyembed" }
 py-language-tags = { path = "py-language-tags" }
+py-logger = { path = "py-logger" }
 
 serde = { version = "1.0.103", features = ["derive"] }
 serde_yaml = { version = "0.8.9", git = "https://github.com/killercup/serde-yaml/", branch = "feature/multiline-strings" }
@@ -26,6 +27,7 @@ shrinkwraprs = "0.2.3"
 xml-rs = "0.8.0"
 jemallocator-global = { version = "0.3", optional = true }
 structopt = "0.3.5"
+env_logger = "0.7.1"
 
 [dev-dependencies]
 pretty_env_logger = "0.3.1"
@@ -43,4 +45,5 @@ members = [
     ".",
     "kbdgen-cli",
     "py-language-tags",
+    "py-logger",
 ]
