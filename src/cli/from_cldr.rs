@@ -1,31 +1,20 @@
-use crate::repos::{cldr_dir, update_repo};
-use kbdgen::{bundle::Save, cldr::Keyboard};
+use crate::cli::repos::{cldr_dir, update_repo};
+use crate::{bundle::Save, cldr::Keyboard};
 use snafu::{OptionExt, ResultExt, Snafu};
 use snafu_cli_debug::SnafuCliDebug;
-use std::{collections::BTreeMap, path::PathBuf};
-use structopt::StructOpt;
+use std::path::Path;
+use std::collections::BTreeMap;
 
 const REPO_URL: &str = "https://github.com/unicode-org/cldr";
 
-#[derive(Debug, StructOpt)]
-pub struct Cli {
-    #[structopt(parse(from_os_str))]
-    output: PathBuf,
-
-    #[structopt(flatten)]
-    verbose: clap_verbosity_flag::Verbosity,
-}
-
-pub fn cldr_to_kbdgen(opts: &Cli) -> Result<(), Error> {
-    // let _ = opts.verbose.setup_env_logger("kbdgen-cli");
-
+pub fn cldr_to_kbdgen(output: &Path, bundle_name: &str) -> Result<(), Error> {
     update_repo("cldr", &cldr_dir(), REPO_URL).context(CldrRepoUpdate)?;
     let locale = select_base_locale().context(NoLocaleSelected)?;
 
     log::debug!("Selected locale: '{}'", &locale.0);
     log::debug!("Files: {:#?}", &locale.1);
 
-    let mut modes = kbdgen::models::Modes::default();
+    let mut modes = crate::models::Modes::default();
 
     let xml_map: Vec<Keyboard> = locale
         .1
@@ -37,7 +26,7 @@ pub fn cldr_to_kbdgen(opts: &Cli) -> Result<(), Error> {
         })
         .collect::<Result<_, _>>()?;
 
-    for keyboard in dbg!(xml_map) {
+    for keyboard in xml_map {
         match keyboard.mode_name() {
             "mobile" => modes.mobile = Some(keyboard.to_mobile_modes()),
             "mac" => modes.mac = Some(keyboard.to_desktop_modes()),
@@ -47,14 +36,20 @@ pub fn cldr_to_kbdgen(opts: &Cli) -> Result<(), Error> {
         }
     }
 
-    let mut layout = kbdgen::models::Layout::default();
+    let mut layout = crate::models::Layout::default();
     layout.modes = modes;
 
-    let mut bundle = kbdgen::bundle::ProjectBundle::default();
+    let mut bundle = crate::bundle::ProjectBundle::default();
     bundle.layouts.insert(locale.0, layout);
 
-    bundle.save(&opts.output).context(CannotSave)?;
-    log::info!("New bundle written to `{}`.", opts.output.display());
+    let bundle_name = if !bundle_name.ends_with(".kbdgen") {
+        format!("{}.kbdgen", bundle_name)
+    } else {
+        bundle_name.into()
+    };
+
+    bundle.save(output.join(bundle_name)).context(CannotSave)?;
+    log::info!("New bundle written to `{}`.", output.display());
 
     Ok(())
 }
@@ -63,7 +58,7 @@ pub fn cldr_to_kbdgen(opts: &Cli) -> Result<(), Error> {
 pub enum Error {
     #[snafu(display("Updating CLDR repo failed"))]
     CldrRepoUpdate {
-        source: crate::repos::Error,
+        source: crate::cli::repos::Error,
         backtrace: snafu::Backtrace,
     },
     #[snafu(display("No locale selected"))]
@@ -80,7 +75,7 @@ pub enum Error {
     },
     #[snafu(display("Could write kbdgen bundle"))]
     CannotSave {
-        source: kbdgen::SaveError,
+        source: crate::SaveError,
         backtrace: snafu::Backtrace,
     },
 }

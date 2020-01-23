@@ -9,7 +9,7 @@ enum IOSCommands {
 }
 
 #[derive(Debug, StructOpt)]
-enum KbdgenBuildCommands {
+enum BuildCommands {
     Svg {
         #[structopt(short, long = "output", default_value = ".", parse(from_os_str))]
         output_path: PathBuf,
@@ -164,7 +164,24 @@ enum KbdgenBuildCommands {
 }
 
 #[derive(Debug, StructOpt)]
-enum KbdgenCommands {
+enum NewCommands {
+    Layout {
+        #[structopt(short, long = "output", default_value = ".", parse(from_os_str))]
+        output_path: PathBuf,
+
+        #[structopt(parse(from_os_str))]
+        project_path: PathBuf,
+    },
+    Bundle {
+        #[structopt(short, long = "output", default_value = ".", parse(from_os_str))]
+        output_path: PathBuf,
+
+        bundle_name: String
+    }
+}
+
+#[derive(Debug, StructOpt)]
+enum Commands {
     Build {
         #[structopt(long = "github-username")]
         github_username: Option<String>,
@@ -173,23 +190,27 @@ enum KbdgenCommands {
         github_token: Option<String>,
     
         #[structopt(subcommand)]
-        command: KbdgenBuildCommands,
+        command: BuildCommands,
+    },
+    New {
+        #[structopt(subcommand)]
+        command: NewCommands,
     }
 }
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "kbdgen", about = "An example of StructOpt usage.")]
-struct KbdgenOpts {
+struct Opts {
     #[structopt(long = "logging", default_value = "info")]
     logging: String,
 
     #[structopt(subcommand)]
-    command: KbdgenCommands
+    command: Commands
 }
 
-impl KbdgenBuildCommands {
+impl BuildCommands {
     fn to_py_args<'a>(&'a self, github_username: Option<&'a str>, github_token: Option<&'a str>, logging: &'a str) -> Result<Vec<&'a str>, Box<dyn std::error::Error>> {
-        use KbdgenBuildCommands::*;
+        use BuildCommands::*;
 
         let mut args = match self {
             Svg {
@@ -416,7 +437,7 @@ impl KbdgenBuildCommands {
     }
 }
 
-fn py_main(args: &[&str]) -> i32 {
+fn launch_py_kbdgen(args: &[&str]) -> i32 {
     // Load the default Python configuration as derived by the PyOxidizer config
     // file used at build time.
     let mut config = default_python_config();
@@ -469,17 +490,33 @@ fn py_main(args: &[&str]) -> i32 {
 
 fn main() {
     env_logger::init();
-    
-    let opt = KbdgenOpts::from_args();
+
+    let opt = Opts::from_args();
 
     match opt.command {
-        KbdgenCommands::Build { github_username, github_token, command } => {
+        Commands::Build { github_username, github_token, command } => {
             match command.to_py_args(github_username.as_ref().map(|x| &**x), github_token.as_ref().map(|x| &**x), &opt.logging) {
-                Ok(args) => std::process::exit(py_main(&args)),
+                Ok(args) => std::process::exit(launch_py_kbdgen(&args)),
                 Err(e) => {
                     eprintln!("{:?}", e);
                     std::process::exit(1);
                 }
+            }
+        },
+        
+        Commands::New { command } => match command {
+            NewCommands::Bundle { bundle_name, output_path } => {
+                match kbdgen::cli::from_cldr::cldr_to_kbdgen(&*output_path, &*bundle_name) {
+                    Ok(_) => std::process::exit(0),
+                    Err(e) => {
+                        eprintln!("{:?}", e);
+                        std::process::exit(1);
+                    }
+                }
+            }
+            NewCommands::Layout { project_path, output_path } => {
+                eprintln!("Not yet supported.");
+                std::process::exit(1)
             }
         }
     }

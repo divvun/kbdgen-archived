@@ -1,28 +1,16 @@
-use kbdgen::{m17n_mim::*, models::DesktopModes, Load, ProjectBundle};
+use crate::{m17n_mim::*, models::DesktopModes, Load, ProjectBundle};
 use log::{debug, log_enabled};
 use snafu::{ResultExt, Snafu};
 use snafu_cli_debug::SnafuCliDebug;
 use std::{collections::BTreeMap, convert::TryFrom, fs::File, io::BufWriter, path::PathBuf};
-use structopt::StructOpt;
+use std::path::Path;
 
-#[derive(Debug, StructOpt)]
-pub struct Cli {
-    #[structopt(parse(from_os_str))]
-    input: PathBuf,
-
-    #[structopt(parse(from_os_str))]
-    output: PathBuf,
-
-    #[structopt(flatten)]
-    verbose: clap_verbosity_flag::Verbosity,
-}
-
-pub fn kbdgen_to_mim(opts: &Cli) -> Result<(), Error> {
+pub fn kbdgen_to_mim(input: &Path, output: &Path) -> Result<(), Error> {
     // let _ = opts.verbose.setup_env_logger("kbdgen-cli");
 
-    let bundle = ProjectBundle::load(&opts.input).context(CannotLoad)?;
+    let bundle = ProjectBundle::load(input).context(CannotLoad)?;
     if log_enabled!(log::Level::Debug) {
-        debug!("Bundle `{}` loaded", opts.input.display());
+        debug!("Bundle `{}` loaded", input.display());
         let locales = bundle
             .project
             .locales
@@ -38,10 +26,10 @@ pub fn kbdgen_to_mim(opts: &Cli) -> Result<(), Error> {
         .map(|(name, layout)| (name, layout_to_mim(&name, layout, &bundle)))
         .try_for_each(|(name, keyboards)| {
             for (platform, keyboard) in keyboards? {
-                let path = &opts.output.join(name).join(platform).with_extension("mim");
+                let path = output.join(name).join(platform).with_extension("mim");
                 std::fs::create_dir_all(path.parent().unwrap())
-                    .context(CannotCreateFile { path })?;
-                let file = File::create(path).context(CannotCreateFile { path })?;
+                    .context(CannotCreateFile { path: path.clone() })?;
+                let file = File::create(&path).context(CannotCreateFile { path: path.clone() })?;
                 debug!("Created file `{}`", path.display());
                 let mut writer = BufWriter::new(file);
                 keyboard
@@ -58,8 +46,8 @@ pub fn kbdgen_to_mim(opts: &Cli) -> Result<(), Error> {
 
 fn layout_to_mim(
     name: &str,
-    layout: &kbdgen::models::Layout,
-    project: &kbdgen::ProjectBundle,
+    layout: &crate::models::Layout,
+    project: &crate::ProjectBundle,
 ) -> Result<Vec<(String, Root)>, SavingError> {
     log::debug!("to mim with you, {}!", name);
     let mut res = vec![];
@@ -96,7 +84,7 @@ fn desktop_mode_to_keyboard(
     target: &str,
     desktop: &DesktopModes,
     dead_key_transforms: Vec<Rule>,
-    project: &kbdgen::ProjectBundle,
+    project: &crate::ProjectBundle,
 ) -> Result<Root, SavingError> {
     let mut rules = vec![];
     let mim_config = project.targets.mim.as_ref();
@@ -192,7 +180,7 @@ fn desktop_mode_to_keyboard(
 ///
 /// Generates MIM rules in the style of `(("´" "a") "á")`.
 fn dead_key_transforms(
-    layout: &kbdgen::models::Layout,
+    layout: &crate::models::Layout,
     platform: &str,
 ) -> Result<Vec<Rule>, MimConversion> {
     let mut rules = vec![];
@@ -242,7 +230,7 @@ fn dead_key_transforms(
 pub enum Error {
     #[snafu(display("Could not load kbdgen bundle"))]
     CannotLoad {
-        source: kbdgen::LoadError,
+        source: crate::LoadError,
         backtrace: snafu::Backtrace,
     },
     #[snafu(display("Could not write CLDR file"))]

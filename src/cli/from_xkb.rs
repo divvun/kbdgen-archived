@@ -1,5 +1,5 @@
-use crate::repos::{update_repo, xkb_dir};
-use kbdgen::{
+use crate::cli::repos::{update_repo, xkb_dir};
+use crate::{
     bundle::{
         models::{IsoKey, TargetX11},
         KeyValue,
@@ -14,38 +14,23 @@ use std::{
     error::Error as StdError,
     path::{Path, PathBuf},
 };
-use structopt::StructOpt;
 use strum::IntoEnumIterator;
 use xkb_parser::{ast, parse, Xkb};
 
 const REPO_URL: &str = "https://gitlab.freedesktop.org/xkeyboard-config/xkeyboard-config.git";
 
-#[derive(Debug, StructOpt)]
-pub struct Cli {
-    /// Target directory for `.kbdgen` bundle
-    #[structopt(parse(from_os_str))]
-    output: PathBuf,
-
-    /// Update bundle if it already exists
-    #[structopt(short = "u", long = "update")]
-    update_bundle: bool,
-
-    #[structopt(flatten)]
-    verbose: clap_verbosity_flag::Verbosity,
-}
-
-pub fn xkb_to_kbdgen(opts: &Cli) -> Result<(), Error> {
+pub fn xkb_to_kbdgen(output: &Path, is_updating_bundle: bool) -> Result<(), Error> {
     // let _ = opts.verbose.setup_env_logger("kbdgen-cli");
 
-    let mut bundle = if opts.update_bundle {
-        let b = ProjectBundle::load(&opts.output).context(CannotLoadBundle)?;
+    let mut bundle = if is_updating_bundle {
+        let b = ProjectBundle::load(output).context(CannotLoadBundle)?;
         log::info!(
             "Bundle `{}` loaded, will try to update it",
-            opts.output.display()
+            output.display()
         );
         b
     } else {
-        log::info!("Will create new bundle in `{}`", opts.output.display());
+        log::info!("Will create new bundle in `{}`", output.display());
         ProjectBundle::default()
     };
 
@@ -78,8 +63,8 @@ pub fn xkb_to_kbdgen(opts: &Cli) -> Result<(), Error> {
     dead.insert("x11".to_string(), dead_keys);
     layout.dead_keys = Some(dead);
 
-    bundle.save(&opts.output).context(CannotBeSaved)?;
-    log::info!("New bundle written to `{}`.", opts.output.display());
+    bundle.save(output).context(CannotBeSaved)?;
+    log::info!("New bundle written to `{}`.", output.display());
     log::info!(
         "It now contains a X11 target with version `{}`.",
         bundle.targets.x11.unwrap().version
@@ -406,7 +391,7 @@ impl AsRef<str> for Codepoint {
 pub enum Error {
     #[snafu(display("Updating XKB repo failed"))]
     FailedRepoUpdate {
-        source: crate::repos::Error,
+        source: crate::cli::repos::Error,
         backtrace: snafu::Backtrace,
     },
     #[snafu(display("No locale selected"))]
@@ -440,12 +425,12 @@ pub enum Error {
     },
     #[snafu(display("Could not load kbdgen bundle"))]
     CannotLoadBundle {
-        source: kbdgen::LoadError,
+        source: crate::LoadError,
         backtrace: snafu::Backtrace,
     },
     #[snafu(display("Could write kbdgen bundle"))]
     CannotBeSaved {
-        source: kbdgen::SaveError,
+        source: crate::SaveError,
         backtrace: snafu::Backtrace,
     },
 }

@@ -138,7 +138,7 @@ impl Modifier {
     /// Parse kbdgen-typical key combo syntax
     ///
     /// ```rust
-    /// use kbdgen::m17n_mim::Modifier;
+    /// use crate::m17n_mim::Modifier;
     ///
     /// assert_eq!(
     ///     Modifier::parse_keycombo("ctrl").unwrap(),
