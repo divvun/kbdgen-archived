@@ -1,9 +1,8 @@
-use crate::{models::DesktopModes, Load, ProjectBundle, xkb::*};
+use crate::{xkb::*, Load, ProjectBundle};
 use log::{debug, log_enabled};
 use snafu::{ResultExt, Snafu};
 use snafu_cli_debug::SnafuCliDebug;
 use std::{
-    collections::BTreeMap,
     convert::TryFrom,
     fs::File,
     io::BufWriter,
@@ -26,6 +25,17 @@ pub fn kbdgen_to_xkb(input: &Path, output: &Path, options: &Options) -> Result<(
     bundle
         .layouts
         .iter()
+        .filter(|(_, layout)| {
+            let can_be_converted = layout.modes.win.is_some() || layout.modes.x11.is_some();
+            if !can_be_converted {
+                log::info!(
+                    "skipping {}, no modes that can be converted to xkb",
+                    layout.name().unwrap_or_unknown()
+                );
+                log::trace!("modes found: {}", layout.modes.available_modes().join(", "));
+            }
+            can_be_converted
+        })
         .map(|(name, layout)| (name, layout_to_xkb_symbols(&name, layout, &bundle)))
         .try_for_each(|(name, symbols)| {
             let path = output.join(name).join("linux").with_extension("xkb");
@@ -50,15 +60,29 @@ fn layout_to_xkb_symbols(
     layout: &crate::models::Layout,
     project: &crate::ProjectBundle,
 ) -> Result<Symbols, SavingError> {
-    Ok(Symbols {
-        name: layout.display_names.get("en").cloned().unwrap_or_else(|| "lol".into()),
-        groups: Vec::new(),
+    Symbols::try_from(layout.clone()).context(CannotConvertToXkb {
+        project: project
+            .path
+            .clone()
+            .map(|x| format!("{}", x.display()))
+            .unwrap_or_unknown(),
+        layout: layout.name().unwrap_or_unknown(),
     })
 }
 
 #[derive(Debug, Clone)]
 pub struct Options {
     pub standalone: bool,
+}
+
+trait UnwrapOrUnknownExt {
+    fn unwrap_or_unknown(self) -> String;
+}
+
+impl UnwrapOrUnknownExt for Option<String> {
+    fn unwrap_or_unknown(self) -> String {
+        self.unwrap_or_else(|| "<unknown>".into())
+    }
 }
 
 #[derive(Snafu, SnafuCliDebug)]
@@ -77,6 +101,13 @@ pub enum Error {
 
 #[derive(Snafu, Debug)]
 pub enum SavingError {
+    #[snafu(display("Could not convert `{}` in `{}` to xkb", layout, project))]
+    CannotConvertToXkb {
+        project: String,
+        layout: String,
+        source: ConversionError,
+        backtrace: snafu::Backtrace,
+    },
     #[snafu(display("Could not create file `{}`", path.display()))]
     CannotCreateFile {
         path: PathBuf,

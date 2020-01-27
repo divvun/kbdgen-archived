@@ -55,15 +55,38 @@ impl ToXkb for Group {
 
 impl ToXkb for Key {
     fn write_xkb(&self, mut w: impl Write) -> Result<()> {
-        writeln!(
-            w,
-            r#"key <{iso_code}> {{[ {default} {shift} {alt} {alt_shift} ]}};"#,
-            iso_code = self.iso_code,
-            default = self.default.clone().unwrap_or_default(),
-            shift = self.shift.clone().unwrap_or_default(),
-            alt = self.alt.clone().unwrap_or_default(),
-            alt_shift = self.alt_shift.clone().unwrap_or_default(),
-        )?;
+        write!(w, "key <{}> {{[ ", self.iso_code)?;
+
+        /// Since modifiers are ordered, we need to make sure we don't continue
+        /// emitting them when the previous one was empty.
+        fn collect_keys(key: &Key, mut w: impl Write) -> Result<()> {
+            if let Some(k) = &key.default {
+                write!(w, "{}, ", k)?;
+            } else {
+                return Ok(());
+            }
+            if let Some(k) = &key.shift {
+                write!(w, "{}, ", k)?;
+            } else {
+                return Ok(());
+            }
+            if let Some(k) = &key.alt {
+                write!(w, "{}, ", k)?;
+            } else {
+                return Ok(());
+            }
+            if let Some(k) = &key.alt_shift {
+                write!(w, "{}", k)?;
+            } else {
+                return Ok(());
+            }
+            Ok(())
+        }
+
+        collect_keys(self, &mut w)?;
+
+        write!(w, " ]}};")?;
+        writeln!(w)?;
 
         Ok(())
     }

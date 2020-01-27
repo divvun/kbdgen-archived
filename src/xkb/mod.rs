@@ -1,4 +1,6 @@
+mod convert;
 mod ser;
+pub use convert::Error as ConversionError;
 pub use ser::ToXkb;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
