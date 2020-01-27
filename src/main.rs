@@ -484,7 +484,10 @@ fn launch_py_kbdgen(args: &[&str]) -> i32 {
 }
 
 fn main() {
-    env_logger::init();
+    env_logger::Builder::from_default_env()
+        .filter(Some("kbdgen"), log::LevelFilter::Info)
+        .target(env_logger::Target::Stderr)
+        .init();
 
     let opt = Opts::from_args();
 
