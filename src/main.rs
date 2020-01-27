@@ -82,6 +82,16 @@ enum BuildCommands {
         #[structopt(flatten)]
         build_mode: BuildMode,
     },
+    X11RS {
+        #[structopt(flatten)]
+        in_out: InOutPaths,
+
+        #[structopt(flatten)]
+        build_mode: BuildMode,
+
+        #[structopt(long = "standalone")]
+        standalone: bool,
+    },
     M17n {
         #[structopt(flatten)]
         in_out: InOutPaths,
@@ -492,14 +502,36 @@ fn main() {
     let opt = Opts::from_args();
 
     match opt.command {
-        Commands::Build { github_username, github_token, command } => {
-            match command.to_py_args(github_username.as_ref().map(|x| &**x), github_token.as_ref().map(|x| &**x), &opt.logging) {
+        Commands::Build {
+            github_username,
+            github_token,
+            command,
+        } => match command {
+            BuildCommands::X11RS {
+                in_out:
+                    InOutPaths {
+                        output_path,
+                        project_path,
+                    },
+                build_mode: BuildMode { release, ci },
+                standalone,
+            } => kbdgen::cli::to_xkb::kbdgen_to_xkb(
+                &project_path,
+                &output_path,
+                &kbdgen::cli::to_xkb::Options { standalone },
+            )
+            .unwrap(),
+            command => match command.to_py_args(
+                github_username.as_ref().map(|x| &**x),
+                github_token.as_ref().map(|x| &**x),
+                &opt.logging,
+            ) {
                 Ok(args) => std::process::exit(launch_py_kbdgen(&args)),
                 Err(e) => {
                     eprintln!("{:?}", e);
                     std::process::exit(1);
                 }
-            }
+            },
         },
 
         Commands::New { command } => match command {
