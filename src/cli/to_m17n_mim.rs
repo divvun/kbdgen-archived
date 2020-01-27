@@ -2,8 +2,13 @@ use crate::{m17n_mim::*, models::DesktopModes, Load, ProjectBundle};
 use log::{debug, log_enabled};
 use snafu::{ResultExt, Snafu};
 use snafu_cli_debug::SnafuCliDebug;
-use std::{collections::BTreeMap, convert::TryFrom, fs::File, io::BufWriter, path::PathBuf};
-use std::path::Path;
+use std::{
+    collections::BTreeMap,
+    convert::TryFrom,
+    fs::File,
+    io::BufWriter,
+    path::{Path, PathBuf},
+};
 
 pub fn kbdgen_to_mim(input: &Path, output: &Path) -> Result<(), Error> {
     // let _ = opts.verbose.setup_env_logger("kbdgen-cli");

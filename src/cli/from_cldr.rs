@@ -1,9 +1,11 @@
-use crate::cli::repos::{cldr_dir, update_repo};
-use crate::{bundle::Save, cldr::Keyboard};
+use crate::{
+    bundle::Save,
+    cldr::Keyboard,
+    cli::repos::{cldr_dir, update_repo},
+};
 use snafu::{OptionExt, ResultExt, Snafu};
 use snafu_cli_debug::SnafuCliDebug;
-use std::path::Path;
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, path::Path};
 
 const REPO_URL: &str = "https://github.com/unicode-org/cldr";
 

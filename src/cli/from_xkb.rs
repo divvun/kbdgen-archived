@@ -1,9 +1,9 @@
-use crate::cli::repos::{update_repo, xkb_dir};
 use crate::{
     bundle::{
         models::{IsoKey, TargetX11},
         KeyValue,
     },
+    cli::repos::{update_repo, xkb_dir},
     Load, ProjectBundle, Save,
 };
 use snafu::{OptionExt, ResultExt, Snafu};
