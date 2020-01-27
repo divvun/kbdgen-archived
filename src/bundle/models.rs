@@ -139,8 +139,42 @@ pub struct Modes {
     pub mobile: Option<MobileModes>,
 }
 
+impl Modes {
+    pub fn available_modes(&self) -> Vec<String> {
+        let mut res = Vec::new();
+        if let Some(_) = self.win {
+            res.push("win".into());
+        }
+        if let Some(_) = self.mac {
+            res.push("mac".into());
+        }
+        if let Some(_) = self.ios {
+            res.push("ios".into());
+        }
+        if let Some(_) = self.android {
+            res.push("android".into());
+        }
+        if let Some(_) = self.chrome {
+            res.push("chrome".into());
+        }
+        if let Some(_) = self.x11 {
+            res.push("x11".into());
+        }
+        if let Some(_) = self.desktop {
+            res.push("desktop".into());
+        }
+        if let Some(_) = self.mobile {
+            res.push("mobile".into());
+        }
+        res
+    }
+}
+
 pub type MobileModes = BTreeMap<String, MobileKeyMap>;
+
+/// Maps modifier combination to map of keys
 pub type DesktopModes = BTreeMap<String, DesktopKeyMap>;
+
 pub enum Mode {
     Mobile(MobileModes),
     Desktop(DesktopModes),
@@ -189,6 +223,15 @@ pub struct Layout {
     /// Targets...
     #[serde(skip_serializing_if = "Option::is_none")]
     pub targets: Option<LayoutTarget>,
+}
+
+impl Layout {
+    pub fn name(&self) -> Option<String> {
+        self.display_names
+            .get("en")
+            .or_else(|| self.display_names.values().next())
+            .cloned()
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]

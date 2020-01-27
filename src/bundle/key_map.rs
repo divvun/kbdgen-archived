@@ -28,6 +28,18 @@ impl From<BTreeMap<IsoKey, keys::KeyValue>> for DesktopKeyMap {
     }
 }
 
+impl Default for DesktopKeyMap {
+    fn default() -> Self {
+        DesktopKeyMap(BTreeMap::new())
+    }
+}
+
+impl DesktopKeyMap {
+    pub fn get_string(&self, key: &IsoKey) -> Option<String> {
+        self.get(key).and_then(|k| k.0.clone())
+    }
+}
+
 impl<'de> Deserialize<'de> for DesktopKeyMap {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
