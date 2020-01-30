@@ -315,6 +315,14 @@ async function start(projectYamlPath, bundlePath) {
 
     injectProjectTarget(target, key, path.resolve(projectYamlPath, ".."), bundlePath)
 
+    if (target.build == null) {
+      target.build = 1
+    }
+
+    if (target.version == null) {
+      target.version = "0.1.0"
+    }
+
     fs.writeFileSync(path.join(targetsPath, `${key}.yaml`), yaml.safeDump(target), "utf8")
   }
 
