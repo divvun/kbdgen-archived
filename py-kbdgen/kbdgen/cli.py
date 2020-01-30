@@ -9,6 +9,7 @@ from .base import KbdgenException, Parser, get_logger, UserException
 
 logger = get_logger(__name__)
 
+
 def parse_args(args):
     def logging_type(string):
         n = {
@@ -110,11 +111,14 @@ def enable_verbose_requests_log():
     # requests_log.setLevel(logging.DEBUG)
     # requests_log.propagate = True
 
+
 def print_diagnostics():
     logger.debug("Python version: %r" % " ".join(sys.version.split("\n")))
     logger.debug("Platform: %r" % platform.platform())
 
+
 import logging
+
 
 def run_cli(cli_args):
     args = parse_args(cli_args)
@@ -122,7 +126,7 @@ def run_cli(cli_args):
 
     print_diagnostics()
 
-    if args.logging == 5: # logging.TRACE
+    if args.logging == 5:  # logging.TRACE
         enable_verbose_requests_log()
 
     try:

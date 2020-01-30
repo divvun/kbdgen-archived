@@ -22,6 +22,7 @@ class UserException(Exception):
 def get_logger(name):
     return log.get_logger(name)
 
+
 logger = get_logger(__name__)
 
 ProjectLocaleData = namedtuple("ProjectLocaleData", ["name", "description"])
@@ -338,6 +339,6 @@ class Parser:
         except Exception as e:
             raise UserException("Could not load project bundle. Invalid YAML?", e)
         if cfg_pairs is not None:
-            logger.trace("cfg_pairs: %r", cfg_pairs)
+            logger.trace("cfg_pairs: %r" % cfg_pairs)
             self._overrides(project, self._parse_cfg_pairs(cfg_pairs))
         return project

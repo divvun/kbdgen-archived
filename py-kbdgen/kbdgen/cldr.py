@@ -134,9 +134,7 @@ def filtered(v):
 
 
 def to_xml(yaml_tree):
-    tree = etree.fromstring(
-        """<keyboard locale="%s"/>""" % yaml_tree["internalName"]
-    )
+    tree = etree.fromstring("""<keyboard locale="%s"/>""" % yaml_tree["internalName"])
 
     # TODO generate both these validly
     SubElement(tree, "version")

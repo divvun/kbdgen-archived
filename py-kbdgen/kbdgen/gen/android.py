@@ -66,8 +66,9 @@ class AndroidGenerator(Generator):
         if not getattr(tree, "tag", None):
             tree = tree.getroot()
         return etree.tostring(
-            tree, encoding="utf-8"
-            # , xml_declaration=True, 
+            tree,
+            encoding="utf-8"
+            # , xml_declaration=True,
         ).decode()
 
     @property
@@ -118,9 +119,7 @@ class AndroidGenerator(Generator):
         )
         logger.trace("Is local? %s" % is_local)
 
-        tree_id = self.get_source_tree(
-            base, is_local=is_local
-        )
+        tree_id = self.get_source_tree(base, is_local=is_local)
         self.native_locale_workaround(base)
 
         dsn = self.android_target.sentry_dsn
@@ -230,7 +229,9 @@ class AndroidGenerator(Generator):
                 or (ndk_version[0] == 19 and ndk_version[1] < 2)
             ):
                 logger.error(
-                    "Your NDK is too old - 19.2 or higher is required. Your version: %r" % ndk_version)
+                    "Your NDK is too old - 19.2 or higher is required. Your version: %r"
+                    % ndk_version
+                )
                 sane = False
 
         if shutil.which("cargo") is None:

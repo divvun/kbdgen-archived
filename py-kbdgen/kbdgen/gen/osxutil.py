@@ -293,7 +293,9 @@ class Pbxproj:
         return True
 
     def create_file_reference(self, file_type, locale, name, **kwargs):
-        logger.trace("create_file_reference: %r %r %r %r" % (file_type, locale, name, kwargs))
+        logger.trace(
+            "create_file_reference: %r %r %r %r" % (file_type, locale, name, kwargs)
+        )
         o = {
             "isa": "PBXFileReference",
             "lastKnownFileType": file_type,
@@ -445,7 +447,9 @@ class Pbxproj:
         self.add_dependency_to_target(target_ref, dep_ref)
 
     def remove_appex_from_target_embedded_binaries(self, appex, target):
-        logger.trace("remove_appex_from_target_embedded_binaries: %s %s" % (appex, target))
+        logger.trace(
+            "remove_appex_from_target_embedded_binaries: %s %s" % (appex, target)
+        )
         for appex_ref, o in self.objects.items():
             if (
                 o.get("isa", None) == "PBXFileReference"

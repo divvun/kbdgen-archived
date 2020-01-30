@@ -68,7 +68,7 @@ class AppleiOSGenerator(Generator):
         shutil.rmtree(str(deps_dir), ignore_errors=True)
 
         logger.trace("Github username: %r" % self.github_username)
-        
+
         repo = self._args["kbd_repo"]
         branch = self._args["kbd_branch"]
         tarball = self.cache.download_latest_from_github(
@@ -791,7 +791,7 @@ class AppleiOSGenerator(Generator):
         local_name = layout.display_names.get(name, None)
         if local_name is None:
             raise Exception(
-                ("Keyboard '%s' requires localisation " + "into its own locale.") % name
+                "Keyboard '%s' requires localisation into its own locale." % name
             )
 
         out = OrderedDict()
@@ -805,8 +805,10 @@ class AppleiOSGenerator(Generator):
 
         out["name"] = local_name
         out["locale"] = name
-        out["return"] = layout.strings._return
-        out["space"] = layout.strings.space
+        out["strings"] = layout.strings
+        # out["accessibilityStrings"] = layout.accessibilityStrings
+        # out["return"] = layout.strings._return
+        # out["space"] = layout.strings.space
         out["longPress"] = layout.longpress
         out["deadKeys"] = dead_keys
         out["transforms"] = layout.transforms

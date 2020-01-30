@@ -42,7 +42,7 @@ class FileCache:
         with candidate.open("rb") as f:
             m.update(f.read())
         new_sum = m.hexdigest()
-        logger.debug("SHA256: %s", new_sum)
+        logger.debug("SHA256: %s" % new_sum)
         return new_sum == sha256sum
 
     def save_directory_tree(self, id: str, basepath: str, tree: str):

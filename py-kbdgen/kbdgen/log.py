@@ -5,9 +5,11 @@ import logging
 import os
 import os.path
 
+
 class RustLogger:
     def __init__(self, target):
         import rust_logger
+
         self.rust_logger = rust_logger.Logger(target)
 
     def _log(self, level, msg):
@@ -16,13 +18,13 @@ class RustLogger:
         except Exception as e:
             print(e)
             mod, lno = None, None
-        
+
         if not isinstance(msg, str):
             try:
                 msg = repr(msg)
             except:
                 msg = str(msg)
-        
+
         self.rust_logger.log(level, msg, lno, mod)
 
     def trace(self, msg):
@@ -54,13 +56,16 @@ class RustLogger:
         s = stack[-4]
         return (s[0], s[1])
 
-def get_logger(target = None):
+
+def get_logger(target=None):
     if target is None:
         target = "<root>"
     return RustLogger(target)
 
+
 def hijack_logging_getLogger():
     logging.getLogger = get_logger
+
 
 # See logging mod for info on why this bad idea exists.
 _srcfile = os.path.normcase(hijack_logging_getLogger.__code__.co_filename)

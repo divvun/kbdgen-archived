@@ -18,7 +18,14 @@ from textwrap import dedent
 
 from ..base import get_logger
 from ..filecache import FileCache
-from .base import Generator, bind_iso_keys, run_process, mode_iter, DesktopLayoutView, get_bin_resource
+from .base import (
+    Generator,
+    bind_iso_keys,
+    run_process,
+    mode_iter,
+    DesktopLayoutView,
+    get_bin_resource,
+)
 from ..cldr import decode_u
 
 logger = get_logger(__name__)
@@ -30,13 +37,16 @@ is_windows = sys.platform.startswith("win32") or sys.platform.startswith("cygwin
 with get_bin_resource("lcids.json", text=True) as f:
     _lcid_data = json.load(f)
 
+
 def lcid_get(tag: str) -> int:
     return _lcid_data.get(tag, None)
+
 
 def lcid_get_hex8(tag: str) -> str:
     x = _lcid_data.get(tag, None)
     if x is not None:
         return "{:08x}".format(x)
+
 
 def lcid_get_hex4(tag: str) -> str:
     x = _lcid_data.get(tag, None)
@@ -631,7 +641,7 @@ class WindowsGenerator(Generator):
 
         logger.info("Signing '%s' for %s…" % (name, arch))
         pfx_path = self._wine_path(self._bundle.relpath(pfx))
-        logger.debug("PFX path: %s", pfx_path)
+        logger.debug("PFX path: %s" % pfx_path)
 
         cmd = self._wine_cmd(
             self._wine_path(signcode),
@@ -994,10 +1004,10 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
 
     def override_locale(self, locale, layout):
         l = self.layout_target(layout).get("locale", locale)
-        logger.trace("Got locale: %s", l)
+        logger.trace("Got locale: %s" % l)
 
         if lcid_get(l) is not None:
-            logger.trace("Override locale: %r", l)
+            logger.trace("Override locale: %r" % l)
             return l
 
         o = language_tags.LanguageTag(l)
@@ -1008,7 +1018,7 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
 
         # # The language object is weirdly immutable, so feed it itself.
         # o = langcodes.Language.make(**o.to_dict()).to_tag()
-        logger.trace("Override locale: %s", o)
+        logger.trace("Override locale: %s" % o)
         return str(o)
 
     def _klc_write_headers(self, locale, layout, buf):
@@ -1025,9 +1035,7 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
         buf.write('COMPANY\t"%s"\n\n' % organisation)
         buf.write('LOCALENAME\t"%s"\n\n' % override_locale)
 
-        lcid = (
-            lcid_get_hex8(override_locale) or lcid_get_hex8(locale) or "00002000"
-        )
+        lcid = lcid_get_hex8(override_locale) or lcid_get_hex8(locale) or "00002000"
 
         buf.write('LOCALEID\t"%s"\n\n' % lcid)
         buf.write("VERSION\t1.0\n\n")

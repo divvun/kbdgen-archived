@@ -43,7 +43,7 @@ class QRGenerator(AppleiOSGenerator):
         for name, layout in self.supported_layouts.items():
             if preferred_locale is not None:
                 if name == preferred_locale:
-                    logger.info("Using given locale: %s", preferred_locale)
+                    logger.info("Using given locale: %s" % preferred_locale)
                     break
             else:
                 logger.info("Choosing first layout from project: %s" % name)
