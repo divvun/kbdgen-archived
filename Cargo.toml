@@ -25,7 +25,6 @@ regex = "1.3.3"
 unic-segment = "0.9.0"
 shrinkwraprs = "0.3.0"
 xml-rs = "0.8.0"
-jemallocator-global = { version = "0.3", optional = true }
 structopt = "0.3.8"
 env_logger = "0.7.1"
 
@@ -52,7 +51,7 @@ proptest = "0.9.5"
 
 [features]
 default = []
-jemalloc = ["jemallocator-global", "pyembed/jemalloc"]
+jemalloc = [] # ["jemallocator-global", "pyembed/jemalloc"]
 
 [profile.release]
 debug = true

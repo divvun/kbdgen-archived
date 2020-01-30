@@ -7,11 +7,13 @@ variables:
 jobs:
   - job: "linux"
     pool:
-      vmImage: "ubuntu-16.04"
+      vmImage: "ubuntu-18.04"
     steps:
       - script: |
           set -e
-          curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain nightly -y
+          curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain -y
+          sudo apt install -y musl musl-tools
+          rustup target install x86_64-unknown-linux-musl
           cargo install --git https://github.com/indygreg/PyOxidizer.git --rev $(pyoxidizer_rev) pyoxidizer
           # git clone https://github.com/divvun/divvun-ci-config.git
         displayName: "Install prerequisites"
@@ -20,6 +22,7 @@ jobs:
           source $HOME/.cargo/env
           pyoxidizer build --release
           cp build/apps/kbdgen/*/release/kbdgen .
+          strip ./kbdgen
         displayName: "Build"
       - task: PublishPipelineArtifact@0
         inputs:
@@ -43,6 +46,7 @@ jobs:
           source $HOME/.cargo/env
           pyoxidizer build --release
           cp build/apps/kbdgen/*/release/kbdgen .
+          strip ./kbdgen
         displayName: "Build"
       - task: PublishPipelineArtifact@0
         inputs:
@@ -62,14 +66,14 @@ jobs:
       #     DEPLOY_SVN_COMMIT: $(svnCommit)
   - job: "Windows"
     pool:
-      vmImage: "vs2017-win2016"
+      vmImage: "windows-2019"
     steps:
       - script: |
           PATH=%PATH%;%USERPROFILE%\.cargo\bin
           curl -sLo rustup-init.exe https://win.rustup.rs/
           ./rustup-init.exe -y --default-host=x86_64-pc-windows-msvc --default-toolchain=stable-x86_64-pc-windows-msvc
-          call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          cargo install --git https://github.com/indygreg/PyOxidizer.git --rev e50a704fc778db9222e70b7ad4b08f68178483b5 pyoxidizer
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          cargo install --git https://github.com/indygreg/PyOxidizer.git --rev $(pyoxidizer_rev) pyoxidizer
         displayName: "Install prerequisites"
         # env:
         #   DIVVUN_KEY: $(divvunKey)
