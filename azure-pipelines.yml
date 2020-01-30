@@ -11,7 +11,7 @@ jobs:
     steps:
       - script: |
           set -e
-          curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain -y
+          curl https://sh.rustup.rs -sSf | sh -s -- -y
           sudo apt install -y musl musl-tools
           rustup target install x86_64-unknown-linux-musl
           cargo install --git https://github.com/indygreg/PyOxidizer.git --rev $(pyoxidizer_rev) pyoxidizer
@@ -36,7 +36,7 @@ jobs:
     steps:
       - script: |
           set -e
-          curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain nightly -y
+          curl https://sh.rustup.rs -sSf | sh -s -- -y
           source $HOME/.cargo/env
           cargo install --git https://github.com/indygreg/PyOxidizer.git --rev $(pyoxidizer_rev) pyoxidizer
           # git clone https://github.com/divvun/divvun-ci-config.git
