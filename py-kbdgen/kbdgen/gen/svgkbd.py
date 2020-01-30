@@ -13,14 +13,14 @@ from ..cldr import decode_u
 
 logger = get_logger(__name__)
 
+NS = "{http://www.w3.org/2000/svg}"
 
 class SVGGenerator(Generator):
     @property
-    # @lru_cache(maxsize=1)
     def supported_layouts(self):
         o = OrderedDict()
         for k, v in self._bundle.layouts.items():
-            if "desktop" in v.modes or "mac" in v.modes or "win" in v.modes:
+            if "desktop" in v.modes or "mac" in v.modes or "win" in v.modes or "chrome" in v.modes:
                 o[k] = v
         return o
 
@@ -30,11 +30,7 @@ class SVGGenerator(Generator):
         root = tree.getroot()
 
         files = []
-
-        logger.info(
-            "Several warnings may fire about XML incompatible strings. "
-            + "Incompatible strings are currently just ignored."
-        )
+        
         for name, layout in self.supported_layouts.items():
             files.append(
                 (
@@ -48,13 +44,13 @@ class SVGGenerator(Generator):
         os.makedirs(out_dir, exist_ok=True)
 
         for fn, _, data in files:
-            with open(os.path.join(out_dir, fn), "wb") as f:
+            with open(os.path.join(out_dir, fn), "w", encoding="utf-8") as f:
                 f.write(data)
 
         # Get English name, or fallback to internal name
         kbd_name = self._bundle.name
 
-        with open(os.path.join(out_dir, "layout.html"), "w") as f:
+        with open(os.path.join(out_dir, "layout.html"), "w", encoding="utf-8") as f:
             f.write(
                 dedent(
                     """\
@@ -145,10 +141,10 @@ class SVGGenerator(Generator):
         primary = trans.get(primary, primary)
         secondary = trans.get(secondary, secondary)
 
-        g = Element("g", **{"class": ("key-group " + cls).strip()})
+        g = Element(NS + "g", **{"class": ("key-group %s" % cls).strip()})
         p = SubElement(
             g,
-            "text",
+            NS + "text",
             **{"dy": "1em", "y": "32", "x": "32", "class": "key-text-primary"}
         )
         try:
@@ -157,7 +153,7 @@ class SVGGenerator(Generator):
             logger.warning("For char 0x%04x: %s" % (ord(primary), e))
         s = SubElement(
             g,
-            "text",
+            NS + "text",
             **{"dy": "-.4em", "y": "32", "x": "32", "class": "key-text-secondary"}
         )
         try:
@@ -167,6 +163,7 @@ class SVGGenerator(Generator):
         return (g, p, s)
 
     def generate_svg(self, locale, layout, root):
+        logger.info("Generating SVG for '%s'..." % locale)
         default = mode_dict(locale, layout, "default", "win", required=True)
         shift = mode_dict(locale, layout, "shift", "win")
 
@@ -180,6 +177,7 @@ class SVGGenerator(Generator):
         alt_caps_shift = mode_dict(locale, layout, "caps+alt+shift", "win")
 
         for k in itertools.chain(ISO_KEYS, ("A03",)):
+            logger.trace("%s" % k)
             groups = []
 
             dk = decode_u(default.get(k, "")) or None
@@ -216,7 +214,14 @@ class SVGGenerator(Generator):
                 "caps+shift", {}
             )
 
-            g = root.findall("//*[contains(@class,'%s')]" % k.lower())[0]
+            for g in root.iter():
+                if not g.tag.endswith("g"):
+                    continue
+                if k.lower() in g.attrib.get("class", ""):
+                    break
+            else:
+                raise Exception("No <g> found for %s" % k)
+            logger.trace("Element: %r %r %r" % (g, g.tag, g.attrib))
 
             if True:  # has_group1:
                 group1, p1, s1 = self._make_key_group(dk, sk, "key-group-1")
@@ -270,6 +275,6 @@ class SVGGenerator(Generator):
                 groups[2].attrib["transform"] = "translate(8, 0)"
                 groups[3].attrib["transform"] = "translate(24, 0)"
 
-        return etree.tostring(
-            root, encoding="utf-8", xml_declaration=True, pretty_print=True
-        )
+        return "<?xml version='1.0' encoding='utf8'?>\n%s" % etree.tostring(
+            root, encoding="utf-8"
+        ).decode("utf-8")

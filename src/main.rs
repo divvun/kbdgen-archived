@@ -282,6 +282,7 @@ impl BuildCommands {
 
                 args
             }
+            #[cfg(target_os = "macos")]
             IOS {
                 command,
                 kbd_repo,
@@ -379,6 +380,7 @@ impl BuildCommands {
                 args.push(&*project_path.to_str().unwrap());
                 args
             }
+            #[cfg(target_os = "macos")]
             Mac {
                 in_out:
                     InOutPaths {

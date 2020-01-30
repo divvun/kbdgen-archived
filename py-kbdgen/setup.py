@@ -24,11 +24,4 @@ setup(
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
     ],
-    entry_points={
-        "console_scripts": [
-            "kbdgen=kbdgen.__main__:main",
-            "cldr2kbdgen=kbdgen.cldr:cldr2kbdgen_main",
-            "kbdgen2cldr=kbdgen.cldr:kbdgen2cldr_main",
-        ]
-    },
 )

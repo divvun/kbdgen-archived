@@ -67,15 +67,16 @@ jobs:
       - script: |
           PATH=%PATH%;%USERPROFILE%\.cargo\bin
           curl -sLo rustup-init.exe https://win.rustup.rs/
-          ./rustup-init.exe -y --default-host=i686-pc-windows-msvc --default-toolchain=stable-i686-pc-windows-msvc
+          ./rustup-init.exe -y --default-host=x86_64-pc-windows-msvc --default-toolchain=stable-x86_64-pc-windows-msvc
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           cargo install --git https://github.com/indygreg/PyOxidizer.git --rev e50a704fc778db9222e70b7ad4b08f68178483b5 pyoxidizer
         displayName: "Install prerequisites"
         # env:
         #   DIVVUN_KEY: $(divvunKey)
       - script: |
           PATH=%PATH%;%USERPROFILE%\.cargo\bin
-          call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars32.bat"
-          rustup default stable-i686-pc-windows-msvc
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          rustup default stable-x86_64-pc-windows-msvc
           pyoxidizer build --release
           cp build/apps/kbdgen/*/release/kbdgen.exe .
         displayName: "Build"
