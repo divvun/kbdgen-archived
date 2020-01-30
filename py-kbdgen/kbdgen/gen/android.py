@@ -186,7 +186,7 @@ class AndroidGenerator(Generator):
     def _find_ndk_version(self):
         try:
             p = os.path.join(os.environ["NDK_HOME"], "source.properties")
-            with open(p) as f:
+            with open(p, encoding="utf-8") as f:
                 for line in f.readlines():
                     if line.startswith("Pkg.Revision"):
                         return [int(x) for x in line.split("=").pop().split(".")]
@@ -313,7 +313,7 @@ class AndroidGenerator(Generator):
             build_dir, "deps", self.REPO, "app/src/main/res", "xml", "spellchecker.xml"
         )
 
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             tree = etree.parse(f)
         root = tree.getroot()
         # Empty the file
@@ -334,7 +334,7 @@ class AndroidGenerator(Generator):
                 root, "subtype", label="@string/subtype_generic", subtypeLocale=lang
             )
 
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             f.write(self._tostring(tree))
 
     def _update_locale(self, d, values):
@@ -342,7 +342,7 @@ class AndroidGenerator(Generator):
         node = None
 
         if os.path.exists(fn):
-            with open(fn) as f:
+            with open(fn, encoding="utf-8") as f:
                 tree = etree.parse(f)
             nodes = tree.findall("string[@name='english_ime_name']")
             if len(nodes) > 0:
@@ -355,7 +355,7 @@ class AndroidGenerator(Generator):
 
         node.text = values.name.replace("'", r"\'")
 
-        with open(fn, "w") as f:
+        with open(fn, "w", encoding="utf-8") as f:
             f.write(self._tostring(tree))
 
     def update_localisation(self, base):
@@ -416,7 +416,7 @@ class AndroidGenerator(Generator):
 
     def _gradle(self, *args):
         # HACK: let's be honest it's all hacks
-        with open(os.path.join(self.repo_dir, "local.properties"), "a") as f:
+        with open(os.path.join(self.repo_dir, "local.properties"), "a", encoding="utf-8") as f:
             f.write("sdk.dir=%s\n" % os.environ["ANDROID_HOME"])
         cmd = ["./gradlew"] + list(args) + ["-Dorg.gradle.jvmargs=-Xmx4096M"]
         return run_process(cmd, cwd=self.repo_dir, show_output=True) == 0
@@ -498,12 +498,12 @@ class AndroidGenerator(Generator):
         if not os.path.exists(fn):
             root = etree.XML("<resources/>")
         else:
-            with open(fn) as f:
+            with open(fn, encoding="utf-8") as f:
                 root = etree.parse(f).getroot()
 
         SubElement(root, "string", name="subtype_%s" % subtype).text = name
 
-        with open(fn, "w") as f:
+        with open(fn, "w", encoding="utf-8") as f:
             f.write(self._tostring(root))
 
     def update_locale_exception(self, name, kbd, base):
@@ -512,7 +512,7 @@ class AndroidGenerator(Generator):
 
         logger.info("Adding '%s' to '%s'…" % (name, fn))
 
-        with open(fn) as f:
+        with open(fn, encoding="utf-8") as f:
             tree = etree.parse(f)
 
         clean_name = name.replace("-", "_")
@@ -530,7 +530,7 @@ class AndroidGenerator(Generator):
             tree.getroot(), "string", name="subtype_in_root_locale_%s" % clean_name
         ).text = kbd.display_names[name]
 
-        with open(fn, "w") as f:
+        with open(fn, "w", encoding="utf-8") as f:
             f.write(self._tostring(tree.getroot()))
 
     def add_sentry_dsn(self, dsn, base):
@@ -539,14 +539,14 @@ class AndroidGenerator(Generator):
 
         logger.info("Adding Sentry DSN to '%s'…" % fn)
 
-        with open(fn) as f:
+        with open(fn, encoding="utf-8") as f:
             tree = etree.parse(f)
 
         # Add to exception keys
         node = tree.findall("string[@name='sentry_dsn']")[0]
         node.text = dsn
 
-        with open(fn, "w") as f:
+        with open(fn, "w", encoding="utf-8") as f:
             f.write(self._tostring(tree.getroot()))
 
     def update_strings_xml(self, kbd_name, kbd, base):
@@ -597,13 +597,13 @@ class AndroidGenerator(Generator):
         path = os.path.join(base, "deps", self.REPO, "app/src/main/res", "%s")
         fn = os.path.join(path, "method.xml")
 
-        with open(fn % "xml") as f:
+        with open(fn % "xml", encoding="utf-8") as f:
             tree = etree.parse(f)
             root = tree.getroot()
             # Empty the method.xml file
             for child in root:
                 root.remove(child)
-        with open(fn % "xml", "w") as f:
+        with open(fn % "xml", "w", encoding="utf-8") as f:
             f.write(self.gen_method_xml(base_layouts, tree))
 
         for kl, vl in reversed(sorted(layouts.items())):
@@ -615,14 +615,14 @@ class AndroidGenerator(Generator):
         for api_ver, kbds in layouts.items():
             xmlv = "xml-v%s" % api_ver
             os.makedirs(path % xmlv, exist_ok=True)
-            with open(fn % xmlv, "w") as f:
+            with open(fn % xmlv, "w", encoding="utf-8") as f:
                 f.write(self.gen_method_xml(kbds, copy.deepcopy(tree)))
 
     def save_files(self, files, base):
         fn = os.path.join(base, "deps", self.REPO)
         logger.info("Embedding generated keyboard XML files…")
         for k, v in files:
-            with open(os.path.join(fn, k), "w") as f:
+            with open(os.path.join(fn, k), "w", encoding="utf-8") as f:
                 f.write(v)
 
     def _unfurl_tarball(self, tarball, target_dir):
@@ -729,7 +729,7 @@ ext.app = [
         ).replace("$", "\\$")
 
         fn = os.path.join(base, "deps", self.REPO, "app/local.gradle")
-        with open(fn, "w") as f:
+        with open(fn, "w", encoding="utf-8") as f:
             f.write(data)
 
     def kbd_layout_set(self, name, kbd):

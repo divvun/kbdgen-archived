@@ -22,7 +22,7 @@ class JSONGenerator(Generator):
         for name, layout in self._bundle.layouts.items():
             layouts[name] = layout
 
-        with open(fn, "w") as f:
+        with open(fn, "w", encoding="utf-8") as f:
             json.dump({"layouts": layouts}, f, indent=2, ensure_ascii=False)
 
 

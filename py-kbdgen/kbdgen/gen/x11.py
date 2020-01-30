@@ -52,8 +52,8 @@ class XKBGenerator(Generator):
 
         # First char in Supplemental Private Use Area-A
         self.surrogate = 0xF0000
-        self.xkb = open(xkb_fn, "w")
-        self.xcompose = open(xcompose_fn, "w")
+        self.xkb = open(xkb_fn, "w", encoding="utf-8")
+        self.xcompose = open(xcompose_fn, "w", encoding="utf-8")
 
         for name, layout in self.supported_layouts.items():
             self.write_nonsense(name, layout)
