@@ -1,6 +1,7 @@
 use pyembed::{default_python_config, ExtensionModule, MainPythonInterpreter};
 use std::path::PathBuf;
 use structopt::StructOpt;
+use structopt::clap::AppSettings::*;
 
 #[derive(Debug, StructOpt)]
 enum IOSCommands {
@@ -10,10 +11,13 @@ enum IOSCommands {
 
 #[derive(Debug, StructOpt)]
 enum BuildCommands {
+    #[structopt(about = "Demonstration SVG output for debugging")]
     Svg {
         #[structopt(flatten)]
         in_out: InOutPaths,
     },
+
+    #[structopt(about = "Generates an .apk for Android")]
     Android {
         #[structopt(long = "kbd-repo", default_value = "divvun/giellakbd-android")]
         kbd_repo: String,
@@ -36,6 +40,9 @@ enum BuildCommands {
         #[structopt(flatten)]
         build_mode: BuildMode,
     },
+
+    #[cfg(target_os = "macos")]
+    #[structopt(about = "Generates an .ipa for iOS")]
     IOS {
         #[structopt(subcommand)]
         command: Option<IOSCommands>,
@@ -55,6 +62,8 @@ enum BuildCommands {
         #[structopt(flatten)]
         build_mode: BuildMode,
     },
+
+    #[structopt(about = "Generates installers for Windows 7/8 and 8.1+")]
     Win {
         #[structopt(flatten)]
         in_out: InOutPaths,
@@ -65,6 +74,9 @@ enum BuildCommands {
         #[structopt(flatten)]
         build_mode: BuildMode,
     },
+
+    #[cfg(target_os = "macos")]
+    #[structopt(about = "Generates installers for macOS")]
     Mac {
         #[structopt(flatten)]
         in_out: InOutPaths,
@@ -75,6 +87,8 @@ enum BuildCommands {
         #[structopt(flatten)]
         build_mode: BuildMode,
     },
+
+    #[structopt(about = "Generates X11 output suitable for upstreaming")]
     X11 {
         #[structopt(flatten)]
         in_out: InOutPaths,
@@ -92,6 +106,8 @@ enum BuildCommands {
         #[structopt(long = "standalone")]
         standalone: bool,
     },
+
+    #[structopt(about = "Generates m17n output")]
     M17n {
         #[structopt(flatten)]
         in_out: InOutPaths,
@@ -99,6 +115,8 @@ enum BuildCommands {
         #[structopt(flatten)]
         build_mode: BuildMode,
     },
+
+    #[structopt(about = "Generates Chrome OS bundles for putting on the Chrome App Store")]
     Chrome {
         #[structopt(flatten)]
         in_out: InOutPaths,
@@ -106,6 +124,8 @@ enum BuildCommands {
         #[structopt(flatten)]
         build_mode: BuildMode,
     },
+
+    #[structopt(setting(Hidden))]
     Qr {
         #[structopt(flatten)]
         in_out: InOutPaths,
@@ -113,6 +133,8 @@ enum BuildCommands {
         #[structopt(short, long = "layout")]
         layout: String,
     },
+
+    #[structopt(setting(Hidden))]
     ErrorModel {
         #[structopt(flatten)]
         in_out: InOutPaths,
@@ -161,6 +183,7 @@ enum NewCommands {
 
 #[derive(Debug, StructOpt)]
 enum Commands {
+    #[structopt(about = "Generate output for a given .kbdgen bundle", setting(DisableHelpSubcommand))]
     Build {
         #[structopt(long = "github-username")]
         github_username: Option<String>,
@@ -171,6 +194,7 @@ enum Commands {
         #[structopt(subcommand)]
         command: BuildCommands,
     },
+    #[structopt(about = "Generate new bundles or layout templates", setting(DisableHelpSubcommand))]
     New {
         #[structopt(subcommand)]
         command: NewCommands,
@@ -178,7 +202,11 @@ enum Commands {
 }
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "kbdgen")]
+#[structopt(
+    name = "kbdgen",
+    about = "An example of StructOpt usage.",
+    setting(DisableHelpSubcommand)
+)]
 struct Opts {
     #[structopt(long = "logging", default_value = "info")]
     logging: String,
@@ -500,6 +528,20 @@ fn main() {
         .init();
 
     let opt = Opts::from_args();
+
+    let logging = match &*opt.logging {
+        "trace" => log::Level::Trace,
+        "debug" => log::Level::Debug,
+        "info" => log::Level::Info,
+        "warn" => log::Level::Warn,
+        "error" => log::Level::Error,
+        x => {
+            eprintln!("Invalid logging level: {}", x);
+            std::process::exit(1);
+        }
+    };
+
+    std::env::set_var("RUST_LOG", logging.to_string());
 
     match opt.command {
         Commands::Build {
