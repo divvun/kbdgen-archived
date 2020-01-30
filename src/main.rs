@@ -204,7 +204,7 @@ enum Commands {
 #[derive(Debug, StructOpt)]
 #[structopt(
     name = "kbdgen",
-    about = "An example of StructOpt usage.",
+    about = "The best solution to generating keyboards.",
     setting(DisableHelpSubcommand)
 )]
 struct Opts {

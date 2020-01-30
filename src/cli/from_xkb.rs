@@ -73,6 +73,7 @@ pub fn xkb_to_kbdgen(output: &Path, is_updating_bundle: bool) -> Result<(), Erro
     Ok(())
 }
 
+#[cfg(unix)]
 fn select_base_locale() -> Result<(String, PathBuf), Error> {
     let kbd_path = xkb_dir().join("symbols");
     let files: BTreeMap<String, PathBuf> = globwalk::GlobWalkerBuilder::new(&kbd_path, "**")

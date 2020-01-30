@@ -80,6 +80,83 @@ pub enum Error {
     },
 }
 
+#[cfg(windows)]
+pub fn select_base_locale() -> Option<(String, BTreeMap<String, Vec<String>>)> {
+    use std::io::Write;
+
+    let kbd_path = cldr_dir().join("keyboards");
+    let set: BTreeMap<String, BTreeMap<String, Vec<String>>> = BTreeMap::new();
+    let mut locale_map = globwalk::GlobWalkerBuilder::new(kbd_path, "*.xml")
+        .build()
+        .unwrap()
+        .filter_map(Result::ok)
+        .filter(|entry| {
+            !entry
+                .path()
+                .file_stem()
+                .unwrap()
+                .to_string_lossy()
+                .starts_with('_')
+        })
+        .fold(set, |mut acc, cur| {
+            let tag = (&*cur.path().file_stem().unwrap().to_string_lossy())
+                .split("-t")
+                .next()
+                .unwrap()
+                .to_string();
+            let kbd_os = (&*cur
+                .path()
+                .parent()
+                .unwrap()
+                .file_name()
+                .unwrap()
+                .to_string_lossy())
+                .to_string();
+            let entry = acc
+                .entry(tag)
+                .or_insert_with(BTreeMap::new)
+                .entry(kbd_os)
+                .or_insert_with(Vec::new);
+            (*entry).push(
+                cur.path()
+                    .file_name()
+                    .unwrap()
+                    .to_string_lossy()
+                    .to_string(),
+            );
+            acc
+        });
+    let mut locales = locale_map.iter().collect::<Vec<_>>();
+    locales.sort();
+
+    let cyan = console::Style::new().cyan().dim();
+    let text = locales
+        .iter()
+        .map(|(locale, items)| {
+            let x = items.keys().map(|x| &**x).collect::<Vec<_>>();
+            format!("{}   {}", locale, cyan.apply_to(x.join(", ")))
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+        .as_bytes()
+        .to_owned();
+
+    std::io::stdout().write_all(&text).expect("could not write list of locales to stdout");
+    println!(); // Make a new line and flush!
+    
+    let result = dialoguer::Input::<String>::new()
+        .with_prompt("Which locale to use as base? ")
+        .interact()
+        .expect("no valid locale selected");
+    
+    if locale_map.get(&result).is_none() {
+        return None;
+    }
+
+    Some((result.to_string(), locale_map.remove(&result).unwrap()))
+}
+
+#[cfg(unix)]
 pub fn select_base_locale() -> Option<(String, BTreeMap<String, Vec<String>>)> {
     let kbd_path = cldr_dir().join("keyboards");
     let set: BTreeMap<String, BTreeMap<String, Vec<String>>> = BTreeMap::new();
