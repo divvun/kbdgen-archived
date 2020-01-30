@@ -20,7 +20,7 @@ jobs:
       - script: |
           set -e
           source $HOME/.cargo/env
-          pyoxidizer build --release
+          pyoxidizer build --release --target x86_64-unknown-linux-musl
           cp build/apps/kbdgen/*/release/kbdgen .
           strip ./kbdgen
         displayName: "Build"
