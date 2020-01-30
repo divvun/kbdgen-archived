@@ -74,7 +74,7 @@ jobs:
         #   DIVVUN_KEY: $(divvunKey)
       - script: |
           PATH=%PATH%;%USERPROFILE%\.cargo\bin
-          call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars32.bat"
           rustup default stable-i686-pc-windows-msvc
           pyoxidizer build --release
           cp build/apps/kbdgen/*/release/kbdgen.exe .
