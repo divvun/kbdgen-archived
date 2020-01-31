@@ -36,7 +36,7 @@ jobs:
     steps:
       - script: |
           set -e
-          brew uninstall libyaml
+          brew uninstall --ignore-dependencies libyaml
           curl https://sh.rustup.rs -sSf | sh -s -- -y
           source $HOME/.cargo/env
           cargo install --git https://github.com/indygreg/PyOxidizer.git --rev $(pyoxidizer_rev) pyoxidizer
