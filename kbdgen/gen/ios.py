@@ -232,7 +232,7 @@ class AppleiOSGenerator(Generator):
         for name, layout in self.supported_layouts.items():
             layouts.append(self.generate_json_layout(name, layout))
 
-        fn = os.path.join(deps_dir, "Keyboard", "KeyboardDefinitions.json")
+        fn = os.path.join(deps_dir, "Keyboard", "Models", "KeyboardDefinitions.json")
         with open(fn, "w") as f:
             json.dump(layouts, f, indent=2, ensure_ascii=False)
 
