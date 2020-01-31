@@ -805,10 +805,8 @@ class AppleiOSGenerator(Generator):
 
         out["name"] = local_name
         out["locale"] = name
-        out["strings"] = layout.strings
-        # out["accessibilityStrings"] = layout.accessibilityStrings
-        # out["return"] = layout.strings._return
-        # out["space"] = layout.strings.space
+        out["return"] = layout.strings._return
+        out["space"] = layout.strings.space
         out["longPress"] = layout.longpress
         out["deadKeys"] = dead_keys
         out["transforms"] = layout.transforms
