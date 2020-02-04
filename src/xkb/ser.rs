@@ -55,7 +55,7 @@ impl ToXkb for Group {
 
 impl ToXkb for Key {
     fn write_xkb(&self, mut w: impl Write) -> Result<()> {
-        write!(w, "key <{}> {{[ ", self.iso_code)?;
+        write!(w, "key <A{}> {{ [ ", self.iso_code)?;
 
         /// Since modifiers are ordered, we need to make sure we don't continue
         /// emitting them when the previous one was empty.
@@ -85,7 +85,7 @@ impl ToXkb for Key {
 
         collect_keys(self, &mut w)?;
 
-        write!(w, " ]}};")?;
+        write!(w, " ] }};")?;
         writeln!(w)?;
 
         Ok(())
