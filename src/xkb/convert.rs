@@ -43,10 +43,10 @@ fn collect_keys(key_map: &DesktopModes) -> Result<Vec<Key>, Error> {
     for (iso_code, default) in &*default {
         res.push(Key {
             iso_code: iso_code.to_string(),
-            default: default.0.clone(),
-            shift: shift.get_string(&iso_code),
-            alt: alt.get_string(&iso_code),
-            alt_shift: alt_shift.get_string(&iso_code),
+            default: default.0.clone().map(|x| XkbKeySym(x)),
+            shift: shift.get_string(&iso_code).map(|x| XkbKeySym(x)),
+            alt: alt.get_string(&iso_code).map(|x| XkbKeySym(x)),
+            alt_shift: alt_shift.get_string(&iso_code).map(|x| XkbKeySym(x)),
         });
     }
 

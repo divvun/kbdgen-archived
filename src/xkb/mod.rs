@@ -1,3 +1,5 @@
+use std::fmt;
+
 mod convert;
 mod ser;
 pub use convert::Error as ConversionError;
@@ -20,8 +22,22 @@ pub struct Group {
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
 pub struct Key {
     pub iso_code: String,
-    pub default: Option<String>,
-    pub shift: Option<String>,
-    pub alt: Option<String>,
-    pub alt_shift: Option<String>,
+    pub default: Option<XkbKeySym>,
+    pub shift: Option<XkbKeySym>,
+    pub alt: Option<XkbKeySym>,
+    pub alt_shift: Option<XkbKeySym>,
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
+pub struct XkbKeySym(pub String);
+
+impl fmt::Display for XkbKeySym {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let c = self.0.chars().next().expect("keysym can't be empty");
+        if let Some(sym) = x11_keysymdef::lookup_by_codepoint(c).and_then(|r| r.names.get(0)) {
+            write!(f, "{}", sym)
+        } else {
+            write!(f, "U{}", c as u32)
+        }
+    }
 }

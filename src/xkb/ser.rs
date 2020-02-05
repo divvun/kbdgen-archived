@@ -61,22 +61,22 @@ impl ToXkb for Key {
         /// emitting them when the previous one was empty.
         fn collect_keys(key: &Key, mut w: impl Write) -> Result<()> {
             if let Some(k) = &key.default {
-                write!(w, "{}, ", k)?;
+                write!(w, "{}", k)?;
             } else {
                 return Ok(());
             }
             if let Some(k) = &key.shift {
-                write!(w, "{}, ", k)?;
+                write!(w, ", {}", k)?;
             } else {
                 return Ok(());
             }
             if let Some(k) = &key.alt {
-                write!(w, "{}, ", k)?;
+                write!(w, ", {}", k)?;
             } else {
                 return Ok(());
             }
             if let Some(k) = &key.alt_shift {
-                write!(w, "{}", k)?;
+                write!(w, ", {}", k)?;
             } else {
                 return Ok(());
             }
