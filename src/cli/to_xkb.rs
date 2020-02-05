@@ -1,4 +1,4 @@
-use crate::{xkb::*, Load, ProjectBundle};
+use crate::{xkb::*, Load, ProjectBundle, utils::UnwrapOrUnknownExt};
 use log::{debug, log_enabled};
 use snafu::{ResultExt, Snafu};
 use snafu_cli_debug::SnafuCliDebug;
@@ -73,16 +73,6 @@ fn layout_to_xkb_symbols(
 #[derive(Debug, Clone)]
 pub struct Options {
     pub standalone: bool,
-}
-
-trait UnwrapOrUnknownExt {
-    fn unwrap_or_unknown(self) -> String;
-}
-
-impl UnwrapOrUnknownExt for Option<String> {
-    fn unwrap_or_unknown(self) -> String {
-        self.unwrap_or_else(|| "<unknown>".into())
-    }
 }
 
 #[derive(Snafu, SnafuCliDebug)]

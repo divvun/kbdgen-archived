@@ -7,3 +7,4 @@ pub mod xkb;
 pub use bundle::*;
 
 pub(crate) mod pad;
+pub(crate) mod utils;
