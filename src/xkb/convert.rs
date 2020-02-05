@@ -1,5 +1,5 @@
-use super::{Group, Key, Symbols};
-use crate::models::{DesktopModes, Layout};
+use super::{Group, Key, Symbols, XkbKeySym};
+use crate::{models::{DesktopModes, Layout}, utils::UnwrapOrUnknownExt};
 use snafu::{OptionExt, Snafu};
 use std::convert::TryFrom;
 
@@ -25,7 +25,7 @@ fn collect_groups(layout: &Layout) -> Result<Vec<Group>, Error> {
         })?;
 
     Ok(vec![Group {
-        name: "default".into(),
+        name: layout.name().unwrap_or_unknown(),
         leading_includes: vec![],
         keys: collect_keys(&key_def)?,
         trailing_includes: vec![],
