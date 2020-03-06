@@ -1,4 +1,6 @@
-=== Example project descriptor file
+= Projects
+
+== Example project descriptor file
 
 Below shows a typical and basic `project.yaml` that describes a project localised into
 Norwegian Bokmål and English, with target-specific configuration for iOS and Android.
@@ -41,7 +43,7 @@ targets:
     packageId: com.example.keyboards
 ----
 
-=== Supported properties
+== Supported properties
 
 NOTE: For target-specific properties, please see the specific chapter for your desired target.
 
@@ -158,6 +160,6 @@ targets:
 
 |===
 
-=== Best practices
+== Best practices
 
 NOTE: These best practices are a work-in-progress. If you have a suggestion, please submit an issue on GitHub.

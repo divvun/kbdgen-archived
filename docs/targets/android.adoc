@@ -1,10 +1,10 @@
-=== Android
+= Android
 
 The Android target uses a fork of the Android Open Source Project's `LatinIME`
 codebase to generate a custom keyboard for Android with the look and feel of the
 native keyboard.
 
-==== Requirements
+== Requirements
 
 Due to the complexity and number of dependencies necessary to successfully build an
 Android keyboard, we only support using our custom-built Docker image which includes
@@ -15,7 +15,7 @@ keyboard.
 docker pull divvun/kbdgen-android
 -----
 
-==== Project-level configuration and properties
+== Project-level configuration and properties
 
 // TODO: link to projects chapter
 As described in the Projects chapter, some targets may require project-level
@@ -66,7 +66,7 @@ targets:
     keyAlias: alias_specified_during_generation
 ----
 
-==== Layout-level configuration and properties
+== Layout-level configuration and properties
 
 .Android layout properties
 [%autowidth.spread, cols="m,d,d,a", options="header"]
@@ -95,20 +95,20 @@ minimumSdk: 16
 |No (defaults to `true`)
 |Defines whether or not the number hints are shown on the top row of keys.
 
-When set to `false`, no number hints will be shown and any long press keys 
+When set to `false`, no number hints will be shown and any long press keys
 defined will be shown in their place.
 |[source,yaml]
 showNumberHints: true
 |===
 
-==== Testing
+== Testing
 
-===== Testing on a device
+=== Testing on a device
 
 [NOTE]
 ====
-Different versions of Android have different requirements for enabling 
-Developer Mode. Use a search engine to find out how to enable USB debugging 
+Different versions of Android have different requirements for enabling
+Developer Mode. Use a search engine to find out how to enable USB debugging
 for your specific device before continuing.
 ====
 
@@ -119,7 +119,7 @@ for your specific device before continuing.
 If you receive an error about the package already being installed or signatures
 not matching, uninstall the package from the device first.
 
-==== Generating keystores
+== Generating keystores
 
 CAUTION: Use ASCII characters only for your password if you value your sanity.
 

@@ -33,43 +33,15 @@ Please follow the warnings or errors that the `kbdgen` tool provides, and if som
 an issue on GitHub.
 ====
 
-== Introduction to kbdgen {kbdgenversion}
+include::intro.adoc[leveloffset=+1]
 
-include::intro.adoc[]
+include::convert.adoc[leveloffset=+1]
 
-== Transitioning from kbdgen 1.x to 2.x
-
-include::convert.adoc[]
-
-== Installation
-
-include::install.adoc[]
+include::install.adoc[leveloffset=+1]
 
 // == Quickstart
 // include::quickstart.adoc[]
 
-== Projects
+include::files/index.adoc[leveloffset=+1]
 
-include::files/project.adoc[]
-
-== Layouts
-
-include::files/layout.adoc[]
-
-== Targets
-
-include::targets/android.adoc[]
-
-include::targets/ios.adoc[]
-
-include::targets/macos.adoc[]
-
-include::targets/svg.adoc[]
-
-include::targets/windows.adoc[]
-
-include::targets/x11.adoc[]
-
-include::targets/m17n.adoc[]
-
-include::targets/chrome.adoc[]
+include::targets/index.adoc[leveloffset=+1]

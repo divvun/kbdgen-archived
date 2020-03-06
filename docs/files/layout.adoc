@@ -1,4 +1,6 @@
-=== Structure of a layout descriptor file
+= Layouts
+
+== Structure of a layout descriptor file
 
 Layout descriptors, like project descriptors, are defined using YAML.
 
@@ -23,7 +25,7 @@ NOTE: It is of fundamental importance that the `internalName` for each layout is
 unique. While the `kbdgen` generator should have an error in the case of user error,
 it has previously caused undefined behaviour.
 
-=== Mobile layouts
+== Mobile layouts
 
 Mobile layouts consist of the modes `mobile-default` and `mobile-shift`. These modes
 are currently used with the `android` and `ios` targets.
@@ -39,25 +41,25 @@ The `strings` property defines the strings to be shown on the spacebar and retur
 strictly required, it is highly recommended that you set these before deploying into production for the best
 user experience, particularly on iOS.
 
-=== Desktop layouts
+== Desktop layouts
 
 A desktop layout consists of keys for each mode, dead key definitions (using `deadKeys`) and a transforms map
 (`transforms`) for defining key sequences to output specific glyphs. Transforms may be infinitely nested in this format,
 it is up to the platform to determine how many levels of nesting are considered reasonable.
 
-==== Modes
+=== Modes
 
-Modes are defined as a space-delimited and newline-delimited set of characters for use as keys 
+Modes are defined as a space-delimited and newline-delimited set of characters for use as keys
 on a keyboard. The expected keyboard layout is the ISO standard keyboard (not the ANSI US keyboard,
 which has one less key).
 
 .The ISO standard keyboard layout showing potential variations in colour
-image::keyboard.svg[]
+image::./keyboard.svg[]
 
 `kbdgen` supports E00–E12, D01–D12, C01–C12, and B00–10 as per traditional European ISO standard keyboards. In practice, for ANSI keyboards,
 C12 moves to D13, and B00 is simply dropped altogether. B11 is not used on any modern keyboard, and E13 is largely ignored.
 
-If you forget to add the `|` symbol after the mode key, you will encounter some fun parsing errors. 
+If you forget to add the `|` symbol after the mode key, you will encounter some fun parsing errors.
 Don't forget the pipe!
 
 Desktop layouts consist of several modes due to the complexity of desktop keyboards:
@@ -81,7 +83,7 @@ keyboards:
 
 It is possible that further modes may be supported in the future if necessary.
 
-=== Supported properties
+== Supported properties
 
 NOTE: For target-specific properties, please see the specific chapter for your desired target.
 
@@ -263,9 +265,9 @@ styles:
 
 |===
 
-=== Examples
+== Examples
 
-==== Mobile layout example
+=== Mobile layout example
 [source,yaml]
 ----
 internalName: sma
@@ -345,7 +347,7 @@ strings:
   return: return
 ----
 
-==== Windows desktop layout example
+=== Windows desktop layout example
 
 [source,yaml]
 ----
@@ -439,7 +441,7 @@ transforms:
     I: Ĩ
 ----
 
-==== macOS desktop layout example
+=== macOS desktop layout example
 
 [source,yaml]
 ----
@@ -600,7 +602,7 @@ special:
     osx-cmd+alt: \u{A0}
 ----
 
-=== Best practices
+== Best practices
 
 NOTE: These best practices are a work-in-progress. If you have a suggestion, please submit an issue on GitHub.
 
@@ -608,12 +610,12 @@ As you can see from the examples, in some cases, macOS and Windows keyboards div
 two separate layouts are defined. While it is still possible to generate a macOS and Windows keyboard from the
 same source, consider user expectations when decided whether or not to split the layouts into separate files.
 
-=== Generating layouts from CLDR with cldr2kbdgen
+== Generating layouts from CLDR with cldr2kbdgen
 
 `kbdgen` includes a tool called `cldr2kbdgen`, which will convert a CLDR keyboard XML descriptor
 into a fully functional `kbdgen` layout.
 
-You can acquire a CLDR keyboard repository from the http://cldr.unicode.org/index/downloads[Unicode] website. 
+You can acquire a CLDR keyboard repository from the http://cldr.unicode.org/index/downloads[Unicode] website.
 Choose the latest from the Data column, then select the `cldr-keyboards-x.y.z.zip` file.
 
 WARNING: If converting a macOS keyboard and the E00 (top left) and B00 (bottom left) keys are flipped, this is a known

@@ -1,22 +1,24 @@
+= Installation
+
 WARNING: Each target may have separate requirements for generating and building the output that `kbdgen` provides. Please check the Installation section of your desired target before proceeding.
 
 It is recommended to use a prebuilt version of `kbdgen` where possible.
 
-=== Pre-built
+== Pre-built
 
-==== macOS
-
-TODO
-
-==== Linux
+=== macOS
 
 TODO
 
-==== Windows
+=== Linux
 
 TODO
 
-=== From Source
+=== Windows
+
+TODO
+
+== From Source
 
 The same instructions apply for all operating systems where Rust is supported.
 
@@ -29,5 +31,4 @@ pyoxidizer build --release
 -----
 
 Upon completion, the path to the generated self-contained executable will be printed.
-
 

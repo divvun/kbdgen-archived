@@ -1,4 +1,6 @@
-=== Fundamental differences between kbdgen 1.x and 2.x:
+= Transitioning from kbdgen 1.x to 2.x
+
+== Fundamental differences between kbdgen 1.x and 2.x:
 
 * A directory layout is now enforced in the form of a project bundle (ie "foo.kbdgen/")
 * Layouts are no longer specified in the project.yaml, and are instead determined by a `layouts/` directory inside the bundle
@@ -13,7 +15,7 @@
 * The introduction of the `m17n` and `chrome` targets
 * The inclusion of tools to simplify generating template projects from CLDR keyboard sources
 
-=== Converting a kbdgen 1.x project to 2.x
+== Converting a kbdgen 1.x project to 2.x
 
 This is a work in progress. For now, you may use the Node.js script in our GitHub repository.
 
@@ -21,5 +23,5 @@ There are some known issues with this script. Current known issues:
 
 * TODO
 
-We intend to integrate a `convert` command to the kbdgen tool Soon™. If you wish to help port 
+We intend to integrate a `convert` command to the kbdgen tool Soon™. If you wish to help port
 this functionality to the Rust codebase, please let us know in this issue. TODO
