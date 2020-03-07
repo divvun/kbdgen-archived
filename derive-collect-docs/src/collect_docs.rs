@@ -42,6 +42,15 @@ pub(crate) struct Field {
 
 #[derive(Debug)]
 pub(crate) enum Type {
+    Flat(TypeName),
+    Nested {
+        container_name: TypeName,
+        nested: Vec<Type>,
+    },
+}
+
+#[derive(Debug)]
+pub enum TypeName {
     Primitive(String),
     Link(String),
 }
@@ -71,7 +80,7 @@ fn collect_fields(data: &Data) -> Vec<Field> {
             .named
             .iter()
             .map(|field| {
-                let (required, r#type) = Type::from_syn(&field.ty);
+                let (required, r#type) = Type::toplevel_from_syn(&field.ty);
                 Field {
                     name: field
                         .ident
@@ -93,35 +102,36 @@ fn collect_docs_from_attrs(attrs: &[syn::Attribute]) -> String {
         .iter()
         .filter(|attr| attr.path.is_ident("doc"))
         .fold(String::new(), |mut res, attr| {
+            use once_cell::sync::Lazy;
+            use regex::Regex;
             use std::fmt::Write;
 
-            let doc = attr
-                .tokens
-                .clone()
-                .into_iter()
-                .nth(1)
-                .map(|lit| lit.to_string())
-                .unwrap_or_default();
-            let doc = doc.trim_start_matches("\"").trim().trim_end_matches("\"");
+            let doc = TokenStream::from(attr.tokens.clone()).to_string();
+
+            static RE: Lazy<Regex> =
+                Lazy::new(|| regex::Regex::new(r#"^\s*=\s*"\s?(?P<content>.*?)"\s*$"#).unwrap());
+            let doc = RE.replace_all(&doc, "$content");
+
+            let doc = doc.replace("\\\"", "\"").replace("\\'", "'");
             writeln!(&mut res, "{}", doc).unwrap();
             res
         })
 }
 
-impl Type {
+impl TypeName {
     fn from_ident(ident: &str) -> Self {
         match ident {
-            "bool"
-            | "u8" | "i8" | "u16" | "i16" | "u32" | "i32" | "u64" | "i64" | "usize" | "isize"
-            | "String" | "PathBuf"
-            | "HashMap" | "BTreeMap"
-            | "T"
-            => Type::Primitive(ident.to_string()),
-            _ => Type::Link(ident.to_string()),
+            "bool" | "u8" | "i8" | "u16" | "i16" | "u32" | "i32" | "u64" | "i64" | "usize"
+            | "isize" | "String" | "PathBuf" | "Vec" | "HashMap" | "BTreeMap" | "T" => {
+                Self::Primitive(ident.to_string())
+            }
+            _ => Self::Link(ident.to_string()),
         }
     }
+}
 
-    fn from_syn(t: &syn::Type) -> (bool, Type) {
+impl Type {
+    fn toplevel_from_syn(t: &syn::Type) -> (bool, Type) {
         use syn::Type as T;
         let mut required = true;
 
@@ -133,6 +143,7 @@ impl Type {
                 let syn::PathSegment { ident, arguments } =
                     segments.last().expect("type path was empty");
 
+                // Do a little dance to not print the other `Option` wrapper but emit `required=false`
                 if ident == "Option" {
                     required = false;
                     match arguments {
@@ -150,14 +161,14 @@ impl Type {
                                 })
                                 .next()
                                 .expect("no type param on `Option`");
-                            Type::from_ident(&syn_type_to_string(&type_arg))
+                            Type::from_syn(&type_arg)
                         }
                         _ => unimplemented!(
                             "only type paths with regular `<T>`-style generics implemented so far"
                         ),
                     }
                 } else {
-                    Type::from_ident(&ident.to_string())
+                    Type::from_syn(t)
                 }
             }
             _ => unimplemented!("only type paths implemented so far"),
@@ -165,45 +176,51 @@ impl Type {
 
         (required, type_name)
     }
-}
 
-fn syn_type_to_string(t: &syn::Type) -> String {
-    use syn::Type as T;
+    fn from_syn(t: &syn::Type) -> Self {
+        use syn::Type as T;
 
-    match t {
-        T::Path(syn::TypePath {
-            path: syn::Path { segments, .. },
-            ..
-        }) => {
-            let syn::PathSegment { ident, arguments } =
-                segments.last().expect("type path was empty");
+        match t {
+            T::Path(syn::TypePath {
+                path: syn::Path { segments, .. },
+                ..
+            }) => {
+                let syn::PathSegment { ident, arguments } =
+                    segments.last().expect("type path was empty");
 
-            let args = match arguments {
-                syn::PathArguments::None => vec![],
-                syn::PathArguments::AngleBracketed(syn::AngleBracketedGenericArguments {
-                    args,
-                    ..
-                }) => args
-                    .iter()
-                    .filter_map(|arg| {
-                        if let syn::GenericArgument::Type(t) = arg {
-                            Some(t)
-                        } else {
-                            None
-                        }
-                    })
-                    .map(syn_type_to_string)
-                    .collect::<Vec<_>>(),
-                _ => unimplemented!(
-                    "only type paths with regular `<T>`-style generics implemented so far"
-                ),
-            };
-            if args.is_empty() {
-                ident.to_string()
-            } else {
-                format!("{}<{}>", ident, args.join(","))
+                let args = match arguments {
+                    syn::PathArguments::None => vec![],
+                    syn::PathArguments::AngleBracketed(syn::AngleBracketedGenericArguments {
+                        args,
+                        ..
+                    }) => args
+                        .iter()
+                        .filter_map(|arg| {
+                            if let syn::GenericArgument::Type(t) = arg {
+                                Some(t)
+                            } else {
+                                None
+                            }
+                        })
+                        .map(Type::from_syn)
+                        .collect::<Vec<_>>(),
+                    _ => unimplemented!(
+                        "only type paths with regular `<T>`-style generics implemented so far"
+                    ),
+                };
+
+                let name = TypeName::from_ident(&ident.to_string());
+
+                if args.is_empty() {
+                    Type::Flat(name)
+                } else {
+                    Type::Nested {
+                        container_name: name,
+                        nested: args,
+                    }
+                }
             }
+            _ => unimplemented!("only type paths implemented so far"),
         }
-        _ => unimplemented!("only type paths implemented so far"),
     }
 }
