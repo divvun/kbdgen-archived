@@ -2,7 +2,9 @@
 #   - master
 
 variables:
+  # tag::pyoxidizer_rev[]
   pyoxidizer_rev: e50a704fc778db9222e70b7ad4b08f68178483b5
+  # end::pyoxidizer_rev[]
 
 jobs:
   - job: "linux"

@@ -1,0 +1,71 @@
+# kdbgen
+
+## User documentation
+
+See the link:docs/index.adoc[kbdgen User Manual]!
+
+## Developer documentation
+
+As of version 2.0,
+kbdgen is written in a combination of Rust and Python.
+https://github.com/indygreg/PyOxidizer[PyOxidizer] is used
+to bundle a Python interpreter in the Rust binary
+so end users don't have to concern themselves with installing additional dependencies.
+
+### Start hacking on kbdgen
+
+. Install the latest stable Rust version using https://rustup.rs[Rustup]
+
+. Install pyoxidizer:
+
+.. Make sure you have a C compiler, usual build tools like Make, and probably also openssl headers installed,
+so you can compile the Python interpreter and its standard library.
+
+.. Install the correct pyoxidizer version.
+The quickest way is using `cargo install --git https://github.com/indygreg/PyOxidizer.git --rev $pyoxidizer_rev pyoxidizer`.
++
+The revision used and tested on CI right now is:
++
+[source,yaml]
+----
+include::./azure-pipelines.yml[tag=pyoxidizer_rev]
+----
+
+. Build the project using `pyoxidizer build`.
+If this succeeds, the last line of the output will tell you where you can find the final executable.
+
+TIP: You can also build the project without the original Python kbdgen features
+by running `cargo build --no-default-features` (or `run`).
+This is useful for developing new features (as it is faster to compile).
+
+### Rendering the documentation
+
+The kbdgen User Manual can be found in `docs/`
+and is written in AsciiDoc.
+
+To render it,
+install https://asciidoctor.org/[Asciidoctor],
+go into the `docs/` directory,
+and run `asciidoctor --verbose index.adoc` .
+
+NOTE: Some parts of the documentation are actually automatically generated
+by using a special derive macro on some structs.
+See `./derive-collect-docs` for more information.
+
+## License
+
+Licensed under either of
+
+* Apache License, Version 2.0 (link:LICENSE-APACHE(
+    [LICENSE-APACHE] or http://www.apache.org/licenses/LICENSE-2.0)
+* MIT license (link:LICENSE-MIT[LICENSE-MIT] or http://opensource.org/licenses/MIT)
+
+at your option.
+
+## Contribution
+
+Fork & PR on Github.
+
+Unless you explicitly state otherwise, any contribution intentionally submitted
+for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any
+additional terms or conditions.
