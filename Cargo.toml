@@ -7,6 +7,7 @@ authors = [
 ]
 edition = "2018"
 license = "Apache-2.0 OR MIT"
+repository = "https://github.com/divvun/kbdgen"
 
 [dependencies]
 pyembed = { path = "pyembed", optional = true}
@@ -60,6 +61,7 @@ debug = true
 [workspace]
 members = [
     ".",
+    "derive-collect-docs",
     "py-language-tags",
     "py-logger",
 ]
