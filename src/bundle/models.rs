@@ -3,14 +3,15 @@ use serde::{Deserialize, Serialize};
 use serde_yaml as yaml;
 use std::collections::BTreeMap;
 use strum_macros::{Display, EnumIter, EnumString};
+use derive_collect_docs::CollectDocs;
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
 pub struct ProjectDesc {
     pub name: String,
     pub description: String,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default, CollectDocs)]
 pub struct Project {
     pub locales: BTreeMap<String, ProjectDesc>,
     pub author: String,
@@ -119,7 +120,7 @@ impl IsoKey {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Default, CollectDocs)]
 pub struct Modes {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub win: Option<DesktopModes>,
@@ -182,7 +183,7 @@ pub enum Mode {
 
 /// A layout is defined as a file by the name <locale>.yaml or <locale>.<target>.yaml, and lives in the
 /// locales/ directory in the kbdgen project bundle.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default, CollectDocs)]
 pub struct Layout {
     /// The display names for the layout, keyed by locale.
     #[serde(rename = "displayNames")]
@@ -235,7 +236,7 @@ impl Layout {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Default, CollectDocs)]
 pub struct LayoutTarget {
     #[serde(skip_serializing_if = "Option::is_none")]
     win: Option<LayoutTargetWindows>,
@@ -255,7 +256,7 @@ pub struct LayoutTarget {
     mobile: Option<yaml::Value>,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
 pub struct LayoutTargetWindows {
     /// The actual locale within Windows, as per their broken ISO 639-3 scheme or secret hardcoded lists.
     pub locale: String,
@@ -269,7 +270,7 @@ pub struct LayoutTargetWindows {
     pub id: Option<String>,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
 pub struct LayoutTargetIOS {
     /// Minimum SDK can be specified for a specific layout
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -277,7 +278,7 @@ pub struct LayoutTargetIOS {
     pub legacy_name: Option<String>,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
 pub struct LayoutTargetAndroid {
     /// Minimum SDK can be specified for a specific layout
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -293,7 +294,7 @@ pub struct LayoutTargetAndroid {
     pub legacy_name: Option<String>,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
 pub struct TargetAndroid {
     pub version: String,
 
@@ -329,7 +330,7 @@ pub struct TargetAndroid {
     pub key_alias: Option<String>,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
 pub struct TargetIOS {
     pub version: String,
 
@@ -364,7 +365,7 @@ pub struct TargetIOS {
     pub chfst: Option<bool>,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
 pub struct TargetWindows {
     pub version: String,
 
@@ -392,7 +393,7 @@ pub struct TargetWindows {
     pub readme_path: Option<String>,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
 pub struct TargetMacOS {
     pub version: String,
 
@@ -416,7 +417,7 @@ pub struct TargetMacOS {
     pub code_sign_id: Option<String>,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
 pub struct TargetChrome {
     pub version: String,
     pub build: u32,
@@ -425,13 +426,13 @@ pub struct TargetChrome {
     pub app_id: String,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
 pub struct TargetX11 {
     pub version: String,
     pub build: u32,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
 pub struct TargetMim {
     pub language_code: String,
     pub description: Option<String>,

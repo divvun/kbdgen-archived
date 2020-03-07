@@ -7,6 +7,7 @@ use serde::{
 };
 use shrinkwraprs::Shrinkwrap;
 use snafu::Snafu;
+use derive_collect_docs::CollectDocs;
 use std::{collections::BTreeMap, fmt, str::FromStr};
 
 /// Map of keys on a desktop keyboard
@@ -19,7 +20,7 @@ use std::{collections::BTreeMap, fmt, str::FromStr};
 ///
 /// We will try to serialize everything that is more than half of a full map as
 /// string-based key map; other sizes will be regular maps in YAML.
-#[derive(Debug, Clone, PartialEq, Eq, Shrinkwrap)]
+#[derive(Debug, Clone, PartialEq, Eq, Shrinkwrap, CollectDocs)]
 pub struct DesktopKeyMap(pub(crate) BTreeMap<IsoKey, keys::KeyValue>);
 
 impl From<BTreeMap<IsoKey, keys::KeyValue>> for DesktopKeyMap {
@@ -147,7 +148,7 @@ pub enum Error {
     },
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, CollectDocs)]
 pub struct MobileKeyMap(pub(crate) Vec<Vec<String>>);
 
 impl MobileKeyMap {

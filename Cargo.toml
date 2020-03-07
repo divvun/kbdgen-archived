@@ -13,6 +13,7 @@ repository = "https://github.com/divvun/kbdgen"
 pyembed = { path = "pyembed", optional = true}
 py-language-tags = { path = "py-language-tags", optional = true}
 py-logger = { path = "py-logger", optional = true}
+derive-collect-docs = { path = "derive-collect-docs" }
 
 serde = { version = "1.0.103", features = ["derive"] }
 serde_yaml = { version = "0.8.9", git = "https://github.com/killercup/serde-yaml/", branch = "feature/multiline-strings" }
