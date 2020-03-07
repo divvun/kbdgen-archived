@@ -39,9 +39,11 @@ include::convert.adoc[leveloffset=+1]
 
 include::install.adoc[leveloffset=+1]
 
-// == Quickstart
-// include::quickstart.adoc[]
+== kbdgen file structure overview
 
-include::files/index.adoc[leveloffset=+1]
+include::files/index.adoc[leveloffset=+2]
 
-include::targets/index.adoc[leveloffset=+1]
+include::targets/index.adoc[leveloffset=+2]
+
+
+include::reference.adoc[leveloffset=+1]
