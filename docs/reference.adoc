@@ -13,7 +13,6 @@ you can follow the links to reach each structure.
 include::generated/DeriveOptions.adoc[leveloffset=+1]
 include::generated/DesktopKeyMap.adoc[leveloffset=+1]
 include::generated/DesktopModes.adoc[leveloffset=+1]
-include::generated/KeyValue.adoc[leveloffset=+1]
 include::generated/Layout.adoc[leveloffset=+1]
 include::generated/LayoutStrings.adoc[leveloffset=+1]
 include::generated/LayoutTarget.adoc[leveloffset=+1]
