@@ -1,5 +1,14 @@
 = Project file structure reference
-:toc:
+
+The following is a complete reference of the structure
+used internally by `kbdgen`
+to read and write `.kbdgen` bundles.
+
+Due to the auto-generated nature of this section,
+the structures are listed in alphabetical order
+even though they produce the nested files in the bundle.
+Starting with <<ProjectBundle>>,
+you can follow the links to reach each structure.
 
 include::generated/DeriveOptions.adoc[leveloffset=+1]
 include::generated/DesktopKeyMap.adoc[leveloffset=+1]
