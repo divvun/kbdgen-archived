@@ -1,4 +1,4 @@
-use pyembed::{default_python_config, ExtensionModule, MainPythonInterpreter};
+#[cfg(feature="py")] use pyembed::{default_python_config, ExtensionModule, MainPythonInterpreter};
 use std::path::PathBuf;
 use structopt::StructOpt;
 use structopt::clap::AppSettings::*;
@@ -475,6 +475,13 @@ impl BuildCommands {
     }
 }
 
+#[cfg(not(feature="py"))]
+fn launch_py_kbdgen(args: &[&str]) -> i32 {
+    log::error!("compiled without kbgen-py support");
+    1
+}
+
+#[cfg(feature="py")]
 fn launch_py_kbdgen(args: &[&str]) -> i32 {
     // Load the default Python configuration as derived by the PyOxidizer config
     // file used at build time.
