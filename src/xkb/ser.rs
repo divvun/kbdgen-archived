@@ -19,7 +19,7 @@ impl ToXkb for Symbols {
             group.write_xkb(&mut inner)?;
         }
 
-        writeln!(w, r#"}}"#)?;
+        writeln!(w, r#"}};"#)?;
         writeln!(w)?;
 
         Ok(())
