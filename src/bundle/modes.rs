@@ -1,8 +1,7 @@
-use derive_collect_docs::CollectDocs;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-#[derive(Serialize, Deserialize, CollectDocs)]
+#[derive(Serialize, Deserialize)]
 pub struct Mobile<T> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default: Option<T>,
@@ -11,7 +10,7 @@ pub struct Mobile<T> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-#[derive(Serialize, Deserialize, CollectDocs)]
+#[derive(Serialize, Deserialize)]
 pub struct Desktop<T> {
     #[serde(rename = "default", skip_serializing_if = "Option::is_none")]
     pub default: Option<T>,

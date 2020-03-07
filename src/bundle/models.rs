@@ -8,20 +8,43 @@ use strum_macros::{Display, EnumIter, EnumString};
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
 pub struct ProjectDesc {
+    /// The name string for the project. For mobile keyboards, this is the title of the app.
     pub name: String,
+    /// The description of the project.
     pub description: String,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default, CollectDocs)]
 pub struct Project {
+    /// Strings for describing the project.
+    ///
+    /// This is a map from a language code (ISO 639-1 or ISO 639-3) to a project
+    /// description in that language. If a language has both an ISO 639-1 or ISO
+    /// 639-3 code, prefer the 639-1 variant for better support.
+    ///
+    /// The project description must be defined for at least the `en` locale,
+    /// and preferably also for each well-supported locale that you expect to
+    /// support.
+    ///
+    /// .Example
+    /// ```yaml
+    /// locales:
+    ///   en:
+    ///     name: My Keyboard Project
+    ///     description: A keyboard supporting zero languages.
+    /// ```
     pub locales: BTreeMap<String, ProjectDesc>,
+    /// The primary author(s)
     pub author: String,
+    /// One email address to contact the author(s) of the project
     pub email: String,
+    /// The copyright string to be used where and if necessary.
     pub copyright: String,
+    /// The associated organisation. Put author here too if no organisation.
     pub organisation: String,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
 pub struct LayoutStrings {
     pub space: String,
 
@@ -29,7 +52,9 @@ pub struct LayoutStrings {
     pub return_: String,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+/// Derive options
+// TODO: Add documentation
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
 pub struct DeriveOptions {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub transforms: Option<bool>,
@@ -120,23 +145,30 @@ impl IsoKey {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 #[derive(Serialize, Deserialize, Default, CollectDocs)]
 pub struct Modes {
+    /// Windows
     #[serde(skip_serializing_if = "Option::is_none")]
     pub win: Option<DesktopModes>,
+    // macOS
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mac: Option<DesktopModes>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    /// iOS, used for both iPhone and iPad keyboards
     pub ios: Option<MobileModes>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub android: Option<MobileModes>,
+    /// ChromeOS (used on Chrome Books)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub chrome: Option<DesktopModes>,
+    /// Linux (X11)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub x11: Option<DesktopModes>,
+    /// Desktop default mode
     #[serde(skip_serializing_if = "Option::is_none")]
     pub desktop: Option<DesktopModes>,
+    /// Mobile default mode
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mobile: Option<MobileModes>,
 }
@@ -172,11 +204,18 @@ impl Modes {
     }
 }
 
+/// Maps modifier combination to map of keys
+///
+/// Both mobile-default and mobile-shift modes are required.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
 #[derive(Shrinkwrap, CollectDocs)]
 pub struct MobileModes(pub BTreeMap<String, MobileKeyMap>);
 
 /// Maps modifier combination to map of keys
+///
+/// In general only the iso-default and iso-shift modes are strictly required.
+/// Some targets require other modes, and the tool will inform you if they are
+/// missing.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
 #[derive(Shrinkwrap, CollectDocs)]
 pub struct DesktopModes(pub BTreeMap<String, DesktopKeyMap>);
@@ -186,18 +225,30 @@ pub enum Mode {
     Desktop(DesktopModes),
 }
 
-/// A layout is defined as a file by the name <locale>.yaml or <locale>.<target>.yaml, and lives in the
-/// locales/ directory in the kbdgen project bundle.
+/// A layout is defined as a file by the name `<locale>.yaml` and lives in the
+/// `locales/` directory in the kbdgen project bundle.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default, CollectDocs)]
 pub struct Layout {
     /// The display names for the layout, keyed by locale.
+    ///
+    /// A valid locale is any ISO 639-1 or 639-3 code. If a language has both,
+    /// prefer the 639-1 variant for better support.
+    ///
+    /// It must be defined for at least the `en` locale, and preferably also for
+    /// each well-supported locale that you expect to support.
     #[serde(rename = "displayNames")]
     pub display_names: BTreeMap<String, String>,
 
     /// The different modes.
     pub modes: Modes,
 
-    /// The decimal key. Nominally a '.' or ','.
+    /// Specify the decimal separator for the given locale. Required for the
+    /// numpad keys on some targets. Normally a '.' or ','.
+    ///
+    /// .Example
+    /// ```yaml
+    /// decimal: ","
+    /// ```
     #[serde(skip_serializing_if = "Option::is_none")]
     pub decimal: Option<String>,
 
@@ -205,20 +256,59 @@ pub struct Layout {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub space: Option<BTreeMap<String, BTreeMap<String, String>>>,
 
-    /// Dead keys present, keyed by layer code.
+    /// Defines the dead keys on the given `<mode>`, which is the key for the
+    /// mode from the modes property.
+    ///
+    /// It is recommended that the keys of this array are wrapped in quotes to
+    /// make diaeresis and other hard to see glyphs maintainable for future
+    /// developers, including yourself.
+    ///
+    /// .Example
+    /// ```yaml
+    /// deadKeys:
+    ///   iso-default: ["`"]
+    /// ```
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "deadKeys")]
     pub dead_keys: Option<BTreeMap<String, BTreeMap<String, Vec<String>>>>,
 
-    /// The items to be shown when a key is long-pressed. Values are space separated in one string.
+    /// The items to be shown when a key is long-pressed. Values are space
+    /// separated in one string.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub longpress: Option<BTreeMap<String, String>>,
 
-    /// The chain of inputs necessary to provide an output after a deadkey is pressed. Keyed by each individual input.
+    /// The chain of inputs necessary to provide an output after a deadkey is
+    /// pressed. Keyed by each individual input.
+    ///
+    /// Always includes deadkeys but some targets support key sequencing
+    /// (replacing glyphs based on input pattern) — this behaviour is target
+    /// dependent.
+    ///
+    /// This map may be repeatedly nested until a terminal is reached. If a
+    /// sequence is short-circuited, the `" "` is used as the fallback output in
+    /// all cases.
+    ///
+    /// .Example
+    /// ```yaml
+    /// transforms:
+    ///   a:
+    ///    ' ': 'a'
+    ///    '`': 'à'
+    /// ```
     #[serde(skip_serializing_if = "Option::is_none")]
     pub transforms: Option<BTreeMap<String, BTreeMap<String, String>>>,
 
     /// Strings to be shown on some OSes
+    ///
+    /// Currently, they are used for specifying strings to be shown on the space
+    /// and return keys on mobile targets.
+    ///
+    /// .Example
+    /// ```yaml
+    /// strings:
+    ///   space: space
+    ///   return: return
+    /// ```
     #[serde(skip_serializing_if = "Option::is_none")]
     pub strings: Option<LayoutStrings>,
 
@@ -226,7 +316,17 @@ pub struct Layout {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub derive: Option<DeriveOptions>,
 
-    /// Targets...
+    /// A map of target-specific customisation properties.
+    ///
+    /// Key is the code for the target. Only necessary if you need to set a
+    /// target-specific property.
+    ///
+    /// .Example
+    /// ```yaml
+    /// targets:
+    ///   win:
+    ///     locale: sma-Latn-NO
+    /// ```
     #[serde(skip_serializing_if = "Option::is_none")]
     pub targets: Option<LayoutTarget>,
 }
@@ -240,6 +340,7 @@ impl Layout {
     }
 }
 
+/// Targets for settings per layout
 #[derive(Debug, Clone, PartialEq)]
 #[derive(Serialize, Deserialize, Default, CollectDocs)]
 pub struct LayoutTarget {
@@ -263,10 +364,12 @@ pub struct LayoutTarget {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
 pub struct LayoutTargetWindows {
-    /// The actual locale within Windows, as per their broken ISO 639-3 scheme or secret hardcoded lists.
+    /// The actual locale within Windows, as per their broken ISO 639-3 scheme
+    /// or secret hardcoded lists.
     pub locale: String,
 
-    /// The language name to be cached, in order to try to mask the ugly ISO code name that often shows.
+    /// The language name to be cached, in order to try to mask the ugly ISO
+    /// code name that often shows.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "languageName")]
     pub language_name: Option<String>,
@@ -285,7 +388,19 @@ pub struct LayoutTargetIOS {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
 pub struct LayoutTargetAndroid {
-    /// Minimum SDK can be specified for a specific layout
+    /// The API level that is the minimum supported for a keyboard. Useful for
+    /// limiting access to a keyboard where it is known several glyphs are
+    /// missing on older devices.
+    ///
+    /// https://source.android.com/source/build-numbers.html[See the Android documentation for API versions compared to OS version].
+    ///
+    /// NOTE: The lowest API supported by this keyboard is API 16, but it may
+    /// work on older variants.
+    ///
+    /// .Example
+    /// ```yaml
+    /// minimumSdk: 16
+    /// ```
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "minimumSdk")]
     pub minimum_sdk: Option<u32>,
@@ -305,9 +420,22 @@ pub struct TargetAndroid {
 
     pub build: u32,
 
+    /// The reverse-domain notation ID for the package
+    ///
+    /// .Example
+    /// ```yaml
+    /// packageId: com.example.mypackageid
+    /// ```
     #[serde(rename = "packageId")]
     pub package_id: String,
 
+    /// Path to the icon file to be converted into the various sizes required by
+    /// Android, relative to project root.
+    ///
+    /// .Example
+    /// ```yaml
+    /// icon: icons/icon.png
+    /// ```
     #[serde(skip_serializing_if = "Option::is_none")]
     pub icon: Option<String>,
 
@@ -326,10 +454,23 @@ pub struct TargetAndroid {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub chfst: Option<bool>,
 
+    /// Path to the Android keystore (see <<Generating keystores>> section for
+    /// more information)
+    ///
+    /// .Example
+    /// ```yaml
+    /// keyStore: my.keystore
+    /// ```
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "keyStore")]
     pub key_store: Option<String>,
 
+    /// The key to use within the provided keystore
+    ///
+    /// .Example
+    /// ```yaml
+    /// keyAlias: myprojectkey
+    /// ```
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "keyAlias")]
     pub key_alias: Option<String>,
