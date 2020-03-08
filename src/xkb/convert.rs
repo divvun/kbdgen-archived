@@ -47,7 +47,7 @@ impl XkbFile {
     }
 }
 
-fn collect_keys(key_map: &DesktopModes, default: Option<&Symbols>) -> Result<Vec<Key>, Error> {
+fn collect_keys(key_map: &DesktopModes, _default: Option<&Symbols>) -> Result<Vec<Key>, Error> {
     let default = key_map.get("default").cloned().context(NoDefaultKeyMap)?;
     let shift = key_map.get("shift").cloned().unwrap_or_default();
     let alt = key_map.get("alt").cloned().unwrap_or_default();

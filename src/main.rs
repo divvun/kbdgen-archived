@@ -1,7 +1,8 @@
-#[cfg(feature="py")] use pyembed::{default_python_config, ExtensionModule, MainPythonInterpreter};
+#[cfg(feature = "py")]
+use pyembed::{default_python_config, ExtensionModule, MainPythonInterpreter};
 use std::path::PathBuf;
-use structopt::StructOpt;
 use structopt::clap::AppSettings::*;
+use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
 enum IOSCommands {
@@ -183,7 +184,10 @@ enum NewCommands {
 
 #[derive(Debug, StructOpt)]
 enum Commands {
-    #[structopt(about = "Generate output for a given .kbdgen bundle", setting(DisableHelpSubcommand))]
+    #[structopt(
+        about = "Generate output for a given .kbdgen bundle",
+        setting(DisableHelpSubcommand)
+    )]
     Build {
         #[structopt(long = "github-username")]
         github_username: Option<String>,
@@ -194,7 +198,10 @@ enum Commands {
         #[structopt(subcommand)]
         command: BuildCommands,
     },
-    #[structopt(about = "Generate new bundles or layout templates", setting(DisableHelpSubcommand))]
+    #[structopt(
+        about = "Generate new bundles or layout templates",
+        setting(DisableHelpSubcommand)
+    )]
     New {
         #[structopt(subcommand)]
         command: NewCommands,
@@ -407,22 +414,8 @@ impl BuildCommands {
                 args.push(&*project_path.to_str().unwrap());
                 args
             }
-            M17n {
-                in_out:
-                    InOutPaths {
-                        output_path,
-                        project_path,
-                    },
-                build_mode: BuildMode { release, ci },
-            } => return Err(From::from("M17n isn't supported in Python".to_string())),
-            X11 {
-                in_out:
-                    InOutPaths {
-                        output_path,
-                        project_path,
-                    },
-                build_mode: BuildMode { release, ci },
-            } => return Err(From::from("X11 isn't supported in Python".to_string())),
+            M17n { .. } => return Err(From::from("M17n isn't supported in Python".to_string())),
+            X11 { .. } => return Err(From::from("X11 isn't supported in Python".to_string())),
             Qr {
                 in_out:
                     InOutPaths {
@@ -475,13 +468,13 @@ impl BuildCommands {
     }
 }
 
-#[cfg(not(feature="py"))]
-fn launch_py_kbdgen(args: &[&str]) -> i32 {
+#[cfg(not(feature = "py"))]
+fn launch_py_kbdgen(_args: &[&str]) -> i32 {
     log::error!("compiled without kbgen-py support");
     1
 }
 
-#[cfg(feature="py")]
+#[cfg(feature = "py")]
 fn launch_py_kbdgen(args: &[&str]) -> i32 {
     // Load the default Python configuration as derived by the PyOxidizer config
     // file used at build time.
@@ -564,7 +557,7 @@ fn main() {
                         output_path,
                         project_path,
                     },
-                build_mode: BuildMode { release, ci },
+                build_mode: BuildMode { .. },
                 standalone,
             } => kbdgen::cli::to_xkb::kbdgen_to_xkb(
                 &project_path,
@@ -596,10 +589,7 @@ fn main() {
                     std::process::exit(1);
                 }
             },
-            NewCommands::Layout {
-                project_path,
-                output_path,
-            } => {
+            NewCommands::Layout { .. } => {
                 eprintln!("Not yet supported.");
                 std::process::exit(1)
             }

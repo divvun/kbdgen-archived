@@ -8,7 +8,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-pub fn kbdgen_to_xkb(input: &Path, output: &Path, options: &Options) -> Result<(), Error> {
+pub fn kbdgen_to_xkb(input: &Path, output: &Path, _options: &Options) -> Result<(), Error> {
     let bundle = ProjectBundle::load(input).context(CannotLoad)?;
     if log_enabled!(log::Level::Debug) {
         debug!("Bundle `{}` loaded", input.display());
