@@ -5,7 +5,7 @@ use serde::{de::Deserializer, ser::Serializer, Deserialize, Serialize};
 use shrinkwraprs::Shrinkwrap;
 use snafu::Snafu;
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Shrinkwrap, CollectDocs)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Shrinkwrap)]
 pub struct KeyValue(pub Option<String>);
 
 impl From<Option<String>> for KeyValue {

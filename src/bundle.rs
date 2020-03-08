@@ -35,6 +35,28 @@ pub struct Targets {
 }
 
 /// A `.kbdgen` bundle is a directory with a specific structure.
+///
+/// Please note that the fields listed here are built from the contents of the
+/// files in the bundle directory.
+///
+/// .Example of the structure of a `.kbdgen` bundle
+/// ```
+/// smj.kbdgen
+/// ├── layouts
+/// │  ├── smj-NO.yaml
+/// │  └── smj-SE.yaml
+/// ├── project.yaml
+/// ├── resources
+/// │  └── mac
+/// │     ├── background.png
+/// │     ├── icon.smj-NO.png
+/// │     └── icon.smj-SE.png
+/// └── targets
+///    ├── android.yaml
+///    ├── ios.yaml
+///    ├── mac.yaml
+///    └── win.yaml
+/// ```
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, CollectDocs)]
 pub struct ProjectBundle {
     /// The local file system path to the `.kbdgen` bundle.
