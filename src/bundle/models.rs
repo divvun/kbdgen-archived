@@ -22,7 +22,9 @@ pub struct ProjectDesc {
 }
 
 /// Meta data for the project, stored in the `project.yaml` file.
-#[example(yaml, r#"
+#[example(
+    yaml,
+    r#"
 locales:
   en:
     name: "Keyboard Project"
@@ -34,7 +36,8 @@ author: Example Person
 email: person@place.example
 organisation: Example Corp
 copyright: Copyright © 2017 Example Corpa
-"#)]
+"#
+)]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default, CollectDocs)]
 pub struct Project {
     /// Strings for describing the project.
@@ -66,10 +69,20 @@ pub struct Project {
     pub organisation: String,
 }
 
+/// Strings to be shown on some OSes
+#[example(
+    yaml,
+    r#"
+    space: space
+    return: return
+    "#
+)]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
 pub struct LayoutStrings {
+    #[example(yaml, r#"space: gasska"#)]
     pub space: String,
 
+    #[example(yaml, r#"return: linnjamålssom"#)]
     #[serde(rename = "return")]
     pub return_: String,
 }
@@ -174,7 +187,9 @@ impl IsoKey {
 ///
 /// NOTE: Each target is either described by <<DesktopModes>>, or by
 /// <<MobileModes>>.
-#[example(yaml, r#"
+#[example(
+    yaml,
+    r#"
 modes:
   mac:
     default: |
@@ -198,7 +213,8 @@ modes:
         Á Š E R T Y U I O P Å Ŋ
         A S D F G H J K L Ö Ä Đ
       Ž Z Č C V B N M ; : _
-"#)]
+"#
+)]
 #[derive(Debug, Clone, PartialEq)]
 #[derive(Serialize, Deserialize, Default, CollectDocs)]
 pub struct Modes {
@@ -270,7 +286,9 @@ pub struct MobileModes(pub BTreeMap<String, MobileKeyMap>);
 /// In general only the `default` and `shift` modes are strictly required.
 /// Some targets require other modes, and the tool will inform you if they are
 /// missing.
-#[example(yaml, r#"
+#[example(
+    yaml,
+    r#"
 default: |
   ' 1 2 3 4 5 6 7 8 9 0 + ´
     á š e r t y u i o p å ŋ
@@ -286,7 +304,8 @@ cmd+shift: |
     Q W E R T Y U I O P Å ^
     A S D F G H J K L Ö Ä *
   > Z X C V B N M ; : _
-"#)]
+"#
+)]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
 #[derive(Shrinkwrap, CollectDocs)]
 pub struct DesktopModes(pub BTreeMap<String, DesktopKeyMap>);
@@ -307,10 +326,41 @@ pub struct Layout {
     ///
     /// It must be defined for at least the `en` locale, and preferably also for
     /// each well-supported locale that you expect to support.
+    #[example(
+        yaml,
+        r#"
+        displayNames:
+          en: Julev Sami (Sweden)
+          smj: Julevsámegiella (Svierik)
+          smj-SE: Julevsámegiella (Svierik)
+    "#
+    )]
     #[serde(rename = "displayNames")]
     pub display_names: BTreeMap<String, String>,
 
     /// The different modes.
+    #[example(
+        yaml,
+        r#"
+        modes:
+          mobile:
+            default: |
+              á w e r t y u i o p å
+              a s d f g h j k l ö ä
+                 z x c v b n m ŋ
+            shift: |
+              Á W E R T Y U I O P Å
+              A S D F G H J K L Ö Ä
+                 Z X C V B N M Ŋ
+          mac:
+            default: |
+              § 1 2 3 4 5 6 7 8 9 0 + ´
+                á w e r t y u i o p å ŋ
+                a s d f g h j k l ö ä '
+              < z x c v b n m , . -
+            # ...
+    "#
+    )]
     pub modes: Modes,
 
     /// Specify the decimal separator for the given locale. Required for the
@@ -320,6 +370,15 @@ pub struct Layout {
     pub decimal: Option<String>,
 
     /// An override for space keys on some OSes. Keyed by target.
+    #[example(
+        yaml,
+        r#"
+        space:
+          mac:
+            caps: '\u{A0}'
+            alt: '\u{A0}'
+    "#
+    )]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub space: Option<BTreeMap<String, BTreeMap<String, String>>>,
 
@@ -348,6 +407,15 @@ pub struct Layout {
 
     /// The items to be shown when a key is long-pressed. Values are space
     /// separated in one string.
+    #[example(
+        yaml,
+        r#"
+        deadKeys:
+          mac:
+            default: ["`"]
+            shift: ['`']
+    "#
+    )]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub longpress: Option<BTreeMap<String, String>>,
 
@@ -364,10 +432,11 @@ pub struct Layout {
     #[example(
         yaml,
         r#"
-        transforms:
-          a:
-           ' ': 'a'
-           '`': 'à'
+        longpress:
+          A: Æ Ä Å Â
+          Á: Q
+          C: Č
+          D: Đ
     "#
     )]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -423,18 +492,39 @@ impl Layout {
 pub struct LayoutTarget {
     #[serde(skip_serializing_if = "Option::is_none")]
     win: Option<LayoutTargetWindows>,
+
     #[serde(skip_serializing_if = "Option::is_none")]
     mac: Option<YamlValue>,
+
     #[serde(skip_serializing_if = "Option::is_none")]
     ios: Option<LayoutTargetIOS>,
+
+    #[example(
+        yaml,
+        r#"
+        android:
+          legacyName: kpv"#
+    )]
     #[serde(skip_serializing_if = "Option::is_none")]
     android: Option<LayoutTargetAndroid>,
+
+    #[example(
+        yaml,
+        r#"
+        chrome:
+          locale: sv
+          xkbLayout: se
+    "#
+    )]
     #[serde(skip_serializing_if = "Option::is_none")]
     chrome: Option<YamlValue>,
+
     #[serde(skip_serializing_if = "Option::is_none")]
     x11: Option<YamlValue>,
+
     #[serde(skip_serializing_if = "Option::is_none")]
     desktop: Option<YamlValue>,
+
     #[serde(skip_serializing_if = "Option::is_none")]
     mobile: Option<YamlValue>,
 }
@@ -533,18 +623,24 @@ pub struct TargetAndroid {
     pub key_alias: Option<String>,
 }
 
+// TODO: Keyboards have a provisioningProfileId -- add this here?
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
 pub struct TargetIOS {
+    #[example(yaml, r#"version: 0.1.0"#)]
     pub version: String,
 
+    #[example(yaml, r#"build: 1"#)]
     pub build: u32,
 
+    #[example(yaml, r#"packageId: com.example.mypackageid"#)]
     #[serde(rename = "packageId")]
     pub package_id: String,
 
+    #[example(yaml, r#"icon: icons/icon.png"#)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub icon: Option<String>,
 
+    #[example(yaml, r#"bundleName: Fancy Example Keyboards"#)]
     #[serde(rename = "bundleName")]
     pub bundle_name: String,
 
@@ -552,6 +648,10 @@ pub struct TargetIOS {
     #[serde(rename = "teamId")]
     pub team_id: Option<String>,
 
+    #[example(
+        yaml,
+        r#"codeSignId: "iPhone Distribution: The University of Tromso (000ABC000)""#
+    )]
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "codeSignId")]
     pub code_sign_id: Option<String>,
@@ -570,13 +670,17 @@ pub struct TargetIOS {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
 pub struct TargetWindows {
+    #[example(yaml, r#"version: 0.2.0"#)]
     pub version: String,
 
+    #[example(yaml, r#"appName: Fancy Example Keyboards"#)]
     #[serde(rename = "appName")]
     pub app_name: String,
 
+    #[example(yaml, r#"url: 'http://divvun.no'"#)]
     pub url: String,
 
+    #[example(yaml, r#"uuid: 0D18406F-1209-43EF-B18F-58961BC8E2E3"#)]
     pub uuid: String,
 
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -596,18 +700,24 @@ pub struct TargetWindows {
     pub readme_path: Option<String>,
 }
 
+// TODO: Keyboards have a provisioningProfileId -- add this here?
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
 pub struct TargetMacOS {
+    #[example(yaml, r#"version: 0.1.6"#)]
     pub version: String,
 
+    #[example(yaml, r#"build: 12"#)]
     pub build: u32,
 
+    #[example(yaml, r#"packageId: com.example.mypackageid"#)]
     #[serde(rename = "packageId")]
     pub package_id: String,
 
+    #[example(yaml, r#"icon: icons/icon.png"#)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub icon: Option<String>,
 
+    #[example(yaml, r#"bundleName: Fancy Example Keyboards"#)]
     #[serde(rename = "bundleName")]
     pub bundle_name: String,
 
@@ -615,6 +725,10 @@ pub struct TargetMacOS {
     #[serde(rename = "teamId")]
     pub team_id: Option<String>,
 
+    #[example(
+        yaml,
+        r#"codeSignId: "iPhone Distribution: The University of Tromso (000ABC000)""#
+    )]
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "codeSignId")]
     pub code_sign_id: Option<String>,
