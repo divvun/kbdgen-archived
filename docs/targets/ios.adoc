@@ -28,49 +28,31 @@ cargo install cargo-lipo
 // = Installation and environment configuration
 // TODO: will be needed once hfst-ospell-rust is integrated
 
-
 == Project-level configuration and properties
 
-CAUTION: This section is incomplete. Please check the `examples/` directory in the `kbdgen` git repository
-for guidance.
+NOTE: For a list of all supported properties of the iOS target files, see <<TargetIOS>> in the reference section below.
 
-As described in the Projects chapter, some targets may require project-level
-properties in order to generate the target.
-
-.iOS project properties
-[%autowidth.spread, cols="m,d,d,a", options="header"]
-|===
-|Property
-|Required
-|Description
-|Example
-
-|===
+.Example of the targets section for iOS
+[source,yaml]
+----
+codeSignId: "iPhone Distribution: The University of Tromso (666000999)"
+provisioningProfileId: Test
+packageId: com.example.mypackageid
+bundleName: New Fancy Keyboards
+version: 0.1.0
+build: 1
+----
 
 == Layout-level configuration and properties
 
-CAUTION: This section is incomplete. Please check the `examples/` directory in the `kbdgen` git repository
-for guidance.
+NOTE: See <<LayoutTargetIOS>> in the reference section below.
 
-.iOS layout properties
-[%autowidth.spread, cols="m,d,d,a", options="header"]
-|===
-|Property
-|Required
-|Description
-|Example
-
-|===
-
-.Example
+.Example of the layout-level targets section for iOS
 [source,yaml]
 ----
 targets:
   ios:
-    bundleName: "Sami Keyboards"
-    packageId: com.example.keyboards.sami
-    icon: any.png
-    aboutDir: path/to/about/files # Should contain {locale}.txt files
+    legacyName: northern_sami_keyboa
 ----
 
 == Testing

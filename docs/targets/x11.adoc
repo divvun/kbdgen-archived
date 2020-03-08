@@ -1,5 +1,13 @@
 = X11
 
+The `x11` target outputs an X11-compatible xkb file.
+
 CAUTION: The X11 output should be considered experimental. It requires modifying global X11 files, and might eat your cat.
 
-The `x11` target outputs an X11-compatible xkb file. It has no special configuration and outputs the generated file to the `x11/` directory.
+== Project-level configuration and properties
+
+NOTE: For a list of all supported properties of the Android target files, see <<TargetX11>> in the reference section below.
+
+== Layout-level configuration and properties
+
+Currently none.

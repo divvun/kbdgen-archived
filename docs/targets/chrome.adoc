@@ -1,3 +1,20 @@
 = Chrome
 
-TODO
+// TODO: Add description
+
+== Project-level configuration and properties
+
+NOTE: See <<TargetChrome>> in the reference section below.
+
+== Layout-level configuration and properties
+
+NOTE: Currently unspecified.
+
+.Example of the layout-level targets section for Chrome
+[source,yaml]
+----
+targets:
+  chrome:
+    locale: "nb"
+    xkbLayout: "no"
+----

@@ -11,95 +11,28 @@ Android keyboard, we only support using our custom-built Docker image which incl
 all the Rust and Android build tools and dependencies necessary to deliver a functioning
 keyboard.
 
+[source,console]
 -----
 docker pull divvun/kbdgen-android
 -----
 
 == Project-level configuration and properties
 
-// TODO: link to projects chapter
-As described in the Projects chapter, some targets may require project-level
-properties in order to generate the target.
-
-.Android project properties
-[%autowidth.spread, cols="m,d,d,a", options="header"]
-|===
-|Property
-|Required
-|Description
-|Example
-
-|packageId
-|Yes
-|The reverse-domain notation ID for the package
-|[source,yaml]
-packageId: com.example.mypackageid
-
-|icon
-|No (but recommended)
-|Path to the icon file to be converted into the various
-sizes required by Android, relative to project root.
-|[source,yaml]
-icon: icons/icon.png
-
-|keyStore
-|No (Yes for release builds)
-|Path to the Android keystore (see "Generating keystores" section for more information)
-|[source,yaml]
-keyStore: my.keystore
-
-|keyAlias
-|No (Yes for release builds)
-|The key to use within the provided keystore
-|[source,yaml]
-keyAlias: myprojectkey
-|===
+NOTE: For a list of all supported properties of the Android target files, see <<TargetAndroid>> in the reference section below.
 
 .A full example of the targets section for Android
 [source,yaml]
 ----
-targets:
-  android:
-    packageId: com.example.amazing.keyboards
-    icon: icon.png
-    keyStore: path/to/my/keystore
-    keyAlias: alias_specified_during_generation
+packageId: com.example.mykeyboard
+keyStore: /secret/dir/safe.keystore
+keyAlias: fancy_keyboard
+version: 0.1.0
+build: 1
 ----
 
 == Layout-level configuration and properties
 
-.Android layout properties
-[%autowidth.spread, cols="m,d,d,a", options="header"]
-|===
-|Property
-|Required
-|Description
-|Example
-
-|minimumSdk
-|No
-|The API level that is the minimum supported for a keyboard. Useful for
-limiting access to a keyboard where it is known several glyphs are missing on
-older devices.
-
-https://source.android.com/source/build-numbers.html[See the Android documentation for API versions compared
-to OS version].
-
-NOTE: The lowest API supported by this keyboard is API 16, but it _may_ work
-on older variants.
-
-|[source,yaml]
-minimumSdk: 16
-
-|showNumberHints
-|No (defaults to `true`)
-|Defines whether or not the number hints are shown on the top row of keys.
-
-When set to `false`, no number hints will be shown and any long press keys
-defined will be shown in their place.
-|[source,yaml]
-showNumberHints: true
-|===
+NOTE: See <<LayoutTargetAndroid>> in the reference section below.
 
 == Testing
 

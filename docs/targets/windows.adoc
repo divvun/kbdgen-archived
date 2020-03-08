@@ -1,5 +1,31 @@
 = Windows
 
+== Project-level configuration and properties
+
+NOTE: For a list of all supported properties of the Android target files, see <<TargetWindows>> in the reference section below.
+
+.A full example of the targets section for Android
+[source,yaml]
+----
+appName: New Fancy Keyboards
+version: 1.0.2
+url: 'http://divvun.no'
+uuid: 197FF21D-E48C-4FE8-9DF0-FB894A491C10
+build: 1
+----
+
+== Layout-level configuration and properties
+
+NOTE: See <<LayoutTargetWindows>> in the reference section below.
+
+.Example of the layout-level targets section for Chrome
+[source,yaml]
+----
+targets:
+  win:
+    locale: smj-Latn-SE
+----
+
 == Preparing build environment
 
 === Building the Windows target on Unix-like operating systems
