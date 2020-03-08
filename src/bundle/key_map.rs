@@ -1,5 +1,6 @@
 pub use crate::bundle::keys::{Error as KeyValueError, KeyValue};
 use crate::{bundle::keys, models::IsoKey};
+use derive_collect_docs::CollectDocs;
 use serde::{
     de::{self, Deserializer},
     ser::{SerializeMap, Serializer},
@@ -7,7 +8,6 @@ use serde::{
 };
 use shrinkwraprs::Shrinkwrap;
 use snafu::Snafu;
-use derive_collect_docs::CollectDocs;
 use std::{collections::BTreeMap, fmt, str::FromStr};
 
 /// Map of keys on a desktop keyboard

@@ -1,6 +1,5 @@
 use cpython::{
-    py_class, py_class_impl, py_coerce_item, py_module_initializer,
-    PyObject, PyResult, PyString,
+    py_class, py_class_impl, py_coerce_item, py_module_initializer, PyObject, PyResult, PyString,
 };
 
 py_class!(class Logger |py| {
@@ -41,13 +40,8 @@ py_class!(class Logger |py| {
     }
 });
 
-py_module_initializer!(
-    rust_logger,
-    initrust_logger,
-    PyInit_rust_logger,
-    |py, m| {
-        m.add(py, "__doc__", "Module documentation string")?;
-        m.add_class::<Logger>(py)?;
-        Ok(())
-    }
-);
+py_module_initializer!(rust_logger, initrust_logger, PyInit_rust_logger, |py, m| {
+    m.add(py, "__doc__", "Module documentation string")?;
+    m.add_class::<Logger>(py)?;
+    Ok(())
+});

@@ -143,14 +143,16 @@ pub fn select_base_locale() -> Option<(String, BTreeMap<String, Vec<String>>)> {
         .as_bytes()
         .to_owned();
 
-    std::io::stdout().write_all(&text).expect("could not write list of locales to stdout");
+    std::io::stdout()
+        .write_all(&text)
+        .expect("could not write list of locales to stdout");
     println!(); // Make a new line and flush!
-    
+
     let result = dialoguer::Input::<String>::new()
         .with_prompt("Which locale to use as base? ")
         .interact()
         .expect("no valid locale selected");
-    
+
     if locale_map.get(&result).is_none() {
         return None;
     }

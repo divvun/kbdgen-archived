@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use derive_collect_docs::CollectDocs;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[derive(Serialize, Deserialize, CollectDocs)]

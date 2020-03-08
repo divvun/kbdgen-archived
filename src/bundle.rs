@@ -1,6 +1,6 @@
+use derive_collect_docs::CollectDocs;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf};
-use derive_collect_docs::CollectDocs;
 
 pub mod models;
 

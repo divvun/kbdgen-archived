@@ -1,8 +1,7 @@
 #[cfg(feature = "py")]
 use pyembed::{default_python_config, ExtensionModule, MainPythonInterpreter};
 use std::path::PathBuf;
-use structopt::clap::AppSettings::*;
-use structopt::StructOpt;
+use structopt::{clap::AppSettings::*, StructOpt};
 
 #[derive(Debug, StructOpt)]
 enum IOSCommands {
