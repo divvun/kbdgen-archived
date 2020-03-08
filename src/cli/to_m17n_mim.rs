@@ -94,11 +94,11 @@ fn desktop_mode_to_keyboard(
     let mut rules = vec![];
     let mim_config = project.targets.mim.as_ref();
 
-    for (key_combo, mapping) in desktop {
+    for (key_combo, mapping) in &desktop.0 {
         let key_combo = if key_combo == "default" {
             vec![]
         } else {
-            Modifier::parse_keycombo(key_combo).context(CannotSerializeKeyCombo)?
+            Modifier::parse_keycombo(&key_combo).context(CannotSerializeKeyCombo)?
         };
 
         for (iso_key, key_val) in mapping.iter() {

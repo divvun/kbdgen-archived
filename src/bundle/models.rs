@@ -1,9 +1,10 @@
 use crate::{DesktopKeyMap, MobileKeyMap};
+use derive_collect_docs::CollectDocs;
 use serde::{Deserialize, Serialize};
 use serde_yaml as yaml;
+use shrinkwraprs::Shrinkwrap;
 use std::collections::BTreeMap;
 use strum_macros::{Display, EnumIter, EnumString};
-use derive_collect_docs::CollectDocs;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
 pub struct ProjectDesc {
@@ -171,10 +172,14 @@ impl Modes {
     }
 }
 
-pub type MobileModes = BTreeMap<String, MobileKeyMap>;
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Shrinkwrap, CollectDocs)]
+pub struct MobileModes(pub BTreeMap<String, MobileKeyMap>);
 
 /// Maps modifier combination to map of keys
-pub type DesktopModes = BTreeMap<String, DesktopKeyMap>;
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Shrinkwrap, CollectDocs)]
+pub struct DesktopModes(pub BTreeMap<String, DesktopKeyMap>);
 
 pub enum Mode {
     Mobile(MobileModes),
@@ -241,19 +246,19 @@ pub struct LayoutTarget {
     #[serde(skip_serializing_if = "Option::is_none")]
     win: Option<LayoutTargetWindows>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    mac: Option<yaml::Value>,
+    mac: Option<YamlValue>,
     #[serde(skip_serializing_if = "Option::is_none")]
     ios: Option<LayoutTargetIOS>,
     #[serde(skip_serializing_if = "Option::is_none")]
     android: Option<LayoutTargetAndroid>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    chrome: Option<yaml::Value>,
+    chrome: Option<YamlValue>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    x11: Option<yaml::Value>,
+    x11: Option<YamlValue>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    desktop: Option<yaml::Value>,
+    desktop: Option<YamlValue>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    mobile: Option<yaml::Value>,
+    mobile: Option<YamlValue>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
@@ -287,7 +292,7 @@ pub struct LayoutTargetAndroid {
 
     /// Styles
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub style: Option<BTreeMap<String, yaml::Value>>,
+    pub style: Option<BTreeMap<String, YamlValue>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "legacyName")]
@@ -437,3 +442,9 @@ pub struct TargetMim {
     pub language_code: String,
     pub description: Option<String>,
 }
+
+/// Opaque YAML value
+///
+/// Sorry, that means there is no further documentation on its structure here.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
+pub struct YamlValue(yaml::Value);

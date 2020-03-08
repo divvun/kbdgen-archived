@@ -108,7 +108,7 @@ impl Keyboard {
             out.insert(layer.mode, MobileKeyMap(layer.keys));
         }
 
-        out
+        MobileModes(out)
     }
 
     pub fn to_desktop_modes(&self) -> DesktopModes {
@@ -140,6 +140,6 @@ impl Keyboard {
             out.insert(mods, DesktopKeyMap(keys_out));
         }
 
-        out
+        DesktopModes(out)
     }
 }

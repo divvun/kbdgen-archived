@@ -1,6 +1,6 @@
 use crate::{
     bundle::{
-        models::{IsoKey, TargetX11},
+        models::{DesktopModes, IsoKey, TargetX11},
         KeyValue,
     },
     cli::repos::{update_repo, xkb_dir},
@@ -56,7 +56,9 @@ pub fn xkb_to_kbdgen(output: &Path, is_updating_bundle: bool) -> Result<(), Erro
 
     // Update X11 layout entry
     let mut layout = bundle.layouts.entry(locale.to_string()).or_default();
-    layout.modes.x11 = Some(keys.into_iter().map(|(k, v)| (k, v.into())).collect());
+    layout.modes.x11 = Some(DesktopModes(
+        keys.into_iter().map(|(k, v)| (k, v.into())).collect(),
+    ));
 
     // Do a neat switcheroo with possibly-None dead keys map
     let mut dead = layout.dead_keys.take().unwrap_or_default();
