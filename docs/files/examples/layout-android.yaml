@@ -1,0 +1,29 @@
+displayNames:
+  crk: nēhiyawēwin
+  en: Plains Cree
+decimal: ','
+modes:
+  android:
+    default: |
+      q w e r t y u i o p
+      a s d f g h j k l ˆ
+        z x c v b n m w
+    shift: |
+      Q W E R T Y U I O P
+      A S D F G H J K L ˆ
+        Z X C V B N M W
+longpress:
+  Á: Q
+  A: Æ Ä Å
+  Č: X
+  O: Ø Ö
+  á: q
+  a: æ ä å
+  č: x
+  o: ø ö
+strings:
+  space: ayakaskâw
+  return: askoc
+targets:
+  android:
+    legacyName: crk

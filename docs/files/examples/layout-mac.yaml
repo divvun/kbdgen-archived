@@ -1,0 +1,64 @@
+displayNames:
+  sma: Åarjelsaemien gïele (Nöörje)
+  en: South Sami (Norway)
+modes:
+  mac:
+    default: |
+      ' 1 2 3 4 5 6 7 8 9 0 + ´
+        q w e r t y u i o p å ï
+        a s d f g h j k l ö æ @
+      < z x c v b n m , . -
+    shift: |
+      § ! " # $ % & / ( ) = ? `
+        Q W E R T Y U I O P Å Ï
+        A S D F G H J K L Ö Æ *
+      > Z X C V B N M ; : _
+    caps: |
+      ' 1 2 3 4 5 6 7 8 9 0 + ´
+        Q W E R T Y U I O P Å Ï
+        A S D F G H J K L Ö Æ @
+      < Z X C V B N M , . -
+    alt: |
+      ' © ™ £ € ‸ § |             [ ] ˝ ± \u{301}
+        • , é ˇ þ ˘ ˀ             ʼ œ ˙ ˚ ¨
+        ¯ ß ð ƒ . ˛ \u{A0}\u{330} ˜ - ø ä '
+      ≤ ÷ ˍ ¸ ‹ › ‘ ’             ‚ … –
+    alt+shift: |
+      § ¡       ®       ¥       ¢       \u{32D} ¶       \       {       }       \u{30B} ¿       \u{300}
+        °       \u{326} É       \u{30C} Þ       \u{306} \u{309} \u{31B} Œ       \u{307} \u{30A} ˆ
+        \u{304} №       Ð       ʔ       \u{323} \u{328} \u{330} \u{303} \u{335} Ø       Ä       "
+      ≥ ⁄       \u{331} \u{327} «       »       “       ”       „       ·       —
+    caps+alt: |
+      ' © ™ £ € ‸ § | [ ] ˝ ± \u{301}
+        • , É ˇ Þ ˘ ˀ ʼ Œ ˙ ˚ ¨
+        ¯ SS Ð ƒ . ˛ \u{A0}\u{330} ˜ - Ø Ä '
+      ≤ ÷ ˍ ¸ ‹ › ‘ ’ ‚ … –
+    ctrl: |
+      ` 1 2 3 4 5 6 7 8 9 0 \u{1F} =
+        \u{11} \u{17} \u{5} \u{12} \u{14} \u{19} \u{15} \u{9} \u{F} \u{10} \u{1D} ~
+        \u{1} \u{13} \u{4} \u{6} \u{7} \u{8} \u{A} \u{B} \u{C} ; ' \u{1C}
+      0 \u{1A} \u{18} \u{3} \u{16} \u{2} \u{E} \u{D} , . /
+transforms:
+  '\u{A0}\u{330}':
+    ' ': '\u{A0}\u{330}'
+    e: ḛ
+    E: Ḛ
+    i: ḭ
+    I: Ḭ
+    u: ṵ
+    # ...
+space:
+  mac:
+    caps: '\u{A0}'
+    alt: '\u{A0}'
+    alt+shift: '\u{A0}'
+    caps+alt: '\u{A0}'
+    cmd+alt: '\u{A0}'
+deadKeys:
+  mac:
+    default: [´]
+    shift: ['`']
+    caps: [´]
+    alt: [¨, ',', '-', ., ¯, ¸, ʼ, ˀ, ˇ, ˍ, ˘, ˙, ˚, ˛, ˜, ˝, ‸, '\u{A0}\u{330}']
+    alt+shift: [ʔ, №, ˆ]
+    caps+alt: [¨, ',', '-', ., ¯, ¸, ʼ, ˀ, ˇ, ˍ, ˘, ˙, ˚, ˛, ˜, ˝, ‸]

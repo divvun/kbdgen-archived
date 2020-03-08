@@ -339,6 +339,9 @@ pub struct Layout {
     pub display_names: BTreeMap<String, String>,
 
     /// The different modes.
+    ///
+    /// NOTE: Do not forget the `\|` symbol after the `<mode>` key or you will
+    /// receive unexpected parsing errors.
     #[example(
         yaml,
         r#"

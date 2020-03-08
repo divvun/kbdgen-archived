@@ -14,7 +14,7 @@ modes:
     default: |
       ' 1 2 3 4 5 6 7 8 9 0 + ´
         á š e r t y u i o p å ŋ
-        a s d f g h j k l ö ä đ
+        a ¡ d f g h j k l ö ä đ
       ž z č c v b n m , . -
     shift: |
       § ! " # $ % & / ( ) = ? `
