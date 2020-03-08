@@ -56,7 +56,10 @@ pub fn derive(input: TokenStream) -> TokenStream {
                 &format!("test_{}_{}_example_{}", input.ident, field.name, idx),
                 input.ident.span(),
             );
-            let field_name = syn::Ident::new(&field.name, field.span);
+            let field_name = field
+                .rust_name
+                .clone()
+                .unwrap_or_else(|| syn::Ident::new(&format!("field_{}", idx), field.span));
             let attrs = &field.serde_attrs;
             let content = &ex.content;
             match ex.lang.as_str() {
@@ -101,6 +104,7 @@ pub(crate) struct Field {
     pub(crate) required: bool,
     pub(crate) r#type: Type,
     // some helper fields for generating tests for examples
+    rust_name: Option<syn::Ident>,
     raw_type: syn::Type,
     span: proc_macro2::Span,
     serde_attrs: Vec<syn::Attribute>,
@@ -135,7 +139,6 @@ fn adoc_output_path(name: &syn::Ident) -> PathBuf {
         .with_extension("adoc")
 }
 
-// TODO: Parse `#[serde(rename = "foo")]` attributes and use as field names!
 fn collect_fields(data: &Data) -> Vec<Field> {
     match data {
         Data::Struct(DataStruct {
@@ -161,12 +164,16 @@ fn collect_fields(data: &Data) -> Vec<Field> {
             .enumerate()
             .map(|(idx, field)| {
                 let (required, r#type) = Type::toplevel_from_syn(&field.ty);
+                let serde_name = find_serde_rename(&field.attrs);
                 Field {
-                    name: field
-                        .ident
-                        .as_ref()
-                        .map(|f| f.to_string())
-                        .unwrap_or(format!("unnamed internal field #{}", idx)),
+                    name: serde_name.unwrap_or_else(|| {
+                        field
+                            .ident
+                            .as_ref()
+                            .map(|f| f.to_string())
+                            .unwrap_or(format!("unnamed internal field #{}", idx))
+                    }),
+                    rust_name: field.ident.clone(),
                     docs: collect_docs_from_attrs(&field.attrs),
                     examples: collect_examples_from_attrs(&field.attrs),
                     required,
@@ -241,6 +248,33 @@ fn collect_examples_from_attrs(attrs: &[syn::Attribute]) -> Vec<Example> {
             Example { lang, content }
         })
         .collect()
+}
+
+fn find_serde_rename(attrs: &[syn::Attribute]) -> Option<String> {
+    attrs
+        .iter()
+        .filter(|attr| attr.path.is_ident("serde"))
+        .filter_map(|attr| match attr.parse_meta() {
+            Ok(syn::Meta::List(syn::MetaList { nested, .. })) => nested
+                .iter()
+                .filter_map(|m| match m {
+                    syn::NestedMeta::Meta(syn::Meta::NameValue(syn::MetaNameValue {
+                        path,
+                        lit,
+                        ..
+                    })) if path.is_ident("rename") => match lit {
+                        syn::Lit::Str(val) => Some(val.value()),
+                        _ => unimplemented!(
+                            "found serde rename that didn't have a string as value: {:?}",
+                            m
+                        ),
+                    },
+                    _ => None,
+                })
+                .next(),
+            _ => return None,
+        })
+        .next()
 }
 
 fn unescape_literal(lit: &str) -> String {
