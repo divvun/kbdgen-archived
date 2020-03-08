@@ -22,12 +22,14 @@ impl ToAdoc for Struct {
             example.write_adoc(w)?;
             writeln!(w)?;
         }
-        writeln!(w, ".Fields")?;
-        writeln!(w)?;
 
+        if !self.fields.is_empty() {
+            writeln!(w, ".Fields")?;
+        }
         for field in &self.fields {
             field.write_adoc(w)?;
         }
+        writeln!(w)?;
 
         Ok(())
     }
