@@ -1,4 +1,4 @@
-use super::{Group, Key, Symbols};
+use super::{Key, Symbols, XkbFile};
 use crate::pad::PadAdapter;
 use std::io::{Result, Write};
 
@@ -6,47 +6,46 @@ pub trait ToXkb {
     fn write_xkb(&self, w: impl Write) -> Result<()>;
 }
 
-impl ToXkb for Symbols {
+impl ToXkb for XkbFile {
     fn write_xkb(&self, mut w: impl Write) -> Result<()> {
-        writeln!(w, r#"default partial alphanumeric_keys"#)?;
-        writeln!(w, r#"xkb_symbols "basic" {{"#)?;
+        write!(w, r#"default"#)?;
+        self.default.write_xkb(&mut w)?;
 
-        let mut inner = PadAdapter::wrap(&mut w);
-        writeln!(&mut inner, r#"include "latin""#)?;
-        writeln!(&mut inner)?;
-
-        for group in &self.groups {
-            group.write_xkb(&mut inner)?;
+        for block in &self.others {
+            block.write_xkb(&mut w)?;
         }
-
-        writeln!(w, r#"}};"#)?;
-        writeln!(w)?;
 
         Ok(())
     }
 }
 
-impl ToXkb for Group {
+impl ToXkb for Symbols {
     fn write_xkb(&self, mut w: impl Write) -> Result<()> {
-        writeln!(w, r#"name[Group1] = "{}";"#, self.name)?;
-        writeln!(w)?;
+        writeln!(w, r#"partial alphanumeric_keys"#)?;
+        writeln!(w, r#"xkb_symbols "{}" {{"#, self.id)?;
 
         let mut inner = PadAdapter::wrap(&mut w);
-        for include in &self.leading_includes {
-            writeln!(&mut inner, r#"include "{}""#, include)?;
-        }
-        if !self.leading_includes.is_empty() {
-            writeln!(w)?;
-        }
+        {
+            writeln!(inner, r#"name[Group1] = "{}";"#, self.name)?;
+            writeln!(inner)?;
 
-        let mut inner = PadAdapter::wrap(&mut w);
-        for key in &self.keys {
-            key.write_xkb(&mut inner)?;
-        }
+            let mut inner = PadAdapter::wrap(&mut w);
+            for include in &self.leading_includes {
+                writeln!(&mut inner, r#"include "{}""#, include)?;
+            }
+            if !self.leading_includes.is_empty() {
+                writeln!(w)?;
+            }
 
-        let mut inner = PadAdapter::wrap(&mut w);
-        for include in &self.trailing_includes {
-            writeln!(&mut inner, r#"include "{}""#, include)?;
+            let mut inner = PadAdapter::wrap(&mut w);
+            for key in &self.keys {
+                key.write_xkb(&mut inner)?;
+            }
+
+            let mut inner = PadAdapter::wrap(&mut w);
+            for include in &self.trailing_includes {
+                writeln!(&mut inner, r#"include "{}""#, include)?;
+            }
         }
 
         Ok(())

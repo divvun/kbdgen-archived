@@ -6,13 +6,14 @@ pub use convert::Error as ConversionError;
 pub use ser::ToXkb;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
-pub struct Symbols {
-    pub name: String,
-    pub groups: Vec<Group>,
+pub struct XkbFile {
+    pub default: Symbols,
+    pub others: Vec<Symbols>,
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
-pub struct Group {
+pub struct Symbols {
+    pub id: String,
     pub name: String,
     pub leading_includes: Vec<String>,
     pub keys: Vec<Key>,

@@ -1,9 +1,8 @@
-use crate::{xkb::*, Load, ProjectBundle, utils::UnwrapOrUnknownExt};
+use crate::{utils::UnwrapOrUnknownExt, xkb::*, Load, ProjectBundle};
 use log::{debug, log_enabled};
 use snafu::{ResultExt, Snafu};
 use snafu_cli_debug::SnafuCliDebug;
 use std::{
-    convert::TryFrom,
     fs::File,
     io::BufWriter,
     path::{Path, PathBuf},
@@ -59,8 +58,8 @@ fn layout_to_xkb_symbols(
     name: &str,
     layout: &crate::models::Layout,
     project: &crate::ProjectBundle,
-) -> Result<Symbols, SavingError> {
-    Symbols::try_from(layout.clone()).context(CannotConvertToXkb {
+) -> Result<XkbFile, SavingError> {
+    XkbFile::from_layout(name, layout.clone()).context(CannotConvertToXkb {
         project: project
             .path
             .clone()

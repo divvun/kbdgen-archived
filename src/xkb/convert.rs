@@ -1,38 +1,53 @@
-use super::{Group, Key, Symbols, XkbKeySym};
-use crate::{models::{DesktopModes, Layout}, utils::UnwrapOrUnknownExt};
+use super::{Key, Symbols, XkbFile, XkbKeySym};
+use crate::{
+    models::{DesktopModes, Layout},
+    utils::UnwrapOrUnknownExt,
+};
 use snafu::{OptionExt, Snafu};
-use std::convert::TryFrom;
 
-impl TryFrom<Layout> for Symbols {
-    type Error = Error;
+impl XkbFile {
+    pub fn from_layout(name: &str, layout: Layout) -> Result<Self, Error> {
+        let mut modes = vec![
+            layout.modes.x11.clone().map(|x| ("x11", x)),
+            layout.modes.win.clone().map(|x| ("win", x)),
+            layout.modes.mac.clone().map(|x| ("mac", x)),
+            layout.modes.chrome.clone().map(|x| ("chrome", x)),
+        ]
+        .into_iter()
+        .flatten();
 
-    fn try_from(layout: Layout) -> Result<Self, Self::Error> {
-        Ok(Symbols {
-            name: layout.name().unwrap_or_else(|| "<unknown>".into()),
-            groups: collect_groups(&layout)?,
-        })
+        let default = modes
+            .next()
+            .map(|(target, mode)| {
+                Ok(Symbols {
+                    id: "basic".to_string(),
+                    name: format!("{} ({})", layout.name().unwrap_or_unknown(), target),
+                    leading_includes: vec!["latin".to_string()],
+                    keys: collect_keys(&mode, None)?,
+                    trailing_includes: vec!["level3(ralt_switch)".to_string()],
+                })
+            })
+            .context(NoXkbCompatibleModes {
+                available_modes: layout.modes.available_modes(),
+            })??;
+
+        let others = modes
+            .map(|(target, mode)| {
+                Ok(Symbols {
+                    id: target.to_string(),
+                    name: format!("{} ({})", layout.name().unwrap_or_unknown(), target),
+                    leading_includes: vec!["latin".to_string(), format!("{}(basic)", name)],
+                    keys: collect_keys(&mode, Some(&default))?,
+                    trailing_includes: vec!["level3(ralt_switch)".to_string()],
+                })
+            })
+            .collect::<Result<Vec<Symbols>, Error>>()?;
+
+        Ok(XkbFile { default, others })
     }
 }
 
-fn collect_groups(layout: &Layout) -> Result<Vec<Group>, Error> {
-    let key_def = layout
-        .modes
-        .x11
-        .as_ref()
-        .or(layout.modes.win.as_ref())
-        .context(NoXkbCompatibleModes {
-            available_modes: layout.modes.available_modes(),
-        })?;
-
-    Ok(vec![Group {
-        name: layout.name().unwrap_or_unknown(),
-        leading_includes: vec![],
-        keys: collect_keys(&key_def)?,
-        trailing_includes: vec![],
-    }])
-}
-
-fn collect_keys(key_map: &DesktopModes) -> Result<Vec<Key>, Error> {
+fn collect_keys(key_map: &DesktopModes, default: Option<&Symbols>) -> Result<Vec<Key>, Error> {
     let default = key_map.get("default").cloned().context(NoDefaultKeyMap)?;
     let shift = key_map.get("shift").cloned().unwrap_or_default();
     let alt = key_map.get("alt").cloned().unwrap_or_default();
