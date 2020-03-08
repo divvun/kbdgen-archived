@@ -35,38 +35,40 @@ pub fn kbdgen_to_xkb(input: &Path, output: &Path, _options: &Options) -> Result<
             }
             can_be_converted
         })
-        .map(|(name, layout)| (name, layout_to_xkb_symbols(&name, layout, &bundle)))
+        .map(|(name, layout)| (name, XkbFile::from_layout(name, layout.clone())))
         .try_for_each(|(name, symbols)| {
-            let path = output.join(name).join("linux").with_extension("xkb");
+            let symbols = match symbols {
+                Ok(symbols) => symbols,
+                Err(ConversionError::NoXkbCompatibleModes {
+                    available_modes, ..
+                }) => {
+                    log::info!("skipping {}, no modes that can be converted to xkb", name);
+                    log::debug!("modes found: {}", available_modes.join(", "));
+                    return Ok(());
+                }
+                Err(e) => Err(e).context(CannotConvertToXkb {
+                    project: bundle
+                        .path
+                        .clone()
+                        .map(|x| format!("{}", x.display()))
+                        .unwrap_or_unknown(),
+                    layout: name,
+                })?,
+            };
+
+            let path = output.join("linux").join(name).with_extension("xkb");
             std::fs::create_dir_all(path.parent().unwrap())
                 .context(CannotCreateFile { path: path.clone() })?;
             let file = File::create(&path).context(CannotCreateFile { path: path.clone() })?;
             debug!("Created file `{}`", path.display());
             let mut writer = BufWriter::new(file);
-            symbols?
-                .write_xkb(&mut writer)
-                .context(CannotSerializeXkb)?;
+            symbols.write_xkb(&mut writer).context(CannotSerializeXkb)?;
             log::info!("Wrote to file `{}`", path.display());
             Ok(())
         })
         .context(CannotBeSaved)?;
 
     Ok(())
-}
-
-fn layout_to_xkb_symbols(
-    name: &str,
-    layout: &crate::models::Layout,
-    project: &crate::ProjectBundle,
-) -> Result<XkbFile, SavingError> {
-    XkbFile::from_layout(name, layout.clone()).context(CannotConvertToXkb {
-        project: project
-            .path
-            .clone()
-            .map(|x| format!("{}", x.display()))
-            .unwrap_or_unknown(),
-        layout: layout.name().unwrap_or_unknown(),
-    })
 }
 
 #[derive(Debug, Clone)]

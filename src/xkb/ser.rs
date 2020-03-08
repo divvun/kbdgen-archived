@@ -8,7 +8,7 @@ pub trait ToXkb {
 
 impl ToXkb for XkbFile {
     fn write_xkb(&self, mut w: impl Write) -> Result<()> {
-        write!(w, r#"default"#)?;
+        write!(w, r#"default "#)?;
         self.default.write_xkb(&mut w)?;
 
         for block in &self.others {
@@ -47,6 +47,8 @@ impl ToXkb for Symbols {
                 writeln!(&mut inner, r#"include "{}""#, include)?;
             }
         }
+        writeln!(w, r#"}};"#)?;
+        writeln!(w)?;
 
         Ok(())
     }
