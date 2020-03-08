@@ -21,6 +21,20 @@ pub struct ProjectDesc {
     pub description: String,
 }
 
+/// Meta data for the project, stored in the `project.yaml` file.
+#[example(yaml, r#"
+locales:
+  en:
+    name: "Keyboard Project"
+    description: "A test keyboard"
+  nb:
+    name: "Tastatur"
+    description: "Et testtastatur"
+author: Example Person
+email: person@place.example
+organisation: Example Corp
+copyright: Copyright © 2017 Example Corpa
+"#)]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default, CollectDocs)]
 pub struct Project {
     /// Strings for describing the project.
@@ -74,7 +88,7 @@ pub struct DeriveOptions {
 /// and <https://commons.wikimedia.org/wiki/File:Keyboard-alphanumeric-section-ISOIEC-9995-2-2009-with-amd1-2012.png>
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 #[derive(EnumString, Display, EnumIter)]
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, CollectDocs)]
 #[repr(u8)]
 pub enum IsoKey {
     E00 = 0,
@@ -153,6 +167,38 @@ impl IsoKey {
     }
 }
 
+/// Target specific modes
+///
+/// This is a nested map with known keys (the fields below) for each supported
+/// target.
+///
+/// NOTE: Each target is either described by <<DesktopModes>>, or by
+/// <<MobileModes>>.
+#[example(yaml, r#"
+modes:
+  mac:
+    default: |
+      ' 1 2 3 4 5 6 7 8 9 0 + ´
+        á š e r t y u i o p å ŋ
+        a s d f g h j k l ö ä đ
+      ž z č c v b n m , . -
+    shift: |
+      § ! " # $ % & / ( ) = ? `
+        Á Š E R T Y U I O P Å Ŋ
+        A S D F G H J K L Ö Ä Đ
+      Ž Z Č C V B N M ; : _
+  win:
+    default: |
+      § 1 2 3 4 5 6 7 8 9 0 + ´
+        á š e r t y u i o p å ŋ
+        a s d f g h j k l ö ä đ
+      ž z č c v b n m , . -
+    shift: |
+      ½ ! " # ¤ % & / ( ) = ? `
+        Á Š E R T Y U I O P Å Ŋ
+        A S D F G H J K L Ö Ä Đ
+      Ž Z Č C V B N M ; : _
+"#)]
 #[derive(Debug, Clone, PartialEq)]
 #[derive(Serialize, Deserialize, Default, CollectDocs)]
 pub struct Modes {
@@ -221,9 +267,26 @@ pub struct MobileModes(pub BTreeMap<String, MobileKeyMap>);
 
 /// Maps modifier combination to map of keys
 ///
-/// In general only the iso-default and iso-shift modes are strictly required.
+/// In general only the `default` and `shift` modes are strictly required.
 /// Some targets require other modes, and the tool will inform you if they are
 /// missing.
+#[example(yaml, r#"
+default: |
+  ' 1 2 3 4 5 6 7 8 9 0 + ´
+    á š e r t y u i o p å ŋ
+    a s d f g h j k l ö ä đ
+  ž z č c v b n m , . -
+shift: |
+  § ! " # $ % & / ( ) = ? `
+    Á Š E R T Y U I O P Å Ŋ
+    A S D F G H J K L Ö Ä Đ
+  Ž Z Č C V B N M ; : _
+cmd+shift: |
+  ° ! " # € % & / ( ) = ? `
+    Q W E R T Y U I O P Å ^
+    A S D F G H J K L Ö Ä *
+  > Z X C V B N M ; : _
+"#)]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
 #[derive(Shrinkwrap, CollectDocs)]
 pub struct DesktopModes(pub BTreeMap<String, DesktopKeyMap>);

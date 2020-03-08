@@ -20,6 +20,12 @@ use std::{collections::BTreeMap, fmt, str::FromStr};
 ///
 /// We will try to serialize everything that is more than half of a full map as
 /// string-based key map; other sizes will be regular maps in YAML.
+#[example(yaml, r#"
+"' 1 2 3 4 5 6 7 8 9 0 + ´
+  á š e r t y u i o p å ŋ
+  a s d f g h j k l ö ä đ
+ž z č c v b n m , . -"
+"#)]
 #[derive(Debug, Clone, PartialEq, Eq, Shrinkwrap, CollectDocs)]
 pub struct DesktopKeyMap(pub(crate) BTreeMap<IsoKey, keys::KeyValue>);
 

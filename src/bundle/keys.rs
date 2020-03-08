@@ -1,11 +1,12 @@
-use derive_collect_docs::CollectDocs;
 use lazy_static::lazy_static;
 use regex::Regex;
+use derive_collect_docs::CollectDocs;
 use serde::{de::Deserializer, ser::Serializer, Deserialize, Serialize};
 use shrinkwraprs::Shrinkwrap;
 use snafu::Snafu;
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Shrinkwrap)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Shrinkwrap, CollectDocs)]
 pub struct KeyValue(pub Option<String>);
 
 impl From<Option<String>> for KeyValue {
