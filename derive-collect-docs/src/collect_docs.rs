@@ -112,7 +112,10 @@ fn collect_docs_from_attrs(attrs: &[syn::Attribute]) -> String {
                 Lazy::new(|| regex::Regex::new(r#"^\s*=\s*"\s?(?P<content>.*?)"\s*$"#).unwrap());
             let doc = RE.replace_all(&doc, "$content");
 
-            let doc = doc.replace("\\\"", "\"").replace("\\'", "'");
+            let doc = doc
+                .replace("\\\"", "\"")
+                .replace("\\'", "'")
+                .replace(r"\\", r"\");
             writeln!(&mut res, "{}", doc).unwrap();
             res
         })
