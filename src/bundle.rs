@@ -40,7 +40,7 @@ pub struct Targets {
 /// files in the bundle directory.
 ///
 /// .Example of the structure of a `.kbdgen` bundle
-/// ```
+/// ```console
 /// smj.kbdgen
 /// ├── layouts
 /// │  ├── smj-NO.yaml

@@ -1,5 +1,5 @@
 use proc_macro::TokenStream;
-use quote::quote;
+use quote::{quote, quote_spanned};
 use std::{fs::File, io::BufWriter, path::PathBuf};
 use syn::{parse_macro_input, Data, DataStruct, DeriveInput};
 
@@ -8,6 +8,7 @@ use crate::to_adoc::ToAdoc;
 pub fn derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
+    // Write some nice AsciiDoc output
     let r#struct = Struct {
         name: input.ident.to_string(),
         docs: collect_docs_from_attrs(&input.attrs),
@@ -23,7 +24,65 @@ pub fn derive(input: TokenStream) -> TokenStream {
         adoc.display()
     ));
 
-    TokenStream::from(quote! {})
+    // Let's test those examples
+    let struct_examples = r#struct.examples.iter().enumerate().map(|(idx, ex)| {
+        let typ = &input.ident;
+        let test_fn_name = syn::Ident::new(
+            &format!("test_{}_example_{}", input.ident, idx),
+            input.ident.span(),
+        );
+        let content = &ex.content;
+        match ex.lang.as_str() {
+            "yaml" | "yml" => {
+                quote! {
+                    #[test]
+                    fn #test_fn_name() {
+                        let input = #content;
+                        let _result: #typ = serde_yaml::from_str(&input).unwrap();
+                    }
+                }
+            }
+            _ => quote! {},
+        }
+    });
+    let field_examples = r#struct
+        .fields
+        .iter()
+        .flat_map(|field| field.examples.iter().map(move |ex| (field, ex)))
+        .enumerate()
+        .map(|(idx, (field, ex))| {
+            let typ = &field.raw_type;
+            let test_fn_name = syn::Ident::new(
+                &format!("test_{}_{}_example_{}", input.ident, field.name, idx),
+                input.ident.span(),
+            );
+            let field_name = syn::Ident::new(&field.name, field.span);
+            let attrs = &field.serde_attrs;
+            let content = &ex.content;
+            match ex.lang.as_str() {
+                "yaml" | "yml" => {
+                    quote_spanned! { field.span =>
+                        #[test]
+                        fn #test_fn_name() {
+                            #[derive(Debug, Serialize, Deserialize)]
+                            struct TestHelper {
+                                #(#attrs)*
+                                #field_name: #typ,
+                            }
+
+                            let input = #content;
+                            let _result: TestHelper = serde_yaml::from_str(&input).unwrap();
+                        }
+                    }
+                }
+                _ => quote! {},
+            }
+        });
+
+    TokenStream::from(quote! {
+        #(#struct_examples)*
+        #(#field_examples)*
+    })
 }
 
 #[derive(Debug)]
@@ -41,6 +100,10 @@ pub(crate) struct Field {
     pub(crate) examples: Vec<Example>,
     pub(crate) required: bool,
     pub(crate) r#type: Type,
+    // some helper fields for generating tests for examples
+    raw_type: syn::Type,
+    span: proc_macro2::Span,
+    serde_attrs: Vec<syn::Attribute>,
 }
 
 #[derive(Debug)]
@@ -100,6 +163,14 @@ fn collect_fields(data: &Data) -> Vec<Field> {
                     examples: collect_examples_from_attrs(&field.attrs),
                     required,
                     r#type,
+                    raw_type: field.ty.clone(),
+                    span: field.ident.as_ref().unwrap().span(),
+                    serde_attrs: field
+                        .attrs
+                        .iter()
+                        .filter(|attr| attr.path.is_ident("serde"))
+                        .cloned()
+                        .collect(),
                 }
             })
             .collect(),

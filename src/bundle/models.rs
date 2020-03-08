@@ -260,8 +260,12 @@ pub struct Layout {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub space: Option<BTreeMap<String, BTreeMap<String, String>>>,
 
-    /// Defines the dead keys on the given `<mode>`, which is the key for the
-    /// mode from the modes property.
+    /// Defines the dead keys for a target for a given `<mode>`.
+    ///
+    /// This is a nested map:
+    /// The first key is the target;
+    /// the second key is the mode (from the modes property);
+    /// finally, the value is an array of dead keys.
     ///
     /// It is recommended that the keys of this array are wrapped in quotes to
     /// make diaeresis and other hard to see glyphs maintainable for future
@@ -270,7 +274,9 @@ pub struct Layout {
         yaml,
         r#"
         deadKeys:
-          iso-default: ["`"]
+          mac:
+            default: ["`"]
+            shift: ['`']
     "#
     )]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -431,7 +437,7 @@ pub struct TargetAndroid {
 
     /// Path to the icon file to be converted into the various sizes required by
     /// Android, relative to project root.
-    #[example(yaml, "packageId: icon: icons/icon.png")]
+    #[example(yaml, "icon: icons/icon.png")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub icon: Option<String>,
 
