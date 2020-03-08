@@ -157,6 +157,18 @@ pub enum Error {
     },
 }
 
+/// Map of keys for mobile targets
+///
+/// NOTE: This does not need to map to a physical keyboard layout,
+/// so it is treated as a two-dimensional list of symbols.
+#[example(
+    yaml,
+    r#"
+"á w e r t y u i o p å
+a s d f g h j k l ö ä
+   z x c v b n m ŋ"
+"#
+)]
 #[derive(Debug, Clone, PartialEq, Eq, CollectDocs)]
 pub struct MobileKeyMap(pub(crate) Vec<Vec<String>>);
 
