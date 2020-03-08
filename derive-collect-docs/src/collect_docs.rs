@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
 use quote::{quote, quote_spanned};
 use std::{fs::File, io::BufWriter, path::PathBuf};
-use syn::{parse_macro_input, Data, DataStruct, DeriveInput};
+use syn::{parse_macro_input, spanned::Spanned, Data, DataStruct, DeriveInput};
 
 use crate::to_adoc::ToAdoc;
 
@@ -142,29 +142,36 @@ fn collect_fields(data: &Data) -> Vec<Field> {
             ..
         }) => vec![],
         Data::Struct(DataStruct {
-            fields: syn::Fields::Unnamed(..),
+            fields: fields @ syn::Fields::Unnamed(..),
             ..
-        }) => vec![],
-        Data::Struct(DataStruct {
-            fields: syn::Fields::Named(fields),
+        })
+        | Data::Struct(DataStruct {
+            fields: fields @ syn::Fields::Named(..),
             ..
         }) => fields
-            .named
             .iter()
-            .map(|field| {
+            .filter(|f| {
+                if let syn::Visibility::Public(..) = f.vis {
+                    true
+                } else {
+                    false
+                }
+            })
+            .enumerate()
+            .map(|(idx, field)| {
                 let (required, r#type) = Type::toplevel_from_syn(&field.ty);
                 Field {
                     name: field
                         .ident
                         .as_ref()
-                        .expect(&format!("struct field `{:?}` has no name", field))
-                        .to_string(),
+                        .map(|f| f.to_string())
+                        .unwrap_or(format!("unnamed internal field #{}", idx)),
                     docs: collect_docs_from_attrs(&field.attrs),
                     examples: collect_examples_from_attrs(&field.attrs),
                     required,
                     r#type,
                     raw_type: field.ty.clone(),
-                    span: field.ident.as_ref().unwrap().span(),
+                    span: field.span(),
                     serde_attrs: field
                         .attrs
                         .iter()
@@ -174,7 +181,7 @@ fn collect_fields(data: &Data) -> Vec<Field> {
                 }
             })
             .collect(),
-        _ => unimplemented!("Can only collect docs for structs for now"),
+        _ => vec![],
     }
 }
 
