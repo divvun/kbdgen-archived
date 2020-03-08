@@ -135,6 +135,7 @@ fn adoc_output_path(name: &syn::Ident) -> PathBuf {
         .with_extension("adoc")
 }
 
+// TODO: Parse `#[serde(rename = "foo")]` attributes and use as field names!
 fn collect_fields(data: &Data) -> Vec<Field> {
     match data {
         Data::Struct(DataStruct {
