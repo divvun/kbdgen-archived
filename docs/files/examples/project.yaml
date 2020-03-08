@@ -1,0 +1,16 @@
+# Strings for describing the project, using ISO 639-1 or 639-3 tags.
+locales:
+  en:
+    name: "Keyboard Project"
+    description: "A test keyboard"
+  nb:
+    name: "Tastatur"
+    description: "Et testtastatur"
+
+# Author and email properties
+author: Example Person
+email: person@place.example
+
+# Optional organisation and copyright properties
+organisation: Example Corp
+copyright: Copyright © 2017 Example Corp
