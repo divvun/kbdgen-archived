@@ -7,6 +7,13 @@ use std::collections::BTreeMap;
 use strum_macros::{Display, EnumIter, EnumString};
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
+#[example(
+    yaml,
+    r#"
+    name: "Tastatur"
+    description: "Et testtastatur"
+"#
+)]
 pub struct ProjectDesc {
     /// The name string for the project. For mobile keyboards, this is the title of the app.
     pub name: String,
@@ -25,14 +32,15 @@ pub struct Project {
     /// The project description must be defined for at least the `en` locale,
     /// and preferably also for each well-supported locale that you expect to
     /// support.
-    ///
-    /// .Example
-    /// ```yaml
-    /// locales:
-    ///   en:
-    ///     name: My Keyboard Project
-    ///     description: A keyboard supporting zero languages.
-    /// ```
+    #[example(
+        yaml,
+        "
+        locales:
+          en:
+            name: My Keyboard Project
+            description: A keyboard supporting zero languages.
+    "
+    )]
     pub locales: BTreeMap<String, ProjectDesc>,
     /// The primary author(s)
     pub author: String,
@@ -244,11 +252,7 @@ pub struct Layout {
 
     /// Specify the decimal separator for the given locale. Required for the
     /// numpad keys on some targets. Normally a '.' or ','.
-    ///
-    /// .Example
-    /// ```yaml
-    /// decimal: ","
-    /// ```
+    #[example(yaml, r#"decimal: ",""#)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub decimal: Option<String>,
 
@@ -262,12 +266,13 @@ pub struct Layout {
     /// It is recommended that the keys of this array are wrapped in quotes to
     /// make diaeresis and other hard to see glyphs maintainable for future
     /// developers, including yourself.
-    ///
-    /// .Example
-    /// ```yaml
-    /// deadKeys:
-    ///   iso-default: ["`"]
-    /// ```
+    #[example(
+        yaml,
+        r#"
+        deadKeys:
+          iso-default: ["`"]
+    "#
+    )]
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "deadKeys")]
     pub dead_keys: Option<BTreeMap<String, BTreeMap<String, Vec<String>>>>,
@@ -287,14 +292,15 @@ pub struct Layout {
     /// This map may be repeatedly nested until a terminal is reached. If a
     /// sequence is short-circuited, the `" "` is used as the fallback output in
     /// all cases.
-    ///
-    /// .Example
-    /// ```yaml
-    /// transforms:
-    ///   a:
-    ///    ' ': 'a'
-    ///    '`': 'à'
-    /// ```
+    #[example(
+        yaml,
+        r#"
+        transforms:
+          a:
+           ' ': 'a'
+           '`': 'à'
+    "#
+    )]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub transforms: Option<BTreeMap<String, BTreeMap<String, String>>>,
 
@@ -302,13 +308,14 @@ pub struct Layout {
     ///
     /// Currently, they are used for specifying strings to be shown on the space
     /// and return keys on mobile targets.
-    ///
-    /// .Example
-    /// ```yaml
-    /// strings:
-    ///   space: space
-    ///   return: return
-    /// ```
+    #[example(
+        yaml,
+        r#"
+        strings:
+          space: space
+          return: return
+    "#
+    )]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub strings: Option<LayoutStrings>,
 
@@ -320,13 +327,14 @@ pub struct Layout {
     ///
     /// Key is the code for the target. Only necessary if you need to set a
     /// target-specific property.
-    ///
-    /// .Example
-    /// ```yaml
-    /// targets:
-    ///   win:
-    ///     locale: sma-Latn-NO
-    /// ```
+    #[example(
+        yaml,
+        r#"
+        targets:
+          win:
+            locale: sma-Latn-NO
+    "#
+    )]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub targets: Option<LayoutTarget>,
 }
@@ -396,11 +404,7 @@ pub struct LayoutTargetAndroid {
     ///
     /// NOTE: The lowest API supported by this keyboard is API 16, but it may
     /// work on older variants.
-    ///
-    /// .Example
-    /// ```yaml
-    /// minimumSdk: 16
-    /// ```
+    #[example(yaml, "minimumSdk: 16")]
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "minimumSdk")]
     pub minimum_sdk: Option<u32>,
@@ -421,21 +425,13 @@ pub struct TargetAndroid {
     pub build: u32,
 
     /// The reverse-domain notation ID for the package
-    ///
-    /// .Example
-    /// ```yaml
-    /// packageId: com.example.mypackageid
-    /// ```
+    #[example(yaml, "packageId: com.example.mypackageid")]
     #[serde(rename = "packageId")]
     pub package_id: String,
 
     /// Path to the icon file to be converted into the various sizes required by
     /// Android, relative to project root.
-    ///
-    /// .Example
-    /// ```yaml
-    /// icon: icons/icon.png
-    /// ```
+    #[example(yaml, "packageId: icon: icons/icon.png")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub icon: Option<String>,
 
@@ -456,21 +452,13 @@ pub struct TargetAndroid {
 
     /// Path to the Android keystore (see <<Generating keystores>> section for
     /// more information)
-    ///
-    /// .Example
-    /// ```yaml
-    /// keyStore: my.keystore
-    /// ```
+    #[example(yaml, "keyStore: my.keystore")]
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "keyStore")]
     pub key_store: Option<String>,
 
     /// The key to use within the provided keystore
-    ///
-    /// .Example
-    /// ```yaml
-    /// keyAlias: myprojectkey
-    /// ```
+    #[example(yaml, "keyAlias: myprojectkey")]
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "keyAlias")]
     pub key_alias: Option<String>,

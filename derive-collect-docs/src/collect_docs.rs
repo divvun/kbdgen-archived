@@ -11,6 +11,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
     let r#struct = Struct {
         name: input.ident.to_string(),
         docs: collect_docs_from_attrs(&input.attrs),
+        examples: collect_examples_from_attrs(&input.attrs),
         fields: collect_fields(&input.data),
     };
     let adoc = adoc_output_path(&input.ident);
@@ -29,6 +30,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
 pub(crate) struct Struct {
     pub(crate) name: String,
     pub(crate) docs: String,
+    pub(crate) examples: Vec<Example>,
     pub(crate) fields: Vec<Field>,
 }
 
@@ -36,8 +38,15 @@ pub(crate) struct Struct {
 pub(crate) struct Field {
     pub(crate) name: String,
     pub(crate) docs: String,
+    pub(crate) examples: Vec<Example>,
     pub(crate) required: bool,
     pub(crate) r#type: Type,
+}
+
+#[derive(Debug)]
+pub(crate) struct Example {
+    pub(crate) lang: String,
+    pub(crate) content: String,
 }
 
 #[derive(Debug)]
@@ -88,6 +97,7 @@ fn collect_fields(data: &Data) -> Vec<Field> {
                         .expect(&format!("struct field `{:?}` has no name", field))
                         .to_string(),
                     docs: collect_docs_from_attrs(&field.attrs),
+                    examples: collect_examples_from_attrs(&field.attrs),
                     required,
                     r#type,
                 }
@@ -106,19 +116,58 @@ fn collect_docs_from_attrs(attrs: &[syn::Attribute]) -> String {
             use regex::Regex;
             use std::fmt::Write;
 
+            // dbg!(attr.parse_meta());
+
             let doc = TokenStream::from(attr.tokens.clone()).to_string();
 
             static RE: Lazy<Regex> =
                 Lazy::new(|| regex::Regex::new(r#"^\s*=\s*"\s?(?P<content>.*?)"\s*$"#).unwrap());
             let doc = RE.replace_all(&doc, "$content");
 
-            let doc = doc
-                .replace("\\\"", "\"")
-                .replace("\\'", "'")
-                .replace(r"\\", r"\");
-            writeln!(&mut res, "{}", doc).unwrap();
+            writeln!(&mut res, "{}", unescape_literal(&doc)).unwrap();
             res
         })
+}
+
+fn collect_examples_from_attrs(attrs: &[syn::Attribute]) -> Vec<Example> {
+    use unindent::unindent;
+
+    attrs
+        .iter()
+        .filter(|attr| attr.path.is_ident("example"))
+        .map(|attr| {
+            let list: Vec<syn::NestedMeta> = match attr.parse_meta() {
+                Ok(syn::Meta::List(syn::MetaList { nested, .. })) => {
+                    nested.iter().cloned().collect()
+                }
+                _ => unimplemented!("can't parse example attribute"),
+            };
+            assert_eq!(
+                list.len(),
+                2,
+                "example attribute must be of form `#[example(lang_ident, \"lorem: ipsum\")]`"
+            );
+            // let (lang, example) = (&list[0], &list[1]);
+            let lang = match &list[0] {
+                syn::NestedMeta::Meta(syn::Meta::Path(syn::Path { segments, .. })) => {
+                    segments.iter().next().unwrap().ident.to_string()
+                }
+                _ => unimplemented!("can't read lang of {:?}", list[0]),
+            };
+            let content = match &list[1] {
+                syn::NestedMeta::Lit(syn::Lit::Str(val)) => unindent(&val.value()),
+                _ => unimplemented!("can't content lang of {:?}", list[1]),
+            };
+
+            Example { lang, content }
+        })
+        .collect()
+}
+
+fn unescape_literal(lit: &str) -> String {
+    lit.replace("\\\"", "\"")
+        .replace("\\'", "'")
+        .replace(r"\\", r"\")
 }
 
 impl TypeName {

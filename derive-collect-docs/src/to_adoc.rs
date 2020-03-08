@@ -1,5 +1,5 @@
 /// Render some nice human-readable asciidoc files
-use crate::collect_docs::{Field, Struct, Type, TypeName};
+use crate::collect_docs::{Example, Field, Struct, Type, TypeName};
 use std::io::{Result, Write};
 
 pub trait ToAdoc {
@@ -18,6 +18,10 @@ impl ToAdoc for Struct {
         writeln!(w)?;
         writeln!(w, "{}", self.docs)?;
         writeln!(w)?;
+        for example in &self.examples {
+            example.write_adoc(w)?;
+            writeln!(w)?;
+        }
         writeln!(w, ".Fields")?;
         writeln!(w)?;
 
@@ -45,9 +49,29 @@ impl ToAdoc for Field {
         let docs = self.docs.replace("\n\n", "\n+\n");
         if !docs.is_empty() {
             writeln!(w, "+")?;
-            writeln!(w, "{}", docs)?;
+            write!(w, "{}", docs)?;
+        }
+        if !self.examples.is_empty() {
+            writeln!(w, "+")?;
+        }
+        for example in &self.examples {
+            example.write_adoc(w)?;
+        }
+        if !self.examples.is_empty() {
+            writeln!(w)?;
         }
 
+        Ok(())
+    }
+}
+
+impl ToAdoc for Example {
+    fn write_adoc(&self, w: &mut dyn Write) -> Result<()> {
+        writeln!(w, ".Example")?;
+        writeln!(w, "[source,{}]", self.lang)?;
+        writeln!(w, "----")?;
+        writeln!(w, "{}", self.content)?;
+        writeln!(w, "----")?;
         Ok(())
     }
 }
