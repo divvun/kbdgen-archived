@@ -1,111 +1,154 @@
-# This file controls the PyOxidizer build configuration. See the
-# pyoxidizer crate's documentation for extensive documentation
-# on this file format.
+# This file defines how PyOxidizer application building and packaging is
+# performed. See the pyoxidizer crate's documentation for extensive
+# documentation on this file format.
 
-# This variable defines the configuration of the
-# embedded Python interpreter
-embedded_python_config = EmbeddedPythonConfig(
-#     bytes_warning=0,
-#     dont_write_bytecode=True,
-#     ignore_environment=True,
-#     inspect=False,
-#     interactive=False,
-#     isolated=False,
-#     legacy_windows_fs_encoding=False,
-#     legacy_windows_stdio=False,
-#     no_site=True,
-#     no_user_site_directory=True,
-#     optimize_level=0,
-#     parser_debug=False,
-#     stdio_encoding=None,
-#     unbuffered_stdio=False,
-#     filesystem_importer=False,
-#     sys_frozen=False,
-#     sys_meipass=False,
-#     sys_paths=None,
-    raw_allocator="system",
-#     terminfo_resolution="dynamic",
-#     terminfo_dirs=None,
-#     use_hash_seed=False,
-#     verbose=0,
-#     write_modules_directory_env=None,
-)
+# Obtain the default PythonDistribution for our build target. We link
+# this distribution into our produced executable and extract the Python
+# standard library from it.
+def make_dist():
+    return default_python_distribution()
 
-# This variable captures all packaging rules. Append to it to perform
-# additional packaging at build time.
-packaging_rules = []
+# Configuration files consist of functions which define build "targets."
+# This function creates a Python executable and installs it in a destination
+# directory.
+def make_exe(dist):
+    # This variable defines the configuration of the
+    # embedded Python interpreter.
+    python_config = PythonInterpreterConfig(
+    #     bytes_warning=0,
+    #     dont_write_bytecode=True,
+    #     ignore_environment=True,
+    #     inspect=False,
+    #     interactive=False,
+    #     isolated=False,
+    #     legacy_windows_fs_encoding=False,
+    #     legacy_windows_stdio=False,
+    #     no_site=True,
+    #     no_user_site_directory=True,
+    #     optimize_level=0,
+    #     parser_debug=False,
+    #     stdio_encoding=None,
+    #     unbuffered_stdio=False,
+    #     filesystem_importer=False,
+    #     sys_frozen=False,
+    #     sys_meipass=False,
+    #     sys_paths=None,
+        raw_allocator="system",
+    #     terminfo_resolution="dynamic",
+    #     terminfo_dirs=None,
+    #     use_hash_seed=False,
+    #     verbose=0,
+    #     write_modules_directory_env=None,
+    #     run_eval=None,
+    #     run_module=None,
+        run_noop=True,
+    #     run_repl=True,
+    )
 
-# Package all available extension modules from the Python distribution.
-# The Python interpreter will be fully featured.
-packaging_rules.append(StdlibExtensionsPolicy("all"))
+    # The run_eval, run_module, run_noop, and run_repl arguments are mutually
+    # exclusive controls over what the interpreter should do once it initializes.
+    #
+    # run_eval -- Run the specified string value via `eval()`.
+    # run_module -- Import the specified module as __main__ and run it.
+    # run_noop -- Do nothing.
+    # run_repl -- Start a Python REPL.
+    #
+    # These arguments can be ignored if you are providing your own Rust code for
+    # starting the interpreter, as Rust code has full control over interpreter
+    # behavior.
 
-# Only package the minimal set of extension modules needed to initialize
-# a Python interpreter. Many common packages in Python's standard
-# library won't work with this setting.
-#packaging_rules.append(StdlibExtensionsPolicy("minimal"))
+    # Produce a PythonExecutable from a Python distribution, embedded
+    # resources, and other options. The returned object represents the
+    # standalone executable that will be built.
+    exe = dist.to_python_executable(
+        name="kbdgen",
+        config=python_config,
+        # Embed all extension modules, making this a fully-featured Python.
+        extension_module_filter='all',
 
-# Only package extension modules that don't require linking against
-# non-Python libraries. e.g. will exclude support for OpenSSL, SQLite3,
-# other features that require external libraries.
-#packaging_rules.append(StdlibExtensionsPolicy("no-libraries"))
+        # Only package the minimal set of extension modules needed to initialize
+        # a Python interpreter. Many common packages in Python's standard
+        # library won't work with this setting.
+        #extension_module_filter='minimal',
 
-# Package the entire Python standard library without sources.
-packaging_rules.append(Stdlib(include_source=False))
+        # Only package extension modules that don't require linking against
+        # non-Python libraries. e.g. will exclude support for OpenSSL, SQLite3,
+        # other features that require external libraries.
+        #extension_module_filter='no-libraries',
 
-# Explicit list of extension modules from the distribution to include.
-#packaging_rules.append(StdlibExtensionsExplicitIncludes([
-#    "binascii", "errno", "itertools", "math", "select", "_socket"
-#]))
+        # Only package extension modules that don't link against GPL licensed
+        # libraries.
+        #extension_module_filter='no-gpl',
 
-# Explicit list of extension modules from the distribution to exclude.
-#packaging_rules.append(StdlibExtensionsExplicitExcludes(["_ssl"]))
+        # Include Python module sources. This isn't strictly required and it does
+        # make binary sizes larger. But having the sources can be useful for
+        # activities such as debugging.
+        include_sources=False,
 
-# Write out license files next to the produced binary.
-packaging_rules.append(WriteLicenseFiles(""))
+        # Whether to include non-module resource data/files.
+        include_resources=False,
 
+        # Do not include functionality for testing Python itself.
+        include_test=False,
+    )
 
-# Package using pip, individual packages
-packaging_rules.append(PipInstallSimple("./py-kbdgen")) 
-# or use a requirements file
-packaging_rules.append(PipRequirementsFile("./py-kbdgen/requirements.txt"))
+    # Invoke `pip install` with our Python distribution to install a single package.
+    # `pip_install()` returns objects representing installed files.
+    # `add_python_resources()` adds these objects to our embedded context.
+    exe.add_python_resources(dist.pip_install([CWD + "/py-kbdgen"]))
 
-# Package .py files discovered in a local directory.
-#packaging_rules.append(PackageRoot(
-#    path="/src/mypackage", packages=["foo", "bar"],
-#))
+    # Invoke `pip install` using a requirements file and add the collected files
+    # to our embedded context.
+    exe.add_python_resources(dist.pip_install(["-r", CWD + "/py-kbdgen/requirements.txt"]))
 
-# Package things from a populated virtualenv.
-#packaging_rules.append(Virtualenv(path="/path/to/venv"))
+    
 
-# Filter all resources collected so far through a filter of names
-# in a file.
-#packaging_rules.append(FilterInclude(files=["/path/to/filter-file"]))
+    # Read Python files from a local directory and add them to our embedded
+    # context, taking just the resources belonging to the `foo` and `bar`
+    # Python packages.
+    #exe.add_python_resources(dist.read_package_root(
+    #    path="/src/mypackage",
+    #    packages=["foo", "bar"],
+    #)
 
-# How Python should run by default. This is only needed if you
-# call ``run()``. For applications customizing how the embedded
-# Python interpreter is invoked, this section is not relevant.
+    # Discover Python files from a virtualenv and add them to our embedded
+    # context.
+    #exe.add_python_resources(dist.read_virtualenv(path="/path/to/venv"))
 
-# Run an interactive Python interpreter.
-python_run_mode = python_run_mode_repl()
+    # Filter all resources collected so far through a filter of names
+    # in a file.
+    #exe.filter_from_files(files=["/path/to/filter-file"]))
 
-# Import a Python module and run it.
-# python_run_mode = python_run_mode_module("mypackage.__main__")
+    # Return our `PythonExecutable` instance so it can be built and
+    # referenced by other consumers of this target.
+    return exe
 
-# Evaluate some Python code.
-# python_run_mode = python_run_mode_eval("import kbdgen.cli; kbdgen.cli.run_cli()")
+def make_embedded_data(exe):
+    return exe.to_embedded_data()
 
-Config(
-    application_name="kbdgen",
-    embedded_python_config=embedded_python_config,
-    python_distribution=default_python_distribution(),
-    python_run_mode=python_run_mode,
-    packaging_rules=packaging_rules,
-)
+def make_install(exe):
+    # Create an object that represents our installed application file layout.
+    files = FileManifest()
+
+    # Add the generated executable to our install layout in the root directory.
+    files.add_python_resource("kbdgen", exe)
+
+    return files
+
+# Tell PyOxidizer about the build targets defined above.
+register_target("dist", make_dist)
+register_target("exe", make_exe, depends=["dist"], default=True)
+register_target("embedded", make_embedded_data, depends=["exe"], default_build_script=True)
+register_target("install", make_install, depends=["exe"])
+
+# Resolve whatever targets the invoker of this configuration file is requesting
+# be resolved.
+resolve_targets()
 
 # END OF COMMON USER-ADJUSTED SETTINGS.
 #
 # Everything below this is typically managed by PyOxidizer and doesn't need
 # to be updated by people.
 
-PYOXIDIZER_VERSION = "0.5.0"
-PYOXIDIZER_COMMIT = "e50a704fc778db9222e70b7ad4b08f68178483b5"
+PYOXIDIZER_VERSION = "0.6.0"
+PYOXIDIZER_COMMIT = ""

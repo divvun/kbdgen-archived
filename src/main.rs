@@ -1,7 +1,8 @@
-#[cfg(feature = "py")]
-use pyembed::{default_python_config, ExtensionModule, MainPythonInterpreter};
+use pyembed::{ExtensionModule, MainPythonInterpreter};
 use std::path::PathBuf;
 use structopt::{clap::AppSettings::*, StructOpt};
+
+include!(env!("PYOXIDIZER_DEFAULT_PYTHON_CONFIG_RS"));
 
 #[derive(Debug, StructOpt)]
 enum IOSCommands {
@@ -467,13 +468,6 @@ impl BuildCommands {
     }
 }
 
-#[cfg(not(feature = "py"))]
-fn launch_py_kbdgen(_args: &[&str]) -> i32 {
-    log::error!("compiled without kbgen-py support");
-    1
-}
-
-#[cfg(feature = "py")]
 fn launch_py_kbdgen(args: &[&str]) -> i32 {
     // Load the default Python configuration as derived by the PyOxidizer config
     // file used at build time.

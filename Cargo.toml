@@ -10,9 +10,9 @@ license = "Apache-2.0 OR MIT"
 repository = "https://github.com/divvun/kbdgen"
 
 [dependencies]
-pyembed = { path = "pyembed", optional = true}
-py-language-tags = { path = "py-language-tags", optional = true}
-py-logger = { path = "py-logger", optional = true}
+pyembed = { version = "0.6", default-features = false, features = ["build-mode-pyoxidizer-exe", "cpython-link-unresolved-static"] }
+py-language-tags = { path = "py-language-tags" }
+py-logger = { path = "py-logger" }
 derive-collect-docs = { path = "derive-collect-docs" }
 
 serde = { version = "1.0.103", features = ["derive"] }
@@ -50,11 +50,6 @@ skim = "0.7.0"
 [dev-dependencies]
 pretty_env_logger = "0.4.0"
 proptest = "0.9.5"
-
-[features]
-default = ["py"]
-jemalloc = [] # ["jemallocator-global", "pyembed/jemalloc"]
-py = [ "pyembed", "py-language-tags", "py-logger" ]
 
 [profile.release]
 debug = true

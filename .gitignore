@@ -5,7 +5,7 @@ deps
 .vscode
 .envrc
 outputs
-
+.DS_Store
 /target
 **/*.rs.bk
 tmp
