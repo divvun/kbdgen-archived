@@ -67,7 +67,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
                     quote_spanned! { field.span =>
                         #[test]
                         fn #test_fn_name() {
-                            #[derive(Debug, Serialize, Deserialize)]
+                            #[derive(Debug, serde::Serialize, serde::Deserialize)]
                             struct TestHelper {
                                 #(#attrs)*
                                 #field_name: #typ,
