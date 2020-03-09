@@ -52,7 +52,7 @@ or [the one for German keyboards][de]
 make use of many of the available features
 while also being easy to test.
 
-[se]: https://gitlab.freedesktop.org/xhttps://medium.com/@daniel.jozsef/the-bazaar-with-landmines-or-how-to-extend-xkb-the-right-way-b82de59a1f9akeyboard-config/xkeyboard-config/-/blob/835044ad75c5935958f93214b9e2d942afd07686/symbols/se
+[se]: https://gitlab.freedesktop.org/xkeyboard-config/xkeyboard-config/-/blob/835044ad75c5935958f93214b9e2d942afd07686/symbols/se
 [de]: https://gitlab.freedesktop.org/xkeyboard-config/xkeyboard-config/-/blob/835044ad75c5935958f93214b9e2d942afd07686/symbols/de
 
 The general structure of these files is as follows
