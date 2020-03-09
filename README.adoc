@@ -21,22 +21,10 @@ so end users don't have to concern themselves with installing additional depende
 .. Make sure you have a C compiler, usual build tools like Make, and probably also openssl headers installed,
 so you can compile the Python interpreter and its standard library.
 
-.. Install the correct pyoxidizer version.
-The quickest way is using `cargo install --git https://github.com/indygreg/PyOxidizer.git --rev $pyoxidizer_rev pyoxidizer`.
-+
-The revision used and tested on CI right now is:
-+
-[source,yaml]
-----
-include::./azure-pipelines.yml[tag=pyoxidizer_rev]
-----
+.. Install the pyoxidizer version.
+The quickest way is using `cargo install pyoxidizer -vers 0.6.0`.
 
-. Build the project using `pyoxidizer build`.
-If this succeeds, the last line of the output will tell you where you can find the final executable.
-
-TIP: You can also build the project without the original Python kbdgen features
-by running `cargo build --no-default-features` (or `run`).
-This is useful for developing new features (as it is faster to compile).
+. Build the project using `cargo build`.
 
 ### Rendering the documentation
 
