@@ -1,10 +1,6 @@
 # trigger:
 #   - master
 
-variables:
-  # tag::pyoxidizer_rev[]
-  # end::pyoxidizer_rev[]
-
 jobs:
   - job: "linux"
     pool:
