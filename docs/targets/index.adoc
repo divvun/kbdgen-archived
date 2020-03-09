@@ -1,6 +1,6 @@
 = Targets
 
-This sections describes the targets currently supported by kdbgen.
+This sections describes the targets currently supported by kbdgen.
 Targets can be configured in multiple ways,
 for example
 
