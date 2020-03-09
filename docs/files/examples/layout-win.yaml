@@ -1,0 +1,60 @@
+displayNames:
+  sma: Åarjelsaemien gïele (Nöörje)
+  en: South Sami (Norway)
+
+modes:
+  win:
+    default: |
+      | 1 2 3 4 5 6 7 8 9 0 + \
+        q w e r t y u i o p å ï
+        a s d f g h j k l ö æ '
+      < z x c v b n m , . -
+    shift: |
+      § ! " # ¤ % & / ( ) = ? `
+        Q W E R T Y U I O P Å Ï
+        A S D F G H J K L Ö Æ *
+      > Z X C V B N M ; : _
+    caps: |
+      | 1 2 3 4 5 6 7 8 9 0 + \
+        Q W E R T Y U I O P Å Ï
+        A S D F G H J K L Ö Æ '
+      < Z X C V B N M , . -
+    caps+shift: |
+      § ! " # ¤ % & / ( ) = ? `
+        q w e r t y u i o p å ï
+        a s d f g h j k l ö æ *
+      > z x c v b n m ; : _
+    alt: |
+      \u{0} \u{0} @     £  $     € \u{0} {     [     ]     }     \u{0} ´
+            â     \u{0} €  \u{0} ŧ \u{0} \u{0} ï     õ     \u{0} \u{0} ¨
+            á     š     đ  ǥ     ǧ ȟ     \u{0} ǩ     \u{0} ø     ä     ~
+      \u{0} ž     \u{0} č  ǯ     ʒ ŋ     µ     \u{0} \u{0} \u{0}
+    alt+shift: |
+      \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0}
+            Â     \u{0} \u{0} \u{0} Ŧ     \u{0} \u{0} Ï     Õ     \u{0} \u{0} \u{0}
+            Á     Š     Đ     Ǥ     Ǧ     Ȟ     \u{0} Ǩ     \u{0} Ø     Ä     ^
+      \u{0} Ž     \u{0} Č     Ǯ     Ʒ     Ŋ     \u{0} \u{0} \u{0} \u{0}
+    ctrl: |
+      \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0}
+      \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0}
+      \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{
+transforms:
+  '\u{A0}\u{330}':
+    ' ': '\u{A0}\u{330}'
+    e: ḛ
+    E: Ḛ
+    i: ḭ
+    I: Ḭ
+    u: ṵ
+    U: Ṵ
+    # ...
+deadKeys:
+  win:
+    shift: ['`']
+    caps+shift: ['`']
+    alt: [¨, '~', ´]
+    alt+shift: [^]
+targets:
+  win:
+    locale: sma-Latn-NO
+    languageName: Åarjelsaemien gïele (Nöörje)

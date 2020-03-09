@@ -1,0 +1,25 @@
+= Targets
+
+This sections describes the targets currently supported by kdbgen.
+Targets can be configured in multiple ways,
+for example
+
+* using a `targets/<name>.yaml` file,
+* using target-specific settings in a layout's `targets` property,
+* or using target-specific layout modes.
+
+include::android.adoc[leveloffset=+1]
+
+include::ios.adoc[leveloffset=+1]
+
+include::macos.adoc[leveloffset=+1]
+
+include::svg.adoc[leveloffset=+1]
+
+include::windows.adoc[leveloffset=+1]
+
+include::x11.adoc[leveloffset=+1]
+
+include::m17n.adoc[leveloffset=+1]
+
+include::chrome.adoc[leveloffset=+1]

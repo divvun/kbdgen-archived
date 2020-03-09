@@ -1,4 +1,4 @@
-=== macOS
+= macOS
 
 CAUTION: This section is incomplete.
 
@@ -6,7 +6,7 @@ The `osx` target generates a `.pkg` file, optionally codesigned, that installs a
 
 To sign the package, specify the `-R` flag while building.
 
-==== Requirements
+== Requirements
 
 WARNING: This target can only be generated on a macOS system.
 
@@ -14,23 +14,19 @@ You need to install:
 
 * ImageMagick
 
-==== Project-level configuration and properties
+== Project-level configuration and properties
+
+NOTE: For a list of all supported properties of the iOS target files, see <<TargetMacOS>> in the reference section below.
 
 [source,yaml]
 ----
-targets:
-  osx:
-    bundleName: "Brendan's Keyboards"
-    packageId: so.brendan.keyboards.sami
-    codeSignId: "macOS Installer Certificate ID (find in your Keychain)"
-    icon: any.png
-    version: "1.0.0" # should follow x.y.z format
-    resources: path/to/resources # optional
-    welcome: welcome.txt # or .html or .rtf; optional
-    readme: readme.txt # or .html or .rtf; optional
-    license: license.txt # or .html or .rtf; optional
-    conclusion: conclusion.txt # or .html or .rtf; optional
-    background: background.png # or .jpg; optional
+codeSignId: 'Developer ID Installer: The University of Tromso (666000999)'
+provisioningProfileId: Test
+packageId: com.example.mypackageid
+bundleName: New Fancy Keyboards
+icon: images/icon.png
+version: 1.0.4
+build: 1
 ----
 
 `icon` will be converted into an `.icns` file.
@@ -39,20 +35,17 @@ targets:
 
 Resources can be localised. Place readme, welcome, license and conclusion files into `zz.lproj` directories inside the resources directory, where `zz` represents a supported language code. Place the background image into the root of the resources directory.
 
-==== Layout-level configuration and properties
+== Layout-level configuration and properties
 
 The macOS target supports a few custom modes to facilitate the differences between macOS keyboards and others. Particularly, the `cmd` key is macOS specific.
 
-Therefore, macOS specific modes are supported with the `osx-` prefix.
-
-It is important to supply at least an `osx-cmd` mode otherwise the `cmd` key will have no function whatsoever.
-
-If you wish to use your `iso-default` mode as the `osx-cmd` mode (which is the sanest default), you can use YAML referencing:
-
-[source,yaml]
-----
-iso-default: | &default
-  my keyboard here
-osx-cmd: *default
-----
+// FIXME: Is this still valid?
+// If you wish to use your `iso-default` mode as the `osx-cmd` mode (which is the sanest default), you can use YAML referencing:
+//
+// [source,yaml]
+// ----
+// iso-default: | &default
+//   my keyboard here
+// osx-cmd: *default
+// ----
 

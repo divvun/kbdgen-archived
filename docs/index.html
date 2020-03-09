@@ -448,7 +448,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
-<li><a href="#introduction_to_kbdgen_1_0_7">1. Introduction to kbdgen 1.0.7</a>
+<li><a href="#introduction_to_kbdgen_2_0_0_alpha_0">1. Introduction to kbdgen 2.0.0-alpha.0</a>
 <ul class="sectlevel2">
 <li><a href="#what_is_kbdgen">1.1. What is kbdgen?</a></li>
 <li><a href="#supported_targets">1.2. Supported targets</a></li>
@@ -456,80 +456,72 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#usage">1.4. Usage</a></li>
 </ul>
 </li>
-<li><a href="#installation">2. Installation</a>
+<li><a href="#transitioning_from_kbdgen_1_x_to_2_x">2. Transitioning from kbdgen 1.x to 2.x</a>
 <ul class="sectlevel2">
-<li><a href="#from_source">2.1. From Source</a>
-<ul class="sectlevel3">
-<li><a href="#unix_like_linux_macos_etc">2.1.1. Unix-like (Linux, macOS, etc)</a></li>
-<li><a href="#windows">2.1.2. Windows</a></li>
+<li><a href="#fundamental_differences_between_kbdgen_1_x_and_2_x">2.1. Fundamental differences between kbdgen 1.x and 2.x:</a></li>
+<li><a href="#converting_a_kbdgen_1_x_project_to_2_x">2.2. Converting a kbdgen 1.x project to 2.x</a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li><a href="#projects">3. Projects</a>
+<li><a href="#installation">3. Installation</a>
 <ul class="sectlevel2">
-<li><a href="#example_project_descriptor_file">3.1. Example project descriptor file</a></li>
-<li><a href="#supported_properties">3.2. Supported properties</a></li>
-<li><a href="#best_practices">3.3. Best practices</a></li>
+<li><a href="#pre_built">3.1. Pre-built</a>
+<ul class="sectlevel3">
+<li><a href="#macos">3.1.1. macOS</a></li>
+<li><a href="#linux">3.1.2. Linux</a></li>
+<li><a href="#windows">3.1.3. Windows</a></li>
 </ul>
 </li>
-<li><a href="#layouts">4. Layouts</a>
+<li><a href="#from_source">3.2. From Source</a></li>
+</ul>
+</li>
+<li><a href="#kbdgen_file_structure_overview">4. kbdgen file structure overview</a>
 <ul class="sectlevel2">
-<li><a href="#structure_of_a_layout_descriptor_file">4.1. Structure of a layout descriptor file</a></li>
-<li><a href="#mobile_layouts">4.2. Mobile layouts</a></li>
-<li><a href="#desktop_layouts">4.3. Desktop layouts</a>
+<li><a href="#files">4.1. Files</a>
 <ul class="sectlevel3">
-<li><a href="#modes">4.3.1. Modes</a></li>
+<li><a href="#projects">4.1.1. Projects</a></li>
+<li><a href="#layouts">4.1.2. Layouts</a></li>
 </ul>
 </li>
-<li><a href="#supported_properties_2">4.4. Supported properties</a></li>
-<li><a href="#examples">4.5. Examples</a>
+<li><a href="#targets">4.2. Targets</a>
 <ul class="sectlevel3">
-<li><a href="#mobile_layout_example">4.5.1. Mobile layout example</a></li>
-<li><a href="#windows_desktop_layout_example">4.5.2. Windows desktop layout example</a></li>
-<li><a href="#macos_desktop_layout_example">4.5.3. macOS desktop layout example</a></li>
+<li><a href="#android">4.2.1. Android</a></li>
+<li><a href="#ios">4.2.2. iOS</a></li>
+<li><a href="#macos_2">4.2.3. macOS</a></li>
+<li><a href="#svg">4.2.4. SVG</a></li>
+<li><a href="#windows_2">4.2.5. Windows</a></li>
+<li><a href="#x11">4.2.6. X11</a></li>
+<li><a href="#m17n">4.2.7. M17n</a></li>
+<li><a href="#chrome">4.2.8. Chrome</a></li>
 </ul>
 </li>
-<li><a href="#best_practices_2">4.6. Best practices</a></li>
-<li><a href="#generating_layouts_from_cldr_with_cldr2kbdgen">4.7. Generating layouts from CLDR with cldr2kbdgen</a></li>
 </ul>
 </li>
-<li><a href="#targets">5. Targets</a>
+<li><a href="#project_file_structure_reference">5. Project file structure reference</a>
 <ul class="sectlevel2">
-<li><a href="#android">5.1. Android</a>
-<ul class="sectlevel3">
-<li><a href="#requirements">5.1.1. Requirements</a></li>
-<li><a href="#installation_and_environment_configuration">5.1.2. Installation and environment configuration</a></li>
-<li><a href="#project_level_configuration_and_properties">5.1.3. Project-level configuration and properties</a></li>
-<li><a href="#layout_level_configuration_and_properties">5.1.4. Layout-level configuration and properties</a></li>
-<li><a href="#testing">5.1.5. Testing</a></li>
-<li><a href="#generating_keystores">5.1.6. Generating keystores</a></li>
-</ul>
-</li>
-<li><a href="#ios">5.2. iOS</a>
-<ul class="sectlevel3">
-<li><a href="#requirements_2">5.2.1. Requirements</a></li>
-<li><a href="#project_level_configuration_and_properties_2">5.2.2. Project-level configuration and properties</a></li>
-<li><a href="#layout_level_configuration_and_properties_2">5.2.3. Layout-level configuration and properties</a></li>
-<li><a href="#testing_2">5.2.4. Testing</a></li>
-</ul>
-</li>
-<li><a href="#macos">5.3. macOS</a>
-<ul class="sectlevel3">
-<li><a href="#requirements_3">5.3.1. Requirements</a></li>
-<li><a href="#project_level_configuration_and_properties_3">5.3.2. Project-level configuration and properties</a></li>
-<li><a href="#layout_level_configuration_and_properties_3">5.3.3. Layout-level configuration and properties</a></li>
-</ul>
-</li>
-<li><a href="#svg">5.4. SVG</a></li>
-<li><a href="#windows_2">5.5. Windows</a>
-<ul class="sectlevel3">
-<li><a href="#preparing_build_environment">5.5.1. Preparing build environment</a></li>
-<li><a href="#limitations">5.5.2. Limitations</a></li>
-<li><a href="#mappings_between_modes_in_layout_files_and_windows_keyboards">5.5.3. Mappings between modes in layout files and Windows keyboards</a></li>
-</ul>
-</li>
-<li><a href="#x11">5.6. X11</a></li>
+<li><a href="#deriveoptions">5.1. DeriveOptions</a></li>
+<li><a href="#desktopkeymap">5.2. DesktopKeyMap</a></li>
+<li><a href="#desktopmodes">5.3. DesktopModes</a></li>
+<li><a href="#layout">5.4. Layout</a></li>
+<li><a href="#layoutstrings">5.5. LayoutStrings</a></li>
+<li><a href="#layouttarget">5.6. LayoutTarget</a></li>
+<li><a href="#layouttargetandroid">5.7. LayoutTargetAndroid</a></li>
+<li><a href="#layouttargetios">5.8. LayoutTargetIOS</a></li>
+<li><a href="#layouttargetwindows">5.9. LayoutTargetWindows</a></li>
+<li><a href="#mobilekeymap">5.10. MobileKeyMap</a></li>
+<li><a href="#mobilemodes">5.11. MobileModes</a></li>
+<li><a href="#modes">5.12. Modes</a></li>
+<li><a href="#project">5.13. Project</a></li>
+<li><a href="#projectbundle">5.14. ProjectBundle</a></li>
+<li><a href="#projectdesc">5.15. ProjectDesc</a></li>
+<li><a href="#targetandroid">5.16. TargetAndroid</a></li>
+<li><a href="#targetchrome">5.17. TargetChrome</a></li>
+<li><a href="#targetios">5.18. TargetIOS</a></li>
+<li><a href="#targetmacos">5.19. TargetMacOS</a></li>
+<li><a href="#targetmim">5.20. TargetMim</a></li>
+<li><a href="#targetwindows">5.21. TargetWindows</a></li>
+<li><a href="#targetx11">5.22. TargetX11</a></li>
+<li><a href="#targets_2">5.23. Targets</a></li>
+<li><a href="#yamlvalue">5.24. YamlValue</a></li>
 </ul>
 </li>
 </ul>
@@ -562,7 +554,7 @@ an issue on GitHub.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="introduction_to_kbdgen_1_0_7"><a class="link" href="#introduction_to_kbdgen_1_0_7">1. Introduction to kbdgen 1.0.7</a></h2>
+<h2 id="introduction_to_kbdgen_2_0_0_alpha_0"><a class="link" href="#introduction_to_kbdgen_2_0_0_alpha_0">1. Introduction to kbdgen 2.0.0-alpha.0</a></h2>
 <div class="sectionbody">
 <div class="sect2">
 <h3 id="what_is_kbdgen"><a class="link" href="#what_is_kbdgen">1.1. What is kbdgen?</a></h3>
@@ -570,7 +562,7 @@ an issue on GitHub.</p>
 <p><a href="https://github.com/divvun/kbdgen"><code>kbdgen</code></a> is a tool for generating keyboards from layout descriptor files defined using YAML.</p>
 </div>
 <div class="paragraph">
-<p>It requires Python 3.4 or higher.</p>
+<p>It requires Python 3.7 or higher.</p>
 </div>
 </div>
 <div class="sect2">
@@ -591,6 +583,14 @@ android
 </tr>
 <tr>
 <td class="hdlist1">
+chrome
+</td>
+<td class="hdlist2">
+<p>Chrome OS target, can be built on any OS</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
 ios
 </td>
 <td class="hdlist2">
@@ -599,7 +599,15 @@ ios
 </tr>
 <tr>
 <td class="hdlist1">
-osx
+m17n
+</td>
+<td class="hdlist2">
+<p>M17n target, can built on any OS</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+mac
 </td>
 <td class="hdlist2">
 <p>macOS target, can be built only on macOS</p>
@@ -618,7 +626,7 @@ svg
 win
 </td>
 <td class="hdlist2">
-<p>Windows 8.1+ target, can be built on Unix-like operating systems (requires wine)</p>
+<p>Windows 8.1+ target, can be built on any OS (but only code-signed on Windows)</p>
 </td>
 </tr>
 <tr>
@@ -635,17 +643,51 @@ x11
 <div class="sect2">
 <h3 id="anatomy_of_a_kbdgen_project"><a class="link" href="#anatomy_of_a_kbdgen_project">1.3. Anatomy of a kbdgen project</a></h3>
 <div class="paragraph">
-<p>A <code>kbdgen</code> project is ordinarily structured with a central <code>project.yaml</code> file defining the project descriptor,
-with several other YAML files describing each layout in the same directory, listed in the <code>layouts</code> property
-of the project descriptor.</p>
+<p>A <code>kbdgen</code> project is structed as a bundle named <code>foo.kbdgen</code>, where <code>foo</code> is name of the bundle. It is highly recommended to name
+the bundle after either a locale or a macrolanguage family in BCP 47 (ie "en-US", "sv", "sr-Cyrl", "smi", etc) format. While this
+requirement is not enforced, it makes identifying the purpose of a bundle much easier.</p>
 </div>
 <div class="paragraph">
-<p>Resources for each layout will differ per target, and there is no specified or required directory structure
-for storing these resources. When required, properties for resource paths are relative to the project descriptor file.</p>
+<p>Below is an exammple of the directory hierarchy of a bundle, with the example of the <code>smi</code> Sami macrolanguage family:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code>smi.kbdgen
+├── project.yaml
+├── layouts
+│   ├── se-NO.yaml
+│   ⋮
+├── resources
+│   ├── android
+│   ├── chrome
+│   ├── ios
+│   ├── mac
+│   ├── win
+│   ⋮
+└── targets
+    ├── android.yaml
+    ├── chrome.yaml
+    ├── ios.yaml
+    ├── mac.yaml
+    ├── win.yaml
+    ⋮</code></pre>
+</div>
 </div>
 <div class="paragraph">
-<p>For more information on the project and layout descriptors, see the documentation and examples provided in
-the "Projects" and "Layouts" chapters.</p>
+<p>A <code>kbdgen</code> bundle is structured with a central <code>project.yaml</code> file defining the project descriptor, describing metadata
+such as the name of the bundle in each supported locale, copyright information and authorship, and other metadata.</p>
+</div>
+<div class="paragraph">
+<p>The <code>layouts</code> directory contains the layouts in a YAML format. Each file MUST be named in BCP 47 format. The specific requirements
+are described per target in the sections below.</p>
+</div>
+<div class="paragraph">
+<p>The <code>resources</code> directory contains target-specific resources, such as icons or documentation. The specific requirements are
+described in the target-specific sections below.</p>
+</div>
+<div class="paragraph">
+<p>The <code>targets</code> directory contains target-specific metadata such as current version and build number, and other metadata unique to the
+given target.</p>
 </div>
 </div>
 <div class="sect2">
@@ -663,7 +705,75 @@ the "Projects" and "Layouts" chapters.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="installation"><a class="link" href="#installation">2. Installation</a></h2>
+<h2 id="transitioning_from_kbdgen_1_x_to_2_x"><a class="link" href="#transitioning_from_kbdgen_1_x_to_2_x">2. Transitioning from kbdgen 1.x to 2.x</a></h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="fundamental_differences_between_kbdgen_1_x_and_2_x"><a class="link" href="#fundamental_differences_between_kbdgen_1_x_and_2_x">2.1. Fundamental differences between kbdgen 1.x and 2.x:</a></h3>
+<div class="ulist">
+<ul>
+<li>
+<p>A directory layout is now enforced in the form of a project bundle (ie "foo.kbdgen/")</p>
+</li>
+<li>
+<p>Layouts are no longer specified in the project.yaml, and are instead determined by a <code>layouts/</code> directory inside the bundle</p>
+</li>
+<li>
+<p>Layouts no longer have an "internalName", and instead are designated by their locale</p>
+</li>
+<li>
+<p>Layouts no longer require separate layout files for each platform, and are now only separated by locale distinctions</p>
+</li>
+<li>
+<p>This means that you can have one layout file containing multiple targets, limiting duplication of such things as transforms and dead keys</p>
+</li>
+<li>
+<p>The command line interface has been improved and made easier to understand</p>
+</li>
+<li>
+<p>Each target has its own flags and help information</p>
+</li>
+<li>
+<p>Target resources are now constrained to a <code>resources/</code> directory inside the project bundle</p>
+</li>
+<li>
+<p>More helpful error messages when resources are missing</p>
+</li>
+<li>
+<p>Improved support for iPad and the introduction of new modes for supporting these layouts</p>
+</li>
+<li>
+<p>The introduction of the <code>m17n</code> and <code>chrome</code> targets</p>
+</li>
+<li>
+<p>The inclusion of tools to simplify generating template projects from CLDR keyboard sources</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="converting_a_kbdgen_1_x_project_to_2_x"><a class="link" href="#converting_a_kbdgen_1_x_project_to_2_x">2.2. Converting a kbdgen 1.x project to 2.x</a></h3>
+<div class="paragraph">
+<p>This is a work in progress. For now, you may use the Node.js script in our GitHub repository.</p>
+</div>
+<div class="paragraph">
+<p>There are some known issues with this script. Current known issues:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>TODO</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>We intend to integrate a <code>convert</code> command to the kbdgen tool Soon™. If you wish to help port
+this functionality to the Rust codebase, please let us know in this issue. TODO</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="installation"><a class="link" href="#installation">3. Installation</a></h2>
 <div class="sectionbody">
 <div class="admonitionblock warning">
 <table>
@@ -677,45 +787,65 @@ Each target may have separate requirements for generating and building the outpu
 </tr>
 </table>
 </div>
+<div class="paragraph">
+<p>It is recommended to use a prebuilt version of <code>kbdgen</code> where possible.</p>
+</div>
 <div class="sect2">
-<h3 id="from_source"><a class="link" href="#from_source">2.1. From Source</a></h3>
+<h3 id="pre_built"><a class="link" href="#pre_built">3.1. Pre-built</a></h3>
 <div class="sect3">
-<h4 id="unix_like_linux_macos_etc"><a class="link" href="#unix_like_linux_macos_etc">2.1.1. Unix-like (Linux, macOS, etc)</a></h4>
+<h4 id="macos"><a class="link" href="#macos">3.1.1. macOS</a></h4>
 <div class="paragraph">
-<p>You will need Python 3.4 or higher installed to continue. Use your operating system&#8217;s package manager to install the <code>python3</code> package or equivalent. You will also need to install <code>poetry</code>, a Python package management tool.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code>poetry install</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You will also need to install <code>imagemagick</code> or icon generation (and therefore the build) will fail for several targets. On
-macOS, this can be installed with MacPorts or Homebrew. (<code>brew install imagemagick</code> or <code>port install imagemagick</code>).</p>
+<p>TODO</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="windows"><a class="link" href="#windows">2.1.2. Windows</a></h4>
+<h4 id="linux"><a class="link" href="#linux">3.1.2. Linux</a></h4>
 <div class="paragraph">
-<p>Ensure Python 3.4 or higher is installed on your system and Python&#8217;s executables are available in your <code>%PATH%</code>. You will also need to install <code>poetry</code>, a Python package management tool. Using the Command Prompt, run the following commands:</p>
+<p>TODO</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="windows"><a class="link" href="#windows">3.1.3. Windows</a></h4>
+<div class="paragraph">
+<p>TODO</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="from_source"><a class="link" href="#from_source">3.2. From Source</a></h3>
+<div class="paragraph">
+<p>The same instructions apply for all operating systems where Rust is supported.</p>
+</div>
+<div class="paragraph">
+<p>Install Rust from rustup.rs. Install <code>pyoxidizer</code> with cargo (<code>cargo install pyoxidizer</code>).</p>
+</div>
+<div class="paragraph">
+<p>Then run:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code>poetry install</code></pre>
+<pre>pyoxidizer build --release</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>It is left an exercise for the reader to work out how to install <code>imagemagick</code> on Windows and add it to the <code>%PATH%</code>.</p>
-</div>
+<p>Upon completion, the path to the generated self-contained executable will be printed.</p>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="projects"><a class="link" href="#projects">3. Projects</a></h2>
+<h2 id="kbdgen_file_structure_overview"><a class="link" href="#kbdgen_file_structure_overview">4. kbdgen file structure overview</a></h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="example_project_descriptor_file"><a class="link" href="#example_project_descriptor_file">3.1. Example project descriptor file</a></h3>
+<h3 id="files"><a class="link" href="#files">4.1. Files</a></h3>
+<div class="sect3">
+<h4 id="projects"><a class="link" href="#projects">4.1.1. Projects</a></h4>
+<div class="paragraph">
+<p>Each <code>.kbdgen</code> bundle must contain a <code>project.yaml</code> file
+that contains metadata necessary for generating the various target outputs.</p>
+</div>
+<div class="sect4">
+<h5 id="example_project_descriptor_file"><a class="link" href="#example_project_descriptor_file">Example project descriptor file</a></h5>
 <div class="paragraph">
 <p>Below shows a typical and basic <code>project.yaml</code> that describes a project localised into
 Norwegian Bokmål and English, with target-specific configuration for iOS and Android.</p>
@@ -723,10 +853,7 @@ Norwegian Bokmål and English, with target-specific configuration for iOS and An
 <div class="listingblock">
 <div class="title">Example of a basic project descriptor file</div>
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="comment"># An internal identifier for the project</span>
-<span class="key">internalName</span>: <span class="string"><span class="content">project</span></span>
-
-<span class="comment"># Strings for describing the project, using ISO 639-1 or 639-3 tags.</span>
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="comment"># Strings for describing the project, using ISO 639-1 or 639-3 tags.</span>
 <span class="key">locales</span>:
   <span class="key">en</span>:
     <span class="key">name</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">Keyboard Project</span><span class="delimiter">&quot;</span></span>
@@ -741,26 +868,12 @@ Norwegian Bokmål and English, with target-specific configuration for iOS and An
 
 <span class="comment"># Optional organisation and copyright properties</span>
 <span class="key">organisation</span>: <span class="string"><span class="content">Example Corp</span></span>
-<span class="key">copyright</span>: <span class="string"><span class="content">Copyright © 2017 Example Corp</span></span>
-
-<span class="comment"># Layouts supported by this project, without .yaml suffix</span>
-<span class="key">layouts</span>: <span class="string"><span class="content">[layout1, layout2]</span></span>
-
-<span class="comment"># Target-specific configurations at project level (may also include osx, win, etc)</span>
-<span class="key">targets</span>:
-  <span class="key">android</span>:
-    <span class="key">version</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">1.0</span><span class="delimiter">&quot;</span></span>
-    <span class="key">build</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">1</span><span class="delimiter">&quot;</span></span>
-    <span class="key">packageId</span>: <span class="string"><span class="content">com.example.keyboards</span></span>
-  <span class="key">ios</span>:
-    <span class="key">version</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">1.0</span><span class="delimiter">&quot;</span></span>
-    <span class="key">build</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">1</span><span class="delimiter">&quot;</span></span>
-    <span class="key">packageId</span>: <span class="string"><span class="content">com.example.keyboards</span></span></code></pre>
+<span class="key">copyright</span>: <span class="string"><span class="content">Copyright © 2017 Example Corp</span></span></code></pre>
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="supported_properties"><a class="link" href="#supported_properties">3.2. Supported properties</a></h3>
+<div class="sect4">
+<h5 id="supported_properties"><a class="link" href="#supported_properties">Supported properties</a></h5>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -768,149 +881,14 @@ Norwegian Bokmål and English, with target-specific configuration for iOS and An
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-For target-specific properties, please see the specific chapter for your desired target.
+For a list of all supported properties of the project descriptor file, see <a href="#project">Project</a> in the reference section below.
 </td>
 </tr>
 </table>
 </div>
-<table class="tableblock frame-all grid-all fit-content spread">
-<colgroup>
-<col>
-<col>
-<col>
-<col>
-<col>
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Property</th>
-<th class="tableblock halign-left valign-top">Type</th>
-<th class="tableblock halign-left valign-top">Required</th>
-<th class="tableblock halign-left valign-top">Description</th>
-<th class="tableblock halign-left valign-top">Example</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>internalName</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The internal identifier for the project. May be used for generating filenames or internal metadata for a project.</p>
-<p class="tableblock">Must meet the requirements of the regex: <code>/^[a-z0-9_-]+$/</code>.</p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">internalName</span>: <span class="string"><span class="content">keyboards</span></span></code></pre>
 </div>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>locales.&lt;lang&gt;.name</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Yes, at least for <code>en</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The name string for the project. For mobile keyboards, this is the title of the app.</p>
-<p class="tableblock"><code>&lt;lang&gt;</code> is any ISO 639-1 or 639-3 code. If a language has both, prefer the 639-1 variant for better support.</p>
-<p class="tableblock">It must be defined for at least the <code>en</code> locale, and preferably also for each well-supported locale that you expect to support.</p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">locales</span>:
-  <span class="key">en</span>:
-    <span class="key">name</span>: <span class="string"><span class="content">My Keyboard Project</span></span></code></pre>
-</div>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>locales.&lt;lang&gt;.description</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Yes, at least for <code>en</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The description of the project.</p>
-<p class="tableblock"><code>&lt;lang&gt;</code> is any ISO 639-1 or 639-3 code. If a language has both, prefer the 639-1 variant for better support.</p>
-<p class="tableblock">It must be defined for at least the <code>en</code> locale, and preferably also for each well-supported locale that you expect to support.</p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">locales</span>:
-  <span class="key">en</span>:
-    <span class="key">description</span>: <span class="string"><span class="content">A keyboard supporting zero languages.</span></span></code></pre>
-</div>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>author</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The author</p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">author</span>: <span class="string"><span class="content">Brendan Molloy</span></span></code></pre>
-</div>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>email</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The author&#8217;s email address</p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">email</span>: <span class="string"><span class="content">brendan@bbqsrc.net</span></span></code></pre>
-</div>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>organisation</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The associated organisation. Put author here too if no organisation.</p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">organisation</span>: <span class="string"><span class="content">Divvun</span></span></code></pre>
-</div>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>copyright</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The copyright string to be used where and if necessary.</p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">copyright</span>: <span class="string"><span class="content">Copyright © 2017 Divvun</span></span></code></pre>
-</div>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>layouts</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">string array</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Specify the layouts to be included in this project.</p>
-<p class="tableblock">The layout names are the names of the YAML files without the <code>.yaml</code> suffix.</p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">layouts</span>: <span class="string"><span class="content">[sma, sme, smj]</span></span></code></pre>
-</div>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>targets.&lt;target&gt;</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">property map</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Target dependent</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">For defining target-specific project-level properties, such as code signing certificates,
-build and version numbers, and other resources to be included at a project level.</p>
-<p class="tableblock">See the documentation for each target for more information.</p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">targets</span>:
-  <span class="key">android</span>:
-    <span class="key">version</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">1.0</span><span class="delimiter">&quot;</span></span>
-    <span class="key">build</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">1</span><span class="delimiter">&quot;</span></span>
-    <span class="key">packageId</span>: <span class="string"><span class="content">com.example.keyboards</span></span></code></pre>
-</div>
-</div></div></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="sect2">
-<h3 id="best_practices"><a class="link" href="#best_practices">3.3. Best practices</a></h3>
+<div class="sect4">
+<h5 id="best_practices"><a class="link" href="#best_practices">Best practices</a></h5>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -925,12 +903,30 @@ These best practices are a work-in-progress. If you have a suggestion, please su
 </div>
 </div>
 </div>
+<div class="sect3">
+<h4 id="layouts"><a class="link" href="#layouts">4.1.2. Layouts</a></h4>
+<div class="paragraph">
+<p>Layouts are defined in YAML files
+stored in the <code>layouts/</code> directory of the <code>.kbdgen</code> bundle.
+Their name has to be in ISO 639-1 or 639-3 format
+and will be used when generating outputs.</p>
 </div>
-<div class="sect1">
-<h2 id="layouts"><a class="link" href="#layouts">4. Layouts</a></h2>
-<div class="sectionbody">
-<div class="sect2">
-<h3 id="structure_of_a_layout_descriptor_file"><a class="link" href="#structure_of_a_layout_descriptor_file">4.1. Structure of a layout descriptor file</a></h3>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<strong>The layout file names SHOULD NOT change between versions!</strong>
+If you change this, targets such as Android will display unexpected behaviour
+when you update your keyboards.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect4">
+<h5 id="structure_of_a_layout_descriptor_file"><a class="link" href="#structure_of_a_layout_descriptor_file">Structure of a layout descriptor file</a></h5>
 <div class="paragraph">
 <p>Layout descriptors, like project descriptors, are defined using YAML.</p>
 </div>
@@ -941,12 +937,6 @@ for mobile and desktop keyboards, and the same layout file may incorporate
 both modes if the user desires.</p>
 </div>
 <div class="paragraph">
-<p>Layouts support a <code>supportedTargets</code> property so that a layout may be defined to
-only function with certain targets. This allows the keyboard developer to separate
-Windows layouts from Mac layouts, or separate mobile from desktop layouts, depending
-on the relevant use case for the developer.</p>
-</div>
-<div class="paragraph">
 <p>Keys and transform outputs may be multi-codepoint. Simply type the output you expect in
 the descriptor and it will be generated correctly, as layout modes are space-delimited only.</p>
 </div>
@@ -955,25 +945,11 @@ the descriptor and it will be generated correctly, as layout modes are space-del
 you may use <code>\u{x}</code> notation, which is just the <code>U+xxxx</code> codepoint written as <code>\u{xxxx}</code>. The
 Examples section shows this in use several times.</p>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-It is of fundamental importance that the <code>internalName</code> for each layout is
-unique. While the <code>kbdgen</code> generator should have an error in the case of user error,
-it has previously caused undefined behaviour.
-</td>
-</tr>
-</table>
 </div>
-</div>
-<div class="sect2">
-<h3 id="mobile_layouts"><a class="link" href="#mobile_layouts">4.2. Mobile layouts</a></h3>
+<div class="sect4">
+<h5 id="mobile_layouts"><a class="link" href="#mobile_layouts">Mobile layouts</a></h5>
 <div class="paragraph">
-<p>Mobile layouts consist of the modes <code>mobile-default</code> and <code>mobile-shift</code>. These modes
+<p>Mobile layouts consist of the modes <code>default</code> and <code>shift</code>. These modes
 are currently used with the <code>android</code> and <code>ios</code> targets.</p>
 </div>
 <div class="paragraph">
@@ -991,23 +967,32 @@ strictly required, it is highly recommended that you set these before deploying 
 user experience, particularly on iOS.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="desktop_layouts"><a class="link" href="#desktop_layouts">4.3. Desktop layouts</a></h3>
+<div class="sect4">
+<h5 id="desktop_layouts"><a class="link" href="#desktop_layouts">Desktop layouts</a></h5>
 <div class="paragraph">
-<p>A desktop layout consists of keys for each mode, dead key definitions (using <code>deadKeys</code>) and a transforms map
+<p>A desktop layout consists of keys for each mode, and uses dead key definitions (using <code>deadKeys</code>) and a transforms map
 (<code>transforms</code>) for defining key sequences to output specific glyphs. Transforms may be infinitely nested in this format,
 it is up to the platform to determine how many levels of nesting are considered reasonable.</p>
 </div>
-<div class="sect3">
-<h4 id="modes"><a class="link" href="#modes">4.3.1. Modes</a></h4>
+<div class="sect5">
+<h6 id="desktop_modes"><a class="link" href="#desktop_modes">Desktop modes</a></h6>
 <div class="paragraph">
 <p>Modes are defined as a space-delimited and newline-delimited set of characters for use as keys
 on a keyboard. The expected keyboard layout is the ISO standard keyboard (not the ANSI US keyboard,
 which has one less key).</p>
 </div>
+<div class="listingblock">
+<div class="title">Example of a desktop mode key map</div>
+<div class="content">
+<pre class="CodeRay highlight"><code>§ 1 2 3 4 5 6 7 8 9 0 + ´
+  á w e r t y u i o p å ŋ
+  a s d f g h j k l ö ä '
+&lt; z x c v b n m , . -</code></pre>
+</div>
+</div>
 <div class="imageblock">
 <div class="content">
-<img src="keyboard.svg" alt="keyboard">
+<img src="./keyboard.svg" alt="keyboard">
 </div>
 <div class="title">Figure 1. The ISO standard keyboard layout showing potential variations in colour</div>
 </div>
@@ -1015,9 +1000,18 @@ which has one less key).</p>
 <p><code>kbdgen</code> supports E00–E12, D01–D12, C01–C12, and B00–10 as per traditional European ISO standard keyboards. In practice, for ANSI keyboards,
 C12 moves to D13, and B00 is simply dropped altogether. B11 is not used on any modern keyboard, and E13 is largely ignored.</p>
 </div>
-<div class="paragraph">
-<p>If you forget to add the <code>|</code> symbol after the mode key, you will encounter some fun parsing errors.
-Don&#8217;t forget the pipe!</p>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+If you forget to add the <code>|</code> symbol after the mode key, you will encounter some fun parsing errors.
+Don&#8217;t forget the pipe!
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>Desktop layouts consist of several modes due to the complexity of desktop keyboards:</p>
@@ -1025,28 +1019,28 @@ Don&#8217;t forget the pipe!</p>
 <div class="ulist">
 <ul>
 <li>
-<p>iso-default</p>
+<p><code>default</code></p>
 </li>
 <li>
-<p>iso-shift</p>
+<p><code>shift</code></p>
 </li>
 <li>
-<p>iso-caps</p>
+<p><code>caps</code></p>
 </li>
 <li>
-<p>iso-caps+shift</p>
+<p><code>caps+shift</code></p>
 </li>
 <li>
-<p>iso-alt</p>
+<p><code>alt</code></p>
 </li>
 <li>
-<p>iso-alt+shift</p>
+<p><code>alt+shift</code></p>
 </li>
 <li>
-<p>iso-caps+alt</p>
+<p><code>caps+alt</code></p>
 </li>
 <li>
-<p>iso-ctrl</p>
+<p><code>ctrl</code></p>
 </li>
 </ul>
 </div>
@@ -1057,26 +1051,22 @@ keyboards:</p>
 <div class="ulist">
 <ul>
 <li>
-<p>osx-cmd</p>
+<p><code>cmd</code></p>
 </li>
 <li>
-<p>osx-cmd+shift</p>
+<p><code>cmd+shift</code></p>
 </li>
 <li>
-<p>osx-cmd+alt</p>
+<p><code>cmd+alt</code></p>
 </li>
 <li>
-<p>osx-cmd+alt+shift</p>
+<p><code>cmd+alt+shift</code></p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
 <p>It is possible that further modes may be supported in the future if necessary.</p>
 </div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="supported_properties_2"><a class="link" href="#supported_properties_2">4.4. Supported properties</a></h3>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -1084,555 +1074,186 @@ keyboards:</p>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-For target-specific properties, please see the specific chapter for your desired target.
+For a list of all supported properties of layouts, see <a href="#layout">Layout</a> in the reference section below.
 </td>
 </tr>
 </table>
 </div>
-<table class="tableblock frame-all grid-all fit-content spread">
-<colgroup>
-<col>
-<col>
-<col>
-<col>
-<col>
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Property</th>
-<th class="tableblock halign-left valign-top">Type</th>
-<th class="tableblock halign-left valign-top">Required</th>
-<th class="tableblock halign-left valign-top">Description</th>
-<th class="tableblock halign-left valign-top">Example</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>internalName</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The internal identifier for the layout. May be used for generating filenames or internal metadata for a layout.</p>
-<p class="tableblock">Must meet the requirements of the regex: <code>/^[a-z0-9_-]+$/</code>. A good choice is to use the locale code.</p>
-<p class="tableblock"><strong>This SHOULD NOT change between versions!</strong> If you change this, targets such as Android will display unexpected behaviour
-when you update your keyboards.</p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">internalName</span>: <span class="string"><span class="content">sma</span></span></code></pre>
 </div>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>displayNames.&lt;lang&gt;</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Yes, at least for <code>en</code>.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The name of the layout.</p>
-<p class="tableblock"><code>&lt;lang&gt;</code> is any ISO 639-1 or 639-3 code. If a language has both, prefer the 639-1 variant for better support.</p>
-<p class="tableblock">It must be defined for at least the <code>en</code> locale, and preferably also for each well-supported locale that you expect to support.</p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
+</div>
+<div class="sect4">
+<h5 id="examples"><a class="link" href="#examples">Examples</a></h5>
+<div class="listingblock">
+<div class="title">Mobile layout example (Android)</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">displayNames</span>:
-  <span class="key">en</span>: <span class="string"><span class="content">Southern Sámi</span></span></code></pre>
-</div>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>locale</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The locale for the layout.</p>
-<p class="tableblock">Locale is any ISO 639-1 or 639-3 code. If a language has both, prefer the 639-1 variant for better support.</p>
-<p class="tableblock">For platforms that do not support the correct locale code for this layout, target-specific overrides may be
-defined. Please check the relevant target documentation for more information.</p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">locale</span>: <span class="string"><span class="content">sma</span></span></code></pre>
-</div>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>targets.&lt;target&gt;</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">string map</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">A map of target-specific customisation properties.</p>
-<p class="tableblock"><code>&lt;target&gt;</code> is the code for the target.</p>
-<p class="tableblock">Only necessary if you need to set a target-specific property.</p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">targets</span>:
-  <span class="key">win</span>:
-    <span class="key">locale</span>: <span class="string"><span class="content">sma-Latn-NO</span></span></code></pre>
-</div>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>modes.&lt;mode&gt;</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">layout-formatted string</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Yes (see description)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">For mobile targets, both <code>mobile-default</code> and <code>mobile-shift</code> modes are required.</p>
-<p class="tableblock">For desktop targets, in general only the <code>iso-default</code> and <code>iso-shift</code> modes are strictly
-required. Some targets require other modes, and the tool will inform you if they are missing.</p>
-<p class="tableblock">The value of this key should be similar to that provided in the example.</p>
-<p class="tableblock">NOTE: Do not forget the <code>|</code> symbol after the <code>&lt;mode&gt;</code> key or you will receive unexpected parsing
-errors.</p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">modes</span>:
-  <span class="key">mobile-default</span>: <span class="string"><span class="delimiter">|</span><span class="content">
-    q w e r t y u i o p å
-    a s d f g h j k l ö æ
-    z x c v b n m ï</span></span></code></pre>
-</div>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>deadKeys.&lt;mode&gt;</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">string array</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Defines the dead keys on the given <code>&lt;mode&gt;</code>, which is the key for the mode from the <code>modes</code> property.</p>
-<p class="tableblock">It is recommended that the keys of this array are wrapped in quotes to make diaeresis and other hard to
-see glyphs maintainable for future developers, including yourself.</p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">deadKeys</span>:
-  <span class="key">iso-default</span>: <span class="string"><span class="content">[&quot;`&quot;]</span></span></code></pre>
-</div>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>transforms</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">nested string maps</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Defines the output of a sequence of key strokes.</p>
-<p class="tableblock">Always includes deadkeys but some targets support key sequencing (replacing glyphs based on input pattern) — this behaviour is target dependent.</p>
-<p class="tableblock">This map may be repeatedly nested until a terminal is reached. If a sequence is short-circuited, the <code>" "</code> is used as the fallback output in all cases.</p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">transforms</span>:
-  <span class="key">a</span>:
-    <span class="key"><span class="delimiter">'</span><span class="content"> </span><span class="delimiter">'</span></span>: <span class="string"><span class="content">a</span></span>
-    <span class="key">`</span>: <span class="string"><span class="content">à</span></span></code></pre>
-</div>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>special.&lt;key&gt;</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">These properties are used for setting key outputs for keys outside of the input key area, such as spacebar.</p>
-<p class="tableblock">Currently the only supported <code>&lt;key&gt;</code> is <code>space</code>.</p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">special</span>:
-  <span class="key">space</span>:
-    <span class="key">iso-caps</span>: <span class="string"><span class="content">\u{A0}</span></span></code></pre>
-</div>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>strings.&lt;key&gt;</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">These properties are only used on mobile targets.</p>
-<p class="tableblock">They are used for specifying strings to be shown on the <code>space</code> and <code>return</code> keys on mobile targets.</p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">strings</span>:
-  <span class="key">space</span>: <span class="string"><span class="content">space</span></span>
-  <span class="key">return</span>: <span class="string"><span class="content">return</span></span></code></pre>
-</div>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>decimal</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">No (defaults to ".")</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Specify the decimal separator for the given locale. Required for the numpad keys on some targets.</p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">decimal</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">,</span><span class="delimiter">&quot;</span></span></code></pre>
-</div>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>supportedTargets</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">string array</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">No (defaults to all targets)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">A list of the supported targets of this layout. Unlisted targets will result in no generation being attempted for that target.</p>
-<p class="tableblock">This is useful for having different definitions for the same layout, such as a separate Windows and macOS variant.</p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">supportedTargets</span>: <span class="string"><span class="content">[osx, x11, svg]</span></span></code></pre>
-</div>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>styles</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">mobile styles map</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">No (Yes for mobile)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">This boilerplate is currently required for mobile targets. It is targeted for deprecation.</p>
-<p class="tableblock">Just copy and paste it verbatim into your mobile layouts for a happy life.</p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">styles</span>:
-  <span class="key">tablet</span>:
-    <span class="key">actions</span>:
-      <span class="key">backspace</span>: <span class="string"><span class="content">[1, right, fill]</span></span>
-      <span class="key">enter</span>: <span class="string"><span class="content">[2, right, fill]</span></span>
-      <span class="key">shift</span>: <span class="string"><span class="content">[3, both, fill]</span></span>
-  <span class="key">phone</span>:
-    <span class="key">actions</span>:
-      <span class="key">shift</span>: <span class="string"><span class="content">[3, left, fill]</span></span>
-      <span class="key">backspace</span>: <span class="string"><span class="content">[3, right, fill]</span></span></code></pre>
-</div>
-</div></div></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="sect2">
-<h3 id="examples"><a class="link" href="#examples">4.5. Examples</a></h3>
-<div class="sect3">
-<h4 id="mobile_layout_example"><a class="link" href="#mobile_layout_example">4.5.1. Mobile layout example</a></h4>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">internalName</span>: <span class="string"><span class="content">sma</span></span>
-
-<span class="key">displayNames</span>:
-  <span class="key">sma</span>: <span class="string"><span class="content">Åarjelsaemien gïele</span></span>
-  <span class="key">en</span>: <span class="string"><span class="content">South Sami</span></span>
-  <span class="key">fi</span>: <span class="string"><span class="content">Eteläsaame</span></span>
-  <span class="key">nb</span>: <span class="string"><span class="content">Sørsamisk</span></span>
-  <span class="key">se</span>: <span class="string"><span class="content">Lullisámegiella</span></span>
-  <span class="key">sv</span>: <span class="string"><span class="content">Sydsamiska</span></span>
-
-<span class="key">locale</span>: <span class="string"><span class="content">sma</span></span>
-
-<span class="key">supportedTargets</span>: <span class="string"><span class="content">[ios, android]</span></span>
-
+  <span class="key">crk</span>: <span class="string"><span class="content">nēhiyawēwin</span></span>
+  <span class="key">en</span>: <span class="string"><span class="content">Plains Cree</span></span>
+<span class="key">decimal</span>: <span class="string"><span class="content">','</span></span>
 <span class="key">modes</span>:
-  <span class="key">mobile-default</span>: <span class="string"><span class="delimiter">|</span><span class="content">
-    q w e r t y u i o p å
-    a s d f g h j k l ö æ
-    z x c v b n m ï</span></span>
-  <span class="key">mobile-shift</span>: <span class="string"><span class="delimiter">|</span><span class="content">
-    Q W E R T Y U I O P Å
-    A S D F G H J K L Ö Æ
-    Z X C V B N M Ï</span></span>
-
+  <span class="key">android</span>:
+    <span class="key">default</span>: <span class="string"><span class="delimiter">|</span><span class="content">
+      q w e r t y u i o p
+      a s d f g h j k l ˆ
+        z x c v b n m w</span></span>
+    <span class="key">shift</span>: <span class="string"><span class="delimiter">|</span><span class="content">
+      Q W E R T Y U I O P
+      A S D F G H J K L ˆ
+        Z X C V B N M W</span></span>
 <span class="key">longpress</span>:
-  <span class="key">A</span>: <span class="string"><span class="content">Ä Á À Â Ã Ạ</span></span>
-  <span class="key">E</span>: <span class="string"><span class="content">Ë É È Ê Ẽ Ẹ</span></span>
-  <span class="key">I</span>: <span class="string"><span class="content">Ï Í Ì Î Ĩ Ị</span></span>
-  <span class="key">O</span>: <span class="string"><span class="content">Ø Ö Ó Ò Ô Õ Ọ</span></span>
-  <span class="key">U</span>: <span class="string"><span class="content">Ü Ú Ù Û Ũ Ụ</span></span>
-  <span class="key">Y</span>: <span class="string"><span class="content">Ÿ Ý Ỳ Ŷ</span></span>
-  <span class="key">Æ</span>: <span class="string"><span class="content">Ä</span></span>
-  <span class="key">Ö</span>: <span class="string"><span class="content">Ø</span></span>
-
-  <span class="key">C</span>: <span class="string"><span class="content">Č Ç</span></span>
-  <span class="key">D</span>: <span class="string"><span class="content">Đ</span></span>
-  <span class="key">G</span>: <span class="string"><span class="content">Ǧ Ǥ Ǧ</span></span>
-  <span class="key">K</span>: <span class="string"><span class="content">Ǩ</span></span>
-  <span class="key">N</span>: <span class="string"><span class="content">Ŋ</span></span>
-  <span class="key">S</span>: <span class="string"><span class="content">Š</span></span>
-  <span class="key">T</span>: <span class="string"><span class="content">Ŧ</span></span>
-  <span class="key">Z</span>: <span class="string"><span class="content">Ž Ʒ Ǯ</span></span>
-
-  <span class="key">a</span>: <span class="string"><span class="content">ä á à â ã ạ</span></span>
-  <span class="key">e</span>: <span class="string"><span class="content">ë é è ê ẽ ẹ</span></span>
-  <span class="key">i</span>: <span class="string"><span class="content">ï í ì î ĩ ị</span></span>
-  <span class="key">o</span>: <span class="string"><span class="content">ø ö ó ò ô õ ọ</span></span>
-  <span class="key">u</span>: <span class="string"><span class="content">ü ú ù û ũ ụ</span></span>
-  <span class="key">y</span>: <span class="string"><span class="content">ÿ ý ỳ ŷ</span></span>
-  <span class="key">æ</span>: <span class="string"><span class="content">ä</span></span>
-  <span class="key">ö</span>: <span class="string"><span class="content">ø</span></span>
-
-  <span class="key">c</span>: <span class="string"><span class="content">č ç</span></span>
-  <span class="key">d</span>: <span class="string"><span class="content">đ</span></span>
-  <span class="key">g</span>: <span class="string"><span class="content">ǧ ǥ ǧ</span></span>
-  <span class="key">k</span>: <span class="string"><span class="content">ǩ</span></span>
-  <span class="key">n</span>: <span class="string"><span class="content">ŋ</span></span>
-  <span class="key">s</span>: <span class="string"><span class="content">š</span></span>
-  <span class="key">t</span>: <span class="string"><span class="content">ŧ</span></span>
-  <span class="key">z</span>: <span class="string"><span class="content">ž ʒ ǯ</span></span>
-
-<span class="key">styles</span>:
-  <span class="key">tablet</span>:
-    <span class="key">actions</span>:
-      <span class="key">backspace</span>: <span class="string"><span class="content">[1, right, fill]</span></span>
-      <span class="key">enter</span>: <span class="string"><span class="content">[2, right, fill]</span></span>
-      <span class="key">shift</span>: <span class="string"><span class="content">[3, both, fill]</span></span>
-  <span class="key">phone</span>:
-    <span class="key">actions</span>:
-      <span class="key">shift</span>: <span class="string"><span class="content">[3, left, fill]</span></span>
-      <span class="key">backspace</span>: <span class="string"><span class="content">[3, right, fill]</span></span>
-
+  <span class="key">Á</span>: <span class="string"><span class="content">Q</span></span>
+  <span class="key">A</span>: <span class="string"><span class="content">Æ Ä Å</span></span>
+  <span class="key">Č</span>: <span class="string"><span class="content">X</span></span>
+  <span class="key">O</span>: <span class="string"><span class="content">Ø Ö</span></span>
+  <span class="key">á</span>: <span class="string"><span class="content">q</span></span>
+  <span class="key">a</span>: <span class="string"><span class="content">æ ä å</span></span>
+  <span class="key">č</span>: <span class="string"><span class="content">x</span></span>
+  <span class="key">o</span>: <span class="string"><span class="content">ø ö</span></span>
 <span class="key">strings</span>:
-  <span class="key">space</span>: <span class="string"><span class="content">gaskoe</span></span>
-  <span class="key">return</span>: <span class="string"><span class="content">return</span></span></code></pre>
-</div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="windows_desktop_layout_example"><a class="link" href="#windows_desktop_layout_example">4.5.2. Windows desktop layout example</a></h4>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">internalName</span>: <span class="string"><span class="content">sma_NO-windows</span></span>
-
-<span class="key">displayNames</span>:
-  <span class="key">sma</span>: <span class="string"><span class="content">Åarjelsaemien gïele (Nöörje)</span></span>
-  <span class="key">en</span>: <span class="string"><span class="content">South Sami (Norway)</span></span>
-  <span class="key">fi</span>: <span class="string"><span class="content">Eteläsaame (Norja)</span></span>
-  <span class="key">nb</span>: <span class="string"><span class="content">Sørsamisk (Norge)</span></span>
-  <span class="key">se</span>: <span class="string"><span class="content">Lullisámegiella (Norga)</span></span>
-  <span class="key">sv</span>: <span class="string"><span class="content">Sydsamiska (Norge)</span></span>
-
-<span class="key">locale</span>: <span class="string"><span class="content">sma</span></span>
-
-<span class="key">supportedTargets</span>: <span class="string"><span class="content">[win, x11, svg]</span></span>
-
+  <span class="key">space</span>: <span class="string"><span class="content">ayakaskâw</span></span>
+  <span class="key">return</span>: <span class="string"><span class="content">askoc</span></span>
 <span class="key">targets</span>:
-  <span class="key">win</span>:
-    <span class="key">locale</span>: <span class="string"><span class="content">sma-Latn-NO</span></span>
-
-<span class="key">modes</span>:
-  <span class="key">iso-default</span>: <span class="string"><span class="delimiter">|</span><span class="content">
-    | 1 2 3 4 5 6 7 8 9 0 + \
-    ï w e r t y u i o p å ¨
-    a s d f g h j k l ö æ '
-    &lt; z x c v b n m , . -</span></span>
-  <span class="key">iso-shift</span>: <span class="string"><span class="delimiter">|</span><span class="content">
-    § ! &quot; # ¤ % &amp; / ( ) = ? `
-    Ï W E R T Y U I O P Å ^
-    A S D F G H J K L Ö Æ *
-    &gt; Z X C V B N M ; : _</span></span>
-  <span class="key">iso-caps</span>: <span class="string"><span class="delimiter">|</span><span class="content">
-    | 1 2 3 4 5 6 7 8 9 0 + \
-    Ï W E R T Y U I O P Å ¨
-    A S D F G H J K L Ö Æ '
-    &lt; Z X C V B N M , . -</span></span>
-  <span class="error">iso-caps+shift</span>: <span class="error">|</span>
-    <span class="error">§ ! &quot; # ¤ % &amp; / ( ) = ? `</span>
-    <span class="error">ï w e r t y u i o p å ^</span>
-    <span class="error">a s d f g h j k l ö æ *</span>
-    <span class="error">&gt; z x c v b n m ; : _</span>
-  <span class="key">iso-alt</span>: <span class="string"><span class="delimiter">|</span><span class="content">
-    \u{0} \u{0} @ £ $ € \u{0} { [ ] } \u{0} ´
-    q â € \u{0} ŧ \u{0} \u{0} ï õ \u{0} \u{0} ~
-    á š đ ǥ ǧ ȟ \u{0} ǩ \u{0} ø ä \u{0}
-    \u{0} ž \u{0} č ǯ ʒ ŋ µ \u{0} \u{0} \u{0}</span></span>
-  <span class="error">iso-alt+shift</span>: <span class="error">|</span>
-    <span class="error">\u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0}</span>
-    <span class="error">Q Â \u{0} \u{0} Ŧ \u{0} \u{0} Ï Õ \u{0} \u{0} \u{0}</span>
-    <span class="error">Á Š Đ Ǥ Ǧ Ȟ \u{0} Ǩ \u{0} Ø Ä \u{0}</span>
-    <span class="error">\u{0} Ž \u{0} Č Ǯ Ʒ Ŋ \u{0} \u{0} \u{0} \u{0}</span>
-
-<span class="key">deadKeys</span>:
-  <span class="key">iso-default</span>: <span class="string"><span class="content">['¨']</span></span>
-  <span class="key">iso-shift</span>: <span class="string"><span class="content">['^', '`']</span></span>
-  <span class="key">iso-caps</span>: <span class="string"><span class="content">['¨']</span></span>
-  <span class="error">iso-caps+shift</span>: [<span class="error">'^', '`']</span>
-  <span class="key">iso-alt</span>: <span class="string"><span class="content">['~', '´']</span></span>
-
-<span class="key">transforms</span>:
-  <span class="key"><span class="delimiter">&quot;</span><span class="content">`</span><span class="delimiter">&quot;</span></span>:
-    <span class="key"><span class="delimiter">&quot;</span><span class="content"> </span><span class="delimiter">&quot;</span></span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">`</span><span class="delimiter">&quot;</span></span>
-    <span class="key">a</span>: <span class="string"><span class="content">à</span></span>
-    <span class="key">A</span>: <span class="string"><span class="content">À</span></span>
-    <span class="key">e</span>: <span class="string"><span class="content">è</span></span>
-    <span class="key">E</span>: <span class="string"><span class="content">È</span></span>
-  <span class="key">´</span>:
-    <span class="key"><span class="delimiter">&quot;</span><span class="content"> </span><span class="delimiter">&quot;</span></span>: <span class="string"><span class="content">´</span></span>
-    <span class="key">a</span>: <span class="string"><span class="content">á</span></span>
-    <span class="key">A</span>: <span class="string"><span class="content">Á</span></span>
-    <span class="key">å</span>: <span class="string"><span class="content">ǻ</span></span>
-    <span class="key">Å</span>: <span class="string"><span class="content">Ǻ</span></span>
-  <span class="key">^</span>:
-    <span class="key"><span class="delimiter">&quot;</span><span class="content"> </span><span class="delimiter">&quot;</span></span>: <span class="string"><span class="content">^</span></span>
-    <span class="key">a</span>: <span class="string"><span class="content">â</span></span>
-    <span class="key">A</span>: <span class="string"><span class="content">Â</span></span>
-    <span class="key">c</span>: <span class="string"><span class="content">ĉ</span></span>
-    <span class="key">C</span>: <span class="string"><span class="content">Ĉ</span></span>
-  <span class="key">¨</span>:
-    <span class="key"><span class="delimiter">&quot;</span><span class="content"> </span><span class="delimiter">&quot;</span></span>: <span class="string"><span class="content">¨</span></span>
-    <span class="key">a</span>: <span class="string"><span class="content">ä</span></span>
-    <span class="key">A</span>: <span class="string"><span class="content">Ä</span></span>
-    <span class="key">e</span>: <span class="string"><span class="content">ë</span></span>
-    <span class="key">E</span>: <span class="string"><span class="content">Ë</span></span>
-  <span class="key"><span class="delimiter">&quot;</span><span class="content">~</span><span class="delimiter">&quot;</span></span>:
-    <span class="key"><span class="delimiter">&quot;</span><span class="content"> </span><span class="delimiter">&quot;</span></span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">~</span><span class="delimiter">&quot;</span></span>
-    <span class="key">a</span>: <span class="string"><span class="content">ã</span></span>
-    <span class="key">A</span>: <span class="string"><span class="content">Ã</span></span>
-    <span class="key">i</span>: <span class="string"><span class="content">ĩ</span></span>
-    <span class="key">I</span>: <span class="string"><span class="content">Ĩ</span></span></code></pre>
+  <span class="key">android</span>:
+    <span class="key">legacyName</span>: <span class="string"><span class="content">crk</span></span></code></pre>
 </div>
 </div>
-</div>
-<div class="sect3">
-<h4 id="macos_desktop_layout_example"><a class="link" href="#macos_desktop_layout_example">4.5.3. macOS desktop layout example</a></h4>
 <div class="listingblock">
+<div class="title">Windows desktop layout example</div>
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">internalName</span>: <span class="string"><span class="content">sma_NO-mac</span></span>
-
-<span class="key">displayNames</span>:
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">displayNames</span>:
   <span class="key">sma</span>: <span class="string"><span class="content">Åarjelsaemien gïele (Nöörje)</span></span>
   <span class="key">en</span>: <span class="string"><span class="content">South Sami (Norway)</span></span>
-  <span class="key">fi</span>: <span class="string"><span class="content">Eteläsaame (Norja)</span></span>
-  <span class="key">nb</span>: <span class="string"><span class="content">Sørsamisk (Norge)</span></span>
-  <span class="key"><span class="delimiter">'</span><span class="content">no</span><span class="delimiter">'</span></span>: <span class="string"><span class="content">Sørsamisk (Norge)</span></span>
-  <span class="key">nn</span>: <span class="string"><span class="content">Sørsamisk (Noreg)</span></span>
-  <span class="key">da</span>: <span class="string"><span class="content">Sydsamisk (Norge)</span></span>
-  <span class="key">se</span>: <span class="string"><span class="content">Lullisámegiella (Norga)</span></span>
-  <span class="key">sv</span>: <span class="string"><span class="content">Sydsamiska (Norge)</span></span>
-
-<span class="key">locale</span>: <span class="string"><span class="content">sma</span></span>
-
-<span class="key">supportedTargets</span>: <span class="string"><span class="content">[osx, x11, svg]</span></span>
 
 <span class="key">modes</span>:
-  <span class="key">iso-default</span>: <span class="string"><span class="delimiter">|</span><span class="content">
-    &lt; 1 2 3 4 5 6 7 8 9 0 + ´
-    ï w e r t y u i o p å ¨
-    a s d f g h j k l ö æ @
-    ' z x c v b n m , . -</span></span>
-  <span class="key">iso-shift</span>: <span class="string"><span class="delimiter">|</span><span class="content">
-    &gt; ! &quot; # $ % &amp; / ( ) = ? `
-    Ï W E R T Y U I O P Å ˆ
-    A S D F G H J K L Ö Æ *
-    § Z X C V B N M ; : _</span></span>
-  <span class="key">iso-caps</span>: <span class="string"><span class="delimiter">|</span><span class="content">
-    &lt; 1 2 3 4 5 6 7 8 9 0 + ´
-    Ï W E R T Y U I O P Å ¨
-    A S D F G H J K L Ö Æ @
-    ' Z X C V B N M , . -</span></span>
-  <span class="key">iso-alt</span>: <span class="string"><span class="delimiter">|</span><span class="content">
-    ≤ © ™ £ € ‸ § | [ ] ˝ ± \u{301}
-    q , é ˇ þ ˘ ˀ ʼ œ ˙ ˚ \u{308}
-    ¯ ß ð ƒ . ˛ \u{A0}\u{330} ˜ - ø ä '
-    ' ÷ ˍ ¸ ‹ › ‘ ’ ‚ … –</span></span>
-  <span class="error">iso-alt+shift</span>: <span class="error">|</span>
-    <span class="error">≥ ¡ ® ¥ ¢ \u{32D} ¶ \ { } \u{30B} ¿ \u{300}</span>
-    <span class="error">Q \u{326} É \u{30C} Þ \u{306} \u{309} \u{31B} Œ \u{307} \u{30A} \u{302}</span>
-    <span class="error">\u{304} № Ð ʔ \u{323} \u{328} \u{330} \u{303} \u{335} Ø Ä &quot;</span>
-    <span class="error">§ ⁄ \u{331} \u{327} « » “ ” „ · —</span>
-  <span class="error">iso-caps+alt</span>: <span class="error">|</span>
-    <span class="error">≤ © ™ £ € ‸ § | [ ] ˝ ± \u{301}</span>
-    <span class="error">Q , É ˇ Þ ˘ ˀ ʼ Œ ˙ ˚ \u{308}</span>
-    <span class="error">¯ SS Ð ƒ . ˛ \u{A0}\u{330} ˜ - Ø Ä '</span>
-    <span class="error">' ÷ ˍ ¸ ‹ › ‘ ’ ‚ … –</span>
-  <span class="key">iso-ctrl</span>: <span class="string"><span class="delimiter">|</span><span class="content">
-    ` 1 2 3 4 5 6 7 8 9 0 \u{1F} =
-    \u{11} \u{17} \u{5} \u{12} \u{14} \u{19} \u{15} \u{9} \u{F} \u{10} \u{1D} ~
-    \u{1} \u{13} \u{4} \u{6} \u{7} \u{8} \u{A} \u{B} \u{C} ; ' \u{1C}
-    0 \u{1A} \u{18} \u{3} \u{16} \u{2} \u{E} \u{D} , . /</span></span>
-  <span class="key">osx-cmd</span>: <span class="string"><span class="delimiter">|</span><span class="content">
-    ' 1 2 3 4 5 6 7 8 9 0 + ´
-    q w e r t y u i o p å ¨
-    a s d f g h j k l ø æ @
-    &lt; z x c v b n m , . -</span></span>
-  <span class="error">osx-cmd+shift</span>: <span class="error">|</span>
-    <span class="error">§ ! &quot; # $ % &amp; / ( ) = ? `</span>
-    <span class="error">Q W E R T Y U I O P Å ^</span>
-    <span class="error">A S D F G H J K L Ø Æ *</span>
-    <span class="error">&gt; Z X C V B N M ; : _</span>
-  <span class="error">osx-cmd+alt</span>: <span class="error">|</span>
-    <span class="error">€ © ™ £ € ∞ § | [ ] ≈ ± `</span>
-    <span class="error">• Ω é \u{0} † µ ü ı œ π ˙ ~</span>
-    <span class="error"> ß ∂ ƒ ¸ ˛ √ ª ﬁ ö ä '</span>
-    <span class="error">≤ ÷ ≈ ç ‹ › ‘ ’ ‚ … –</span>
-  <span class="error">osx-cmd+alt+shift</span>: <span class="error">|</span>
-    <span class="error">Ÿ ¡ ® ¥ ¢ ‰ ¶ \ { } ≠ ¿ \u{0}</span>
-    <span class="error">° ˝ É \u{0} ‡ ˜ Ü ˆ Œ ∏ ˚ ^</span>
-    <span class="error">◊ ∑ ∆ ∫ ¯ ˘ ¬ º ﬂ Ö Ä \u{0}</span>
-    <span class="error">≥ ⁄ \u{0} Ç « » “ ” „ · —</span>
-
-<span class="key">deadKeys</span>:
-  <span class="key">iso-default</span>: <span class="string"><span class="content">['¨', '´']</span></span>
-  <span class="key">iso-shift</span>: <span class="string"><span class="content">['`', 'ˆ']</span></span>
-  <span class="key">iso-caps</span>: <span class="string"><span class="content">['¨', '´']</span></span>
-  <span class="key">iso-alt</span>: <span class="string"><span class="content">[',', '-', '.', '¯', '¸', 'ʼ', 'ˀ', 'ˇ', 'ˍ', '˘', '˙', '˚', '˛', '˜', '˝', '‸', '\u{A0}\u{330}']</span></span>
-  <span class="error">iso-alt+shift</span>: [<span class="error">'ʔ', '№']</span>
-  <span class="error">iso-caps+alt</span>: [<span class="error">',', '-', '.', '¯', '¸', 'ʼ', 'ˀ', 'ˇ', 'ˍ', '˘', '˙', '˚', '˛', '˜', '˝', '‸']</span>
-  <span class="error">osx-cmd+alt</span>: [<span class="error">'¸', '˙']</span>
-
+  <span class="key">win</span>:
+    <span class="key">default</span>: <span class="string"><span class="delimiter">|</span><span class="content">
+      | 1 2 3 4 5 6 7 8 9 0 + \
+        q w e r t y u i o p å ï
+        a s d f g h j k l ö æ '
+      &lt; z x c v b n m , . -</span></span>
+    <span class="key">shift</span>: <span class="string"><span class="delimiter">|</span><span class="content">
+      § ! &quot; # ¤ % &amp; / ( ) = ? `
+        Q W E R T Y U I O P Å Ï
+        A S D F G H J K L Ö Æ *
+      &gt; Z X C V B N M ; : _</span></span>
+    <span class="key">caps</span>: <span class="string"><span class="delimiter">|</span><span class="content">
+      | 1 2 3 4 5 6 7 8 9 0 + \
+        Q W E R T Y U I O P Å Ï
+        A S D F G H J K L Ö Æ '
+      &lt; Z X C V B N M , . -</span></span>
+    <span class="error">caps+shift</span>: <span class="error">|</span>
+      <span class="error">§ ! &quot; # ¤ % &amp; / ( ) = ? `</span>
+        <span class="error">q w e r t y u i o p å ï</span>
+        <span class="error">a s d f g h j k l ö æ *</span>
+      <span class="error">&gt; z x c v b n m ; : _</span>
+    <span class="key">alt</span>: <span class="string"><span class="delimiter">|</span><span class="content">
+      \u{0} \u{0} @     £  $     € \u{0} {     [     ]     }     \u{0} ´
+            â     \u{0} €  \u{0} ŧ \u{0} \u{0} ï     õ     \u{0} \u{0} ¨
+            á     š     đ  ǥ     ǧ ȟ     \u{0} ǩ     \u{0} ø     ä     ~
+      \u{0} ž     \u{0} č  ǯ     ʒ ŋ     µ     \u{0} \u{0} \u{0}</span></span>
+    <span class="error">alt+shift</span>: <span class="error">|</span>
+      <span class="error">\u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0}</span>
+            <span class="error">Â     \u{0} \u{0} \u{0} Ŧ     \u{0} \u{0} Ï     Õ     \u{0} \u{0} \u{0}</span>
+            <span class="error">Á     Š     Đ     Ǥ     Ǧ     Ȟ     \u{0} Ǩ     \u{0} Ø     Ä     ^</span>
+      <span class="error">\u{0} Ž     \u{0} Č     Ǯ     Ʒ     Ŋ     \u{0} \u{0} \u{0} \u{0}</span>
+    <span class="key">ctrl</span>: <span class="string"><span class="delimiter">|</span><span class="content">
+      \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0}
+      \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0}
+      \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{0} \u{</span></span>
 <span class="key">transforms</span>:
-  <span class="error">\u{A0}\u{330}</span>:
-    <span class="key"><span class="delimiter">&quot;</span><span class="content"> </span><span class="delimiter">&quot;</span></span>: <span class="string"><span class="content">\u{A0}\u{330}</span></span>
+  <span class="key"><span class="delimiter">'</span><span class="content">\u{A0}\u{330}</span><span class="delimiter">'</span></span>:
+    <span class="key"><span class="delimiter">'</span><span class="content"> </span><span class="delimiter">'</span></span>: <span class="string"><span class="content">'\u{A0}\u{330}'</span></span>
     <span class="key">e</span>: <span class="string"><span class="content">ḛ</span></span>
     <span class="key">E</span>: <span class="string"><span class="content">Ḛ</span></span>
     <span class="key">i</span>: <span class="string"><span class="content">ḭ</span></span>
     <span class="key">I</span>: <span class="string"><span class="content">Ḭ</span></span>
     <span class="key">u</span>: <span class="string"><span class="content">ṵ</span></span>
     <span class="key">U</span>: <span class="string"><span class="content">Ṵ</span></span>
-  <span class="key"><span class="delimiter">&quot;</span><span class="content">-</span><span class="delimiter">&quot;</span></span>:
-    <span class="key"><span class="delimiter">&quot;</span><span class="content"> </span><span class="delimiter">&quot;</span></span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">-</span><span class="delimiter">&quot;</span></span>
-    <span class="key">b</span>: <span class="string"><span class="content">ƀ</span></span>
-    <span class="key">d</span>: <span class="string"><span class="content">đ</span></span>
-    <span class="key">D</span>: <span class="string"><span class="content">Đ</span></span>
-    <span class="key">g</span>: <span class="string"><span class="content">ǥ</span></span>
-  <span class="key"><span class="delimiter">&quot;</span><span class="content">,</span><span class="delimiter">&quot;</span></span>:
-    <span class="key"><span class="delimiter">&quot;</span><span class="content"> </span><span class="delimiter">&quot;</span></span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">,</span><span class="delimiter">&quot;</span></span>
-    <span class="key">s</span>: <span class="string"><span class="content">ș</span></span>
-    <span class="key">S</span>: <span class="string"><span class="content">Ș</span></span>
-    <span class="key">t</span>: <span class="string"><span class="content">ț</span></span>
-    <span class="key">T</span>: <span class="string"><span class="content">Ț</span></span>
-  <span class="key">.</span>:
-    <span class="key"><span class="delimiter">&quot;</span><span class="content"> </span><span class="delimiter">&quot;</span></span>: <span class="string"><span class="content">.</span></span>
-    <span class="key">a</span>: <span class="string"><span class="content">ạ</span></span>
-    <span class="key">A</span>: <span class="string"><span class="content">Ạ</span></span>
-    <span class="key">b</span>: <span class="string"><span class="content">ḅ</span></span>
-    <span class="key">B</span>: <span class="string"><span class="content">Ḅ</span></span>
-  <span class="key">‸</span>:
-    <span class="key"><span class="delimiter">&quot;</span><span class="content"> </span><span class="delimiter">&quot;</span></span>: <span class="string"><span class="content">‸</span></span>
-    <span class="key">d</span>: <span class="string"><span class="content">ḓ</span></span>
-    <span class="key">D</span>: <span class="string"><span class="content">Ḓ</span></span>
-    <span class="key">e</span>: <span class="string"><span class="content">ḙ</span></span>
-    <span class="key">E</span>: <span class="string"><span class="content">Ḙ</span></span>
-  <span class="key"><span class="delimiter">&quot;</span><span class="content">`</span><span class="delimiter">&quot;</span></span>:
-    <span class="key"><span class="delimiter">&quot;</span><span class="content"> </span><span class="delimiter">&quot;</span></span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">`</span><span class="delimiter">&quot;</span></span>
-    <span class="key">a</span>: <span class="string"><span class="content">à</span></span>
-    <span class="key">A</span>: <span class="string"><span class="content">À</span></span>
-    <span class="key">e</span>: <span class="string"><span class="content">è</span></span>
-    <span class="key">E</span>: <span class="string"><span class="content">È</span></span>
-  <span class="key">´</span>:
-    <span class="key"><span class="delimiter">&quot;</span><span class="content"> </span><span class="delimiter">&quot;</span></span>: <span class="string"><span class="content">´</span></span>
-    <span class="key">a</span>: <span class="string"><span class="content">á</span></span>
-    <span class="key">A</span>: <span class="string"><span class="content">Á</span></span>
-    <span class="key">å</span>: <span class="string"><span class="content">ǻ</span></span>
-    <span class="key">Å</span>: <span class="string"><span class="content">Ǻ</span></span>
-  <span class="key">˜</span>:
-    <span class="key"><span class="delimiter">&quot;</span><span class="content"> </span><span class="delimiter">&quot;</span></span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">~</span><span class="delimiter">&quot;</span></span>
-    <span class="key">a</span>: <span class="string"><span class="content">ã</span></span>
-    <span class="key">A</span>: <span class="string"><span class="content">Ã</span></span>
-    <span class="key">y</span>: <span class="string"><span class="content">ỹ</span></span>
-    <span class="key">Y</span>: <span class="string"><span class="content">Ỹ</span></span>
-  <span class="key">¯</span>:
-    <span class="key"><span class="delimiter">&quot;</span><span class="content"> </span><span class="delimiter">&quot;</span></span>: <span class="string"><span class="content">¯</span></span>
-    <span class="key">a</span>: <span class="string"><span class="content">ā</span></span>
-    <span class="key">l</span>: <span class="string"><span class="content">l\u{323}\u{304}</span></span>
-    <span class="key">L</span>: <span class="string"><span class="content">L\u{323}\u{304}</span></span>
-    <span class="key">æ</span>: <span class="string"><span class="content">ǣ</span></span>
-    <span class="key">Æ</span>: <span class="string"><span class="content">Ǣ</span></span>
-  <span class="key">ʼ</span>:
-    <span class="key"><span class="delimiter">&quot;</span><span class="content"> </span><span class="delimiter">&quot;</span></span>: <span class="string"><span class="content">ʼ</span></span>
-    <span class="key">o</span>: <span class="string"><span class="content">ơ</span></span>
-    <span class="key">O</span>: <span class="string"><span class="content">Ơ</span></span>
-    <span class="key">u</span>: <span class="string"><span class="content">ư</span></span>
-    <span class="key">U</span>: <span class="string"><span class="content">Ư</span></span>
-
-<span class="key">special</span>:
-  <span class="key">space</span>:
-    <span class="key">iso-caps</span>: <span class="string"><span class="content">\u{A0}</span></span>
-    <span class="key">iso-alt</span>: <span class="string"><span class="content">\u{A0}</span></span>
-    <span class="error">iso-alt+shift</span>: <span class="error">\u{A0}</span>
-    <span class="error">iso-caps+alt</span>: <span class="error">\u{A0}</span>
-    <span class="error">osx-cmd+alt</span>: <span class="error">\u{A0}</span></code></pre>
+    <span class="comment"># ...</span>
+<span class="key">deadKeys</span>:
+  <span class="key">win</span>:
+    <span class="key">shift</span>: <span class="string"><span class="content">['`']</span></span>
+    <span class="error">caps+shift</span>: [<span class="error">'`']</span>
+    <span class="key">alt</span>: <span class="string"><span class="content">[¨, '~', ´]</span></span>
+    <span class="error">alt+shift</span>: [<span class="error">^]</span>
+<span class="key">targets</span>:
+  <span class="key">win</span>:
+    <span class="key">locale</span>: <span class="string"><span class="content">sma-Latn-NO</span></span>
+    <span class="key">languageName</span>: <span class="string"><span class="content">Åarjelsaemien gïele (Nöörje)</span></span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">macOS desktop layout example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">displayNames</span>:
+  <span class="key">sma</span>: <span class="string"><span class="content">Åarjelsaemien gïele (Nöörje)</span></span>
+  <span class="key">en</span>: <span class="string"><span class="content">South Sami (Norway)</span></span>
+<span class="key">modes</span>:
+  <span class="key">mac</span>:
+    <span class="key">default</span>: <span class="string"><span class="delimiter">|</span><span class="content">
+      ' 1 2 3 4 5 6 7 8 9 0 + ´
+        q w e r t y u i o p å ï
+        a s d f g h j k l ö æ @
+      &lt; z x c v b n m , . -</span></span>
+    <span class="key">shift</span>: <span class="string"><span class="delimiter">|</span><span class="content">
+      § ! &quot; # $ % &amp; / ( ) = ? `
+        Q W E R T Y U I O P Å Ï
+        A S D F G H J K L Ö Æ *
+      &gt; Z X C V B N M ; : _</span></span>
+    <span class="key">caps</span>: <span class="string"><span class="delimiter">|</span><span class="content">
+      ' 1 2 3 4 5 6 7 8 9 0 + ´
+        Q W E R T Y U I O P Å Ï
+        A S D F G H J K L Ö Æ @
+      &lt; Z X C V B N M , . -</span></span>
+    <span class="key">alt</span>: <span class="string"><span class="delimiter">|</span><span class="content">
+      ' © ™ £ € ‸ § |             [ ] ˝ ± \u{301}
+        • , é ˇ þ ˘ ˀ             ʼ œ ˙ ˚ ¨
+        ¯ ß ð ƒ . ˛ \u{A0}\u{330} ˜ - ø ä '
+      ≤ ÷ ˍ ¸ ‹ › ‘ ’             ‚ … –</span></span>
+    <span class="error">alt+shift</span>: <span class="error">|</span>
+      <span class="error">§ ¡       ®       ¥       ¢       \u{32D} ¶       \       {       }       \u{30B} ¿       \u{300}</span>
+        <span class="error">°       \u{326} É       \u{30C} Þ       \u{306} \u{309} \u{31B} Œ       \u{307} \u{30A} ˆ</span>
+        <span class="error">\u{304} №       Ð       ʔ       \u{323} \u{328} \u{330} \u{303} \u{335} Ø       Ä       &quot;</span>
+      <span class="error">≥ ⁄       \u{331} \u{327} «       »       “       ”       „       ·       —</span>
+    <span class="error">caps+alt</span>: <span class="error">|</span>
+      <span class="error">' © ™ £ € ‸ § | [ ] ˝ ± \u{301}</span>
+        <span class="error">• , É ˇ Þ ˘ ˀ ʼ Œ ˙ ˚ ¨</span>
+        <span class="error">¯ SS Ð ƒ . ˛ \u{A0}\u{330} ˜ - Ø Ä '</span>
+      <span class="error">≤ ÷ ˍ ¸ ‹ › ‘ ’ ‚ … –</span>
+    <span class="key">ctrl</span>: <span class="string"><span class="delimiter">|</span><span class="content">
+      ` 1 2 3 4 5 6 7 8 9 0 \u{1F} =
+        \u{11} \u{17} \u{5} \u{12} \u{14} \u{19} \u{15} \u{9} \u{F} \u{10} \u{1D} ~
+        \u{1} \u{13} \u{4} \u{6} \u{7} \u{8} \u{A} \u{B} \u{C} ; ' \u{1C}
+      0 \u{1A} \u{18} \u{3} \u{16} \u{2} \u{E} \u{D} , . /</span></span>
+<span class="key">transforms</span>:
+  <span class="key"><span class="delimiter">'</span><span class="content">\u{A0}\u{330}</span><span class="delimiter">'</span></span>:
+    <span class="key"><span class="delimiter">'</span><span class="content"> </span><span class="delimiter">'</span></span>: <span class="string"><span class="content">'\u{A0}\u{330}'</span></span>
+    <span class="key">e</span>: <span class="string"><span class="content">ḛ</span></span>
+    <span class="key">E</span>: <span class="string"><span class="content">Ḛ</span></span>
+    <span class="key">i</span>: <span class="string"><span class="content">ḭ</span></span>
+    <span class="key">I</span>: <span class="string"><span class="content">Ḭ</span></span>
+    <span class="key">u</span>: <span class="string"><span class="content">ṵ</span></span>
+    <span class="comment"># ...</span>
+<span class="key">space</span>:
+  <span class="key">mac</span>:
+    <span class="key">caps</span>: <span class="string"><span class="content">'\u{A0}'</span></span>
+    <span class="key">alt</span>: <span class="string"><span class="content">'\u{A0}'</span></span>
+    <span class="error">alt+shift</span>: <span class="error">'\u{A0}'</span>
+    <span class="error">caps+alt</span>: <span class="error">'\u{A0}'</span>
+    <span class="error">cmd+alt</span>: <span class="error">'\u{A0}'</span>
+<span class="key">deadKeys</span>:
+  <span class="key">mac</span>:
+    <span class="key">default</span>: <span class="string"><span class="content">[´]</span></span>
+    <span class="key">shift</span>: <span class="string"><span class="content">['`']</span></span>
+    <span class="key">caps</span>: <span class="string"><span class="content">[´]</span></span>
+    <span class="key">alt</span>: <span class="string"><span class="content">[¨, ',', '-', ., ¯, ¸, ʼ, ˀ, ˇ, ˍ, ˘, ˙, ˚, ˛, ˜, ˝, ‸, '\u{A0}\u{330}']</span></span>
+    <span class="error">alt+shift</span>: [<span class="error">ʔ, №, ˆ]</span>
+    <span class="error">caps+alt</span>: [<span class="error">¨, ',', '-', ., ¯, ¸, ʼ, ˀ, ˇ, ˍ, ˘, ˙, ˚, ˛, ˜, ˝, ‸]</span></code></pre>
 </div>
 </div>
 </div>
-</div>
-<div class="sect2">
-<h3 id="best_practices_2"><a class="link" href="#best_practices_2">4.6. Best practices</a></h3>
+<div class="sect4">
+<h5 id="best_practices_2"><a class="link" href="#best_practices_2">Best practices</a></h5>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -1651,8 +1272,8 @@ two separate layouts are defined. While it is still possible to generate a macOS
 same source, consider user expectations when decided whether or not to split the layouts into separate files.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="generating_layouts_from_cldr_with_cldr2kbdgen"><a class="link" href="#generating_layouts_from_cldr_with_cldr2kbdgen">4.7. Generating layouts from CLDR with cldr2kbdgen</a></h3>
+<div class="sect4">
+<h5 id="generating_layouts_from_cldr_with_cldr2kbdgen"><a class="link" href="#generating_layouts_from_cldr_with_cldr2kbdgen">Generating layouts from CLDR with cldr2kbdgen</a></h5>
 <div class="paragraph">
 <p><code>kbdgen</code> includes a tool called <code>cldr2kbdgen</code>, which will convert a CLDR keyboard XML descriptor
 into a fully functional <code>kbdgen</code> layout.</p>
@@ -1680,100 +1301,49 @@ issue with some CLDR definitions. Add the <code>--osx</code> flag to the <code>c
 </div>
 </div>
 </div>
-<div class="sect1">
-<h2 id="targets"><a class="link" href="#targets">5. Targets</a></h2>
-<div class="sectionbody">
 <div class="sect2">
-<h3 id="android"><a class="link" href="#android">5.1. Android</a></h3>
+<h3 id="targets"><a class="link" href="#targets">4.2. Targets</a></h3>
+<div class="paragraph">
+<p>This sections describes the targets currently supported by kdbgen.
+Targets can be configured in multiple ways,
+for example</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>using a <code>targets/&lt;name&gt;.yaml</code> file,</p>
+</li>
+<li>
+<p>using target-specific settings in a layout&#8217;s <code>targets</code> property,</p>
+</li>
+<li>
+<p>or using target-specific layout modes.</p>
+</li>
+</ul>
+</div>
+<div class="sect3">
+<h4 id="android"><a class="link" href="#android">4.2.1. Android</a></h4>
 <div class="paragraph">
 <p>The Android target uses a fork of the Android Open Source Project&#8217;s <code>LatinIME</code>
 codebase to generate a custom keyboard for Android with the look and feel of the
 native keyboard.</p>
 </div>
+<div class="sect4">
+<h5 id="requirements"><a class="link" href="#requirements">Requirements</a></h5>
 <div class="paragraph">
-<p>The target will automatically download the <a href="https://github.com/divvun/giella-ime"><code>giella-ime</code></a>
-dependency and cache it for future builds. The cache will automatically be invalidated upon
-an update to the repository.</p>
+<p>Due to the complexity and number of dependencies necessary to successfully build an
+Android keyboard, we only support using our custom-built Docker image which includes
+all the Rust and Android build tools and dependencies necessary to deliver a functioning
+keyboard.</p>
 </div>
-<div class="sect3">
-<h4 id="requirements"><a class="link" href="#requirements">5.1.1. Requirements</a></h4>
-<div class="paragraph">
-<p>You will need:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><a href="http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html">JDK 8 or higher</a></p>
-</li>
-<li>
-<p><a href="https://developer.android.com/studio/index.html#command-tools">Android SDK CLI Tools</a></p>
-</li>
-<li>
-<p><a href="https://rustup.rs">Rust compiler</a></p>
-</li>
-</ul>
-</div>
-</div>
-<div class="sect3">
-<h4 id="installation_and_environment_configuration"><a class="link" href="#installation_and_environment_configuration">5.1.2. Installation and environment configuration</a></h4>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-warning" title="Warning"></i>
-</td>
-<td class="content">
-In general, <code>kbdgen</code> will do its best to inform you if versions of things are incorrect, however, <strong>It is <em>highly</em> recommended to use the approach described below.</strong> Android builds do not tolerate
-incorrect versions of things and will give you a hard time.
-</td>
-</tr>
-</table>
-</div>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-warning" title="Warning"></i>
-</td>
-<td class="content">
-You will need about 2.6 GB of free space to install the Android SDK dependencies.
-</td>
-</tr>
-</table>
-</div>
-<div class="olist arabic">
-<div class="title">Installing the Android development environment</div>
-<ol class="arabic">
-<li>
-<p>Create a directory to host your Android SDK.</p>
-</li>
-<li>
-<p>Export <code>ANDROID_HOME</code> to point to this directory.</p>
-</li>
-<li>
-<p>Unzip the Android SDK CLI tools into <code>$ANDROID_HOME</code> (so you have <code>$ANDROID_HOME/tools</code>).</p>
-</li>
-<li>
-<p>Run <code>yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses</code> to accept the licenses.</p>
-</li>
-<li>
-<p>Run <code>$ANDROID_HOME/tools/bin/sdkmanager tools "build-tools;25.0.3" "extras;android;m2repository" ndk-bundle "platforms;android-25"</code> to install the required dependencies. This may take a long time, and will not show any progress of any kind.</p>
-</li>
-<li>
-<p>Run <code>cargo install cargo-ndk</code> to add the NDK plugin to <code>cargo</code>.</p>
-</li>
-<li>
-<p>Run the following to install all the required Rust targets for cross-compilation:</p>
-</li>
-</ol>
-</div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>rustup target add aarch64-linux-android
-rustup target add armv7-linux-androideabi
-rustup target add i686-linux-android</pre>
+<pre class="CodeRay highlight"><code data-lang="console">docker pull divvun/kbdgen-android</code></pre>
 </div>
 </div>
+</div>
+<div class="sect4">
+<h5 id="project_level_configuration_and_properties"><a class="link" href="#project_level_configuration_and_properties">Project-level configuration and properties</a></h5>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -1781,147 +1351,41 @@ rustup target add i686-linux-android</pre>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-The minimum supported NDK version is r19c (19.2.x).
+For a list of all supported properties of the Android target files, see <a href="#targetandroid">TargetAndroid</a> in the reference section below.
 </td>
 </tr>
 </table>
 </div>
-<div class="paragraph">
-<p>You should save the <code>ANDROID_HOME</code> export into your <code>.profile</code> so the variable is set when your shell loads.</p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="project_level_configuration_and_properties"><a class="link" href="#project_level_configuration_and_properties">5.1.3. Project-level configuration and properties</a></h4>
-<div class="paragraph">
-<p>As described in the Projects chapter, some targets may require project-level
-properties in order to generate the target.</p>
-</div>
-<table class="tableblock frame-all grid-all fit-content spread">
-<caption class="title">Table 1. Android project properties</caption>
-<colgroup>
-<col>
-<col>
-<col>
-<col>
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Property</th>
-<th class="tableblock halign-left valign-top">Required</th>
-<th class="tableblock halign-left valign-top">Description</th>
-<th class="tableblock halign-left valign-top">Example</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>packageId</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The reverse-domain notation ID for the package</p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">packageId</span>: <span class="string"><span class="content">com.example.mypackageid</span></span></code></pre>
-</div>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>icon</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">No (but recommended)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Path to the icon file to be converted into the various
-sizes required by Android, relative to project root.</p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">icon</span>: <span class="string"><span class="content">icons/icon.png</span></span></code></pre>
-</div>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>keyStore</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">No (Yes for release builds)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Path to the Android keystore (see "Generating keystores" section for more information)</p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">keyStore</span>: <span class="string"><span class="content">my.keystore</span></span></code></pre>
-</div>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>keyAlias</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">No (Yes for release builds)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The key to use within the provided keystore</p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">keyAlias</span>: <span class="string"><span class="content">myprojectkey</span></span></code></pre>
-</div>
-</div></div></td>
-</tr>
-</tbody>
-</table>
 <div class="listingblock">
 <div class="title">A full example of the targets section for Android</div>
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">targets</span>:
-  <span class="key">android</span>:
-    <span class="key">packageId</span>: <span class="string"><span class="content">com.example.amazing.keyboards</span></span>
-    <span class="key">icon</span>: <span class="string"><span class="content">icon.png</span></span>
-    <span class="key">keyStore</span>: <span class="string"><span class="content">path/to/my/keystore</span></span>
-    <span class="key">keyAlias</span>: <span class="string"><span class="content">alias_specified_during_generation</span></span></code></pre>
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">packageId</span>: <span class="string"><span class="content">com.example.mykeyboard</span></span>
+<span class="key">keyStore</span>: <span class="string"><span class="content">/secret/dir/safe.keystore</span></span>
+<span class="key">keyAlias</span>: <span class="string"><span class="content">fancy_keyboard</span></span>
+<span class="key">version</span>: <span class="string"><span class="content">0.1.0</span></span>
+<span class="key">build</span>: <span class="string"><span class="content">1</span></span></code></pre>
 </div>
 </div>
 </div>
-<div class="sect3">
-<h4 id="layout_level_configuration_and_properties"><a class="link" href="#layout_level_configuration_and_properties">5.1.4. Layout-level configuration and properties</a></h4>
-<table class="tableblock frame-all grid-all fit-content spread">
-<caption class="title">Table 2. Android layout properties</caption>
-<colgroup>
-<col>
-<col>
-<col>
-<col>
-</colgroup>
-<thead>
+<div class="sect4">
+<h5 id="layout_level_configuration_and_properties"><a class="link" href="#layout_level_configuration_and_properties">Layout-level configuration and properties</a></h5>
+<div class="admonitionblock note">
+<table>
 <tr>
-<th class="tableblock halign-left valign-top">Property</th>
-<th class="tableblock halign-left valign-top">Required</th>
-<th class="tableblock halign-left valign-top">Description</th>
-<th class="tableblock halign-left valign-top">Example</th>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+See <a href="#layouttargetandroid">LayoutTargetAndroid</a> in the reference section below.
+</td>
 </tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>minimumSdk</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The API level that is the minimum supported for a keyboard. Useful for
-limiting access to a keyboard where it is known several glyphs are missing on
-older devices.</p>
-<p class="tableblock"><a href="https://source.android.com/source/build-numbers.html">See the Android documentation for API versions compared
-to OS version</a>.</p>
-<p class="tableblock">NOTE: The lowest API supported by this keyboard is API 16, but it <em>may</em> work
-on older variants.</p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">minimumSdk</span>: <span class="string"><span class="content">16</span></span></code></pre>
-</div>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>showNumberHints</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">No (defaults to <code>true</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Defines whether or not the number hints are shown on the top row of keys.</p>
-<p class="tableblock">When set to <code>false</code>, no number hints will be shown and any long press keys
-defined will be shown in their place.</p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">showNumberHints</span>: <span class="string"><span class="content">true</span></span></code></pre>
-</div>
-</div></div></td>
-</tr>
-</tbody>
 </table>
 </div>
-<div class="sect3">
-<h4 id="testing"><a class="link" href="#testing">5.1.5. Testing</a></h4>
+</div>
 <div class="sect4">
-<h5 id="testing_on_a_device"><a class="link" href="#testing_on_a_device">Testing on a device</a></h5>
+<h5 id="testing"><a class="link" href="#testing">Testing</a></h5>
+<div class="sect5">
+<h6 id="testing_on_a_device"><a class="link" href="#testing_on_a_device">Testing on a device</a></h6>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -1955,8 +1419,8 @@ not matching, uninstall the package from the device first.</p>
 </div>
 </div>
 </div>
-<div class="sect3">
-<h4 id="generating_keystores"><a class="link" href="#generating_keystores">5.1.6. Generating keystores</a></h4>
+<div class="sect4">
+<h5 id="generating_keystores"><a class="link" href="#generating_keystores">Generating keystores</a></h5>
 <div class="admonitionblock caution">
 <table>
 <tr>
@@ -2013,8 +1477,8 @@ all versions of your app with the same key.</p>
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="ios"><a class="link" href="#ios">5.2. iOS</a></h3>
+<div class="sect3">
+<h4 id="ios"><a class="link" href="#ios">4.2.2. iOS</a></h4>
 <div class="paragraph">
 <p>The iOS target uses a fork of the <a href="https://github.com/archagon/tasty-imitation-keyboard"><code>tasty-imitation-keyboard</code></a>
 project to generate a custom keyboard for iOS with the look and feel of the
@@ -2025,8 +1489,8 @@ native keyboard.</p>
 dependency and cache it for future builds. The cache will automatically be invalidated upon
 an update to the repository.</p>
 </div>
-<div class="sect3">
-<h4 id="requirements_2"><a class="link" href="#requirements_2">5.2.1. Requirements</a></h4>
+<div class="sect4">
+<h5 id="requirements_2"><a class="link" href="#requirements_2">Requirements</a></h5>
 <div class="paragraph">
 <p>You will need:</p>
 </div>
@@ -2053,91 +1517,59 @@ cargo install cargo-lipo</pre>
 </div>
 </div>
 </div>
-<div class="sect3">
-<h4 id="project_level_configuration_and_properties_2"><a class="link" href="#project_level_configuration_and_properties_2">5.2.2. Project-level configuration and properties</a></h4>
-<div class="admonitionblock caution">
+<div class="sect4">
+<h5 id="project_level_configuration_and_properties_2"><a class="link" href="#project_level_configuration_and_properties_2">Project-level configuration and properties</a></h5>
+<div class="admonitionblock note">
 <table>
 <tr>
 <td class="icon">
-<i class="fa icon-caution" title="Caution"></i>
+<i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-This section is incomplete. Please check the <code>examples/</code> directory in the <code>kbdgen</code> git repository
-for guidance.
+For a list of all supported properties of the iOS target files, see <a href="#targetios">TargetIOS</a> in the reference section below.
 </td>
 </tr>
 </table>
 </div>
-<div class="paragraph">
-<p>As described in the Projects chapter, some targets may require project-level
-properties in order to generate the target.</p>
-</div>
-<table class="tableblock frame-all grid-all fit-content spread">
-<caption class="title">Table 3. iOS project properties</caption>
-<colgroup>
-<col>
-<col>
-<col>
-<col>
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Property</th>
-<th class="tableblock halign-left valign-top">Required</th>
-<th class="tableblock halign-left valign-top">Description</th>
-<th class="tableblock halign-left valign-top">Example</th>
-</tr>
-</thead>
-</table>
-</div>
-<div class="sect3">
-<h4 id="layout_level_configuration_and_properties_2"><a class="link" href="#layout_level_configuration_and_properties_2">5.2.3. Layout-level configuration and properties</a></h4>
-<div class="admonitionblock caution">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-caution" title="Caution"></i>
-</td>
-<td class="content">
-This section is incomplete. Please check the <code>examples/</code> directory in the <code>kbdgen</code> git repository
-for guidance.
-</td>
-</tr>
-</table>
-</div>
-<table class="tableblock frame-all grid-all fit-content spread">
-<caption class="title">Table 4. iOS layout properties</caption>
-<colgroup>
-<col>
-<col>
-<col>
-<col>
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Property</th>
-<th class="tableblock halign-left valign-top">Required</th>
-<th class="tableblock halign-left valign-top">Description</th>
-<th class="tableblock halign-left valign-top">Example</th>
-</tr>
-</thead>
-</table>
 <div class="listingblock">
-<div class="title">Example</div>
+<div class="title">Example of the targets section for iOS</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">codeSignId</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">iPhone Distribution: The University of Tromso (666000999)</span><span class="delimiter">&quot;</span></span>
+<span class="key">provisioningProfileId</span>: <span class="string"><span class="content">Test</span></span>
+<span class="key">packageId</span>: <span class="string"><span class="content">com.example.mypackageid</span></span>
+<span class="key">bundleName</span>: <span class="string"><span class="content">New Fancy Keyboards</span></span>
+<span class="key">version</span>: <span class="string"><span class="content">0.1.0</span></span>
+<span class="key">build</span>: <span class="string"><span class="content">1</span></span></code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="layout_level_configuration_and_properties_2"><a class="link" href="#layout_level_configuration_and_properties_2">Layout-level configuration and properties</a></h5>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+See <a href="#layouttargetios">LayoutTargetIOS</a> in the reference section below.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="title">Example of the layout-level targets section for iOS</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">targets</span>:
   <span class="key">ios</span>:
-    <span class="key">bundleName</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">Sami Keyboards</span><span class="delimiter">&quot;</span></span>
-    <span class="key">packageId</span>: <span class="string"><span class="content">com.example.keyboards.sami</span></span>
-    <span class="key">icon</span>: <span class="string"><span class="content">any.png</span></span>
-    <span class="key">aboutDir</span>: <span class="string"><span class="content">path/to/about/files</span></span> <span class="comment"># Should contain {locale}.txt files</span></code></pre>
+    <span class="key">legacyName</span>: <span class="string"><span class="content">northern_sami_keyboa</span></span></code></pre>
 </div>
 </div>
 </div>
-<div class="sect3">
-<h4 id="testing_2"><a class="link" href="#testing_2">5.2.4. Testing</a></h4>
 <div class="sect4">
-<h5 id="testing_in_a_simulator"><a class="link" href="#testing_in_a_simulator">Testing in a simulator</a></h5>
+<h5 id="testing_2"><a class="link" href="#testing_2">Testing</a></h5>
+<div class="sect5">
+<h6 id="testing_in_a_simulator"><a class="link" href="#testing_in_a_simulator">Testing in a simulator</a></h6>
 <div class="admonitionblock warning">
 <table>
 <tr>
@@ -2173,8 +1605,8 @@ in the main toolbar, and press the "Play" button.</p>
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="macos"><a class="link" href="#macos">5.3. macOS</a></h3>
+<div class="sect3">
+<h4 id="macos_2"><a class="link" href="#macos_2">4.2.3. macOS</a></h4>
 <div class="admonitionblock caution">
 <table>
 <tr>
@@ -2193,8 +1625,8 @@ This section is incomplete.
 <div class="paragraph">
 <p>To sign the package, specify the <code>-R</code> flag while building.</p>
 </div>
-<div class="sect3">
-<h4 id="requirements_3"><a class="link" href="#requirements_3">5.3.1. Requirements</a></h4>
+<div class="sect4">
+<h5 id="requirements_3"><a class="link" href="#requirements_3">Requirements</a></h5>
 <div class="admonitionblock warning">
 <table>
 <tr>
@@ -2218,23 +1650,29 @@ This target can only be generated on a macOS system.
 </ul>
 </div>
 </div>
-<div class="sect3">
-<h4 id="project_level_configuration_and_properties_3"><a class="link" href="#project_level_configuration_and_properties_3">5.3.2. Project-level configuration and properties</a></h4>
+<div class="sect4">
+<h5 id="project_level_configuration_and_properties_3"><a class="link" href="#project_level_configuration_and_properties_3">Project-level configuration and properties</a></h5>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+For a list of all supported properties of the iOS target files, see <a href="#targetmacos">TargetMacOS</a> in the reference section below.
+</td>
+</tr>
+</table>
+</div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">targets</span>:
-  <span class="key">osx</span>:
-    <span class="key">bundleName</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">Brendan's Keyboards</span><span class="delimiter">&quot;</span></span>
-    <span class="key">packageId</span>: <span class="string"><span class="content">so.brendan.keyboards.sami</span></span>
-    <span class="key">codeSignId</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">macOS Installer Certificate ID (find in your Keychain)</span><span class="delimiter">&quot;</span></span>
-    <span class="key">icon</span>: <span class="string"><span class="content">any.png</span></span>
-    <span class="key">version</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">1.0.0</span><span class="delimiter">&quot;</span></span> <span class="comment"># should follow x.y.z format</span>
-    <span class="key">resources</span>: <span class="string"><span class="content">path/to/resources</span></span> <span class="comment"># optional</span>
-    <span class="key">welcome</span>: <span class="string"><span class="content">welcome.txt</span></span> <span class="comment"># or .html or .rtf; optional</span>
-    <span class="key">readme</span>: <span class="string"><span class="content">readme.txt</span></span> <span class="comment"># or .html or .rtf; optional</span>
-    <span class="key">license</span>: <span class="string"><span class="content">license.txt</span></span> <span class="comment"># or .html or .rtf; optional</span>
-    <span class="key">conclusion</span>: <span class="string"><span class="content">conclusion.txt</span></span> <span class="comment"># or .html or .rtf; optional</span>
-    <span class="key">background</span>: <span class="string"><span class="content">background.png</span></span> <span class="comment"># or .jpg; optional</span></code></pre>
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">codeSignId</span>: <span class="string"><span class="content">'Developer ID Installer: The University of Tromso (666000999)'</span></span>
+<span class="key">provisioningProfileId</span>: <span class="string"><span class="content">Test</span></span>
+<span class="key">packageId</span>: <span class="string"><span class="content">com.example.mypackageid</span></span>
+<span class="key">bundleName</span>: <span class="string"><span class="content">New Fancy Keyboards</span></span>
+<span class="key">icon</span>: <span class="string"><span class="content">images/icon.png</span></span>
+<span class="key">version</span>: <span class="string"><span class="content">1.0.4</span></span>
+<span class="key">build</span>: <span class="string"><span class="content">1</span></span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2247,31 +1685,15 @@ This target can only be generated on a macOS system.
 <p>Resources can be localised. Place readme, welcome, license and conclusion files into <code>zz.lproj</code> directories inside the resources directory, where <code>zz</code> represents a supported language code. Place the background image into the root of the resources directory.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="layout_level_configuration_and_properties_3"><a class="link" href="#layout_level_configuration_and_properties_3">5.3.3. Layout-level configuration and properties</a></h4>
+<div class="sect4">
+<h5 id="layout_level_configuration_and_properties_3"><a class="link" href="#layout_level_configuration_and_properties_3">Layout-level configuration and properties</a></h5>
 <div class="paragraph">
 <p>The macOS target supports a few custom modes to facilitate the differences between macOS keyboards and others. Particularly, the <code>cmd</code> key is macOS specific.</p>
 </div>
-<div class="paragraph">
-<p>Therefore, macOS specific modes are supported with the <code>osx-</code> prefix.</p>
-</div>
-<div class="paragraph">
-<p>It is important to supply at least an <code>osx-cmd</code> mode otherwise the <code>cmd</code> key will have no function whatsoever.</p>
-</div>
-<div class="paragraph">
-<p>If you wish to use your <code>iso-default</code> mode as the <code>osx-cmd</code> mode (which is the sanest default), you can use YAML referencing:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">iso-default</span>: <span class="string"><span class="delimiter">|</span></span> <span class="variable">&amp;default</span>
-  <span class="error">my keyboard here</span>
-<span class="key">osx-cmd</span>: <span class="global-variable">*default</span></code></pre>
 </div>
 </div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="svg"><a class="link" href="#svg">5.4. SVG</a></h3>
+<div class="sect3">
+<h4 id="svg"><a class="link" href="#svg">4.2.4. SVG</a></h4>
 <div class="paragraph">
 <p>This target exists for the purpose of visualising and debugging keyboard layouts
 during development. An HTML index file is generated, including all SVGs necessary
@@ -2282,12 +1704,60 @@ to demonstrate the project.</p>
 especially useful for correcting missing key errors.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="windows_2"><a class="link" href="#windows_2">5.5. Windows</a></h3>
 <div class="sect3">
-<h4 id="preparing_build_environment"><a class="link" href="#preparing_build_environment">5.5.1. Preparing build environment</a></h4>
+<h4 id="windows_2"><a class="link" href="#windows_2">4.2.5. Windows</a></h4>
 <div class="sect4">
-<h5 id="building_the_windows_target_on_unix_like_operating_systems"><a class="link" href="#building_the_windows_target_on_unix_like_operating_systems">Building the Windows target on Unix-like operating systems</a></h5>
+<h5 id="project_level_configuration_and_properties_4"><a class="link" href="#project_level_configuration_and_properties_4">Project-level configuration and properties</a></h5>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+For a list of all supported properties of the Android target files, see <a href="#targetwindows">TargetWindows</a> in the reference section below.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="title">A full example of the targets section for Android</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">appName</span>: <span class="string"><span class="content">New Fancy Keyboards</span></span>
+<span class="key">version</span>: <span class="string"><span class="content">1.0.2</span></span>
+<span class="key">url</span>: <span class="string"><span class="content">'http://divvun.no'</span></span>
+<span class="key">uuid</span>: <span class="string"><span class="content">197FF21D-E48C-4FE8-9DF0-FB894A491C10</span></span>
+<span class="key">build</span>: <span class="string"><span class="content">1</span></span></code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="layout_level_configuration_and_properties_4"><a class="link" href="#layout_level_configuration_and_properties_4">Layout-level configuration and properties</a></h5>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+See <a href="#layouttargetwindows">LayoutTargetWindows</a> in the reference section below.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="title">Example of the layout-level targets section for Chrome</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">targets</span>:
+  <span class="key">win</span>:
+    <span class="key">locale</span>: <span class="string"><span class="content">smj-Latn-SE</span></span></code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="preparing_build_environment"><a class="link" href="#preparing_build_environment">Preparing build environment</a></h5>
+<div class="sect5">
+<h6 id="building_the_windows_target_on_unix_like_operating_systems"><a class="link" href="#building_the_windows_target_on_unix_like_operating_systems">Building the Windows target on Unix-like operating systems</a></h6>
 <div class="paragraph">
 <p>You will need to install:</p>
 </div>
@@ -2337,8 +1807,8 @@ You will need to use wine in 32-bit mode. If you are concerned or unsure, just s
 </div>
 </div>
 </div>
-<div class="sect3">
-<h4 id="limitations"><a class="link" href="#limitations">5.5.2. Limitations</a></h4>
+<div class="sect4">
+<h5 id="limitations"><a class="link" href="#limitations">Limitations</a></h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2365,8 +1835,8 @@ investigation.</p>
 </ul>
 </div>
 </div>
-<div class="sect3">
-<h4 id="mappings_between_modes_in_layout_files_and_windows_keyboards"><a class="link" href="#mappings_between_modes_in_layout_files_and_windows_keyboards">5.5.3. Mappings between modes in layout files and Windows keyboards</a></h4>
+<div class="sect4">
+<h5 id="mappings_between_modes_in_layout_files_and_windows_keyboards"><a class="link" href="#mappings_between_modes_in_layout_files_and_windows_keyboards">Mappings between modes in layout files and Windows keyboards</a></h5>
 <div class="dlist">
 <div class="title">Mappings from kbdgen modes to Windows keyboards</div>
 <dl>
@@ -2417,8 +1887,11 @@ investigation.</p>
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="x11"><a class="link" href="#x11">5.6. X11</a></h3>
+<div class="sect3">
+<h4 id="x11"><a class="link" href="#x11">4.2.6. X11</a></h4>
+<div class="paragraph">
+<p>The <code>x11</code> target outputs an X11-compatible xkb file.</p>
+</div>
 <div class="admonitionblock caution">
 <table>
 <tr>
@@ -2431,8 +1904,1455 @@ The X11 output should be considered experimental. It requires modifying global X
 </tr>
 </table>
 </div>
+<div class="sect4">
+<h5 id="project_level_configuration_and_properties_5"><a class="link" href="#project_level_configuration_and_properties_5">Project-level configuration and properties</a></h5>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+For a list of all supported properties of the Android target files, see <a href="#targetx11">TargetX11</a> in the reference section below.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect4">
+<h5 id="layout_level_configuration_and_properties_5"><a class="link" href="#layout_level_configuration_and_properties_5">Layout-level configuration and properties</a></h5>
 <div class="paragraph">
-<p>The <code>x11</code> target outputs an X11-compatible xkb file. It has no special configuration and outputs the generated file to the <code>x11/</code> directory.</p>
+<p>Currently none.</p>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="m17n"><a class="link" href="#m17n">4.2.7. M17n</a></h4>
+<div class="paragraph">
+<p>TODO</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="chrome"><a class="link" href="#chrome">4.2.8. Chrome</a></h4>
+<div class="sect4">
+<h5 id="project_level_configuration_and_properties_6"><a class="link" href="#project_level_configuration_and_properties_6">Project-level configuration and properties</a></h5>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+See <a href="#targetchrome">TargetChrome</a> in the reference section below.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect4">
+<h5 id="layout_level_configuration_and_properties_6"><a class="link" href="#layout_level_configuration_and_properties_6">Layout-level configuration and properties</a></h5>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Currently unspecified.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="title">Example of the layout-level targets section for Chrome</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">targets</span>:
+  <span class="key">chrome</span>:
+    <span class="key">locale</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">nb</span><span class="delimiter">&quot;</span></span>
+    <span class="key">xkbLayout</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">no</span><span class="delimiter">&quot;</span></span></code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="project_file_structure_reference"><a class="link" href="#project_file_structure_reference">5. Project file structure reference</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following is a complete reference of the structure
+used internally by <code>kbdgen</code>
+to read and write <code>.kbdgen</code> bundles.</p>
+</div>
+<div class="paragraph">
+<p>Due to the auto-generated nature of this section,
+the structures are listed in alphabetical order
+even though they produce the nested files in the bundle.
+Starting with <a href="#projectbundle">ProjectBundle</a>,
+you can follow the links to reach each structure.</p>
+</div>
+<div class="sect2">
+<h3 id="deriveoptions"><a class="link" href="#deriveoptions">5.1. DeriveOptions</a></h3>
+<div class="paragraph">
+<p>Derive options</p>
+</div>
+<div class="ulist">
+<div class="title">Fields</div>
+<ul>
+<li>
+<p><code>transforms</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>bool</code></p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="desktopkeymap"><a class="link" href="#desktopkeymap">5.2. DesktopKeyMap</a></h3>
+<div class="paragraph">
+<p>Map of keys on a desktop keyboard</p>
+</div>
+<div class="paragraph">
+<p>A full keymap has 48 items. It has two forms of representation, a
+string-based one with 12 items per line; the other representation is a
+regular YAML map. Some keys might be omitted, which is represented as
+<code>\u{0}</code> (the unicode escape for a <code>NULL</code> byte) in the string representation
+or <code>None</code> in the map.</p>
+</div>
+<div class="paragraph">
+<p>We will try to serialize everything that is more than half of a full map as
+string-based key map; other sizes will be regular maps in YAML.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="error">&quot;' 1 2 3 4 5 6 7 8 9 0 + ´</span>
+  <span class="error">á š e r t y u i o p å ŋ</span>
+  <span class="error">a s d f g h j k l ö ä đ</span>
+<span class="error">ž z č c v b n m , . -&quot;</span></code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="desktopmodes"><a class="link" href="#desktopmodes">5.3. DesktopModes</a></h3>
+<div class="paragraph">
+<p>Maps modifier combination to map of keys</p>
+</div>
+<div class="paragraph">
+<p>In general only the <code>default</code> and <code>shift</code> modes are strictly required.
+Some targets require other modes, and the tool will inform you if they are
+missing.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">default</span>: <span class="string"><span class="delimiter">|</span><span class="content">
+  ' 1 2 3 4 5 6 7 8 9 0 + ´
+    á š e r t y u i o p å ŋ
+    a s d f g h j k l ö ä đ
+  ž z č c v b n m , . -</span></span>
+<span class="key">shift</span>: <span class="string"><span class="delimiter">|</span><span class="content">
+  § ! &quot; # $ % &amp; / ( ) = ? `
+    Á Š E R T Y U I O P Å Ŋ
+    A S D F G H J K L Ö Ä Đ
+  Ž Z Č C V B N M ; : _</span></span>
+<span class="error">cmd+shift</span>: <span class="error">|</span>
+  <span class="error">° ! &quot; # € % &amp; / ( ) = ? `</span>
+    <span class="error">Q W E R T Y U I O P Å ^</span>
+    <span class="error">A S D F G H J K L Ö Ä *</span>
+  <span class="error">&gt; Z X C V B N M ; : _</span></code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Fields</div>
+<ul>
+<li>
+<p><code>unnamed internal field #0</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>Map&lt;String, <a href="#desktopkeymap">DesktopKeyMap</a>&gt;</code></p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="layout"><a class="link" href="#layout">5.4. Layout</a></h3>
+<div class="paragraph">
+<p>A layout is defined as a file by the name <code>&lt;locale&gt;.yaml</code> and lives in the
+<code>locales/</code> directory in the kbdgen project bundle.</p>
+</div>
+<div class="ulist">
+<div class="title">Fields</div>
+<ul>
+<li>
+<p><code>displayNames</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>Map&lt;String, String&gt;</code></p>
+</div>
+<div class="paragraph">
+<p>The display names for the layout, keyed by locale.</p>
+</div>
+<div class="paragraph">
+<p>A valid locale is any ISO 639-1 or 639-3 code. If a language has both,
+prefer the 639-1 variant for better support.</p>
+</div>
+<div class="paragraph">
+<p>It must be defined for at least the <code>en</code> locale, and preferably also for
+each well-supported locale that you expect to support.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">displayNames</span>:
+  <span class="key">en</span>: <span class="string"><span class="content">Julev Sami (Sweden)</span></span>
+  <span class="key">smj</span>: <span class="string"><span class="content">Julevsámegiella (Svierik)</span></span>
+  <span class="key">smj-SE</span>: <span class="string"><span class="content">Julevsámegiella (Svierik)</span></span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>modes</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code><a href="#modes">Modes</a></code></p>
+</div>
+<div class="paragraph">
+<p>The different modes.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Do not forget the <code>\|</code> symbol after the <code>&lt;mode&gt;</code> key or you will
+receive unexpected parsing errors.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">modes</span>:
+  <span class="key">mobile</span>:
+    <span class="key">default</span>: <span class="string"><span class="delimiter">|</span><span class="content">
+      á w e r t y u i o p å
+      a s d f g h j k l ö ä
+         z x c v b n m ŋ</span></span>
+    <span class="key">shift</span>: <span class="string"><span class="delimiter">|</span><span class="content">
+      Á W E R T Y U I O P Å
+      A S D F G H J K L Ö Ä
+         Z X C V B N M Ŋ</span></span>
+  <span class="key">mac</span>:
+    <span class="key">default</span>: <span class="string"><span class="delimiter">|</span><span class="content">
+      § 1 2 3 4 5 6 7 8 9 0 + ´
+        á w e r t y u i o p å ŋ
+        a s d f g h j k l ö ä '
+      &lt; z x c v b n m , . -</span></span>
+    <span class="comment"># ...</span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>decimal</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="paragraph">
+<p>Specify the decimal separator for the given locale. Required for the
+numpad keys on some targets. Normally a '.' or ','.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">decimal</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">,</span><span class="delimiter">&quot;</span></span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>space</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>Map&lt;String, Map&lt;String, String&gt;&gt;</code></p>
+</div>
+<div class="paragraph">
+<p>An override for space keys on some OSes. Keyed by target.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">space</span>:
+  <span class="key">mac</span>:
+    <span class="key">caps</span>: <span class="string"><span class="content">'\u{A0}'</span></span>
+    <span class="key">alt</span>: <span class="string"><span class="content">'\u{A0}'</span></span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>deadKeys</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>Map&lt;String, Map&lt;String, Vec&lt;String&gt;&gt;&gt;</code></p>
+</div>
+<div class="paragraph">
+<p>Defines the dead keys for a target for a given <code>&lt;mode&gt;</code>.</p>
+</div>
+<div class="paragraph">
+<p>This is a nested map:
+The first key is the target;
+the second key is the mode (from the modes property);
+finally, the value is an array of dead keys.</p>
+</div>
+<div class="paragraph">
+<p>It is recommended that the keys of this array are wrapped in quotes to
+make diaeresis and other hard to see glyphs maintainable for future
+developers, including yourself.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">deadKeys</span>:
+  <span class="key">mac</span>:
+    <span class="key">default</span>: <span class="string"><span class="content">[&quot;`&quot;]</span></span>
+    <span class="key">shift</span>: <span class="string"><span class="content">['`']</span></span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>longpress</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>Map&lt;String, String&gt;</code></p>
+</div>
+<div class="paragraph">
+<p>The items to be shown when a key is long-pressed. Values are space
+separated in one string.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">deadKeys</span>:
+  <span class="key">mac</span>:
+    <span class="key">default</span>: <span class="string"><span class="content">[&quot;`&quot;]</span></span>
+    <span class="key">shift</span>: <span class="string"><span class="content">['`']</span></span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>transforms</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>Map&lt;String, Map&lt;String, String&gt;&gt;</code></p>
+</div>
+<div class="paragraph">
+<p>The chain of inputs necessary to provide an output after a deadkey is
+pressed. Keyed by each individual input.</p>
+</div>
+<div class="paragraph">
+<p>Always includes deadkeys but some targets support key sequencing
+(replacing glyphs based on input pattern) — this behaviour is target
+dependent.</p>
+</div>
+<div class="paragraph">
+<p>This map may be repeatedly nested until a terminal is reached. If a
+sequence is short-circuited, the <code>" "</code> is used as the fallback output in
+all cases.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">longpress</span>:
+  <span class="key">A</span>: <span class="string"><span class="content">Æ Ä Å Â</span></span>
+  <span class="key">Á</span>: <span class="string"><span class="content">Q</span></span>
+  <span class="key">C</span>: <span class="string"><span class="content">Č</span></span>
+  <span class="key">D</span>: <span class="string"><span class="content">Đ</span></span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>strings</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code><a href="#layoutstrings">LayoutStrings</a></code></p>
+</div>
+<div class="paragraph">
+<p>Strings to be shown on some OSes</p>
+</div>
+<div class="paragraph">
+<p>Currently, they are used for specifying strings to be shown on the space
+and return keys on mobile targets.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">strings</span>:
+  <span class="key">space</span>: <span class="string"><span class="content">space</span></span>
+  <span class="key">return</span>: <span class="string"><span class="content">return</span></span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>derive</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code><a href="#deriveoptions">DeriveOptions</a></code></p>
+</div>
+<div class="paragraph">
+<p>Derives</p>
+</div>
+</li>
+<li>
+<p><code>targets</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code><a href="#layouttarget">LayoutTarget</a></code></p>
+</div>
+<div class="paragraph">
+<p>A map of target-specific customisation properties.</p>
+</div>
+<div class="paragraph">
+<p>Key is the code for the target. Only necessary if you need to set a
+target-specific property.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">targets</span>:
+  <span class="key">win</span>:
+    <span class="key">locale</span>: <span class="string"><span class="content">sma-Latn-NO</span></span></code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="layoutstrings"><a class="link" href="#layoutstrings">5.5. LayoutStrings</a></h3>
+<div class="paragraph">
+<p>Strings to be shown on some OSes</p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">space</span>: <span class="string"><span class="content">space</span></span>
+<span class="key">return</span>: <span class="string"><span class="content">return</span></span></code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Fields</div>
+<ul>
+<li>
+<p><code>space</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">space</span>: <span class="string"><span class="content">gasska</span></span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>return</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">return</span>: <span class="string"><span class="content">linnjamålssom</span></span></code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="layouttarget"><a class="link" href="#layouttarget">5.6. LayoutTarget</a></h3>
+<div class="paragraph">
+<p>Targets for settings per layout</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="layouttargetandroid"><a class="link" href="#layouttargetandroid">5.7. LayoutTargetAndroid</a></h3>
+<div class="ulist">
+<div class="title">Fields</div>
+<ul>
+<li>
+<p><code>minimumSdk</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>u32</code></p>
+</div>
+<div class="paragraph">
+<p>The API level that is the minimum supported for a keyboard. Useful for
+limiting access to a keyboard where it is known several glyphs are
+missing on older devices.</p>
+</div>
+<div class="paragraph">
+<p><a href="https://source.android.com/source/build-numbers.html">See the Android documentation for API versions compared to OS version</a>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The lowest API supported by this keyboard is API 16, but it may
+work on older variants.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">minimumSdk</span>: <span class="string"><span class="content">16</span></span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>style</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>Map&lt;String, <a href="#yamlvalue">YamlValue</a>&gt;</code></p>
+</div>
+<div class="paragraph">
+<p>Styles</p>
+</div>
+</li>
+<li>
+<p><code>legacyName</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="layouttargetios"><a class="link" href="#layouttargetios">5.8. LayoutTargetIOS</a></h3>
+<div class="ulist">
+<div class="title">Fields</div>
+<ul>
+<li>
+<p><code>legacyName</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="paragraph">
+<p>Minimum SDK can be specified for a specific layout</p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="layouttargetwindows"><a class="link" href="#layouttargetwindows">5.9. LayoutTargetWindows</a></h3>
+<div class="ulist">
+<div class="title">Fields</div>
+<ul>
+<li>
+<p><code>locale</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="paragraph">
+<p>The actual locale within Windows, as per their broken ISO 639-3 scheme
+or secret hardcoded lists.</p>
+</div>
+</li>
+<li>
+<p><code>languageName</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="paragraph">
+<p>The language name to be cached, in order to try to mask the ugly ISO
+code name that often shows.</p>
+</div>
+</li>
+<li>
+<p><code>id</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="mobilekeymap"><a class="link" href="#mobilekeymap">5.10. MobileKeyMap</a></h3>
+<div class="paragraph">
+<p>Map of keys for mobile targets</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+This does not need to map to a physical keyboard layout,
+so it is treated as a two-dimensional list of symbols.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="error">&quot;á w e r t y u i o p å</span>
+<span class="error">a s d f g h j k l ö ä</span>
+   <span class="error">z x c v b n m ŋ&quot;</span></code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="mobilemodes"><a class="link" href="#mobilemodes">5.11. MobileModes</a></h3>
+<div class="paragraph">
+<p>Maps modifier combination to map of keys</p>
+</div>
+<div class="paragraph">
+<p>Both mobile-default and mobile-shift modes are required.</p>
+</div>
+<div class="ulist">
+<div class="title">Fields</div>
+<ul>
+<li>
+<p><code>unnamed internal field #0</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>Map&lt;String, <a href="#mobilekeymap">MobileKeyMap</a>&gt;</code></p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="modes"><a class="link" href="#modes">5.12. Modes</a></h3>
+<div class="paragraph">
+<p>Target specific modes</p>
+</div>
+<div class="paragraph">
+<p>This is a nested map with known keys (the fields below) for each supported
+target.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Each target is either described by <a href="#desktopmodes">DesktopModes</a>, or by
+<a href="#mobilemodes">MobileModes</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">modes</span>:
+  <span class="key">mac</span>:
+    <span class="key">default</span>: <span class="string"><span class="delimiter">|</span><span class="content">
+      ' 1 2 3 4 5 6 7 8 9 0 + ´
+        á š e r t y u i o p å ŋ
+        a s d f g h j k l ö ä đ
+      ž z č c v b n m , . -</span></span>
+    <span class="key">shift</span>: <span class="string"><span class="delimiter">|</span><span class="content">
+      § ! &quot; # $ % &amp; / ( ) = ? `
+        Á Š E R T Y U I O P Å Ŋ
+        A S D F G H J K L Ö Ä Đ
+      Ž Z Č C V B N M ; : _</span></span>
+  <span class="key">win</span>:
+    <span class="key">default</span>: <span class="string"><span class="delimiter">|</span><span class="content">
+      § 1 2 3 4 5 6 7 8 9 0 + ´
+        á š e r t y u i o p å ŋ
+        a s d f g h j k l ö ä đ
+      ž z č c v b n m , . -</span></span>
+    <span class="key">shift</span>: <span class="string"><span class="delimiter">|</span><span class="content">
+      ½ ! &quot; # ¤ % &amp; / ( ) = ? `
+        Á Š E R T Y U I O P Å Ŋ
+        A S D F G H J K L Ö Ä Đ
+      Ž Z Č C V B N M ; : _</span></span></code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Fields</div>
+<ul>
+<li>
+<p><code>win</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code><a href="#desktopmodes">DesktopModes</a></code></p>
+</div>
+<div class="paragraph">
+<p>Windows</p>
+</div>
+</li>
+<li>
+<p><code>mac</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code><a href="#desktopmodes">DesktopModes</a></code></p>
+</div>
+</li>
+<li>
+<p><code>ios</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code><a href="#mobilemodes">MobileModes</a></code></p>
+</div>
+<div class="paragraph">
+<p>iOS, used for both iPhone and iPad keyboards</p>
+</div>
+</li>
+<li>
+<p><code>android</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code><a href="#mobilemodes">MobileModes</a></code></p>
+</div>
+</li>
+<li>
+<p><code>chrome</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code><a href="#desktopmodes">DesktopModes</a></code></p>
+</div>
+<div class="paragraph">
+<p>ChromeOS (used on Chrome Books)</p>
+</div>
+</li>
+<li>
+<p><code>x11</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code><a href="#desktopmodes">DesktopModes</a></code></p>
+</div>
+<div class="paragraph">
+<p>Linux (X11)</p>
+</div>
+</li>
+<li>
+<p><code>desktop</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code><a href="#desktopmodes">DesktopModes</a></code></p>
+</div>
+<div class="paragraph">
+<p>Desktop default mode</p>
+</div>
+</li>
+<li>
+<p><code>mobile</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code><a href="#mobilemodes">MobileModes</a></code></p>
+</div>
+<div class="paragraph">
+<p>Mobile default mode</p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="project"><a class="link" href="#project">5.13. Project</a></h3>
+<div class="paragraph">
+<p>Meta data for the project, stored in the <code>project.yaml</code> file.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">locales</span>:
+  <span class="key">en</span>:
+    <span class="key">name</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">Keyboard Project</span><span class="delimiter">&quot;</span></span>
+    <span class="key">description</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">A test keyboard</span><span class="delimiter">&quot;</span></span>
+  <span class="key">nb</span>:
+    <span class="key">name</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">Tastatur</span><span class="delimiter">&quot;</span></span>
+    <span class="key">description</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">Et testtastatur</span><span class="delimiter">&quot;</span></span>
+<span class="key">author</span>: <span class="string"><span class="content">Example Person</span></span>
+<span class="key">email</span>: <span class="string"><span class="content">person@place.example</span></span>
+<span class="key">organisation</span>: <span class="string"><span class="content">Example Corp</span></span>
+<span class="key">copyright</span>: <span class="string"><span class="content">Copyright © 2017 Example Corpa</span></span></code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Fields</div>
+<ul>
+<li>
+<p><code>locales</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>Map&lt;String, <a href="#projectdesc">ProjectDesc</a>&gt;</code></p>
+</div>
+<div class="paragraph">
+<p>Strings for describing the project.</p>
+</div>
+<div class="paragraph">
+<p>This is a map from a language code (ISO 639-1 or ISO 639-3) to a project
+description in that language. If a language has both an ISO 639-1 or ISO
+639-3 code, prefer the 639-1 variant for better support.</p>
+</div>
+<div class="paragraph">
+<p>The project description must be defined for at least the <code>en</code> locale,
+and preferably also for each well-supported locale that you expect to
+support.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">locales</span>:
+  <span class="key">en</span>:
+    <span class="key">name</span>: <span class="string"><span class="content">My Keyboard Project</span></span>
+    <span class="key">description</span>: <span class="string"><span class="content">A keyboard supporting zero languages.</span></span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>author</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="paragraph">
+<p>The primary author(s)</p>
+</div>
+</li>
+<li>
+<p><code>email</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="paragraph">
+<p>One email address to contact the author(s) of the project</p>
+</div>
+</li>
+<li>
+<p><code>copyright</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="paragraph">
+<p>The copyright string to be used where and if necessary.</p>
+</div>
+</li>
+<li>
+<p><code>organisation</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="paragraph">
+<p>The associated organisation. Put author here too if no organisation.</p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="projectbundle"><a class="link" href="#projectbundle">5.14. ProjectBundle</a></h3>
+<div class="paragraph">
+<p>A <code>.kbdgen</code> bundle is a directory with a specific structure.</p>
+</div>
+<div class="paragraph">
+<p>Please note that the fields listed here are built from the contents of the
+files in the bundle directory.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example of the structure of a <code>.kbdgen</code> bundle</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">smj.kbdgen
+├── layouts
+│  ├── smj-NO.yaml
+│  └── smj-SE.yaml
+├── project.yaml
+├── resources
+│  └── mac
+│     ├── background.png
+│     ├── icon.smj-NO.png
+│     └── icon.smj-SE.png
+└── targets
+   ├── android.yaml
+   ├── ios.yaml
+   ├── mac.yaml
+   └── win.yaml</code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Fields</div>
+<ul>
+<li>
+<p><code>path</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>PathBuf</code></p>
+</div>
+<div class="paragraph">
+<p>The local file system path to the <code>.kbdgen</code> bundle.</p>
+</div>
+</li>
+<li>
+<p><code>project</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code><a href="#project">Project</a></code></p>
+</div>
+<div class="paragraph">
+<p>Data from <code>project.yaml</code> file</p>
+</div>
+</li>
+<li>
+<p><code>layouts</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>Map&lt;String, <a href="#layout">Layout</a>&gt;</code></p>
+</div>
+<div class="paragraph">
+<p>The layouts to be included in this project, read from the <code>layouts/</code>
+directory. The layout names are the names of the YAML files without the
+<code>.yaml</code> suffix.</p>
+</div>
+</li>
+<li>
+<p><code>targets</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code><a href="#targets">Targets</a></code></p>
+</div>
+<div class="paragraph">
+<p>Target-specific project-level properties stored in <code>targets/</code> directory.</p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="projectdesc"><a class="link" href="#projectdesc">5.15. ProjectDesc</a></h3>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">name</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">Tastatur</span><span class="delimiter">&quot;</span></span>
+<span class="key">description</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">Et testtastatur</span><span class="delimiter">&quot;</span></span></code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Fields</div>
+<ul>
+<li>
+<p><code>name</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="paragraph">
+<p>The name string for the project. For mobile keyboards, this is the title of the app.</p>
+</div>
+</li>
+<li>
+<p><code>description</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="paragraph">
+<p>The description of the project.</p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="targetandroid"><a class="link" href="#targetandroid">5.16. TargetAndroid</a></h3>
+<div class="ulist">
+<div class="title">Fields</div>
+<ul>
+<li>
+<p><code>version</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+</li>
+<li>
+<p><code>build</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>u32</code></p>
+</div>
+</li>
+<li>
+<p><code>packageId</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="paragraph">
+<p>The reverse-domain notation ID for the package</p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">packageId</span>: <span class="string"><span class="content">com.example.mypackageid</span></span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>icon</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="paragraph">
+<p>Path to the icon file to be converted into the various sizes required by
+Android, relative to project root.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">icon</span>: <span class="string"><span class="content">icons/icon.png</span></span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>sentryDsn</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+</li>
+<li>
+<p><code>showNumberHints</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>bool</code></p>
+</div>
+</li>
+<li>
+<p><code>minimumSdk</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>u32</code></p>
+</div>
+</li>
+<li>
+<p><code>chfst</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>bool</code></p>
+</div>
+</li>
+<li>
+<p><code>keyStore</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="paragraph">
+<p>Path to the Android keystore (see <a href="#generating_keystores">Generating keystores</a> section for
+more information)</p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">keyStore</span>: <span class="string"><span class="content">my.keystore</span></span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>keyAlias</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="paragraph">
+<p>The key to use within the provided keystore</p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">keyAlias</span>: <span class="string"><span class="content">myprojectkey</span></span></code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="targetchrome"><a class="link" href="#targetchrome">5.17. TargetChrome</a></h3>
+<div class="ulist">
+<div class="title">Fields</div>
+<ul>
+<li>
+<p><code>version</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+</li>
+<li>
+<p><code>build</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>u32</code></p>
+</div>
+</li>
+<li>
+<p><code>appId</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="targetios"><a class="link" href="#targetios">5.18. TargetIOS</a></h3>
+<div class="ulist">
+<div class="title">Fields</div>
+<ul>
+<li>
+<p><code>version</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">version</span>: <span class="string"><span class="content">0.1.0</span></span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>build</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>u32</code></p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">build</span>: <span class="string"><span class="content">1</span></span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>packageId</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">packageId</span>: <span class="string"><span class="content">com.example.mypackageid</span></span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>icon</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">icon</span>: <span class="string"><span class="content">icons/icon.png</span></span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>bundleName</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">bundleName</span>: <span class="string"><span class="content">Fancy Example Keyboards</span></span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>teamId</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+</li>
+<li>
+<p><code>codeSignId</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">codeSignId</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">iPhone Distribution: The University of Tromso (000ABC000)</span><span class="delimiter">&quot;</span></span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>sentryDsn</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+</li>
+<li>
+<p><code>aboutDir</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+</li>
+<li>
+<p><code>chfst</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>bool</code></p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="targetmacos"><a class="link" href="#targetmacos">5.19. TargetMacOS</a></h3>
+<div class="ulist">
+<div class="title">Fields</div>
+<ul>
+<li>
+<p><code>version</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">version</span>: <span class="string"><span class="content">0.1.6</span></span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>build</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>u32</code></p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">build</span>: <span class="string"><span class="content">12</span></span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>packageId</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">packageId</span>: <span class="string"><span class="content">com.example.mypackageid</span></span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>icon</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">icon</span>: <span class="string"><span class="content">icons/icon.png</span></span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>bundleName</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">bundleName</span>: <span class="string"><span class="content">Fancy Example Keyboards</span></span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>teamId</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+</li>
+<li>
+<p><code>codeSignId</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">codeSignId</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">iPhone Distribution: The University of Tromso (000ABC000)</span><span class="delimiter">&quot;</span></span></code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="targetmim"><a class="link" href="#targetmim">5.20. TargetMim</a></h3>
+<div class="ulist">
+<div class="title">Fields</div>
+<ul>
+<li>
+<p><code>language_code</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+</li>
+<li>
+<p><code>description</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="targetwindows"><a class="link" href="#targetwindows">5.21. TargetWindows</a></h3>
+<div class="ulist">
+<div class="title">Fields</div>
+<ul>
+<li>
+<p><code>version</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">version</span>: <span class="string"><span class="content">0.2.0</span></span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>appName</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">appName</span>: <span class="string"><span class="content">Fancy Example Keyboards</span></span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>url</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">url</span>: <span class="string"><span class="content">'http://divvun.no'</span></span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>uuid</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">uuid</span>: <span class="string"><span class="content">0D18406F-1209-43EF-B18F-58961BC8E2E3</span></span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>codeSignPfx</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+</li>
+<li>
+<p><code>customLocales</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+</li>
+<li>
+<p><code>licensePath</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+</li>
+<li>
+<p><code>readmePath</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="targetx11"><a class="link" href="#targetx11">5.22. TargetX11</a></h3>
+<div class="ulist">
+<div class="title">Fields</div>
+<ul>
+<li>
+<p><code>version</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>String</code></p>
+</div>
+</li>
+<li>
+<p><code>build</code> <em>(required)</em></p>
+<div class="paragraph">
+<p>Type: <code>u32</code></p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="targets_2"><a class="link" href="#targets_2">5.23. Targets</a></h3>
+<div class="paragraph">
+<p>Mapping of target-specific properties, for example code signing
+certificates, build and version numbers, and other resources to be included
+at a project level.</p>
+</div>
+<div class="paragraph">
+<p>See the documentation for each target for more information.</p>
+</div>
+<div class="ulist">
+<div class="title">Fields</div>
+<ul>
+<li>
+<p><code>android</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code><a href="#targetandroid">TargetAndroid</a></code></p>
+</div>
+<div class="paragraph">
+<p>Android keyboard settings</p>
+</div>
+</li>
+<li>
+<p><code>i_os</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code><a href="#targetios">TargetIOS</a></code></p>
+</div>
+</li>
+<li>
+<p><code>mac_os</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code><a href="#targetmacos">TargetMacOS</a></code></p>
+</div>
+</li>
+<li>
+<p><code>windows</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code><a href="#targetwindows">TargetWindows</a></code></p>
+</div>
+</li>
+<li>
+<p><code>chrome</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code><a href="#targetchrome">TargetChrome</a></code></p>
+</div>
+</li>
+<li>
+<p><code>x11</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code><a href="#targetx11">TargetX11</a></code></p>
+</div>
+</li>
+<li>
+<p><code>mim</code> <em>(optional)</em></p>
+<div class="paragraph">
+<p>Type: <code><a href="#targetmim">TargetMim</a></code></p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="yamlvalue"><a class="link" href="#yamlvalue">5.24. YamlValue</a></h3>
+<div class="paragraph">
+<p>Opaque YAML value</p>
+</div>
+<div class="paragraph">
+<p>Sorry, that means there is no further documentation on its structure here.</p>
 </div>
 </div>
 </div>

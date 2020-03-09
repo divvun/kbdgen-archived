@@ -1,6 +1,6 @@
-=== iOS
+= iOS
 
-The iOS target uses a fork of the https://github.com/archagon/tasty-imitation-keyboard[`tasty-imitation-keyboard`] 
+The iOS target uses a fork of the https://github.com/archagon/tasty-imitation-keyboard[`tasty-imitation-keyboard`]
 project to generate a custom keyboard for iOS with the look and feel of the
 native keyboard.
 
@@ -8,7 +8,7 @@ The target will automatically download the https://github.com/divvun/giellakbd-i
 dependency and cache it for future builds. The cache will automatically be invalidated upon
 an update to the repository.
 
-==== Requirements
+== Requirements
 
 You will need:
 
@@ -25,57 +25,39 @@ rustup target add x86_64-apple-ios
 cargo install cargo-lipo
 ....
 
-// === Installation and environment configuration
+// = Installation and environment configuration
 // TODO: will be needed once hfst-ospell-rust is integrated
 
+== Project-level configuration and properties
 
-==== Project-level configuration and properties
+NOTE: For a list of all supported properties of the iOS target files, see <<TargetIOS>> in the reference section below.
 
-CAUTION: This section is incomplete. Please check the `examples/` directory in the `kbdgen` git repository
-for guidance.
+.Example of the targets section for iOS
+[source,yaml]
+----
+codeSignId: "iPhone Distribution: The University of Tromso (666000999)"
+provisioningProfileId: Test
+packageId: com.example.mypackageid
+bundleName: New Fancy Keyboards
+version: 0.1.0
+build: 1
+----
 
-As described in the Projects chapter, some targets may require project-level
-properties in order to generate the target.
+== Layout-level configuration and properties
 
-.iOS project properties
-[%autowidth.spread, cols="m,d,d,a", options="header"]
-|===
-|Property
-|Required
-|Description
-|Example
+NOTE: See <<LayoutTargetIOS>> in the reference section below.
 
-|===
-
-==== Layout-level configuration and properties
-
-CAUTION: This section is incomplete. Please check the `examples/` directory in the `kbdgen` git repository
-for guidance.
-
-.iOS layout properties
-[%autowidth.spread, cols="m,d,d,a", options="header"]
-|===
-|Property
-|Required
-|Description
-|Example
-
-|===
-
-.Example
+.Example of the layout-level targets section for iOS
 [source,yaml]
 ----
 targets:
   ios:
-    bundleName: "Sami Keyboards"
-    packageId: com.example.keyboards.sami
-    icon: any.png
-    aboutDir: path/to/about/files # Should contain {locale}.txt files
+    legacyName: northern_sami_keyboa
 ----
 
-==== Testing
+== Testing
 
-===== Testing in a simulator
+=== Testing in a simulator
 
 [WARNING]
 ====
@@ -96,4 +78,4 @@ in the main toolbar, and press the "Play" button.
 
 Follow the instructions in the provided hosting app to enable the keyboards.
 
-// ==== Testing on a device
+// == Testing on a device

@@ -1,0 +1,36 @@
+= Project file structure reference
+
+The following is a complete reference of the structure
+used internally by `kbdgen`
+to read and write `.kbdgen` bundles.
+
+Due to the auto-generated nature of this section,
+the structures are listed in alphabetical order
+even though they produce the nested files in the bundle.
+Starting with <<ProjectBundle>>,
+you can follow the links to reach each structure.
+
+include::generated/DeriveOptions.adoc[leveloffset=+1]
+include::generated/DesktopKeyMap.adoc[leveloffset=+1]
+include::generated/DesktopModes.adoc[leveloffset=+1]
+include::generated/Layout.adoc[leveloffset=+1]
+include::generated/LayoutStrings.adoc[leveloffset=+1]
+include::generated/LayoutTarget.adoc[leveloffset=+1]
+include::generated/LayoutTargetAndroid.adoc[leveloffset=+1]
+include::generated/LayoutTargetIOS.adoc[leveloffset=+1]
+include::generated/LayoutTargetWindows.adoc[leveloffset=+1]
+include::generated/MobileKeyMap.adoc[leveloffset=+1]
+include::generated/MobileModes.adoc[leveloffset=+1]
+include::generated/Modes.adoc[leveloffset=+1]
+include::generated/Project.adoc[leveloffset=+1]
+include::generated/ProjectBundle.adoc[leveloffset=+1]
+include::generated/ProjectDesc.adoc[leveloffset=+1]
+include::generated/TargetAndroid.adoc[leveloffset=+1]
+include::generated/TargetChrome.adoc[leveloffset=+1]
+include::generated/TargetIOS.adoc[leveloffset=+1]
+include::generated/TargetMacOS.adoc[leveloffset=+1]
+include::generated/TargetMim.adoc[leveloffset=+1]
+include::generated/TargetWindows.adoc[leveloffset=+1]
+include::generated/TargetX11.adoc[leveloffset=+1]
+include::generated/Targets.adoc[leveloffset=+1]
+include::generated/YamlValue.adoc[leveloffset=+1]

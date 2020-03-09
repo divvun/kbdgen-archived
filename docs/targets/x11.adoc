@@ -1,5 +1,46 @@
-=== X11
+= X11
+
+The `x11` target outputs an X11-compatible xkb file.
+This is the default mechanism for processing key codes and handling multiple keyboard layouts.
+(Despite its name, it is also used on Wayland.)
+
+== Project-level configuration and properties
+
+NOTE: For a list of all supported properties of the Android target files, see <<TargetX11>> in the reference section below.
+
+== Layout-level configuration and properties
+
+Currently none.
+
+== How to install a new locale on X11
 
 CAUTION: The X11 output should be considered experimental. It requires modifying global X11 files, and might eat your cat.
 
-The `x11` target outputs an X11-compatible xkb file. It has no special configuration and outputs the generated file to the `x11/` directory.
+. Install files system-wide by copying them into `/usr/share/X11/xkb/symbols`
+
+. If you are installing a new locale, it needs to be added to "rules set"
+which is what configuration tools use to pick up which locales are available.
++
+These files can be found in `/usr/share/X11/xkb/rules/`,
+but sadly, this is quite the exercise, as the files are supposed to be auto-generated.
+For testing purposes,
+editing the `layoutList` section of `evdev.xml` manually
+(by duplicating an existing section)
+should be fine.
+The `configItem/name` should be same as the file name,
+and `variantList` should have a `variant` where the `configItem/name`
+is the name of the `xkb_symbols` block.
+
+. Clear the xkb cache,
+either by running `sudo rm /var/lib/xkb/*.xkm`,
+or (on Debian systems) `sudo dpkg-reconfigure xkb-data`
+
+. Add the locale to your set of available ones
+using Gnome Settings or a similar tool.
+Use the "Show Keyboard Layout" button to preview the layout.
+You might need to log out and in again for the new settings to apply correctly.
+
+== Further reading material
+
+* https://wiki.archlinux.org/index.php/X_keyboard_extension:[This page] from the Arch Linux wiki contains a good overview of how XKB works and is used on Linux
+* Daniel Jozsef wrote https://medium.com/@daniel.jozsef/the-bazaar-with-landmines-or-how-to-extend-xkb-the-right-way-b82de59a1f9a[a post] with a detailed description on how one can install new locales on X11

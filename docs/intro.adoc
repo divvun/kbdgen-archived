@@ -1,35 +1,71 @@
-=== What is kbdgen?
+= Introduction to kbdgen {kbdgenversion}
+
+== What is kbdgen?
 
 https://github.com/divvun/kbdgen[`kbdgen`] is a tool for generating keyboards from layout descriptor files defined using YAML.
 
 It requires Python {pyversion} or higher.
 
-=== Supported targets
+== Supported targets
 
-`kbdgen` supports both mobile and desktop keyboards, including a web-based visual layout 
+`kbdgen` supports both mobile and desktop keyboards, including a web-based visual layout
 for development and debugging your layouts.
 
 [horizontal]
 android:: Android target, can be built on any OS
+chrome:: Chrome OS target, can be built on any OS
 ios:: iOS target, can be built only on macOS
-osx:: macOS target, can be built only on macOS
+m17n:: M17n target, can built on any OS
+mac:: macOS target, can be built only on macOS
 svg:: SVG target, for debugging and development using HTML and SVG, can be built on any OS
-win:: Windows 8.1+ target, can be built on Unix-like operating systems (requires wine)
+win:: Windows 8.1+ target, can be built on any OS (but only code-signed on Windows)
 x11:: X11 target, can be built on any OS
 
-=== Anatomy of a kbdgen project
+== Anatomy of a kbdgen project
 
-A `kbdgen` project is ordinarily structured with a central `project.yaml` file defining the project descriptor,
-with several other YAML files describing each layout in the same directory, listed in the `layouts` property
-of the project descriptor.
+A `kbdgen` project is structed as a bundle named `foo.kbdgen`, where `foo` is name of the bundle. It is highly recommended to name
+the bundle after either a locale or a macrolanguage family in BCP 47 (ie "en-US", "sv", "sr-Cyrl", "smi", etc) format. While this
+requirement is not enforced, it makes identifying the purpose of a bundle much easier.
 
-Resources for each layout will differ per target, and there is no specified or required directory structure
-for storing these resources. When required, properties for resource paths are relative to the project descriptor file.
+Below is an exammple of the directory hierarchy of a bundle, with the example of the `smi` Sami macrolanguage family:
 
-For more information on the project and layout descriptors, see the documentation and examples provided in 
-the "Projects" and "Layouts" chapters.
+```
+smi.kbdgen
+├── project.yaml
+├── layouts
+│   ├── se-NO.yaml
+│   ⋮
+├── resources
+│   ├── android
+│   ├── chrome
+│   ├── ios
+│   ├── mac
+│   ├── win
+│   ⋮
+└── targets
+    ├── android.yaml
+    ├── chrome.yaml
+    ├── ios.yaml
+    ├── mac.yaml
+    ├── win.yaml
+    ⋮
+```
 
-=== Usage
+
+
+A `kbdgen` bundle is structured with a central `project.yaml` file defining the project descriptor, describing metadata
+such as the name of the bundle in each supported locale, copyright information and authorship, and other metadata.
+
+The `layouts` directory contains the layouts in a YAML format. Each file MUST be named in BCP 47 format. The specific requirements
+are described per target in the sections below.
+
+The `resources` directory contains target-specific resources, such as icons or documentation. The specific requirements are
+described in the target-specific sections below.
+
+The `targets` directory contains target-specific metadata such as current version and build number, and other metadata unique to the
+given target.
+
+== Usage
 
 `kbdgen` is a command line application. Running `kbdgen --help` will provide you with the flags supported.
 

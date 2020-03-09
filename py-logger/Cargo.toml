@@ -1,0 +1,17 @@
+[package]
+name = "py-logger"
+version = "0.1.0"
+authors = ["Brendan Molloy <brendan@bbqsrc.net>"]
+edition = "2018"
+
+[dependencies]
+log = "0.4.8"
+
+[dependencies.python3-sys]
+git = "https://github.com/indygreg/PyOxidizer.git"
+rev = "e50a704fc778db9222e70b7ad4b08f68178483b5"
+
+[dependencies.cpython]
+git = "https://github.com/indygreg/PyOxidizer.git"
+rev = "e50a704fc778db9222e70b7ad4b08f68178483b5"
+features = ["link-mode3-unresolved-static", "python3-sys", "no-auto-initialize", "extension-module"]

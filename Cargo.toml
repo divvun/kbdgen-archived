@@ -1,0 +1,68 @@
+[package]
+name = "kbdgen"
+version = "2.0.0-alpha.0"
+authors = [
+    "Brendan Molloy <brendan@bbqsrc.net>",
+    "Pascal Hertleif <pascal@technocreatives.com>"
+]
+edition = "2018"
+license = "Apache-2.0 OR MIT"
+repository = "https://github.com/divvun/kbdgen"
+
+[dependencies]
+pyembed = { path = "pyembed", optional = true}
+py-language-tags = { path = "py-language-tags", optional = true}
+py-logger = { path = "py-logger", optional = true}
+derive-collect-docs = { path = "derive-collect-docs" }
+
+serde = { version = "1.0.103", features = ["derive"] }
+serde_yaml = { version = "0.8.9", git = "https://github.com/killercup/serde-yaml/", branch = "feature/multiline-strings" }
+strum = "0.16.0"
+strum_macros = "0.16.0"
+log = "0.4.8"
+snafu = "0.6.2"
+unic-ucd-category = "0.9.0"
+lazy_static = "1.4.0"
+regex = "1.3.3"
+unic-segment = "0.9.0"
+shrinkwraprs = "0.3.0"
+xml-rs = "0.8.0"
+structopt = "0.3.8"
+env_logger = "0.7.1"
+
+# CLI stuff
+directories = "2.0.2"
+console = "0.9.2"
+globwalk = "0.7.1"
+serde-xml-rs = "0.3.1"
+snafu-cli-debug = "0.1.1"
+xkb-parser = "0.1"
+x11-keysymdef = "0.2"
+nom = "5.1.0"
+chrono = "0.4.10"
+
+[target.'cfg(windows)'.dependencies]
+dialoguer = "0.5.0"
+
+[target.'cfg(unix)'.dependencies]
+skim = "0.7.0"
+
+[dev-dependencies]
+pretty_env_logger = "0.4.0"
+proptest = "0.9.5"
+
+[features]
+default = ["py"]
+jemalloc = [] # ["jemallocator-global", "pyembed/jemalloc"]
+py = [ "pyembed", "py-language-tags", "py-logger" ]
+
+[profile.release]
+debug = true
+
+[workspace]
+members = [
+    ".",
+    "derive-collect-docs",
+    "py-language-tags",
+    "py-logger",
+]

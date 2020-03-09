@@ -6,8 +6,8 @@ Brendan Molloy <brendan@bbqsrc.net>
 :icons: font
 :toc: left
 :toclevels: 3
-:kbdgenversion: 1.0.7
-:pyversion: 3.4
+:kbdgenversion: 2.0.0-alpha.0
+:pyversion: 3.7
 :sectlinks:
 :sectnums:
 :linkattrs:
@@ -33,35 +33,17 @@ Please follow the warnings or errors that the `kbdgen` tool provides, and if som
 an issue on GitHub.
 ====
 
-== Introduction to kbdgen {kbdgenversion}
+include::intro.adoc[leveloffset=+1]
 
-include::intro.adoc[]
+include::convert.adoc[leveloffset=+1]
 
-== Installation
+include::install.adoc[leveloffset=+1]
 
-include::install.adoc[]
+== kbdgen file structure overview
 
-// == Quickstart
-// include::quickstart.adoc[]
+include::files/index.adoc[leveloffset=+2]
 
-== Projects
+include::targets/index.adoc[leveloffset=+2]
 
-include::files/project.adoc[]
 
-== Layouts
-
-include::files/layout.adoc[]
-
-== Targets
-
-include::targets/android.adoc[]
-
-include::targets/ios.adoc[]
-
-include::targets/macos.adoc[]
-
-include::targets/svg.adoc[]
-
-include::targets/windows.adoc[]
-
-include::targets/x11.adoc[]
+include::reference.adoc[leveloffset=+1]

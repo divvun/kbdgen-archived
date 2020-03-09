@@ -1,0 +1,43 @@
+= Collect documentation from Rust code
+
+This little helper library contains a `CollectDocs` derive macro.
+Add it to your structs like this:
+
+[source,rust]
+----
+use derive_collect_docs::CollectDocs;
+
+/// Very essential type to out application
+#[derive(Debug, CollectDocs)]
+pub struct Foo {
+    /// Amount of pressure to apply
+    ///
+    /// CAUTION: Will be renamed to appropriate SI unit in next release.
+    bar: usize,
+    /// Description of this Foo
+    baz: String,
+}
+----
+
+And get documentation like this
+(with the correct heading that does not work in quoted asciidoc):
+
+====
+= Foo
+
+Very essential type to out application
+
+
+.Fields
+
+* `bar` _(required)_
++
+Amount of pressure to apply
++
+CAUTION: Will be renamed to appropriate SI unit in next release.
+
+* `baz` _(required)_
++
+Description of this Foo
+
+====

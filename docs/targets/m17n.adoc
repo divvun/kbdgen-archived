@@ -1,0 +1,42 @@
+= M17n
+
+https://www.nongnu.org/m17n/[m17n]
+refers to project for enhanced multilingualization on Linux.
+The output target generates `.mim` files,
+which are used as configuration files for
+https://en.wikipedia.org/wiki/Intelligent_Input_Bus[IBUS].
+
+== Project-level configuration and properties
+
+NOTE: For a list of all supported properties of the Android target files, see <<TargetX11>> in the reference section below.
+
+== Layout-level configuration and properties
+
+Currently none.
+
+== How to install a new locale on X11
+
+Assumes Ubuntu 18.04.
+
+. Make sure Gnome settings app is not open
+
+. Copy the new `.mim` file(s) to either `~/.m17n.d/` (user local) or `/usr/share/m17n/` (global)
+
+. Make sure they have the correct permissions set,
+i.e. `644` like the other files
+
+. restart all IBus daemons (according to https://askubuntu.com/a/656243[this question]),
+e.g. using `pgrep ibus | xargs kill`
+
+. Open Gnome settings
+.. Go to "Region & Language"
+.. Under "Input Sources", press the "+" button
+.. In the modal window, select your newly added language variant.
+Note that it might be grouped by the main language,
+e.g., you might need to click on "Swedish (Sweden)" first,
+and then select the specific variant like "Swedish (test (m17n))".
+.. Confirm with "Add"
+.. You can test the keyboard layout by clicking on the "eye" icon
+next to the language in the list
+
+. The language should show up global menu bar's language selection.
