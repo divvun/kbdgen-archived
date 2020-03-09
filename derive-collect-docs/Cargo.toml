@@ -10,9 +10,13 @@ repository = "https://github.com/divvun/kbdgen"
 proc-macro = true
 
 [dependencies]
-syn = "1.0.16"
+syn = { version = "1.0.16", features = ["extra-traits"] }
 quote = "1.0.3"
 proc-macro2 = "1.0.9"
 regex = "1.3.4"
 once_cell = "1.3.1"
 unindent = "0.1.5"
+
+[dev-dependencies]
+serde = { version = "1.0.104", features = ["derive"] }
+serde_yaml = "0.8.11"
