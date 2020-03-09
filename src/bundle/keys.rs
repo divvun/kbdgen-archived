@@ -3,7 +3,7 @@ use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{de::Deserializer, ser::Serializer, Deserialize, Serialize};
 use shrinkwraprs::Shrinkwrap;
-use snafu::Snafu;
+use thiserror::Error;
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 #[derive(Shrinkwrap, CollectDocs)]
@@ -85,15 +85,14 @@ fn decode_unicode_escapes(input: &str) -> String {
     new.to_string()
 }
 
-#[derive(Debug, Snafu)]
+#[derive(Debug, Error)]
 pub enum Error {
-    #[snafu(display("std failed to parse `{}` as char: {}", input, source))]
+    #[error("std failed to parse `{input}` as char: {source}")]
     CharParseError {
         input: String,
         source: std::char::ParseCharError,
-        backtrace: snafu::Backtrace,
     },
-    #[snafu(display("Error parsing `{}` as char: {}", input, description))]
+    #[error("Error parsing `{input}` as char: {description}")]
     CharFromStrError { input: String, description: String },
 }
 

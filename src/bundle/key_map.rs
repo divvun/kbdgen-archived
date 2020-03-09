@@ -7,8 +7,8 @@ use serde::{
     Deserialize, Serialize,
 };
 use shrinkwraprs::Shrinkwrap;
-use snafu::Snafu;
 use std::{collections::BTreeMap, fmt, str::FromStr};
+use thiserror::Error;
 
 /// Map of keys on a desktop keyboard
 ///
@@ -142,18 +142,14 @@ impl fmt::Display for DesktopKeyMap {
     }
 }
 
-#[derive(Debug, Snafu)]
+#[derive(Debug, Error)]
 pub enum Error {
-    #[snafu(display("{}", description))]
-    ParseError {
-        description: String,
-        backtrace: snafu::Backtrace,
-    },
-    #[snafu(display("failed process key `{}`: {}", input, source))]
+    #[error("{description}")]
+    ParseError { description: String },
+    #[error("failed process key `{input}`: {source}")]
     KeyError {
         input: String,
         source: KeyValueError,
-        backtrace: snafu::Backtrace,
     },
 }
 

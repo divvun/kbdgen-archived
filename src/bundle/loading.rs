@@ -4,7 +4,6 @@ use crate::{
 };
 use log::trace;
 use serde::de::DeserializeOwned;
-use snafu::{OptionExt, ResultExt, Snafu};
 use std::{
     collections::HashMap,
     default::Default,
@@ -13,6 +12,7 @@ use std::{
     hash::BuildHasher,
     path::{Path, PathBuf},
 };
+use thiserror::Error;
 
 pub trait Load: Sized {
     /// Read data from given path into a structure of this type
@@ -25,7 +25,12 @@ impl Load for ProjectBundle {
         trace!("Loading {:?}", bundle_path);
 
         Ok(ProjectBundle {
-            path: Some(canonicalize(&bundle_path).context(ReadFile { path: bundle_path })?),
+            path: Some(
+                canonicalize(&bundle_path).map_err(|source| Error::ReadFile {
+                    path: bundle_path.into(),
+                    source,
+                })?,
+            ),
             project: Load::load(&bundle_path.join("project.yaml"))?,
             layouts: Load::load(&bundle_path.join("layouts"))?,
             targets: Load::load(&bundle_path.join("targets"))?,
@@ -44,7 +49,10 @@ impl<S: BuildHasher + Default> Load for HashMap<String, Layout, S> {
     fn load(path: impl AsRef<Path>) -> Result<Self, Error> {
         let path: &Path = path.as_ref();
         let yml_files = read_dir(path)
-            .context(ReadFile { path })?
+            .map_err(|source| Error::ReadFile {
+                path: path.into(),
+                source,
+            })?
             .filter_map(Result::ok)
             .map(|f| f.path())
             .filter(|p| p.is_file())
@@ -54,7 +62,7 @@ impl<S: BuildHasher + Default> Load for HashMap<String, Layout, S> {
             .map(|path| {
                 let name = path
                     .file_stem()
-                    .context(MalformedFilename { path: path.clone() })?
+                    .ok_or_else(|| Error::MalformedFilename { path: path.clone() })?
                     .to_string_lossy()
                     .to_string();
                 let data = read_yml(&path)?;
@@ -82,9 +90,15 @@ impl Load for Targets {
 fn read_yml<T: DeserializeOwned>(path: &Path) -> Result<T, Error> {
     use std::{fs::File, io::BufReader};
 
-    let file = File::open(path).context(ReadFile { path })?;
+    let file = File::open(path).map_err(|source| Error::ReadFile {
+        path: path.into(),
+        source,
+    })?;
     let reader = BufReader::new(file);
-    let parsed = serde_yaml::from_reader(reader).context(ParseFile { path })?;
+    let parsed = serde_yaml::from_reader(reader).map_err(|source| Error::ParseFile {
+        path: path.into(),
+        source,
+    })?;
     Ok(parsed)
 }
 
@@ -96,23 +110,18 @@ fn read_yml_if_exists<T: DeserializeOwned>(path: impl AsRef<Path>) -> Result<Opt
     read_yml(path)
 }
 
-#[derive(Debug, Snafu)]
+#[derive(Debug, Error)]
 pub enum Error {
-    #[snafu(display("Could not read `{}`: {}", path.display(), source))]
+    #[error("Could not read `{}`: {}", path.display(), source)]
     ReadFile {
         path: PathBuf,
         source: std::io::Error,
-        backtrace: snafu::Backtrace,
     },
-    #[snafu(display("Could not parse file with malfolmed name:: `{}`", path.display()))]
-    MalformedFilename {
-        path: PathBuf,
-        backtrace: snafu::Backtrace,
-    },
-    #[snafu(display("Could not parse `{}`: {}", path.display(), source))]
+    #[error("Could not parse file with malfolmed name:: `{}`", path.display())]
+    MalformedFilename { path: PathBuf },
+    #[error("Could not parse `{}`: {}", path.display(), source)]
     ParseFile {
         path: PathBuf,
         source: serde_yaml::Error,
-        backtrace: snafu::Backtrace,
     },
 }

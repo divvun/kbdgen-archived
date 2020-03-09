@@ -4,12 +4,12 @@ use crate::{
 };
 use log::trace;
 use serde::Serialize;
-use snafu::{ResultExt, Snafu};
 use std::{
     collections::HashMap,
     hash::BuildHasher,
     path::{Path, PathBuf},
 };
+use thiserror::Error;
 
 pub trait Save: Sized {
     /// Write serialized data to target path
@@ -20,7 +20,10 @@ impl Save for ProjectBundle {
     fn save(&self, target_path: impl AsRef<Path>) -> Result<(), Error> {
         let bundle_path: &Path = target_path.as_ref();
         trace!("Writing to {:?}", bundle_path);
-        std::fs::create_dir_all(&bundle_path).context(CreateBundle { bundle_path })?;
+        std::fs::create_dir_all(&bundle_path).map_err(|source| Error::CreateBundle {
+            bundle_path: bundle_path.into(),
+            source,
+        })?;
 
         // destructure to get yelled at for missing a field
         let ProjectBundle {
@@ -46,7 +49,10 @@ impl Save for Project {
 impl<S: BuildHasher> Save for HashMap<String, Layout, S> {
     fn save(&self, target_path: impl AsRef<Path>) -> Result<(), Error> {
         let path: &Path = target_path.as_ref();
-        std::fs::create_dir_all(&path).context(WriteFile { path })?;
+        std::fs::create_dir_all(&path).map_err(|source| Error::WriteFile {
+            path: path.into(),
+            source,
+        })?;
 
         for (name, data) in self {
             write_yaml(&path.join(&name).with_extension("yaml"), data)?;
@@ -59,7 +65,10 @@ impl<S: BuildHasher> Save for HashMap<String, Layout, S> {
 impl Save for Targets {
     fn save(&self, target_path: impl AsRef<Path>) -> Result<(), Error> {
         let path: &Path = target_path.as_ref();
-        std::fs::create_dir_all(&path).context(WriteFile { path })?;
+        std::fs::create_dir_all(&path).map_err(|source| Error::WriteFile {
+            path: path.into(),
+            source,
+        })?;
 
         // destructure to get yelled at for missing a field
         let Targets {
@@ -88,30 +97,33 @@ fn write_yaml<T: Serialize>(path: impl AsRef<Path>, data: T) -> Result<(), Error
     use std::{fs::File, io::BufWriter};
 
     let path: &Path = path.as_ref();
-    let file = File::create(&path).context(WriteFile { path })?;
+    let file = File::create(&path).map_err(|source| Error::WriteFile {
+        path: path.into(),
+        source,
+    })?;
     let writer = BufWriter::new(file);
-    serde_yaml::to_writer(writer, &data).context(WriteData { path })?;
+    serde_yaml::to_writer(writer, &data).map_err(|source| Error::WriteData {
+        path: path.into(),
+        source,
+    })?;
     Ok(())
 }
 
-#[derive(Debug, Snafu)]
+#[derive(Debug, Error)]
 pub enum Error {
-    #[snafu(display("Could create bundle in `{}`: {}", bundle_path.display(), source))]
+    #[error("Could not create bundle in `{}`: {}", bundle_path.display(), source)]
     CreateBundle {
         bundle_path: PathBuf,
         source: std::io::Error,
-        backtrace: snafu::Backtrace,
     },
-    #[snafu(display("Could not write to `{}`: {}", path.display(), source))]
+    #[error("Could not write to `{}`: {}", path.display(), source)]
     WriteFile {
         path: PathBuf,
         source: std::io::Error,
-        backtrace: snafu::Backtrace,
     },
-    #[snafu(display("Could not serialize data to `{}`: {}", path.display(), source))]
+    #[error("Could not serialize data to `{}`: {}", path.display(), source)]
     WriteData {
         path: PathBuf,
         source: serde_yaml::Error,
-        backtrace: snafu::Backtrace,
     },
 }
