@@ -3,7 +3,6 @@
 
 variables:
   # tag::pyoxidizer_rev[]
-  pyoxidizer_rev: e50a704fc778db9222e70b7ad4b08f68178483b5
   # end::pyoxidizer_rev[]
 
 jobs:
@@ -16,14 +15,14 @@ jobs:
           curl https://sh.rustup.rs -sSf | sh -s -- -y
           sudo apt install -y musl musl-tools
           rustup target install x86_64-unknown-linux-musl
-          cargo install --git https://github.com/indygreg/PyOxidizer.git --rev $(pyoxidizer_rev) pyoxidizer
+          cargo install pyoxidizer
           # git clone https://github.com/divvun/divvun-ci-config.git
         displayName: "Install prerequisites"
       - script: |
           set -e
           source $HOME/.cargo/env
-          pyoxidizer build --release --target x86_64-unknown-linux-musl
-          cp build/apps/kbdgen/*/release/kbdgen .
+          cargo build --release --target x86_64-unknown-linux-musl
+          cp target/release/kbdgen .
           strip ./kbdgen
         displayName: "Build"
       - task: PublishPipelineArtifact@0
@@ -41,14 +40,14 @@ jobs:
           brew uninstall --ignore-dependencies libyaml
           curl https://sh.rustup.rs -sSf | sh -s -- -y
           source $HOME/.cargo/env
-          cargo install --git https://github.com/indygreg/PyOxidizer.git --rev $(pyoxidizer_rev) pyoxidizer
+          cargo install pyoxidizer 
           # git clone https://github.com/divvun/divvun-ci-config.git
         displayName: "Install prerequisites"
       - script: |
           set -e
           source $HOME/.cargo/env
-          pyoxidizer build --release
-          cp build/apps/kbdgen/*/release/kbdgen .
+          cargo build --release
+          cp target/release/kbdgen .
           strip ./kbdgen
         displayName: "Build"
       - task: PublishPipelineArtifact@0
@@ -76,7 +75,7 @@ jobs:
           curl -sLo rustup-init.exe https://win.rustup.rs/
           ./rustup-init.exe -y --default-host=x86_64-pc-windows-msvc --default-toolchain=stable-x86_64-pc-windows-msvc
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          cargo install --git https://github.com/indygreg/PyOxidizer.git --rev $(pyoxidizer_rev) pyoxidizer
+          cargo install pyoxidizer
         displayName: "Install prerequisites"
         # env:
         #   DIVVUN_KEY: $(divvunKey)
@@ -84,8 +83,8 @@ jobs:
           PATH=%PATH%;%USERPROFILE%\.cargo\bin
           call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           rustup default stable-x86_64-pc-windows-msvc
-          pyoxidizer build --release
-          cp build/apps/kbdgen/*/release/kbdgen.exe .
+          cargo build --release
+          cp target/release/kbdgen.exe .
         displayName: "Build"
       - task: PublishBuildArtifacts@1
         inputs:
