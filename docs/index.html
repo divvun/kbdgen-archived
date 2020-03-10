@@ -448,7 +448,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
-<li><a href="#introduction_to_kbdgen_2_0_0_alpha_0">1. Introduction to kbdgen 2.0.0-alpha.0</a>
+<li><a href="#introduction_to_kbdgen_2_0_0_alpha_2">1. Introduction to kbdgen 2.0.0-alpha.2</a>
 <ul class="sectlevel2">
 <li><a href="#what_is_kbdgen">1.1. What is kbdgen?</a></li>
 <li><a href="#supported_targets">1.2. Supported targets</a></li>
@@ -554,7 +554,7 @@ an issue on GitHub.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="introduction_to_kbdgen_2_0_0_alpha_0"><a class="link" href="#introduction_to_kbdgen_2_0_0_alpha_0">1. Introduction to kbdgen 2.0.0-alpha.0</a></h2>
+<h2 id="introduction_to_kbdgen_2_0_0_alpha_2"><a class="link" href="#introduction_to_kbdgen_2_0_0_alpha_2">1. Introduction to kbdgen 2.0.0-alpha.2</a></h2>
 <div class="sectionbody">
 <div class="sect2">
 <h3 id="what_is_kbdgen"><a class="link" href="#what_is_kbdgen">1.1. What is kbdgen?</a></h3>
@@ -1890,19 +1890,9 @@ investigation.</p>
 <div class="sect3">
 <h4 id="x11"><a class="link" href="#x11">4.2.6. X11</a></h4>
 <div class="paragraph">
-<p>The <code>x11</code> target outputs an X11-compatible xkb file.</p>
-</div>
-<div class="admonitionblock caution">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-caution" title="Caution"></i>
-</td>
-<td class="content">
-The X11 output should be considered experimental. It requires modifying global X11 files, and might eat your cat.
-</td>
-</tr>
-</table>
+<p>The <code>x11</code> target outputs an X11-compatible xkb file.
+This is the default mechanism for processing key codes and handling multiple keyboard layouts.
+(Despite its name, it is also used on Wayland.)</p>
 </div>
 <div class="sect4">
 <h5 id="project_level_configuration_and_properties_5"><a class="link" href="#project_level_configuration_and_properties_5">Project-level configuration and properties</a></h5>
@@ -1925,17 +1915,156 @@ For a list of all supported properties of the Android target files, see <a href=
 <p>Currently none.</p>
 </div>
 </div>
+<div class="sect4">
+<h5 id="how_to_install_a_new_locale_on_x11"><a class="link" href="#how_to_install_a_new_locale_on_x11">How to install a new locale on X11</a></h5>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+The X11 output should be considered experimental. It requires modifying global X11 files, and might eat your cat.
+</td>
+</tr>
+</table>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Install files system-wide by copying them into <code>/usr/share/X11/xkb/symbols</code></p>
+</li>
+<li>
+<p>If you are installing a new locale, it needs to be added to "rules set"
+which is what configuration tools use to pick up which locales are available.</p>
+<div class="paragraph">
+<p>These files can be found in <code>/usr/share/X11/xkb/rules/</code>,
+but sadly, this is quite the exercise, as the files are supposed to be auto-generated.
+For testing purposes,
+editing the <code>layoutList</code> section of <code>evdev.xml</code> manually
+(by duplicating an existing section)
+should be fine.
+The <code>configItem/name</code> should be same as the file name,
+and <code>variantList</code> should have a <code>variant</code> where the <code>configItem/name</code>
+is the name of the <code>xkb_symbols</code> block.</p>
+</div>
+</li>
+<li>
+<p>Clear the xkb cache,
+either by running <code>sudo rm /var/lib/xkb/*.xkm</code>,
+or (on Debian systems) <code>sudo dpkg-reconfigure xkb-data</code></p>
+</li>
+<li>
+<p>Add the locale to your set of available ones
+using Gnome Settings or a similar tool.
+Use the "Show Keyboard Layout" button to preview the layout.
+You might need to log out and in again for the new settings to apply correctly.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect4">
+<h5 id="further_reading_material"><a class="link" href="#further_reading_material">Further reading material</a></h5>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://wiki.archlinux.org/index.php/X_keyboard_extension:">This page</a> from the Arch Linux wiki contains a good overview of how XKB works and is used on Linux</p>
+</li>
+<li>
+<p>Daniel Jozsef wrote <a href="https://medium.com/@daniel.jozsef/the-bazaar-with-landmines-or-how-to-extend-xkb-the-right-way-b82de59a1f9a">a post</a> with a detailed description on how one can install new locales on X11</p>
+</li>
+</ul>
+</div>
+</div>
 </div>
 <div class="sect3">
 <h4 id="m17n"><a class="link" href="#m17n">4.2.7. M17n</a></h4>
 <div class="paragraph">
-<p>TODO</p>
+<p><a href="https://www.nongnu.org/m17n/">m17n</a>
+refers to project for enhanced multilingualization on Linux.
+The output target generates <code>.mim</code> files,
+which are used as configuration files for
+<a href="https://en.wikipedia.org/wiki/Intelligent_Input_Bus">IBUS</a>.</p>
+</div>
+<div class="sect4">
+<h5 id="project_level_configuration_and_properties_6"><a class="link" href="#project_level_configuration_and_properties_6">Project-level configuration and properties</a></h5>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+For a list of all supported properties of the Android target files, see <a href="#targetx11">TargetX11</a> in the reference section below.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect4">
+<h5 id="layout_level_configuration_and_properties_6"><a class="link" href="#layout_level_configuration_and_properties_6">Layout-level configuration and properties</a></h5>
+<div class="paragraph">
+<p>Currently none.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="how_to_install_a_new_locale_on_x11_2"><a class="link" href="#how_to_install_a_new_locale_on_x11_2">How to install a new locale on X11</a></h5>
+<div class="paragraph">
+<p>Assumes Ubuntu 18.04.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Make sure Gnome settings app is not open</p>
+</li>
+<li>
+<p>Copy the new <code>.mim</code> file(s) to either <code>~/.m17n.d/</code> (user local) or <code>/usr/share/m17n/</code> (global)</p>
+</li>
+<li>
+<p>Make sure they have the correct permissions set,
+i.e. <code>644</code> like the other files</p>
+</li>
+<li>
+<p>restart all IBus daemons (according to <a href="https://askubuntu.com/a/656243">this question</a>),
+e.g. using <code>pgrep ibus | xargs kill</code></p>
+</li>
+<li>
+<p>Open Gnome settings</p>
+<div class="olist loweralpha">
+<ol class="loweralpha" type="a">
+<li>
+<p>Go to "Region &amp; Language"</p>
+</li>
+<li>
+<p>Under "Input Sources", press the "+" button</p>
+</li>
+<li>
+<p>In the modal window, select your newly added language variant.
+Note that it might be grouped by the main language,
+e.g., you might need to click on "Swedish (Sweden)" first,
+and then select the specific variant like "Swedish (test (m17n))".</p>
+</li>
+<li>
+<p>Confirm with "Add"</p>
+</li>
+<li>
+<p>You can test the keyboard layout by clicking on the "eye" icon
+next to the language in the list</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p>The language should show up global menu bar&#8217;s language selection.</p>
+</li>
+</ol>
+</div>
 </div>
 </div>
 <div class="sect3">
 <h4 id="chrome"><a class="link" href="#chrome">4.2.8. Chrome</a></h4>
 <div class="sect4">
-<h5 id="project_level_configuration_and_properties_6"><a class="link" href="#project_level_configuration_and_properties_6">Project-level configuration and properties</a></h5>
+<h5 id="project_level_configuration_and_properties_7"><a class="link" href="#project_level_configuration_and_properties_7">Project-level configuration and properties</a></h5>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -1950,7 +2079,7 @@ See <a href="#targetchrome">TargetChrome</a> in the reference section below.
 </div>
 </div>
 <div class="sect4">
-<h5 id="layout_level_configuration_and_properties_6"><a class="link" href="#layout_level_configuration_and_properties_6">Layout-level configuration and properties</a></h5>
+<h5 id="layout_level_configuration_and_properties_7"><a class="link" href="#layout_level_configuration_and_properties_7">Layout-level configuration and properties</a></h5>
 <div class="admonitionblock note">
 <table>
 <tr>
