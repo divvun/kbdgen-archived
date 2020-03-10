@@ -416,7 +416,9 @@ class AndroidGenerator(Generator):
 
     def _gradle(self, *args):
         # HACK: let's be honest it's all hacks
-        with open(os.path.join(self.repo_dir, "local.properties"), "a", encoding="utf-8") as f:
+        with open(
+            os.path.join(self.repo_dir, "local.properties"), "a", encoding="utf-8"
+        ) as f:
             f.write("sdk.dir=%s\n" % os.environ["ANDROID_HOME"])
         cmd = ["./gradlew"] + list(args) + ["-Dorg.gradle.jvmargs=-Xmx4096M"]
         return run_process(cmd, cwd=self.repo_dir, show_output=True) == 0
