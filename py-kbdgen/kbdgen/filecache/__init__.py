@@ -101,9 +101,6 @@ class FileCache:
         if username is not None and password is not None:
             base64string = base64.b64encode("%s:%s" % (username, password))
             request.add_header("Authorization", "Basic %s" % base64string)
-            # repo_meta = requests.get(url, auth=HTTPBasicAuth(username, password)).json()
-        # else:
-        #     repo_meta = requests.get(url).json()
         response = urllib.request.urlopen(request)
         repo_meta = json.load(response)
 

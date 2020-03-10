@@ -1,10 +1,11 @@
-from collections import defaultdict, OrderedDict
-import itertools
+from collections import OrderedDict
 import json
 import os
 import os.path
 import shutil
 import tempfile
+import urllib
+import urllib.request
 
 from ..base import get_logger
 from .base import (
@@ -281,9 +282,9 @@ class ChromeOSGenerator(PhysicalGenerator):
             "refresh_token": os.environ["CHROME_REFRESH_TOKEN"],
         }
 
-        oauth_response = requests.post(
-            "https://www.googleapis.com/oauth2/v4/token", data=data
-        ).json()
+        request = urllib.request.Request("https://www.googleapis.com/oauth2/v4/token", data=data, method="POST")
+        response = urllib.request.urlopen(request)
+        oauth_response = json.loads(response.read().decode("utf-8"))
 
         logger.info("Generating .zip for upload…")
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -300,7 +301,9 @@ class ChromeOSGenerator(PhysicalGenerator):
                 "x-goog-api-version": "2",
             }
             logger.info("Uploading…")
-            result = requests.put(url, headers=headers, data=open(p, "rb").read())
+            with open(p, "rb") as f:
+                request = urllib.request.Request(url, headers=headers, data=f.read(), method="PUT")
+            result = urllib.request.urlopen(request)
             logger.debug("%r" % result)
 
             shutil.copyfile(
