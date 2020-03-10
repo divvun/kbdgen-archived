@@ -59,11 +59,9 @@ jobs:
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           cargo install pyoxidizer
         displayName: "Install prerequisites"
-        # env:
-        #   DIVVUN_KEY: $(divvunKey)
       - script: |
           PATH=%PATH%;%USERPROFILE%\.cargo\bin
-          call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           rustup default nightly-x86_64-pc-windows-msvc
           cargo build --release
           cp target\release\kbdgen.exe .
