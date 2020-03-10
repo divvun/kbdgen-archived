@@ -214,8 +214,10 @@ class ChromeOSGenerator(PhysicalGenerator):
             logger.warning("no icon supplied!")
             return
 
-        cmd_tmpl = "convert -resize {h}x{w} -background white -alpha remove " +\
-            "-gravity center -extent {h}x{w} {src} {out}"
+        cmd_tmpl = (
+            "convert -resize {h}x{w} -background white -alpha remove "
+            + "-gravity center -extent {h}x{w} {src} {out}"
+        )
         work_items = []
 
         for size, fn in ICONS.items():
@@ -248,8 +250,10 @@ class ChromeOSGenerator(PhysicalGenerator):
                 )
                 return False
 
-            tmpl = "No `%s` environment variable specified; cannot publish package " +\
-                "to Chrome Web Store."
+            tmpl = (
+                "No `%s` environment variable specified; cannot publish package "
+                + "to Chrome Web Store."
+            )
             if os.environ.get("CHROME_CLIENT_ID", None) is None:
                 logger.error(tmpl % "CHROME_CLIENT_ID")
                 return False
