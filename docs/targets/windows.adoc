@@ -41,9 +41,10 @@ Download and install these dependencies:
   codepoints, as the grapheme cluster limitation also applies here.
 * Windows keyboard identifiers must be unique, are 8 characters long and
   begin with `kbd`. The next 5 characters are generated from the next 5
-  alphanumeric characters of the keyboard's `internalName`. For example, if
-  the `internalName` of a keyboard is `se-1-foo`, the internal keyboard name
-  for Windows will be `kbdse1fo`.
+  alphanumeric characters of the keyboard's `locale`. For example, if
+  the `locale` of a keyboard is `smn-Latn-NO`, the internal keyboard name
+  for Windows will be `kbdsmnla`.
+  * This behaviour can be overriden by specifying a name to use in the targets section. TODO: what is the specific text needed?
 * If a keyboard is generated with erroneous data, MSKLC does not provide any
   useful error information and merely complains that there was an error and
   the file cannot be opened. Please report these files as bugs on GitHub for
