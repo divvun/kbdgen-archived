@@ -6,8 +6,6 @@ use crate::{
     cli::repos::{update_repo, xkb_dir},
     Load, ProjectBundle, Save,
 };
-use snafu::{OptionExt, ResultExt, Snafu};
-use snafu_cli_debug::SnafuCliDebug;
 use std::{
     collections::BTreeMap,
     convert::TryFrom,
@@ -23,7 +21,7 @@ pub fn xkb_to_kbdgen(output: &Path, is_updating_bundle: bool) -> Result<(), Erro
     // let _ = opts.verbose.setup_env_logger("kbdgen-cli");
 
     let mut bundle = if is_updating_bundle {
-        let b = ProjectBundle::load(output).context(CannotLoadBundle)?;
+        let b = ProjectBundle::load(output).map_err(|source| Error::CannotLoadBundle { source })?;
         log::info!(
             "Bundle `{}` loaded, will try to update it",
             output.display()
@@ -34,12 +32,19 @@ pub fn xkb_to_kbdgen(output: &Path, is_updating_bundle: bool) -> Result<(), Erro
         ProjectBundle::default()
     };
 
-    update_repo("xkb", &xkb_dir(), REPO_URL).context(FailedRepoUpdate)?;
+    update_repo("xkb", &xkb_dir(), REPO_URL)
+        .map_err(|source| Error::FailedRepoUpdate { source })?;
 
     let (locale, file_path) = select_base_locale()?;
     log::debug!("opening `{}`", file_path.display());
-    let file = std::fs::read_to_string(&file_path).context(CannotOpenFile { path: &file_path })?;
-    let section = select_sub_locale(&file).context(CannotReadXkb { path: &file_path })?;
+    let file = std::fs::read_to_string(&file_path).map_err(|source| Error::CannotOpenFile {
+        path: file_path.clone(),
+        source,
+    })?;
+    let section = select_sub_locale(&file).map_err(|source| Error::CannotReadXkb {
+        path: file_path.clone(),
+        source,
+    })?;
     log::info!(
         "selected locale `{}` with style `{}`",
         locale,
@@ -65,7 +70,9 @@ pub fn xkb_to_kbdgen(output: &Path, is_updating_bundle: bool) -> Result<(), Erro
     dead.insert("x11".to_string(), dead_keys);
     layout.dead_keys = Some(dead);
 
-    bundle.save(output).context(CannotBeSaved)?;
+    bundle
+        .save(output)
+        .map_err(|source| Error::CannotBeSaved { source })?;
     log::info!("New bundle written to `{}`.", output.display());
     log::info!(
         "It now contains a X11 target with version `{}`.",
@@ -114,11 +121,12 @@ fn select_base_locale() -> Result<(String, PathBuf), Error> {
         .into_bytes();
     let cur = std::io::Cursor::new(text);
 
-    let result = skim::Skim::run_with(&options, Some(Box::new(cur))).context(NoLocaleSelected)?;
+    let result =
+        skim::Skim::run_with(&options, Some(Box::new(cur))).ok_or(Error::NoLocaleSelected)?;
     let result = result
         .selected_items
         .first()
-        .context(NoLocaleSelected)?
+        .ok_or(Error::NoLocaleSelected)?
         .get_text();
 
     Ok((result.into(), files[result].clone()))
@@ -148,17 +156,18 @@ fn select_sub_locale(file: &str) -> Result<ast::XkbSymbols, Box<dyn StdError>> {
         .into_bytes();
     let cur = std::io::Cursor::new(text);
 
-    let result = skim::Skim::run_with(&options, Some(Box::new(cur))).context(NoLocaleSelected)?;
+    let result =
+        skim::Skim::run_with(&options, Some(Box::new(cur))).ok_or(Error::NoLocaleSelected)?;
     let result = result
         .selected_items
         .first()
-        .context(NoLocaleSelected)?
+        .ok_or(Error::NoLocaleSelected)?
         .get_text();
 
     Ok(sections
         .into_iter()
         .find(|ast::XkbSymbols { name, .. }| name.content == result)
-        .context(NoLocaleSelected)?)
+        .ok_or(Error::NoLocaleSelected)?)
 }
 
 type LayeredKeyMap = BTreeMap<String, BTreeMap<IsoKey, KeyValue>>;
@@ -277,21 +286,29 @@ fn read_include(name: &str, include_dir: &Path) -> Result<Vec<Key>, Error> {
     let (name, section_name) = parse_include_name(name)?;
     let file_path = include_dir.join(name);
     log::debug!("opening `{}` to fetch includes", file_path.display());
-    let file = std::fs::read_to_string(&file_path).context(CannotOpenFile { path: &file_path })?;
-    let sections = fetch_symbols(&file).context(CannotReadXkb { path: &file_path })?;
+    let file = std::fs::read_to_string(&file_path).map_err(|source| Error::CannotOpenFile {
+        path: file_path.clone(),
+        source,
+    })?;
+    let sections = fetch_symbols(&file).map_err(|source| Error::CannotReadXkb {
+        path: file_path.clone(),
+        source,
+    })?;
     let symbols = if let Some(section_name) = section_name {
         sections
             .iter()
             .find(|ast::XkbSymbols { name, .. }| name.content == section_name)
-            .context(SymbolSectionNotFound {
-                path: &file_path,
-                section_name,
+            .ok_or_else(|| Error::SymbolSectionNotFound {
+                path: file_path.clone(),
+                section_name: section_name.into(),
             })?
     } else {
-        sections.get(0).context(SymbolSectionNotFound {
-            path: &file_path,
-            section_name: "first section (no section name specified)",
-        })?
+        sections
+            .get(0)
+            .ok_or_else(|| Error::SymbolSectionNotFound {
+                path: file_path.clone(),
+                section_name: "first section (no section name specified)".into(),
+            })?
     };
 
     Ok(extract_keys(&symbols, include_dir)?)
@@ -307,9 +324,10 @@ impl<'a, 'src> TryFrom<&'a ast::Key<'src>> for Key {
     type Error = Error;
 
     fn try_from(key: &ast::Key) -> Result<Key, Error> {
-        let iso_key = iso_key_from_xkb_symbol(&key.id.as_ref()).context(UnknownIsoKey {
-            value: key.id.content,
-        })?;
+        let iso_key =
+            iso_key_from_xkb_symbol(&key.id.as_ref()).ok_or_else(|| Error::UnknownIsoKey {
+                value: key.id.content.into(),
+            })?;
         let values = key.values.iter().try_fold(Vec::new(), |mut res, v| {
             if let ast::KeyValue::KeyNames(ast::KeyNames { values }) = v {
                 res.extend(
@@ -358,7 +376,7 @@ impl Codepoint {
         if let Ok((_, c)) = parse_unicode_def(keysym) {
             let c: u32 = u32::from_str_radix(c, 16).unwrap_or_else(|_| {
                 panic!(
-                    "found unicode-like codepoint but couldn't parse hex `{}`",
+                    "found unicode-like codepoint but Could not parse hex `{}`",
                     c
                 )
             });
@@ -390,50 +408,32 @@ impl AsRef<str> for Codepoint {
     }
 }
 
-#[derive(Snafu, SnafuCliDebug)]
+#[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[snafu(display("Updating XKB repo failed"))]
-    FailedRepoUpdate {
-        source: crate::cli::repos::Error,
-        backtrace: snafu::Backtrace,
-    },
-    #[snafu(display("No locale selected"))]
-    NoLocaleSelected { backtrace: snafu::Backtrace },
-    #[snafu(display("Could load XKB file `{}`", path.display()))]
+    #[error("Updating XKB repo failed")]
+    FailedRepoUpdate { source: crate::cli::repos::Error },
+    #[error("No locale selected")]
+    NoLocaleSelected,
+    #[error("Could not load XKB file `{}`", path.display())]
     CannotOpenFile {
         path: PathBuf,
         source: std::io::Error,
-        backtrace: snafu::Backtrace,
     },
-    #[snafu(display("Could read XKB file `{}`", path.display()))]
+    #[error("Could not read XKB file `{}`", path.display())]
     CannotReadXkb {
         path: PathBuf,
         source: Box<dyn StdError>,
-        backtrace: snafu::Backtrace,
     },
-    #[snafu(display("Could not translate key id `{}` to iso key", value))]
-    UnknownIsoKey {
-        value: String,
-        backtrace: snafu::Backtrace,
-    },
-    #[snafu(display("Could not translate keysym `{}` to codepoint", keysym))]
+    #[error("Could not translate key id `{}` to iso key", value)]
+    UnknownIsoKey { value: String },
+    #[error("Could not translate keysym `{}` to codepoint", keysym)]
     UnknownCodepointMapping { keysym: String },
-    #[snafu(display("Failed to parse include `{}`", include))]
+    #[error("Failed to parse include `{}`", include)]
     FailedToParseInclude { include: String },
-    #[snafu(display("Failed to find/read section `{}` in `{}`", section_name, path.display()))]
-    SymbolSectionNotFound {
-        path: PathBuf,
-        section_name: String,
-        backtrace: snafu::Backtrace,
-    },
-    #[snafu(display("Could not load kbdgen bundle"))]
-    CannotLoadBundle {
-        source: crate::LoadError,
-        backtrace: snafu::Backtrace,
-    },
-    #[snafu(display("Could write kbdgen bundle"))]
-    CannotBeSaved {
-        source: crate::SaveError,
-        backtrace: snafu::Backtrace,
-    },
+    #[error("Failed to find/read section `{}` in `{}`", section_name, path.display())]
+    SymbolSectionNotFound { path: PathBuf, section_name: String },
+    #[error("Could not load kbdgen bundle")]
+    CannotLoadBundle { source: crate::LoadError },
+    #[error("Could not write kbdgen bundle")]
+    CannotBeSaved { source: crate::SaveError },
 }

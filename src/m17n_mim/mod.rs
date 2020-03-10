@@ -6,7 +6,6 @@
 //! [1]: https://www.nongnu.org/m17n/manual-en/m17nDBFormat.html
 
 use regex::Regex;
-use snafu::IntoError;
 use std::{convert::TryFrom, str::FromStr};
 
 mod ser;
@@ -159,10 +158,9 @@ impl Modifier {
             if let Ok(m) = Modifier::from_str(m) {
                 res.push(m);
             } else {
-                InvalidKeyCombo {
+                return Err(MimConversion::InvalidKeyCombo {
                     input: format!("unknown modifier `{}`", m),
-                }
-                .fail()?;
+                });
             }
         }
         Ok(res)
@@ -380,47 +378,39 @@ impl TryFrom<String> for Integer {
 
         // hex
         if !(input.starts_with("0x") || input.starts_with("0X")) {
-            return InvalidIntegerHexPrefix { input }.fail();
+            return Err(MimConversion::InvalidIntegerHexPrefix {
+                input: input.into(),
+            });
         }
         match u64::from_str_radix(&input[2..], 16) {
             Ok(_) => Ok(Integer(input)),
-            Err(source) => Err(InvalidIntegerHexValue { input }.into_error(source)),
+            Err(source) => Err(MimConversion::InvalidIntegerHexValue { input, source }),
         }
     }
 }
 
 /// Possible errors when converting values to their MIM representation
-#[derive(snafu::Snafu, Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum MimConversion {
-    #[snafu(display("Could serialize MIM symbol"))]
-    InvalidSymbol { backtrace: snafu::Backtrace },
-    #[snafu(display("Could serialize MIM text"))]
-    InvalidText { backtrace: snafu::Backtrace },
-    #[snafu(display("Could serialize MIM key combo: {}", input))]
-    InvalidKeyCombo {
-        input: String,
-        backtrace: snafu::Backtrace,
-    },
-    #[snafu(display("Could not map index `{}` to a character code", index))]
-    InvalidCharactorCodeIndex {
-        index: usize,
-        backtrace: snafu::Backtrace,
-    },
-    #[snafu(display(
+    #[error("Could not serialize MIM symbol")]
+    InvalidSymbol,
+    #[error("Could not serialize MIM text")]
+    InvalidText,
+    #[error("Could not serialize MIM key combo: {}", input)]
+    InvalidKeyCombo { input: String },
+    #[error("Could not map index `{}` to a character code", index)]
+    InvalidCharactorCodeIndex { index: usize },
+    #[error(
         "Assumed hexadecimal MIM integer but there was no `0x` prefix in `{}`",
         input
-    ))]
-    InvalidIntegerHexPrefix {
-        input: String,
-        backtrace: snafu::Backtrace,
-    },
-    #[snafu(display(
+    )]
+    InvalidIntegerHexPrefix { input: String },
+    #[error(
         "Assumed hexadecimal MIM integer but `{}` is not a valid hex value",
         input
-    ))]
+    )]
     InvalidIntegerHexValue {
         input: String,
         source: std::num::ParseIntError,
-        backtrace: snafu::Backtrace,
     },
 }

@@ -3,15 +3,14 @@ use crate::{
     cldr::Keyboard,
     cli::repos::{cldr_dir, update_repo},
 };
-use snafu::{OptionExt, ResultExt, Snafu};
-use snafu_cli_debug::SnafuCliDebug;
 use std::{collections::BTreeMap, path::Path};
 
 const REPO_URL: &str = "https://github.com/unicode-org/cldr";
 
 pub fn cldr_to_kbdgen(output: &Path, bundle_name: &str) -> Result<(), Error> {
-    update_repo("cldr", &cldr_dir(), REPO_URL).context(CldrRepoUpdate)?;
-    let locale = select_base_locale().context(NoLocaleSelected)?;
+    update_repo("cldr", &cldr_dir(), REPO_URL)
+        .map_err(|source| Error::CldrRepoUpdate { source })?;
+    let locale = select_base_locale().ok_or(Error::NoLocaleSelected)?;
 
     log::debug!("Selected locale: '{}'", &locale.0);
     log::debug!("Files: {:#?}", &locale.1);
@@ -50,36 +49,26 @@ pub fn cldr_to_kbdgen(output: &Path, bundle_name: &str) -> Result<(), Error> {
         bundle_name.into()
     };
 
-    bundle.save(output.join(bundle_name)).context(CannotSave)?;
+    bundle
+        .save(output.join(bundle_name))
+        .map_err(|source| Error::CannotSave { source })?;
     log::info!("New bundle written to `{}`.", output.display());
 
     Ok(())
 }
 
-#[derive(Snafu, SnafuCliDebug)]
+#[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[snafu(display("Updating CLDR repo failed"))]
-    CldrRepoUpdate {
-        source: crate::cli::repos::Error,
-        backtrace: snafu::Backtrace,
-    },
-    #[snafu(display("No locale selected"))]
-    NoLocaleSelected { backtrace: snafu::Backtrace },
-    #[snafu(display("Could load CLDR file"))]
-    CannotOpenFile {
-        source: std::io::Error,
-        backtrace: snafu::Backtrace,
-    },
-    #[snafu(display("Could load CLDR file"))]
-    CannotReadXml {
-        source: serde_xml_rs::Error,
-        backtrace: snafu::Backtrace,
-    },
-    #[snafu(display("Could write kbdgen bundle"))]
-    CannotSave {
-        source: crate::SaveError,
-        backtrace: snafu::Backtrace,
-    },
+    #[error("Updating CLDR repo failed")]
+    CldrRepoUpdate { source: crate::cli::repos::Error },
+    #[error("No locale selected")]
+    NoLocaleSelected,
+    #[error("Could not load CLDR file")]
+    CannotOpenFile { source: std::io::Error },
+    #[error("Could not load CLDR file")]
+    CannotReadXml { source: serde_xml_rs::Error },
+    #[error("Could not write kbdgen bundle")]
+    CannotSave { source: crate::SaveError },
 }
 
 #[cfg(windows)]
@@ -242,7 +231,8 @@ pub fn select_base_locale() -> Option<(String, BTreeMap<String, Vec<String>>)> {
 pub fn parse_path(os: &str, file: &str) -> Result<Keyboard, Error> {
     let fn_ = cldr_dir().join("keyboards").join(os).join(file);
 
-    let f = std::fs::File::open(fn_).context(CannotOpenFile)?;
-    let kbd: Keyboard = serde_xml_rs::from_reader(f).context(CannotReadXml)?;
+    let f = std::fs::File::open(fn_).map_err(|source| Error::CannotOpenFile { source })?;
+    let kbd: Keyboard =
+        serde_xml_rs::from_reader(f).map_err(|source| Error::CannotReadXml { source })?;
     Ok(kbd)
 }

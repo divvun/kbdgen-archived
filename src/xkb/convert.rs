@@ -3,7 +3,6 @@ use crate::{
     models::{DesktopModes, Layout},
     utils::UnwrapOrUnknownExt,
 };
-use snafu::{OptionExt, Snafu};
 use std::collections::BTreeMap;
 
 impl XkbFile {
@@ -28,7 +27,7 @@ impl XkbFile {
                     trailing_includes: vec!["level3(ralt_switch)".to_string()],
                 })
             })
-            .context(NoXkbCompatibleModes {
+            .ok_or_else(|| Error::NoXkbCompatibleModes {
                 available_modes: layout.modes.available_modes(),
             })??;
 
@@ -46,29 +45,30 @@ impl XkbFile {
 
         if let Some(dead_keys) = layout.dead_keys.as_ref() {
             for (target, mode_keys) in dead_keys {
-                let parent = match target.as_str() {
-                    "x11" => layout
-                        .modes
-                        .x11
-                        .as_ref()
-                        .context(DeadKeysForUnconfiguredTarget { target })?,
-                    "win" => layout
-                        .modes
-                        .win
-                        .as_ref()
-                        .context(DeadKeysForUnconfiguredTarget { target })?,
-                    "mac" => layout
-                        .modes
-                        .mac
-                        .as_ref()
-                        .context(DeadKeysForUnconfiguredTarget { target })?,
-                    "chrome" => layout
-                        .modes
-                        .chrome
-                        .as_ref()
-                        .context(DeadKeysForUnconfiguredTarget { target })?,
-                    _ => continue,
-                };
+                let parent =
+                    match target.as_str() {
+                        "x11" => layout.modes.x11.as_ref().ok_or(
+                            Error::DeadKeysForUnconfiguredTarget {
+                                target: target.clone(),
+                            },
+                        )?,
+                        "win" => layout.modes.win.as_ref().ok_or(
+                            Error::DeadKeysForUnconfiguredTarget {
+                                target: target.clone(),
+                            },
+                        )?,
+                        "mac" => layout.modes.mac.as_ref().ok_or(
+                            Error::DeadKeysForUnconfiguredTarget {
+                                target: target.clone(),
+                            },
+                        )?,
+                        "chrome" => layout.modes.chrome.as_ref().ok_or(
+                            Error::DeadKeysForUnconfiguredTarget {
+                                target: target.clone(),
+                            },
+                        )?,
+                        _ => continue,
+                    };
 
                 others.push(Symbols {
                     id: format!("{}_deadkeys", target.to_string()),
@@ -89,7 +89,10 @@ impl XkbFile {
 }
 
 fn collect_keys(key_map: &DesktopModes, _default: Option<&Symbols>) -> Result<Vec<Key>, Error> {
-    let default = key_map.get("default").cloned().context(NoDefaultKeyMap)?;
+    let default = key_map
+        .get("default")
+        .cloned()
+        .ok_or(Error::NoDefaultKeyMap)?;
     let shift = key_map.get("shift").cloned().unwrap_or_default();
     let alt = key_map.get("alt").cloned().unwrap_or_default();
     let alt_shift = key_map.get("alt_shift").cloned().unwrap_or_default();
@@ -125,7 +128,10 @@ fn collect_dead_keys(
         }
     }
 
-    let default = parent.get("default").cloned().context(NoDefaultKeyMap)?;
+    let default = parent
+        .get("default")
+        .cloned()
+        .ok_or(Error::NoDefaultKeyMap)?;
     let shift = parent.get("shift").cloned().unwrap_or_default();
     let alt = parent.get("alt").cloned().unwrap_or_default();
     let alt_shift = parent.get("alt_shift").cloned().unwrap_or_default();
@@ -177,18 +183,12 @@ fn collect_dead_keys(
         .collect())
 }
 
-#[derive(Snafu, Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[snafu(display("No `default` keymap"))]
-    NoDefaultKeyMap { backtrace: snafu::Backtrace },
-    #[snafu(display("No XKB compatible modes, found: {}", available_modes.join(", ")))]
-    NoXkbCompatibleModes {
-        available_modes: Vec<String>,
-        backtrace: snafu::Backtrace,
-    },
-    #[snafu(display("Cannot set dead keys for unconfigured target `{}`", target))]
-    DeadKeysForUnconfiguredTarget {
-        target: String,
-        backtrace: snafu::Backtrace,
-    },
+    #[error("No `default` keymap")]
+    NoDefaultKeyMap,
+    #[error("No XKB compatible modes, found: {}", available_modes.join(", "))]
+    NoXkbCompatibleModes { available_modes: Vec<String> },
+    #[error("Cannot set dead keys for unconfigured target `{}`", target)]
+    DeadKeysForUnconfiguredTarget { target: String },
 }
