@@ -28,32 +28,17 @@ targets:
 
 == Preparing build environment
 
-=== Building the Windows target on Unix-like operating systems
+Download and install these dependencies:
 
-You will need to install:
-
-* wine
-* winetricks
-
-WARNING: You will need to use wine in 32-bit mode. If you are concerned or unsure, just set WINEARCH="win32" in your environment before beginning.
-
-Run `wine` at least once to generate a wine prefix.
-
-Run `winetricks -q dotnet20` to install .NET Framework 2.0, required by the keyboard layout creator tools.
-
-Download and install the following dependencies into your wine prefix:
-
-* http://www.jrsoftware.org/download.php/is-unicode.exe[Inno Setup 5 (Unicode)]
+* https://jrsoftware.org/download.php/is.exe[Inno Setup 6]
 * https://download.microsoft.com/download/1/1/8/118aedd2-152c-453f-bac9-5dd8fb310870/MSKLC.exe[Microsoft Keyboard Layout Creator]
-
-Now when you generate the release version of the `win` target, an installer will be generated that is fully compatible with Windows systems.
 
 == Limitations
 
-* Windows does not support Unicode glyphbombs ("grapheme clusters") in deadkeys,
+* Windows does not support Unicode grapheme clusters in deadkeys,
   but does support them as ordinary keys.
 * Using `caps` and `caps+shift` with Windows is limited to single
-  codepoints, as the glyphbomb limitation also applies here.
+  codepoints, as the grapheme cluster limitation also applies here.
 * Windows keyboard identifiers must be unique, are 8 characters long and
   begin with `kbd`. The next 5 characters are generated from the next 5
   alphanumeric characters of the keyboard's `internalName`. For example, if
