@@ -73,9 +73,18 @@ jobs:
         override: true
         components: clippy
 
+    - name: Did this work
+      run: |
+        rustc --version --verbose
+
     - name: Ensure rustup is used
+      if: "!startsWith(matrix.os, 'windows')"
       run: |
         source $HOME/.cargo/env
+    - name: Ensure rustup is used
+      if: startsWith(matrix.os, 'windows')
+      run: |
+        PATH=%PATH%;%USERPROFILE%\.cargo\bin
 
     - name: Install MUSL tooling on Linux
       if: startsWith(matrix.os, 'ubuntu')
