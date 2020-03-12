@@ -1,10 +1,20 @@
 name: CI
+
 on:
   pull_request:
   push:
     branches:
     - master
     - develop
+
+env:
+  RUST_VERSION: 1.42.0
+  PYOXIDIZER_VERSION: 0.6.0
+
+  CARGO_INCREMENTAL: 0
+  RUSTUP_MAX_RETRIES: 10
+  CARGO_NET_RETRY: 10
+  RUST_BACKTRACE: full
 
 jobs:
   rust-audit:
@@ -16,7 +26,7 @@ jobs:
     - uses: actions-rs/toolchain@v1
       with:
         profile: minimal
-        toolchain: 1.42.0
+        toolchain: ${{ env.RUST_VERSION }}
         override: true
     - name: Cache cargo bin dir
       uses: actions/cache@v1
@@ -26,12 +36,12 @@ jobs:
     - uses: actions-rs/cargo@v1
       with:
         command: install
-        toolchain: 1.42.0
+        toolchain: ${{ env.RUST_VERSION }}
         args: cargo-audit
     - uses: actions-rs/cargo@v1
       with:
         command: audit
-        toolchain: 1.42.0
+        toolchain: ${{ env.RUST_VERSION }}
 
   fmt:
     name: Rustfmt
@@ -41,7 +51,7 @@ jobs:
     - uses: actions-rs/toolchain@v1
       with:
         profile: minimal
-        toolchain: 1.42.0
+        toolchain: ${{ env.RUST_VERSION }}
         override: true
     - run: rustup component add rustfmt
     - uses: actions-rs/cargo@v1
@@ -58,12 +68,6 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
-    env:
-      CARGO_INCREMENTAL: 0
-      RUSTUP_MAX_RETRIES: 10
-      CARGO_NET_RETRY: 10
-      RUST_BACKTRACE: full
-
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
@@ -72,7 +76,7 @@ jobs:
       if: startsWith(matrix.os, 'ubuntu')
       uses: actions-rs/toolchain@v1
       with:
-        toolchain: 1.42.0
+        toolchain: ${{ env.RUST_VERSION }}
         target: x86_64-unknown-linux-musl
         profile: minimal
         override: true
@@ -81,7 +85,7 @@ jobs:
       if: startsWith(matrix.os, 'macos')
       uses: actions-rs/toolchain@v1
       with:
-        toolchain: 1.42.0
+        toolchain: ${{ env.RUST_VERSION }}
         profile: minimal
         override: true
         components: clippy
@@ -89,7 +93,7 @@ jobs:
       if: startsWith(matrix.os, 'windows')
       uses: actions-rs/toolchain@v1
       with:
-        toolchain: 1.42.0
+        toolchain: ${{ env.RUST_VERSION }}
         profile: minimal
         override: true
         components: clippy
@@ -122,7 +126,7 @@ jobs:
       uses: actions/cache@v1
       with:
         path: ~/.cargo/bin
-        key: ${{ runner.os }}-cargo-bin
+        key: ${{ runner.os }}-cargo-bin-${{ env.RUST_VERSION }}
     - name: Cache cargo target dir
       uses: actions/cache@v1
       with:
@@ -135,29 +139,26 @@ jobs:
         key: ${{ runner.os }}-pyoxidizer-build-${{ hashFiles('**/pyoxidizer.bzl') }}
 
     - name: Install pyoxidizer
-      uses: actions-rs/cargo@v1
-      with:
-        command: install
-        args: pyoxidizer
-        toolchain: 1.42.0
+      run: |
+        cargo "+$RUST_VERSION" install pyoxidizer --vers ${{ env.PYOXIDIZER_VERSION }}
 
     - name: Build
       uses: actions-rs/cargo@v1
       with:
         command: build
         args: --all --release
-        toolchain: 1.42.0
+        toolchain: ${{ env.RUST_VERSION }}
     - name: Tests
       uses: actions-rs/cargo@v1
       with:
         command: test
         args: --all --release
-        toolchain: 1.42.0
+        toolchain: ${{ env.RUST_VERSION }}
     - name: Clippy
       uses: actions-rs/cargo@v1
       with:
         command: clippy
-        toolchain: 1.42.0
+        toolchain: ${{ env.RUST_VERSION }}
 
     - name: collect artifact on Linux
       if: startsWith(matrix.os, 'ubuntu')
