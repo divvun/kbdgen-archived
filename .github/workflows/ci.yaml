@@ -13,31 +13,39 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
-
+    - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: 1.42.0
+          override: true
     - name: Cache cargo bin dir
       uses: actions/cache@v1
       with:
         path: ~/.cargo/bin
         key: ${{ runner.os }}-cargo-bin
-
-    - run: cargo install cargo-audit
-    - run: cargo audit
+    - uses: actions-rs/cargo@v1
+      with:
+        command: install
+        args: cargo-audit
+    - uses: actions-rs/cargo@v1
+      with:
+        command: audit
 
   fmt:
     name: Rustfmt
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - run: rustup component add rustfmt
-      - uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
+    - uses: actions/checkout@v2
+    - uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: 1.42.0
+        override: true
+    - run: rustup component add rustfmt
+    - uses: actions-rs/cargo@v1
+      with:
+        command: fmt
+        args: --all -- --check
 
   rust:
     name: Rust
@@ -52,12 +60,31 @@ jobs:
       CARGO_INCREMENTAL: 0
       RUSTUP_MAX_RETRIES: 10
       CARGO_NET_RETRY: 10
+      RUST_BACKTRACE: full
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Install Rust toolchain
+    - name: Install Rust toolchain on Linux
+      if: startsWith(matrix.os, 'ubuntu')
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: 1.42.0
+        target: x86_64-unknown-linux-musl
+        profile: minimal
+        override: true
+        components: clippy
+    - name: Install Rust toolchain on macOS
+      if: startsWith(matrix.os, 'macos')
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: 1.42.0
+        profile: minimal
+        override: true
+        components: clippy
+    - name: Install Rust toolchain on Windows
+      if: startsWith(matrix.os, 'windows')
       uses: actions-rs/toolchain@v1
       with:
         toolchain: 1.42.0
@@ -65,7 +92,17 @@ jobs:
         override: true
         components: clippy
 
-    - uses: actions/setup-python@v1
+    - name: Install MUSL tooling on Linux
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+        sudo apt install -y musl musl-tools
+    - name: Uninstall system libyaml on macOS
+      if: startsWith(matrix.os, 'macos')
+      run: |
+        brew uninstall --ignore-dependencies libyaml
+
+    - name: Install python
+      uses: actions/setup-python@v1
       with:
         python-version: '3.x'
 
@@ -74,30 +111,61 @@ jobs:
       with:
         path: ~/.cargo/registry
         key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-
     - name: Cache cargo index
       uses: actions/cache@v1
       with:
         path: ~/.cargo/git
         key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
-
     - name: Cache cargo target dir
       uses: actions/cache@v1
       with:
         path: target
         key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
-
     - name: Cache pyoxidizer build dir
       uses: actions/cache@v1
       with:
         path: build
         key: ${{ runner.os }}-pyoxidizer-build-${{ hashFiles('**/pyoxidizer.bzl') }}
 
-    - uses: actions-rs/cargo@v1
+    - name: Install pyoxidizer
+      uses: actions-rs/cargo@v1
+      with:
+        command: install
+        args: pyoxidizer
+
+    - name: Build
+      uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --all --release
+    - name: Tests
+      uses: actions-rs/cargo@v1
       with:
         command: test
-        args: --all
-
-    - uses: actions-rs/cargo@v1
+        args: --all --release
+    - name: Clippy
+      uses: actions-rs/cargo@v1
       with:
         command: clippy
+
+    - name: collect artifact on Linux
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+        mkdir -pv dist
+        cp target/release/kbdgen dist/
+        strip dist/kbdgen
+    - name: collect artifact on macOS
+      if: startsWith(matrix.os, 'macos')
+      run: |
+        mkdir -pv dist
+        cp target/release/kbdgen dist/
+        strip dist/kbdgen
+    - name: collect artifact on Windows
+      if: startsWith(matrix.os, 'windows')
+      run: |
+        mkdir -pv dist
+        cp target\release\kbdgen.exe dist/
+    - uses: actions/upload-artifact@v1
+      with:
+        name: kbdgen-${{ runner.os }}
+        path: dist
