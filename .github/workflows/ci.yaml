@@ -8,7 +8,8 @@ on:
     - develop
 
 env:
-  RUST_VERSION: 1.42.0
+  # "the library kind 'static-nobundle' is only accepted on the nightly compiler"
+  RUST_VERSION: nightly-2020-03-12
   PYOXIDIZER_VERSION: 0.6.0
 
   CARGO_INCREMENTAL: 0
@@ -67,11 +68,14 @@ jobs:
       if: startsWith(matrix.os, 'windows')
       uses: actions-rs/toolchain@v1
       with:
-        # "the library kind 'static-nobundle' is only accepted on the nightly compiler"
-        toolchain: nightly-2020-03-12
+        toolchain: ${{ env.RUST_VERSION }}
         profile: minimal
         override: true
         components: clippy
+
+    - name: Ensure rustup is used
+      run: |
+        source $HOME/.cargo/env
 
     - name: Install MUSL tooling on Linux
       if: startsWith(matrix.os, 'ubuntu')
