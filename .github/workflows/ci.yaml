@@ -26,10 +26,12 @@ jobs:
     - uses: actions-rs/cargo@v1
       with:
         command: install
+        toolchain: 1.42.0
         args: cargo-audit
     - uses: actions-rs/cargo@v1
       with:
         command: audit
+        toolchain: 1.42.0
 
   fmt:
     name: Rustfmt
@@ -137,21 +139,25 @@ jobs:
       with:
         command: install
         args: pyoxidizer
+        toolchain: 1.42.0
 
     - name: Build
       uses: actions-rs/cargo@v1
       with:
         command: build
         args: --all --release
+        toolchain: 1.42.0
     - name: Tests
       uses: actions-rs/cargo@v1
       with:
         command: test
         args: --all --release
+        toolchain: 1.42.0
     - name: Clippy
       uses: actions-rs/cargo@v1
       with:
         command: clippy
+        toolchain: 1.42.0
 
     - name: collect artifact on Linux
       if: startsWith(matrix.os, 'ubuntu')
