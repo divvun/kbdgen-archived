@@ -35,7 +35,7 @@ py_class!(class Logger |py| {
             .file(module_path.as_ref().map(|x| &**x))
             .module_path(module_path.as_ref().map(|x| &**x))
             .build());
-        
+
         Ok(py.None())
     }
 });
