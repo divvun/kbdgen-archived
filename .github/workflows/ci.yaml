@@ -67,7 +67,8 @@ jobs:
       if: startsWith(matrix.os, 'windows')
       uses: actions-rs/toolchain@v1
       with:
-        toolchain: ${{ env.RUST_VERSION }}
+        # "the library kind 'static-nobundle' is only accepted on the nightly compiler"
+        toolchain: nightly-2020-03-12
         profile: minimal
         override: true
         components: clippy
@@ -127,12 +128,10 @@ jobs:
       with:
         command: test
         args: --all --release
-        toolchain: ${{ env.RUST_VERSION }}
     - name: Clippy
       uses: actions-rs/cargo@v1
       with:
         command: clippy
-        toolchain: ${{ env.RUST_VERSION }}
 
     - name: collect artifact on Linux
       if: startsWith(matrix.os, 'ubuntu')
