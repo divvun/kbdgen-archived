@@ -17,32 +17,6 @@ env:
   RUST_BACKTRACE: full
 
 jobs:
-  rust-audit:
-    name: Audit Rust vulnerabilities
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-    - uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: ${{ env.RUST_VERSION }}
-        override: true
-    - name: Cache cargo bin dir
-      uses: actions/cache@v1
-      with:
-        path: ~/.cargo/bin
-        key: ${{ runner.os }}-cargo-bin
-    - uses: actions-rs/cargo@v1
-      with:
-        command: install
-        toolchain: ${{ env.RUST_VERSION }}
-        args: cargo-audit
-    - uses: actions-rs/cargo@v1
-      with:
-        command: audit
-        toolchain: ${{ env.RUST_VERSION }}
-
   fmt:
     name: Rustfmt
     runs-on: ubuntu-latest
@@ -140,7 +114,7 @@ jobs:
 
     - name: Install pyoxidizer
       run: |
-        cargo "+$RUST_VERSION" install pyoxidizer --vers ${{ env.PYOXIDIZER_VERSION }}
+        which pyoxidizer || cargo "+$RUST_VERSION" install pyoxidizer --vers ${{ env.PYOXIDIZER_VERSION }}
 
     - name: Build
       uses: actions-rs/cargo@v1
