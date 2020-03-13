@@ -1,0 +1,166 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+    - master
+    - develop
+
+env:
+  # "the library kind 'static-nobundle' is only accepted on the nightly compiler"
+  RUST_VERSION: nightly-2020-03-12
+  PYOXIDIZER_VERSION: 0.6.0
+
+  CARGO_INCREMENTAL: 0
+  RUSTUP_MAX_RETRIES: 10
+  CARGO_NET_RETRY: 10
+  RUST_BACKTRACE: full
+
+jobs:
+  fmt:
+    name: Rustfmt
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: 1.42.0
+        override: true
+    - run: rustup component add rustfmt
+    - uses: actions-rs/cargo@v1
+      with:
+        command: fmt
+        args: --all -- --check
+
+  rust:
+    name: Rust
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Install Rust toolchain on Linux
+      if: startsWith(matrix.os, 'ubuntu')
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: ${{ env.RUST_VERSION }}
+        target: x86_64-unknown-linux-musl
+        profile: minimal
+        override: true
+        components: clippy
+    - name: Install Rust toolchain on macOS
+      if: startsWith(matrix.os, 'macos')
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: ${{ env.RUST_VERSION }}
+        profile: minimal
+        override: true
+        components: clippy
+    - name: Install Rust toolchain on Windows
+      if: startsWith(matrix.os, 'windows')
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: ${{ env.RUST_VERSION }}
+        profile: minimal
+        override: true
+        components: clippy
+
+    - name: Did this work
+      run: |
+        rustc --version --verbose
+
+    - name: Ensure rustup is used
+      if: "!startsWith(matrix.os, 'windows')"
+      run: |
+        source $HOME/.cargo/env
+
+    - name: Install MUSL tooling on Linux
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+        sudo apt install -y musl musl-tools
+    - name: Uninstall system libyaml on macOS
+      if: startsWith(matrix.os, 'macos')
+      run: |
+        brew uninstall --ignore-dependencies libyaml
+
+    - name: Install python
+      uses: actions/setup-python@v1
+      with:
+        python-version: '3.7'
+
+    - name: Cache cargo registry
+      uses: actions/cache@v1
+      with:
+        path: ~/.cargo/registry
+        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+    - name: Cache cargo index
+      uses: actions/cache@v1
+      with:
+        path: ~/.cargo/git
+        key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+    - name: Cache cargo bin dir
+      uses: actions/cache@v1
+      with:
+        path: ~/.cargo/bin
+        key: ${{ runner.os }}-cargo-bin-${{ env.RUST_VERSION }}
+    - name: Cache cargo target dir
+      uses: actions/cache@v1
+      with:
+        path: target
+        key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+    - name: Cache pyoxidizer build dir
+      uses: actions/cache@v1
+      with:
+        path: build
+        key: ${{ runner.os }}-pyoxidizer-build-${{ hashFiles('**/pyoxidizer.bzl') }}
+
+    - name: Install pyoxidizer
+      run: |
+        which pyoxidizer || cargo "+$RUST_VERSION" install pyoxidizer --vers ${{ env.PYOXIDIZER_VERSION }}
+
+    - name: Build
+      uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --all --release
+        toolchain: ${{ env.RUST_VERSION }}
+    - name: Tests
+      if: startsWith(matrix.os, 'ubuntu')
+      uses: actions-rs/cargo@v1
+      with:
+        command: test
+        args: --all --release
+    - name: Clippy
+      uses: actions-rs/cargo@v1
+      with:
+        command: clippy
+
+    - name: collect artifact on Linux
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+        mkdir -pv dist
+        cp target/release/kbdgen dist/
+        strip dist/kbdgen
+    - name: collect artifact on macOS
+      if: startsWith(matrix.os, 'macos')
+      run: |
+        mkdir -pv dist
+        cp target/release/kbdgen dist/
+        strip dist/kbdgen
+    - name: collect artifact on Windows
+      if: startsWith(matrix.os, 'windows')
+      run: |
+        mkdir dist
+        cp target\release\kbdgen.exe dist\
+    - uses: actions/upload-artifact@v1
+      with:
+        name: kbdgen-${{ runner.os }}
+        path: dist

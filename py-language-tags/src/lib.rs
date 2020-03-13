@@ -37,7 +37,7 @@ py_class!(class LanguageTag |py| {
             }
             None => { data.language = None; }
         }
-        
+
         Ok(py.None())
     }
 
@@ -60,7 +60,7 @@ py_class!(class LanguageTag |py| {
             }
             None => { data.script = None; }
         }
-        
+
         Ok(py.None())
     }
 
@@ -79,7 +79,7 @@ py_class!(class LanguageTag |py| {
             }
             None => { data.region = None; }
         }
-        
+
         Ok(py.None())
     }
 
