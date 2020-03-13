@@ -5,39 +5,36 @@ Add it to your structs like this:
 
 [source,rust]
 ----
-use derive_collect_docs::CollectDocs;
-
-/// Very essential type to out application
-#[derive(Debug, CollectDocs)]
-pub struct Foo {
-    /// Amount of pressure to apply
-    ///
-    /// CAUTION: Will be renamed to appropriate SI unit in next release.
-    bar: usize,
-    /// Description of this Foo
-    baz: String,
-}
+include::examples/foo.rs[]
 ----
 
 And get documentation like this
 (with the correct heading that does not work in quoted asciidoc):
 
 ====
-= Foo
-
-Very essential type to out application
-
-
-.Fields
-
-* `bar` _(required)_
-+
-Amount of pressure to apply
-+
-CAUTION: Will be renamed to appropriate SI unit in next release.
-
-* `baz` _(required)_
-+
-Description of this Foo
-
+include::examples/Foo.adoc[]
 ====
+
+== Examples
+
+Examples are added in separate attributes
+that specify the file type followed by the content.
+They will be included as code blocks with the heading "Example".
+
+=== Tests
+
+Examples in YAML format will also be turned into tests
+that exercise that the given content can be parsed by
+item the example is on.
+For structs, you should give it the full content of the struct,
+for fields you neded to also include the field name
+in the formatting serde expects (i.e., respecting `#[serde(rename="other_name")]`).
+
+[source,console]
+----
+running 2 tests
+test test_Foo_baz_example_0 ... ok
+test test_Foo_example_0 ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+---
