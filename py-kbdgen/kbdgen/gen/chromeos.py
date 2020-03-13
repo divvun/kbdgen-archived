@@ -1,10 +1,11 @@
-from collections import defaultdict, OrderedDict
-import itertools
+from collections import OrderedDict
 import json
 import os
 import os.path
 import shutil
 import tempfile
+import urllib
+import urllib.request
 
 from ..base import get_logger
 from .base import (
@@ -213,7 +214,10 @@ class ChromeOSGenerator(PhysicalGenerator):
             logger.warning("no icon supplied!")
             return
 
-        cmd_tmpl = "convert -resize {h}x{w} -background white -alpha remove -gravity center -extent {h}x{w} {src} {out}"
+        cmd_tmpl = (
+            "convert -resize {h}x{w} -background white -alpha remove "
+            + "-gravity center -extent {h}x{w} {src} {out}"
+        )
         work_items = []
 
         for size, fn in ICONS.items():
@@ -236,32 +240,30 @@ class ChromeOSGenerator(PhysicalGenerator):
         if self.is_release:
             if self.chrome_target.get("build", None) is None:
                 logger.error(
-                    "No `build` property found in chrome target; cannot generator."
+                    "No `build` property found in chrome target; cannot generate."
                 )
                 return False
 
             if self.chrome_target.get("version", None) is None:
                 logger.error(
-                    "No `version` property found in chrome target; cannot generator."
+                    "No `version` property found in chrome target; cannot generate."
                 )
                 return False
 
+            tmpl = (
+                "No `%s` environment variable specified; cannot publish package "
+                + "to Chrome Web Store."
+            )
             if os.environ.get("CHROME_CLIENT_ID", None) is None:
-                logger.error(
-                    "No `CHROME_CLIENT_ID` env var specified; cannot publish package to Chrome Web Store."
-                )
+                logger.error(tmpl % "CHROME_CLIENT_ID")
                 return False
 
             if os.environ.get("CHROME_CLIENT_SECRET", None) is None:
-                logger.error(
-                    "No `CHROME_CLIENT_SECRET` env var specified; cannot publish package to Chrome Web Store."
-                )
+                logger.error(tmpl % "CHROME_CLIENT_SECRET")
                 return False
 
             if os.environ.get("CHROME_REFRESH_TOKEN", None) is None:
-                logger.error(
-                    "No `CHROME_REFRESH_TOKEN` env var specified; cannot publish package to Chrome Web Store."
-                )
+                logger.error(tmpl % "CHROME_REFRESH_TOKEN")
                 return False
 
             self._app_id = self.chrome_target.get("appId", None)
@@ -281,9 +283,11 @@ class ChromeOSGenerator(PhysicalGenerator):
             "refresh_token": os.environ["CHROME_REFRESH_TOKEN"],
         }
 
-        oauth_response = requests.post(
-            "https://www.googleapis.com/oauth2/v4/token", data=data
-        ).json()
+        request = urllib.request.Request(
+            "https://www.googleapis.com/oauth2/v4/token", data=data, method="POST"
+        )
+        response = urllib.request.urlopen(request)
+        oauth_response = json.loads(response.read().decode("utf-8"))
 
         logger.info("Generating .zip for upload…")
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -300,7 +304,11 @@ class ChromeOSGenerator(PhysicalGenerator):
                 "x-goog-api-version": "2",
             }
             logger.info("Uploading…")
-            result = requests.put(url, headers=headers, data=open(p, "rb").read())
+            with open(p, "rb") as f:
+                request = urllib.request.Request(
+                    url, headers=headers, data=f.read(), method="PUT"
+                )
+            result = urllib.request.urlopen(request)
             logger.debug("%r" % result)
 
             shutil.copyfile(

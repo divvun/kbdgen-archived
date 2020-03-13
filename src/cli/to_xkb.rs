@@ -1,7 +1,5 @@
 use crate::{utils::UnwrapOrUnknownExt, xkb::*, Load, ProjectBundle};
 use log::{debug, log_enabled};
-use snafu::{ResultExt, Snafu};
-use snafu_cli_debug::SnafuCliDebug;
 use std::{
     fs::File,
     io::BufWriter,
@@ -9,7 +7,7 @@ use std::{
 };
 
 pub fn kbdgen_to_xkb(input: &Path, output: &Path, _options: &Options) -> Result<(), Error> {
-    let bundle = ProjectBundle::load(input).context(CannotLoad)?;
+    let bundle = ProjectBundle::load(input).map_err(|source| Error::CannotLoad { source })?;
     if log_enabled!(log::Level::Debug) {
         debug!("Bundle `{}` loaded", input.display());
         let locales = bundle
@@ -46,27 +44,37 @@ pub fn kbdgen_to_xkb(input: &Path, output: &Path, _options: &Options) -> Result<
                     log::debug!("modes found: {}", available_modes.join(", "));
                     return Ok(());
                 }
-                Err(e) => Err(e).context(CannotConvertToXkb {
+                Err(e) => Err(e).map_err(|source| SavingError::CannotConvertToXkb {
                     project: bundle
                         .path
                         .clone()
                         .map(|x| format!("{}", x.display()))
                         .unwrap_or_unknown(),
-                    layout: name,
+                    layout: name.clone(),
+                    source,
                 })?,
             };
 
             let path = output.join("linux").join(name).with_extension("xkb");
-            std::fs::create_dir_all(path.parent().unwrap())
-                .context(CannotCreateFile { path: path.clone() })?;
-            let file = File::create(&path).context(CannotCreateFile { path: path.clone() })?;
+            std::fs::create_dir_all(path.parent().unwrap()).map_err(|source| {
+                SavingError::CannotCreateFile {
+                    path: path.clone(),
+                    source,
+                }
+            })?;
+            let file = File::create(&path).map_err(|source| SavingError::CannotCreateFile {
+                path: path.clone(),
+                source,
+            })?;
             debug!("Created file `{}`", path.display());
             let mut writer = BufWriter::new(file);
-            symbols.write_xkb(&mut writer).context(CannotSerializeXkb)?;
+            symbols
+                .write_xkb(&mut writer)
+                .map_err(|source| SavingError::CannotSerializeXkb { source })?;
             log::info!("Wrote to file `{}`", path.display());
             Ok(())
         })
-        .context(CannotBeSaved)?;
+        .map_err(|source| Error::CannotBeSaved { source })?;
 
     Ok(())
 }
@@ -76,38 +84,27 @@ pub struct Options {
     pub standalone: bool,
 }
 
-#[derive(Snafu, SnafuCliDebug)]
+#[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[snafu(display("Could not load kbdgen bundle"))]
-    CannotLoad {
-        source: crate::LoadError,
-        backtrace: snafu::Backtrace,
-    },
-    #[snafu(display("Could not write XKB file"))]
-    CannotBeSaved {
-        source: SavingError,
-        backtrace: snafu::Backtrace,
-    },
+    #[error("Could not load kbdgen bundle")]
+    CannotLoad { source: crate::LoadError },
+    #[error("Could not write XKB file")]
+    CannotBeSaved { source: SavingError },
 }
 
-#[derive(Snafu, Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum SavingError {
-    #[snafu(display("Could not convert `{}` in `{}` to xkb", layout, project))]
+    #[error("Could not convert `{}` in `{}` to xkb", layout, project)]
     CannotConvertToXkb {
         project: String,
         layout: String,
         source: ConversionError,
-        backtrace: snafu::Backtrace,
     },
-    #[snafu(display("Could not create file `{}`", path.display()))]
+    #[error("Could not create file `{}`", path.display())]
     CannotCreateFile {
         path: PathBuf,
         source: std::io::Error,
-        backtrace: snafu::Backtrace,
     },
-    #[snafu(display("Could transform to XKB"))]
-    CannotSerializeXkb {
-        source: std::io::Error,
-        backtrace: snafu::Backtrace,
-    },
+    #[error("Could not transform to XKB")]
+    CannotSerializeXkb { source: std::io::Error },
 }

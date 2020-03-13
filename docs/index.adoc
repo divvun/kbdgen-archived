@@ -6,7 +6,7 @@ Brendan Molloy <brendan@bbqsrc.net>
 :icons: font
 :toc: left
 :toclevels: 3
-:kbdgenversion: 2.0.0-alpha.1
+:kbdgenversion: 2.0.0-alpha.2
 :pyversion: 3.7
 :sectlinks:
 :sectnums:

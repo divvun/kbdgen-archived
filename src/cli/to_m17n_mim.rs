@@ -1,7 +1,5 @@
 use crate::{m17n_mim::*, models::DesktopModes, Load, ProjectBundle};
 use log::{debug, log_enabled};
-use snafu::{ResultExt, Snafu};
-use snafu_cli_debug::SnafuCliDebug;
 use std::{
     collections::BTreeMap,
     convert::TryFrom,
@@ -13,7 +11,7 @@ use std::{
 pub fn kbdgen_to_mim(input: &Path, output: &Path) -> Result<(), Error> {
     // let _ = opts.verbose.setup_env_logger("kbdgen-cli");
 
-    let bundle = ProjectBundle::load(input).context(CannotLoad)?;
+    let bundle = ProjectBundle::load(input).map_err(|source| Error::CannotLoad { source })?;
     if log_enabled!(log::Level::Debug) {
         debug!("Bundle `{}` loaded", input.display());
         let locales = bundle
@@ -32,19 +30,26 @@ pub fn kbdgen_to_mim(input: &Path, output: &Path) -> Result<(), Error> {
         .try_for_each(|(name, keyboards)| {
             for (platform, keyboard) in keyboards? {
                 let path = output.join(name).join(platform).with_extension("mim");
-                std::fs::create_dir_all(path.parent().unwrap())
-                    .context(CannotCreateFile { path: path.clone() })?;
-                let file = File::create(&path).context(CannotCreateFile { path: path.clone() })?;
+                std::fs::create_dir_all(path.parent().unwrap()).map_err(|source| {
+                    SavingError::CannotCreateFile {
+                        path: path.clone(),
+                        source,
+                    }
+                })?;
+                let file = File::create(&path).map_err(|source| SavingError::CannotCreateFile {
+                    path: path.clone(),
+                    source,
+                })?;
                 debug!("Created file `{}`", path.display());
                 let mut writer = BufWriter::new(file);
                 keyboard
                     .write_mim(&mut writer)
-                    .context(CannotSerializeMim)?;
+                    .map_err(|source| SavingError::CannotSerializeMim { source })?;
                 log::info!("Wrote to file `{}`", path.display());
             }
             Ok(())
         })
-        .context(CannotBeSaved)?;
+        .map_err(|source| Error::CannotBeSaved { source })?;
 
     Ok(())
 }
@@ -65,7 +70,7 @@ fn layout_to_mim(
             if let Some(a) = layout.modes.$platform.as_ref() {
                 log::debug!("{}: check", stringify!($platform));
                 let dead_key_rules = dead_key_transforms(&layout, stringify!($platform))
-                    .context(CannotCreateTransformMap)?;
+                    .map_err(|source| SavingError::CannotCreateTransformMap {source})?;
 
                 res.push((
                     String::from(stringify!($platform)),
@@ -98,7 +103,8 @@ fn desktop_mode_to_keyboard(
         let key_combo = if key_combo == "default" {
             vec![]
         } else {
-            Modifier::parse_keycombo(&key_combo).context(CannotSerializeKeyCombo)?
+            Modifier::parse_keycombo(&key_combo)
+                .map_err(|source| SavingError::CannotSerializeKeyCombo { source })?
         };
 
         for (iso_key, key_val) in mapping.iter() {
@@ -108,12 +114,12 @@ fn desktop_mode_to_keyboard(
             let key_code = if key_combo.is_empty() {
                 KeyDef::CharacterCode(
                     Integer::try_from(format!("{:#x}", iso_key.to_character_code()))
-                        .context(CannotSerializeInteger)?,
+                        .map_err(|source| SavingError::CannotSerializeInteger { source })?,
                 )
             } else {
                 KeyDef::Character(
                     Symbol::try_from(format!("{}", iso_key.to_character()))
-                        .context(CannotSerializeSymbol)?,
+                        .map_err(|source| SavingError::CannotSerializeSymbol { source })?,
                 )
             };
 
@@ -133,7 +139,8 @@ fn desktop_mode_to_keyboard(
                 rules.push(Rule {
                     keyseq,
                     action: MapAction::Insert(Insert::Character(
-                        Text::try_from(key.to_string()).context(CannotSerializeSymbol)?,
+                        Text::try_from(key.to_string())
+                            .map_err(|source| SavingError::CannotSerializeSymbol { source })?,
                     )),
                 });
             }
@@ -152,30 +159,35 @@ fn desktop_mode_to_keyboard(
                     .map(|x| x.language_code.clone())
                     .unwrap_or_else(|| name.to_string()),
             )
-            .context(CannotSerializeSymbol)?,
-            name: Symbol::try_from(format!("{}-kbdgen", target)).context(CannotSerializeSymbol)?,
+            .map_err(|source| SavingError::CannotSerializeSymbol { source })?,
+            name: Symbol::try_from(format!("{}-kbdgen", target))
+                .map_err(|source| SavingError::CannotSerializeSymbol { source })?,
             extra_id: None,
             version: None,
         },
-        title: Text::try_from(name.to_string()).context(CannotSerializeSymbol)?,
+        title: Text::try_from(name.to_string())
+            .map_err(|source| SavingError::CannotSerializeSymbol { source })?,
         description: if let Some(d) = mim_config.and_then(|x| x.description.as_ref()) {
             Some(
                 Text::try_from(format!("{} ({} {})", d, name, target))
-                    .context(CannotSerializeSymbol)?,
+                    .map_err(|source| SavingError::CannotSerializeSymbol { source })?,
             )
         } else {
             None
         },
         maps: vec![Map {
-            name: Symbol::try_from(String::from("mapping")).context(CannotSerializeSymbol)?,
+            name: Symbol::try_from(String::from("mapping"))
+                .map_err(|source| SavingError::CannotSerializeSymbol { source })?,
             rules,
         }],
         // (state (init (mapping)))
         states: vec![State {
-            name: Symbol::try_from("init".to_string()).context(CannotSerializeSymbol)?,
+            name: Symbol::try_from("init".to_string())
+                .map_err(|source| SavingError::CannotSerializeSymbol { source })?,
             title: None,
             branches: vec![Branch {
-                map_name: Symbol::try_from("mapping".to_string()).context(CannotSerializeSymbol)?,
+                map_name: Symbol::try_from("mapping".to_string())
+                    .map_err(|source| SavingError::CannotSerializeSymbol { source })?,
             }],
         }],
     })
@@ -231,56 +243,31 @@ fn dead_key_transforms(
     Ok(rules)
 }
 
-#[derive(Snafu, SnafuCliDebug)]
+#[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[snafu(display("Could not load kbdgen bundle"))]
-    CannotLoad {
-        source: crate::LoadError,
-        backtrace: snafu::Backtrace,
-    },
-    #[snafu(display("Could not write CLDR file"))]
-    CannotBeSaved {
-        source: SavingError,
-        backtrace: snafu::Backtrace,
-    },
+    #[error("Could not load kbdgen bundle")]
+    CannotLoad { source: crate::LoadError },
+    #[error("Could not write CLDR file")]
+    CannotBeSaved { source: SavingError },
 }
 
-#[derive(Snafu, Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum SavingError {
-    #[snafu(display("Could not create file `{}`", path.display()))]
+    #[error("Could not create file `{}`", path.display())]
     CannotCreateFile {
         path: PathBuf,
         source: std::io::Error,
-        backtrace: snafu::Backtrace,
     },
-    #[snafu(display("Could transform to MIM"))]
-    CannotSerializeMim {
-        source: std::io::Error,
-        backtrace: snafu::Backtrace,
-    },
-    #[snafu(display("Could serialize MIM symbol"))]
-    CannotSerializeSymbol {
-        source: MimConversion,
-        backtrace: snafu::Backtrace,
-    },
-    #[snafu(display("Could serialize MIM integer"))]
-    CannotSerializeInteger {
-        source: MimConversion,
-        backtrace: snafu::Backtrace,
-    },
-    #[snafu(display("Could serialize key combo"))]
-    CannotSerializeKeyCombo {
-        source: MimConversion,
-        backtrace: snafu::Backtrace,
-    },
-    #[snafu(display("Invalid character code index"))]
-    InvalidCharacterCodeIndex {
-        source: MimConversion,
-        backtrace: snafu::Backtrace,
-    },
-    #[snafu(display("Cannot create transform map"))]
-    CannotCreateTransformMap {
-        source: MimConversion,
-        backtrace: snafu::Backtrace,
-    },
+    #[error("Could not transform to MIM")]
+    CannotSerializeMim { source: std::io::Error },
+    #[error("Could not serialize MIM symbol")]
+    CannotSerializeSymbol { source: MimConversion },
+    #[error("Could not serialize MIM integer")]
+    CannotSerializeInteger { source: MimConversion },
+    #[error("Could not serialize key combo")]
+    CannotSerializeKeyCombo { source: MimConversion },
+    #[error("Invalid character code index")]
+    InvalidCharacterCodeIndex { source: MimConversion },
+    #[error("Cannot create transform map")]
+    CannotCreateTransformMap { source: MimConversion },
 }

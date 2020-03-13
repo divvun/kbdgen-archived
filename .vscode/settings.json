@@ -1,4 +1,7 @@
 {
   "rust-analyzer.cargoFeatures.features": [],
-  "rust-analyzer.cargoFeatures.noDefaultFeatures": true
+  "rust-analyzer.cargoFeatures.noDefaultFeatures": true,
+  "python.linting.pylintEnabled": false,
+  "python.linting.flake8Enabled": true,
+  "python.linting.enabled": true
 }

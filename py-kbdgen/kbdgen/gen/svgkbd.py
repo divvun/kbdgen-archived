@@ -15,12 +15,18 @@ logger = get_logger(__name__)
 
 NS = "{http://www.w3.org/2000/svg}"
 
+
 class SVGGenerator(Generator):
     @property
     def supported_layouts(self):
         o = OrderedDict()
         for k, v in self._bundle.layouts.items():
-            if "desktop" in v.modes or "mac" in v.modes or "win" in v.modes or "chrome" in v.modes:
+            if (
+                "desktop" in v.modes
+                or "mac" in v.modes
+                or "win" in v.modes
+                or "chrome" in v.modes
+            ):
                 o[k] = v
         return o
 
@@ -30,7 +36,7 @@ class SVGGenerator(Generator):
         root = tree.getroot()
 
         files = []
-        
+
         for name, layout in self.supported_layouts.items():
             files.append(
                 (
@@ -145,7 +151,7 @@ class SVGGenerator(Generator):
         p = SubElement(
             g,
             NS + "text",
-            **{"dy": "1em", "y": "32", "x": "32", "class": "key-text-primary"}
+            **{"dy": "1em", "y": "32", "x": "32", "class": "key-text-primary"},
         )
         try:
             p.text = primary
@@ -154,7 +160,7 @@ class SVGGenerator(Generator):
         s = SubElement(
             g,
             NS + "text",
-            **{"dy": "-.4em", "y": "32", "x": "32", "class": "key-text-secondary"}
+            **{"dy": "-.4em", "y": "32", "x": "32", "class": "key-text-secondary"},
         )
         try:
             s.text = secondary

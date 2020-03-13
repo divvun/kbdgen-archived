@@ -189,12 +189,12 @@
 //     #[snafu(display("Could not load kbdgen bundle"))]
 //     CannotLoad {
 //         source: crate::LoadError,
-//         backtrace: snafu::Backtrace,
+//         backtrace: backtrace::Backtrace,
 //     },
 //     #[snafu(display("Could not write CLDR file"))]
 //     CannotBeSaved {
 //         source: SavingError,
-//         backtrace: snafu::Backtrace,
+//         backtrace: backtrace::Backtrace,
 //     },
 // }
 
@@ -204,11 +204,11 @@
 //     CannotCreateFile {
 //         path: PathBuf,
 //         source: std::io::Error,
-//         backtrace: snafu::Backtrace,
+//         backtrace: backtrace::Backtrace,
 //     },
 //     #[snafu(display("Could transform to xml"))]
 //     CannotSerializeXml {
 //         source: std::io::Error,
-//         backtrace: snafu::Backtrace,
+//         backtrace: backtrace::Backtrace,
 //     },
 // }
