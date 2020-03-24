@@ -89,15 +89,7 @@ enum BuildCommands {
         build_mode: BuildMode,
     },
 
-    #[structopt(about = "Generates X11 output suitable for upstreaming")]
     X11 {
-        #[structopt(flatten)]
-        in_out: InOutPaths,
-
-        #[structopt(flatten)]
-        build_mode: BuildMode,
-    },
-    X11RS {
         #[structopt(flatten)]
         in_out: InOutPaths,
 
@@ -415,7 +407,6 @@ impl BuildCommands {
                 args
             }
             M17n { .. } => return Err(From::from("M17n isn't supported in Python".to_string())),
-            X11 { .. } => return Err(From::from("X11 isn't supported in Python".to_string())),
             Qr {
                 in_out:
                     InOutPaths {
@@ -448,7 +439,7 @@ impl BuildCommands {
                 layout,
                 &*project_path.to_str().unwrap(),
             ],
-            X11RS { .. } => unreachable!("covered in previous match"),
+            X11 { .. } => unreachable!("covered in previous match"),
         };
 
         if let Some(gh_username) = github_username {
@@ -544,7 +535,7 @@ fn main() {
             github_token,
             command,
         } => match command {
-            BuildCommands::X11RS {
+            BuildCommands::X11 {
                 in_out:
                     InOutPaths {
                         output_path,
