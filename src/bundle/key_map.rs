@@ -45,8 +45,8 @@ impl Default for DesktopKeyMap {
 }
 
 impl DesktopKeyMap {
-    pub fn get_string(&self, key: &IsoKey) -> Option<String> {
-        self.get(key).and_then(|k| k.0.clone())
+    pub fn get_string(&self, key: IsoKey) -> Option<String> {
+        self.get(&key).and_then(|k| k.0.clone())
     }
 }
 

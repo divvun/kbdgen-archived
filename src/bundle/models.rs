@@ -246,28 +246,28 @@ pub struct Modes {
 impl Modes {
     pub fn available_modes(&self) -> Vec<String> {
         let mut res = Vec::new();
-        if let Some(_) = self.win {
+        if self.win.is_some() {
             res.push("win".into());
         }
-        if let Some(_) = self.mac {
+        if self.mac.is_some() {
             res.push("mac".into());
         }
-        if let Some(_) = self.ios {
+        if self.ios.is_some() {
             res.push("ios".into());
         }
-        if let Some(_) = self.android {
+        if self.android.is_some() {
             res.push("android".into());
         }
-        if let Some(_) = self.chrome {
+        if self.chrome.is_some() {
             res.push("chrome".into());
         }
-        if let Some(_) = self.x11 {
+        if self.x11.is_some() {
             res.push("x11".into());
         }
-        if let Some(_) = self.desktop {
+        if self.desktop.is_some() {
             res.push("desktop".into());
         }
-        if let Some(_) = self.mobile {
+        if self.mobile.is_some() {
             res.push("mobile".into());
         }
         res

@@ -378,9 +378,7 @@ impl TryFrom<String> for Integer {
 
         // hex
         if !(input.starts_with("0x") || input.starts_with("0X")) {
-            return Err(MimConversion::InvalidIntegerHexPrefix {
-                input: input.into(),
-            });
+            return Err(MimConversion::InvalidIntegerHexPrefix { input });
         }
         match u64::from_str_radix(&input[2..], 16) {
             Ok(_) => Ok(Integer(input)),
