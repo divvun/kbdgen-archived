@@ -60,7 +60,7 @@ pub fn xkb_to_kbdgen(output: &Path, is_updating_bundle: bool) -> Result<(), Erro
     });
 
     // Update X11 layout entry
-    let mut layout = bundle.layouts.entry(locale.to_string()).or_default();
+    let mut layout = bundle.layouts.entry(locale).or_default();
     layout.modes.x11 = Some(DesktopModes(
         keys.into_iter().map(|(k, v)| (k, v.into())).collect(),
     ));
@@ -198,7 +198,7 @@ fn resolve_keys(
     log::debug!("found {} keys in {}", keys.len(), symbols.name.content);
 
     for key in &keys {
-        for (codepoint, mode) in key.values.iter().zip(layers) {
+        for (codepoint, &mode) in key.values.iter().zip(layers) {
             map.entry(mode.to_string())
                 .or_default()
                 .insert(key.iso_key, KeyValue::from(codepoint.as_ref().to_string()));

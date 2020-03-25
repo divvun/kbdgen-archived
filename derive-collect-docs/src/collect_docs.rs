@@ -274,7 +274,7 @@ fn find_serde_rename(attrs: &[syn::Attribute]) -> Option<String> {
                     _ => None,
                 })
                 .next(),
-            _ => return None,
+            _ => None,
         })
         .next()
 }

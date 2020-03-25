@@ -6,7 +6,8 @@ fn build_x11() {
     logger();
     let tmp = tempdir().unwrap();
 
-    Command::cargo_bin("kbdgen").unwrap()
+    Command::cargo_bin("kbdgen")
+        .unwrap()
         .arg("build")
         .arg("x11")
         .arg("examples/sme.kbdgen")
@@ -23,7 +24,8 @@ fn build_m17n() {
     logger();
     let tmp = tempdir().unwrap();
 
-    Command::cargo_bin("kbdgen").unwrap()
+    Command::cargo_bin("kbdgen")
+        .unwrap()
         .arg("build")
         .arg("m17n")
         .arg("examples/sme.kbdgen")

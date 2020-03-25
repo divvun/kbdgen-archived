@@ -102,10 +102,10 @@ fn collect_keys(key_map: &DesktopModes, _default: Option<&Symbols>) -> Result<Ve
     for (iso_code, default) in &*default {
         res.push(Key {
             iso_code: iso_code.to_string(),
-            default: default.0.clone().map(|x| XkbKeySym(x)),
-            shift: shift.get_string(&iso_code).map(|x| XkbKeySym(x)),
-            alt: alt.get_string(&iso_code).map(|x| XkbKeySym(x)),
-            alt_shift: alt_shift.get_string(&iso_code).map(|x| XkbKeySym(x)),
+            default: default.0.clone().map(XkbKeySym),
+            shift: shift.get_string(*iso_code).map(XkbKeySym),
+            alt: alt.get_string(*iso_code).map(XkbKeySym),
+            alt_shift: alt_shift.get_string(*iso_code).map(XkbKeySym),
         });
     }
 
@@ -151,10 +151,10 @@ fn collect_dead_keys(
 
             let mut key = overwritten_keys.entry(iso_code).or_insert_with(|| Key {
                 iso_code: iso_code.to_string(),
-                default: default.get_string(&iso_code).map(|x| XkbKeySym(x)),
-                shift: shift.get_string(&iso_code).map(|x| XkbKeySym(x)),
-                alt: alt.get_string(&iso_code).map(|x| XkbKeySym(x)),
-                alt_shift: alt_shift.get_string(&iso_code).map(|x| XkbKeySym(x)),
+                default: default.get_string(*iso_code).map(XkbKeySym),
+                shift: shift.get_string(*iso_code).map(XkbKeySym),
+                alt: alt.get_string(*iso_code).map(XkbKeySym),
+                alt_shift: alt_shift.get_string(*iso_code).map(XkbKeySym),
             });
             let dead = char_to_dead(&value).map(|x| XkbKeySym(x.to_string()));
             let dead = if let Some(x) = dead {
