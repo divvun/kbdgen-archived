@@ -1,0 +1,196 @@
+name: Release Tools
+on:
+  push:
+    branches:
+      - release
+  repository_dispatch:
+    types: release
+
+env:
+  PKG_NAME: kbdgen
+
+  # "the library kind 'static-nobundle' is only accepted on the nightly compiler"
+  RUST_VERSION: nightly-2020-03-12
+  PYOXIDIZER_VERSION: 0.6.0
+
+  CARGO_INCREMENTAL: 0
+  RUSTUP_MAX_RETRIES: 10
+  CARGO_NET_RETRY: 10
+  RUST_BACKTRACE: full
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Install Rust toolchain on Linux
+      if: startsWith(matrix.os, 'ubuntu')
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: ${{ env.RUST_VERSION }}
+        target: x86_64-unknown-linux-musl
+        profile: minimal
+        override: true
+        components: clippy
+    - name: Install Rust toolchain on macOS
+      if: startsWith(matrix.os, 'macos')
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: ${{ env.RUST_VERSION }}
+        profile: minimal
+        override: true
+        components: clippy
+    - name: Install Rust toolchain on Windows
+      if: startsWith(matrix.os, 'windows')
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: ${{ env.RUST_VERSION }}
+        profile: minimal
+        override: true
+        components: clippy
+
+    - name: Did this work
+      run: |
+        rustc --version --verbose
+
+    - name: Ensure rustup is used
+      if: "!startsWith(matrix.os, 'windows')"
+      run: |
+        source $HOME/.cargo/env
+
+    - name: Install MUSL tooling on Linux
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+        sudo apt install -y musl musl-tools
+    - name: Uninstall system libyaml on macOS
+      if: startsWith(matrix.os, 'macos')
+      run: |
+        brew uninstall --ignore-dependencies libyaml
+
+    - name: Install python
+      uses: actions/setup-python@v1
+      with:
+        python-version: '3.7'
+
+    - name: Cache cargo registry
+      uses: actions/cache@v1
+      with:
+        path: ~/.cargo/registry
+        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+    - name: Cache cargo index
+      uses: actions/cache@v1
+      with:
+        path: ~/.cargo/git
+        key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+    - name: Cache cargo bin dir
+      uses: actions/cache@v1
+      with:
+        path: ~/.cargo/bin
+        key: ${{ runner.os }}-cargo-bin-${{ env.RUST_VERSION }}
+    - name: Cache cargo target dir
+      uses: actions/cache@v1
+      with:
+        path: target
+        key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+    - name: Cache pyoxidizer build dir
+      uses: actions/cache@v1
+      with:
+        path: build
+        key: ${{ runner.os }}-pyoxidizer-build-${{ hashFiles('**/pyoxidizer.bzl') }}
+
+    - name: Install pyoxidizer
+      run: |
+        which pyoxidizer || cargo "+$RUST_VERSION" install pyoxidizer --vers ${{ env.PYOXIDIZER_VERSION }}
+
+    - name: Build
+      uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --all --release
+        toolchain: ${{ env.RUST_VERSION }}
+
+    - name: collect artifact on Linux
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+        mkdir -pv dist
+        cp target/release/kbdgen dist/
+        strip dist/kbdgen
+    - name: collect artifact on macOS
+      if: startsWith(matrix.os, 'macos')
+      run: |
+        mkdir -pv dist
+        cp target/release/kbdgen dist/
+        strip dist/kbdgen
+    - name: collect artifact on Windows
+      if: startsWith(matrix.os, 'windows')
+      run: |
+        mkdir dist
+        cp target\release\kbdgen.exe dist\
+    - uses: actions/upload-artifact@v1
+      with:
+        name: kbdgen-${{ runner.os }}
+        path: dist
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Get Package Version
+        run: echo ::set-env name=PACKAGE_VERSION::$(cargo metadata --no-deps --format-version=1 | jq -r '.packages[] | select(.name == "$PKG_NAME") | .version')
+      - name: Download Linux Binary
+        uses: actions/download-artifact@v1
+        with:
+          name: ubuntu-latest
+      - name: Download Windows Binary
+        uses: actions/download-artifact@v1
+        with:
+          name: windows-latest
+      - name: Download macOS Binary
+        uses: actions/download-artifact@v1
+        with:
+          name: macOS-latest
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ format('v{0}', env.PACKAGE_VERSION) }}
+          release_name: Release ${{ env.PACKAGE_VERSION }}
+          draft: true
+
+      - name: Upload artifact Linux
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./ubuntu-latest/kbdgen
+          asset_name: kbdgen_${{ env.PACKAGE_VERSION }}_linux_amd64
+          asset_content_type: application/octet-stream
+      - name: Upload artifact Windows
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./windows-latest/kbdgen.exe
+          asset_name: kbdgen_${{ env.PACKAGE_VERSION }}_windows_amd64.exe
+          asset_content_type: application/octet-stream
+      - name: Upload artifact macOS
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./macOS-latest/kbdgen
+          asset_name: kbdgen_${{ env.PACKAGE_VERSION }}_macos_amd64
+          asset_content_type: application/octet-stream
