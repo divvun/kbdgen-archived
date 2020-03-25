@@ -441,8 +441,7 @@ impl BuildCommands {
                 layout,
                 &*project_path.to_str().unwrap(),
             ],
-            M17n { .. } |
-            X11 { .. } => unreachable!("covered in previous match"),
+            M17n { .. } | X11 { .. } => unreachable!("covered in previous match"),
         };
 
         if let Some(gh_username) = github_username {
@@ -523,16 +522,14 @@ fn launch_py_kbdgen(args: &[&str]) -> i32 {
 fn launch_repl() -> i32 {
     let config = python_config();
     match MainPythonInterpreter::new(config) {
-        Ok(mut interp) => {
-            match interp.run_repl() {
-                Ok(_) => 0,
-                Err(msg) => {
-                    let py = interp.acquire_gil();
-                    msg.print(py);
-                    1
-                }
+        Ok(mut interp) => match interp.run_repl() {
+            Ok(_) => 0,
+            Err(msg) => {
+                let py = interp.acquire_gil();
+                msg.print(py);
+                1
             }
-        }
+        },
         Err(msg) => {
             eprintln!("{}", msg);
             1
@@ -589,11 +586,7 @@ fn main() {
                         project_path,
                     },
                 build_mode: BuildMode { .. },
-            } => kbdgen::cli::to_m17n_mim::kbdgen_to_mim(
-                &project_path,
-                &output_path,
-            )
-            .unwrap(),
+            } => kbdgen::cli::to_m17n_mim::kbdgen_to_mim(&project_path, &output_path).unwrap(),
             command => match command.to_py_args(
                 github_username.as_ref().map(|x| &**x),
                 github_token.as_ref().map(|x| &**x),
@@ -624,8 +617,6 @@ fn main() {
             }
         },
 
-        Commands::Repl => {
-            std::process::exit(launch_repl())
-        }
+        Commands::Repl => std::process::exit(launch_repl()),
     }
 }
