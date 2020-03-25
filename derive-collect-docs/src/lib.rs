@@ -1,3 +1,5 @@
+#![allow(clippy::expect_fun_call, clippy::or_fun_call)]
+
 extern crate proc_macro;
 use proc_macro::TokenStream;
 

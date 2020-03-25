@@ -36,6 +36,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
             "yaml" | "yml" => {
                 quote! {
                     #[test]
+                    #[allow(non_snake_case)]
                     fn #test_fn_name() {
                         let input = #content;
                         let _result: #typ = serde_yaml::from_str(&input).unwrap();
@@ -66,6 +67,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
                 "yaml" | "yml" => {
                     quote_spanned! { field.span =>
                         #[test]
+                        #[allow(non_snake_case)]
                         fn #test_fn_name() {
                             #[derive(Debug, serde::Serialize, serde::Deserialize)]
                             struct TestHelper {
