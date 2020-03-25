@@ -1,0 +1,25 @@
+[package]
+name = "py-reqwest"
+version = "0.1.0"
+authors = ["Brendan Molloy <brendan@bbqsrc.net>"]
+edition = "2018"
+
+[dependencies]
+log = "0.4.8"
+reqwest = { version = "0.10.4", default-features = false, features = ["native-tls-vendored", "gzip", "blocking"] }
+
+cpython = "0.4"
+python3-sys = "0.4"
+
+[features]
+default = ["build-mode-extension", "cpython-link-unresolved-static"]
+
+cpython-link-unresolved-static = [
+    "cpython/py-link-mode-unresolved-static",
+    "cpython/python3-sys",
+    "cpython/no-auto-initialize",
+]
+
+build-mode-extension = [
+    "cpython/extension-module"
+]

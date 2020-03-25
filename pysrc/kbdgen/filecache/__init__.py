@@ -2,11 +2,9 @@ import sys
 import os
 import hashlib
 import tempfile
-import urllib.request
-import urllib
+import reqwest
 import shutil
 import json
-import base64
 from urllib.parse import urlparse
 from pathlib import Path
 
@@ -97,13 +95,13 @@ class FileCache:
             repo=repo, branch=branch
         )
 
-        request = urllib.request.Request(url)
+        client = reqwest.Client()
+        request = client.get(url)
+        
         if username is not None and password is not None:
-            b64data = "%s:%s" % (username, password)
-            base64string = base64.b64encode(b64data.encode('utf-8'))
-            request.add_header("Authorization", "Basic %s" % base64string)
-        response = urllib.request.urlopen(request)
-        repo_meta = json.load(response)
+            request = request.basic_auth(username, password)
+        response = request.send()
+        repo_meta = json.loads(response.text())
 
         sha = repo_meta.get("sha", None)
         if sha is None:

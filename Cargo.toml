@@ -11,8 +11,10 @@ repository = "https://github.com/divvun/kbdgen"
 
 [dependencies]
 pyembed = { version = "0.6", default-features = false, features = ["build-mode-pyoxidizer-exe", "cpython-link-unresolved-static"] }
-py-language-tags = { path = "py-language-tags" }
-py-logger = { path = "py-logger" }
+py-language-tags = { path = "modules/language-tags" }
+py-logger = { path = "modules/logger" }
+py-reqwest = { path = "modules/reqwest" }
+
 derive-collect-docs = { path = "derive-collect-docs" }
 
 serde = { version = "1.0.103", features = ["derive"] }
@@ -59,6 +61,6 @@ debug = true
 members = [
     ".",
     "derive-collect-docs",
-    "py-language-tags",
-    "py-logger",
+    "modules/language-tags",
+    "modules/logger",
 ]

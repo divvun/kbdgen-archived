@@ -95,11 +95,11 @@ def make_exe(dist):
     # Invoke `pip install` with our Python distribution to install a single package.
     # `pip_install()` returns objects representing installed files.
     # `add_python_resources()` adds these objects to our embedded context.
-    exe.add_python_resources(dist.pip_install([CWD + "/py-kbdgen"]))
+    exe.add_python_resources(dist.pip_install([CWD + "/pysrc"]))
 
     # Invoke `pip install` using a requirements file and add the collected files
     # to our embedded context.
-    exe.add_python_resources(dist.pip_install(["-r", CWD + "/py-kbdgen/requirements.txt"]))
+    exe.add_python_resources(dist.pip_install(["-r", CWD + "/pysrc/requirements.txt"]))
 
     
 

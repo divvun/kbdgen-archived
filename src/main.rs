@@ -206,6 +206,8 @@ enum Commands {
         #[structopt(subcommand)]
         command: NewCommands,
     },
+    #[structopt(setting(Hidden))]
+    Repl,
 }
 
 #[derive(Debug, StructOpt)]
@@ -468,9 +470,7 @@ impl BuildCommands {
     }
 }
 
-fn launch_py_kbdgen(args: &[&str]) -> i32 {
-    // Load the default Python configuration as derived by the PyOxidizer config
-    // file used at build time.
+fn python_config() -> pyembed::PythonConfig {
     let mut config = default_python_config();
 
     let mod_language_tags = ExtensionModule {
@@ -483,7 +483,19 @@ fn launch_py_kbdgen(args: &[&str]) -> i32 {
         init_func: py_logger::PyInit_rust_logger,
     };
 
-    config.extra_extension_modules = vec![mod_language_tags, mod_logger];
+    let mod_reqwest = ExtensionModule {
+        name: std::ffi::CString::new("reqwest").unwrap(),
+        init_func: py_reqwest::PyInit_reqwest,
+    };
+
+    config.extra_extension_modules = vec![mod_language_tags, mod_logger, mod_reqwest];
+    config
+}
+
+fn launch_py_kbdgen(args: &[&str]) -> i32 {
+    // Load the default Python configuration as derived by the PyOxidizer config
+    // file used at build time.
+    let config = python_config();
 
     // Construct a new Python interpreter using that config, handling any errors
     // from construction.
@@ -501,6 +513,26 @@ fn launch_py_kbdgen(args: &[&str]) -> i32 {
                     .join(", ")
             );
             match interp.run_code(&format!("import kbdgen.cli; kbdgen.cli.run_cli({})", args)) {
+                Ok(_) => 0,
+                Err(msg) => {
+                    let py = interp.acquire_gil();
+                    msg.print(py);
+                    1
+                }
+            }
+        }
+        Err(msg) => {
+            eprintln!("{}", msg);
+            1
+        }
+    }
+}
+
+fn launch_repl() -> i32 {
+    let config = python_config();
+    match MainPythonInterpreter::new(config) {
+        Ok(mut interp) => {
+            match interp.run_repl() {
                 Ok(_) => 0,
                 Err(msg) => {
                     let py = interp.acquire_gil();
@@ -587,5 +619,9 @@ fn main() {
                 std::process::exit(1)
             }
         },
+
+        Commands::Repl => {
+            std::process::exit(launch_repl())
+        }
     }
 }
