@@ -27,7 +27,7 @@ A `kbdgen` project is structed as a bundle named `foo.kbdgen`, where `foo` is na
 the bundle after either a locale or a macrolanguage family in BCP 47 (ie "en-US", "sv", "sr-Cyrl", "smi", etc) format. While this
 requirement is not enforced, it makes identifying the purpose of a bundle much easier.
 
-Below is an exammple of the directory hierarchy of a bundle, with the example of the `smi` Sami macrolanguage family:
+Below is an example of the directory hierarchy of a bundle, with the example of the `smi` Sami macrolanguage family:
 
 ```
 smi.kbdgen
