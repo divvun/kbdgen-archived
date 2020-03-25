@@ -89,6 +89,7 @@ enum BuildCommands {
         build_mode: BuildMode,
     },
 
+    #[structopt(about = "Generates X11 (XKB) output")]
     X11 {
         #[structopt(flatten)]
         in_out: InOutPaths,
@@ -408,7 +409,6 @@ impl BuildCommands {
                 args.push(&*project_path.to_str().unwrap());
                 args
             }
-            M17n { .. } => return Err(From::from("M17n isn't supported in Python".to_string())),
             Qr {
                 in_out:
                     InOutPaths {
@@ -441,6 +441,7 @@ impl BuildCommands {
                 layout,
                 &*project_path.to_str().unwrap(),
             ],
+            M17n { .. } |
             X11 { .. } => unreachable!("covered in previous match"),
         };
 
@@ -579,6 +580,18 @@ fn main() {
                 &project_path,
                 &output_path,
                 &kbdgen::cli::to_xkb::Options { standalone },
+            )
+            .unwrap(),
+            BuildCommands::M17n {
+                in_out:
+                    InOutPaths {
+                        output_path,
+                        project_path,
+                    },
+                build_mode: BuildMode { .. },
+            } => kbdgen::cli::to_m17n_mim::kbdgen_to_mim(
+                &project_path,
+                &output_path,
             )
             .unwrap(),
             command => match command.to_py_args(
