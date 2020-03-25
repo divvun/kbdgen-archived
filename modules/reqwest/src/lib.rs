@@ -6,9 +6,12 @@ use std::cell::RefCell;
 py_class!(class Client |py| {
     data client: reqwest::blocking::Client;
 
-    def __new__(_cls) -> PyResult<Client> {
-        let client = reqwest::blocking::Client::new();
-        Client::create_instance(py, client)
+    def __new__(_cls, user_agent: Option<PyString>) -> PyResult<Client> {
+        let mut client_builder = reqwest::blocking::ClientBuilder::new();
+        if let Some(user_agent) = user_agent {
+            client_builder = client_builder.user_agent(&*user_agent.to_string(py)?);
+        }
+        Client::create_instance(py, client_builder.build().unwrap())
     }
 
     def get(&self, url: PyString) -> PyResult<RequestBuilder> {

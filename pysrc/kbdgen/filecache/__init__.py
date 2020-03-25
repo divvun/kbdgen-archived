@@ -8,6 +8,7 @@ import json
 from urllib.parse import urlparse
 from pathlib import Path
 
+from kbdgen import __version__
 from ..base import get_logger
 from .downloader import stream_download
 
@@ -91,17 +92,24 @@ class FileCache:
         username: str = None,
         password: str = None,
     ) -> str:
+        logger.debug("Github username: %s" % username)
         url = "https://api.github.com/repos/{repo}/commits/{branch}".format(
             repo=repo, branch=branch
         )
 
-        client = reqwest.Client()
+        client = reqwest.Client(user_agent="kbdgen/%s" % __version__)
         request = client.get(url)
         
         if username is not None and password is not None:
             request = request.basic_auth(username, password)
         response = request.send()
-        repo_meta = json.loads(response.text())
+        text = response.text()
+        logger.debug("Data: %s" % text)
+        try:
+            repo_meta = json.loads(text)
+        except Exception as e:
+            logger.error("Error parsing response: %r" % text)
+            raise e
 
         sha = repo_meta.get("sha", None)
         if sha is None:
