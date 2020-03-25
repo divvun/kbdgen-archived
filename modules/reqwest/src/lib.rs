@@ -1,5 +1,6 @@
 use cpython::{
-    py_class, py_class_impl, py_coerce_item, py_module_initializer, PyObject, PyResult, PyString, PyClone, ToPyObject, PythonObject,
+    py_class, py_class_impl, py_coerce_item, py_module_initializer, PyClone, PyObject, PyResult,
+    PyString, PythonObject, ToPyObject,
 };
 use std::cell::RefCell;
 
@@ -90,15 +91,10 @@ py_class!(class RequestBuilder |py| {
     }
 });
 
-py_module_initializer!(
-    reqwest,
-    initreqwest,
-    PyInit_reqwest,
-    |py, m| {
-        m.add(py, "__doc__", "Rust crate reqwest in Python")?;
-        m.add_class::<Client>(py)?;
-        m.add_class::<Request>(py)?;
-        m.add_class::<RequestBuilder>(py)?;
-        Ok(())
-    }
-);
+py_module_initializer!(reqwest, initreqwest, PyInit_reqwest, |py, m| {
+    m.add(py, "__doc__", "Rust crate reqwest in Python")?;
+    m.add_class::<Client>(py)?;
+    m.add_class::<Request>(py)?;
+    m.add_class::<RequestBuilder>(py)?;
+    Ok(())
+});
