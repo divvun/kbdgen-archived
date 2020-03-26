@@ -7,8 +7,6 @@ on:
     types: release
 
 env:
-  PKG_NAME: kbdgen
-
   # "the library kind 'static-nobundle' is only accepted on the nightly compiler"
   RUST_VERSION: nightly-2020-03-12
   PYOXIDIZER_VERSION: 0.6.0
@@ -135,7 +133,7 @@ jobs:
         cp target\release\kbdgen.exe dist\
     - uses: actions/upload-artifact@v1
       with:
-        name: kbdgen-${{ runner.os }}
+        name: kbdgen-${{ matrix.os }}
         path: dist
   release:
     needs: build
@@ -143,19 +141,19 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Get Package Version
-        run: echo ::set-env name=PACKAGE_VERSION::$(cargo metadata --no-deps --format-version=1 | jq -r '.packages[] | select(.name == "$PKG_NAME") | .version')
+        run: echo ::set-env name=PACKAGE_VERSION::$(cargo metadata --no-deps --format-version=1 | jq -r '.packages[] | select(.name == "kbdgen") | .version')
       - name: Download Linux Binary
         uses: actions/download-artifact@v1
         with:
-          name: ubuntu-latest
+          name: kbdgen-ubuntu-latest
       - name: Download Windows Binary
         uses: actions/download-artifact@v1
         with:
-          name: windows-latest
+          name: kbdgen-windows-latest
       - name: Download macOS Binary
         uses: actions/download-artifact@v1
         with:
-          name: macOS-latest
+          name: kbdgen-macOS-latest
 
       - name: Create Release
         id: create_release
@@ -173,7 +171,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./ubuntu-latest/kbdgen
+          asset_path: ./kbdgen-ubuntu-latest/kbdgen
           asset_name: kbdgen_${{ env.PACKAGE_VERSION }}_linux_amd64
           asset_content_type: application/octet-stream
       - name: Upload artifact Windows
@@ -182,7 +180,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./windows-latest/kbdgen.exe
+          asset_path: ./kbdgen-windows-latest/kbdgen.exe
           asset_name: kbdgen_${{ env.PACKAGE_VERSION }}_windows_amd64.exe
           asset_content_type: application/octet-stream
       - name: Upload artifact macOS
@@ -191,6 +189,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./macOS-latest/kbdgen
+          asset_path: ./kbdgen-macOS-latest/kbdgen
           asset_name: kbdgen_${{ env.PACKAGE_VERSION }}_macos_amd64
           asset_content_type: application/octet-stream
