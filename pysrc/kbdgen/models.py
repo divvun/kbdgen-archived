@@ -855,7 +855,6 @@ class TargetIOS:
         sentry_dsn,
         about_dir,
         bhfst,
-        speller_package_id,
     ):
         self.version = version
         self.build = build
@@ -867,7 +866,6 @@ class TargetIOS:
         self.sentry_dsn = sentry_dsn
         self.about_dir = about_dir
         self.bhfst = bhfst
-        self.speller_package_id = speller_package_id
 
     def get_version(self):
         return self.version
@@ -898,9 +896,6 @@ class TargetIOS:
 
     def get_bhfst(self):
         return self.bhfst
-
-    def get_speller_package_id(self):
-        return self.speller_package_id
 
     @staticmethod
     def decode(data):
@@ -978,11 +973,6 @@ class TargetIOS:
                 if not isinstance(f_bhfst, bool):
                     raise Exception("not a boolean")
 
-        f_speller_package_id = None
-
-        if "spellerPackageId" in data:
-            f_speller_package_id = data["spellerPackageId"]
-
         return TargetIOS(
             f_version,
             f_build,
@@ -994,7 +984,6 @@ class TargetIOS:
             f_sentry_dsn,
             f_about_dir,
             f_bhfst,
-            f_speller_package_id,
         )
 
     def encode(self):
