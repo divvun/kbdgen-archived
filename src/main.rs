@@ -425,23 +425,9 @@ impl BuildCommands {
                 layout,
                 &*project_path.to_str().unwrap(),
             ],
-            ErrorModel {
-                in_out:
-                    InOutPaths {
-                        output_path,
-                        project_path,
-                    },
-                layout,
-            } => vec![
-                "-t",
-                "errormodel",
-                "-o",
-                &*output_path.to_str().unwrap(),
-                "--command",
-                layout,
-                &*project_path.to_str().unwrap(),
-            ],
-            M17n { .. } | X11 { .. } => unreachable!("covered in previous match"),
+            ErrorModel { .. } | M17n { .. } | X11 { .. } => {
+                unreachable!("covered in previous match")
+            }
         };
 
         if let Some(gh_username) = github_username {
@@ -538,11 +524,6 @@ fn launch_repl() -> i32 {
 }
 
 fn main() {
-    env_logger::Builder::from_default_env()
-        .filter(Some("kbdgen"), log::LevelFilter::Info)
-        .target(env_logger::Target::Stderr)
-        .init();
-
     let opt = Opts::from_args();
 
     let logging = match &*opt.logging {
@@ -556,6 +537,13 @@ fn main() {
             std::process::exit(1);
         }
     };
+
+    env_logger::Builder::from_default_env()
+        .filter(Some("kbdgen"), logging.to_level_filter())
+        .target(env_logger::Target::Stderr)
+        .init();
+
+    // info!("logging mode {}", logging);
 
     std::env::set_var("RUST_LOG", logging.to_string());
 
@@ -587,6 +575,28 @@ fn main() {
                     },
                 build_mode: BuildMode { .. },
             } => kbdgen::cli::to_m17n_mim::kbdgen_to_mim(&project_path, &output_path).unwrap(),
+            BuildCommands::ErrorModel {
+                in_out:
+                    InOutPaths {
+                        output_path,
+                        project_path,
+                    },
+                layout,
+            } => {
+                kbdgen::cli::to_errormodel::kbdgen_to_errormodel(
+                    &project_path,
+                    &output_path,
+                    &kbdgen::cli::to_errormodel::Options { layout },
+                )
+                .unwrap()
+                // "-t",
+                // "errormodel",
+                // "-o",
+                // &*output_path.to_str().unwrap(),
+                // "--layout",
+                // layout,
+                // &*project_path.to_str().unwrap(),
+            }
             command => match command.to_py_args(
                 github_username.as_ref().map(|x| &**x),
                 github_token.as_ref().map(|x| &**x),

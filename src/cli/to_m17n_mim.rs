@@ -1,4 +1,4 @@
-use crate::{m17n_mim::*, models::DesktopModes, Load, ProjectBundle};
+use crate::{bundle::keys::KeyValue, m17n_mim::*, models::DesktopModes, Load, ProjectBundle};
 use log::{debug, log_enabled};
 use std::{
     collections::BTreeMap,
@@ -128,7 +128,7 @@ fn desktop_mode_to_keyboard(
                 key: key_code,
             });
 
-            if let Some(key) = key_val.0.as_ref() {
+            if let KeyValue::Symbol(key) = key_val {
                 if key.is_empty() {
                     continue;
                 }

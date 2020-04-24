@@ -5,8 +5,4 @@
 
 
 
-.Fields
-* `unnamed internal field #0` _(optional)_
-+
-Type: `String`
 

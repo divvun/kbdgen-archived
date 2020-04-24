@@ -1,5 +1,6 @@
 use super::{Key, Symbols, XkbFile, XkbKeySym};
 use crate::{
+    bundle::keys::KeyValue,
     models::{DesktopModes, Layout},
     utils::UnwrapOrUnknownExt,
 };
@@ -102,7 +103,11 @@ fn collect_keys(key_map: &DesktopModes, _default: Option<&Symbols>) -> Result<Ve
     for (iso_code, default) in &*default {
         res.push(Key {
             iso_code: iso_code.to_string(),
-            default: default.0.clone().map(XkbKeySym),
+            default: if let KeyValue::Symbol(s) = default {
+                Some(XkbKeySym(s.to_owned()))
+            } else {
+                None
+            },
             shift: shift.get_string(*iso_code).map(XkbKeySym),
             alt: alt.get_string(*iso_code).map(XkbKeySym),
             alt_shift: alt_shift.get_string(*iso_code).map(XkbKeySym),
@@ -145,9 +150,12 @@ fn collect_dead_keys(
         for key in map {
             let (iso_code, value) = parent_key
                 .iter()
-                .find(|(_iso, value)| value.0.as_ref() == Some(key))
+                .find(|(_iso, value)| match value {
+                    KeyValue::Symbol(value) => key == value,
+                    _ => false,
+                })
                 .expect("dead key not in parent mode");
-            let value = value.0.as_ref().unwrap();
+            let value = value.to_string();
 
             let mut key = overwritten_keys.entry(iso_code).or_insert_with(|| Key {
                 iso_code: iso_code.to_string(),

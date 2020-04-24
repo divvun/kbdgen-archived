@@ -1,23 +1,33 @@
+use bigdecimal::BigDecimal;
 use derive_collect_docs::CollectDocs;
 use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{de::Deserializer, ser::Serializer, Deserialize, Serialize};
-use shrinkwraprs::Shrinkwrap;
 use thiserror::Error;
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-#[derive(Shrinkwrap, CollectDocs)]
-pub struct KeyValue(pub Option<String>);
+#[derive(Clone, Debug, PartialEq, PartialOrd, Eq, Ord)]
+#[derive(CollectDocs)]
+pub enum KeyValue {
+    Symbol(String),
+    Special { id: String, width: BigDecimal },
+    None,
+}
 
 impl From<Option<String>> for KeyValue {
     fn from(x: Option<String>) -> Self {
-        KeyValue(x)
+        x.map(KeyValue::Symbol).unwrap_or(KeyValue::None)
     }
 }
 
 impl From<String> for KeyValue {
     fn from(x: String) -> Self {
-        KeyValue(Some(x))
+        KeyValue::Symbol(x)
+    }
+}
+
+impl ToString for KeyValue {
+    fn to_string(&self) -> String {
+        serialize(self)
     }
 }
 
@@ -27,7 +37,7 @@ impl<'de> Deserialize<'de> for KeyValue {
         D: Deserializer<'de>,
     {
         let x: &str = Deserialize::deserialize(deserializer)?;
-        Ok(KeyValue(deserialize(x)))
+        Ok(deserialize(x))
     }
 }
 
@@ -36,22 +46,57 @@ impl Serialize for KeyValue {
     where
         S: Serializer,
     {
-        let KeyValue(v) = self;
-        serializer.serialize_str(&serialize(v))
+        serializer.serialize_str(&serialize(self))
     }
 }
 
-pub fn deserialize(input: &str) -> Option<String> {
-    if input == r"\u{0}" {
-        None
+pub fn deserialize_special(input: &str) -> Option<KeyValue> {
+    lazy_static! {
+        static ref RE: Regex =
+            Regex::new(r"^\\s\{([^}:]+)(?::(\d+(?:\.\d+)?))?\}$").expect("valid regex");
+    }
+
+    // Symbol syntax \s{id:width}, or with optional width defaulting to 1.0, \s{id}
+    RE.captures(input).map(|cap| KeyValue::Special {
+        id: match cap.get(1).unwrap().as_str() {
+            id if id.starts_with('"') && id.ends_with('"') => id.to_owned(),
+            id => format!("_{}", id),
+        },
+        width: cap
+            .get(2)
+            .and_then(|v| v.as_str().parse::<BigDecimal>().ok())
+            .unwrap_or_else(|| BigDecimal::from(1.0)),
+    })
+}
+
+pub fn deserialize(input: &str) -> KeyValue {
+    if let Some(special) = deserialize_special(input) {
+        special
+    } else if input == r"\u{0}" {
+        KeyValue::None
     } else {
-        Some(decode_unicode_escapes(input))
+        KeyValue::Symbol(decode_unicode_escapes(input))
     }
 }
 
-pub fn serialize(input: &Option<String>) -> String {
-    if let Some(input) = input {
-        decode_unicode_escapes(input)
+pub fn serialize_special(id: &str, width: &BigDecimal) -> String {
+    let id = if id.starts_with('"') && id.ends_with('"') {
+        id
+    } else {
+        &id[1..]
+    };
+
+    if width == &BigDecimal::from(1.0) {
+        format!("\\s{{{}}}", id)
+    } else {
+        format!("\\s{{{}:{:.2}}}", id, width)
+    }
+}
+
+pub fn serialize(input: &KeyValue) -> String {
+    match input {
+        KeyValue::Special { id, width } => serialize_special(id, width),
+        KeyValue::Symbol(input) => decode_unicode_escapes(input)
             .chars()
             .map(|c| {
                 let char_category = unic_ucd_category::GeneralCategory::of(c);
@@ -65,9 +110,8 @@ pub fn serialize(input: &Option<String>) -> String {
                     c.to_string()
                 }
             })
-            .collect()
-    } else {
-        String::from(r"\u{0}")
+            .collect(),
+        _ => String::from(r"\u{0}"),
     }
 }
 
@@ -99,7 +143,7 @@ pub enum Error {
 #[cfg(test)]
 #[allow(clippy::unnecessary_operation)]
 mod tests {
-    use super::{decode_unicode_escapes, deserialize, serialize};
+    use super::{decode_unicode_escapes, deserialize, deserialize_special, serialize, KeyValue};
     use proptest::prelude::*;
 
     #[test]
@@ -123,6 +167,29 @@ mod tests {
         }
     }
 
+    #[test]
+    fn roundtrips_special_chars() {
+        let x = r"0 1 2 3 4 5 6 7 8 9 0 \u{1F} = \
+            \u{11} \u{17} \u{5} \u{12} \u{14} \u{19} \u{15} \u{9} \s{sdsda:1.50} \u{10} \u{1B} \u{1D} \
+            \u{1} \u{13} \u{4} \s{hello:1.05} \u{7} \u{8} \u{A} \u{B} \u{C} ; ' \u{1C} \
+            ` \s{casdc:1.20} \u{18} \u{3} \u{16} \u{2} \u{E} \s{helvfvflo} , . /";
+
+        for s in x.split_whitespace() {
+            assert_eq!(s.to_lowercase(), serialize(&deserialize(&s)));
+        }
+    }
+
+    #[test]
+    fn special_chars() {
+        assert_eq!(
+            deserialize_special(r"\s{hello:1.00}"),
+            Some(KeyValue::Special {
+                id: "_hello".to_owned(),
+                width: 1.0.into()
+            })
+        )
+    }
+
     proptest! {
         #[test]
         fn doesnt_crash(s in ".") {
@@ -133,13 +200,13 @@ mod tests {
         fn escape_unicode_rountrip(c: char) {
             prop_assume!(c != '\u{0}');
             let esc = c.escape_unicode().to_string();
-            assert_eq!(c.to_string(), deserialize(&esc).unwrap());
+            assert_eq!(KeyValue::Symbol(c.to_string()), deserialize(&esc));
         }
 
         #[test]
         fn unescape_unicode_rountrip(c: char) {
             prop_assume!(c != '\u{0}');
-            assert_eq!(c.to_string(), deserialize(&serialize(&Some(c.to_string()))).unwrap());
+            assert_eq!(KeyValue::Symbol(c.to_string()), deserialize(&serialize(&KeyValue::Symbol(c.to_string()))));
         }
     }
 }

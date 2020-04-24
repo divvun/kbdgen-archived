@@ -46,7 +46,10 @@ impl Default for DesktopKeyMap {
 
 impl DesktopKeyMap {
     pub fn get_string(&self, key: IsoKey) -> Option<String> {
-        self.get(&key).and_then(|k| k.0.clone())
+        self.get(&key).and_then(|k| match k {
+            KeyValue::Symbol(k) => Some(k.to_owned()),
+            _ => None,
+        })
     }
 }
 
@@ -98,7 +101,7 @@ impl FromStr for DesktopKeyMap {
             .lines()
             .flat_map(|l| l.split_whitespace())
             .zip(IsoKey::iter())
-            .map(|(val, key)| Ok((key, keys::KeyValue(keys::deserialize(val)))))
+            .map(|(val, key)| Ok((key, keys::deserialize(val))))
             .collect();
 
         Ok(DesktopKeyMap(map?))
@@ -107,7 +110,7 @@ impl FromStr for DesktopKeyMap {
 
 impl fmt::Display for DesktopKeyMap {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let keys: Vec<String> = self.0.values().map(|v| keys::serialize(&v.0)).collect();
+        let keys: Vec<String> = self.0.values().map(|v| keys::serialize(&v)).collect();
         let width = keys
             .iter()
             .map(|x| unic_segment::Graphemes::new(x).count())
@@ -166,10 +169,10 @@ a s d f g h j k l ö ä
 "#
 )]
 #[derive(Debug, Clone, PartialEq, Eq, CollectDocs)]
-pub struct MobileKeyMap(pub(crate) Vec<Vec<String>>);
+pub struct MobileKeyMap(pub(crate) Vec<Vec<KeyValue>>);
 
 impl MobileKeyMap {
-    pub fn iter(&self) -> impl Iterator<Item = &String> {
+    pub fn iter(&self) -> impl Iterator<Item = &KeyValue> {
         self.0.iter().flatten()
     }
 }
@@ -182,7 +185,11 @@ impl<'de> Deserialize<'de> for MobileKeyMap {
         let s = String::deserialize(deserializer)?;
         Ok(MobileKeyMap(
             s.lines()
-                .map(|l| l.split_whitespace().map(String::from).collect())
+                .map(|l| {
+                    l.split_whitespace()
+                        .map(|val| keys::deserialize(val))
+                        .collect()
+                })
                 .collect(),
         ))
     }
@@ -193,7 +200,16 @@ impl Serialize for MobileKeyMap {
     where
         S: Serializer,
     {
-        let lines: Vec<String> = self.0.iter().map(|line| line.join(" ")).collect();
+        let lines: Vec<String> = self
+            .0
+            .iter()
+            .map(|line| {
+                line.iter()
+                    .map(keys::serialize)
+                    .collect::<Vec<String>>()
+                    .join(" ")
+            })
+            .collect();
         let max_len = lines.iter().map(|x| x.trim().len()).max().unwrap_or(0);
 
         let mut res = String::new();

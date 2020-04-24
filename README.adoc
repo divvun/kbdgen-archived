@@ -22,7 +22,7 @@ so end users don't have to concern themselves with installing additional depende
 so you can compile the Python interpreter and its standard library.
 
 .. Install the pyoxidizer version.
-The quickest way is using `cargo install pyoxidizer -vers 0.6.0`.
+The quickest way is using `cargo install pyoxidizer --vers 0.6.0`.
 
 . Build the project using `cargo build`.
 

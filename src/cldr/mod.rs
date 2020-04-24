@@ -105,7 +105,20 @@ impl Keyboard {
 
         for key_map in self.key_maps.iter() {
             let layer = MobileLayer::from(key_map);
-            out.insert(layer.mode, MobileKeyMap(layer.keys));
+            out.insert(
+                layer.mode,
+                MobileKeyMap(
+                    layer
+                        .keys
+                        .iter()
+                        .map(|row| {
+                            row.iter()
+                                .map(|key| keys::KeyValue::from(key.to_owned()))
+                                .collect()
+                        })
+                        .collect(),
+                ),
+            );
         }
 
         MobileModes(out)
@@ -133,7 +146,7 @@ impl Keyboard {
             for (letter, n, value) in layer.iter() {
                 let k = format!("{}{:02}", letter, n);
                 if let Ok(v) = IsoKey::from_str(&k) {
-                    keys_out.insert(v, keys::KeyValue(value.map(|s| s.into())));
+                    keys_out.insert(v, keys::KeyValue::from(value.map(|s| s.into())));
                 }
             }
 
