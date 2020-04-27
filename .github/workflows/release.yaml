@@ -136,7 +136,7 @@ jobs:
         mkdir dist
         cp target\release\kbdgen.exe dist\
         cd dist
-        7z a -ttar -so -an kbdgen.exe | 7z a -txz -mx9 -si kbdgen.tar.xz
+        7z a -ttar -so -an kbdgen.exe | 7z a -txz -si kbdgen.tar.xz
     - uses: actions/upload-artifact@v1
       with:
         name: kbdgen-${{ matrix.os }}
@@ -186,8 +186,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./kbdgen-windows-latest/kbdgen.tar.xz
-          asset_name: kbdgen_${{ env.PACKAGE_VERSION }}_windows_amd64.tar.xz
+          asset_path: ./kbdgen-windows-latest/kbdgen.exe
+          asset_name: kbdgen_${{ env.PACKAGE_VERSION }}_windows_amd64.exe
           asset_content_type: application/octet-stream
       - name: Upload artifact macOS
         uses: actions/upload-release-asset@v1
