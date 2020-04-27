@@ -128,7 +128,9 @@ enum BuildCommands {
         layout: String,
     },
 
-    #[structopt(setting(Hidden))]
+    #[structopt(
+        about = "Generates a key distance error model from the ios default layout of the input kbdgen project and outputs it in ATT format"
+    )]
     ErrorModel {
         #[structopt(flatten)]
         in_out: InOutPaths,
