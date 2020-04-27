@@ -787,7 +787,7 @@ class OSXKeyLayout:
             root.remove(terminators)
 
         return self.doctype + etree.tostring(
-            root, encoding="unicode", pretty_print=True
+            root, encoding="unicode"
         )
 
     def __init__(self, name, id_):
@@ -797,7 +797,6 @@ class OSXKeyLayout:
         self.elements = {}
 
         root = Element("keyboard", group="126", id=id_, name=name)
-        root.doctype = self.doctype
         self.elements["root"] = root
 
         self.elements["layouts"] = SubElement(root, "layouts")

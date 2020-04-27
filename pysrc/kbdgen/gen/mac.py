@@ -318,9 +318,10 @@ class MacGenerator(PhysicalGenerator):
                 SubElement(root, key, file=fn)
 
         with open(dist_fn, "wb") as f:
+            f.write(b'<?xml version="1.1" encoding="UTF-8"?>')
             f.write(
                 etree.tostring(
-                    root, xml_declaration=True, encoding="utf-8", pretty_print=True
+                    root, encoding="utf-8"
                 )
             )
 
