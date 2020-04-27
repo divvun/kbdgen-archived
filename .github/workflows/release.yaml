@@ -94,6 +94,8 @@ jobs:
         key: ${{ runner.os }}-cargo-bin-${{ env.RUST_VERSION }}
     - name: Cache cargo target dir
       uses: actions/cache@v1
+      # can't do this on osx, as pyoxidizer won't rebuild the python sources
+      if: "!startsWith(matrix.os, 'macos')"
       with:
         path: target
         key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
@@ -168,7 +170,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ format('v{0}', env.PACKAGE_VERSION) }}
-          release_name: Release ${{ env.PACKAGE_VERSION }}
+          release_name: kbdgen ${{ env.PACKAGE_VERSION }}
           draft: true
 
       - name: Upload artifact Linux
