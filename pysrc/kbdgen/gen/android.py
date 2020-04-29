@@ -309,10 +309,17 @@ class AndroidGenerator(Generator):
 
         for locale, layout in layouts.items():
             logger.info("Adding layout configuration JSON for '%s'…" % locale)
-            o = {
-                "deadKeys": layout.dead_keys.get("android", {}),
-                "transforms": layout.transforms
-            }
+            o = {}
+
+            if layout.dead_keys is not None:
+                o["deadKeys"] = layout.dead_keys.get("android", {})
+            else:
+                o["deadKeys"] = {}
+            
+            if layout.transforms is not None:
+                o["transforms"] = layout.transforms
+            else:
+                o["transforms"] = {}
 
             pahkat_key = self.layout_target(layout).get("spellerPackageKey", None)
             speller_path = self.layout_target(layout).get("spellerPath", None)
@@ -919,8 +926,11 @@ ext.app = [
                 self.add_button_type(key, action, row, tree, is_start)
 
     def _is_dead_key(self, kbd, mode, key):
-        # TODO: use LayoutView
-        return key in kbd.dead_keys.get("android", {}).get(mode, [])
+        if kbd.dead_keys is None:
+            return False
+        dead_keys_android = kbd.dead_keys.get("android", {})
+        dead_keys = dead_keys_android.get(mode, [])
+        return key in dead_keys
 
     def add_rows(self, kbd, n, values, style, out, mode):
         i = 1
