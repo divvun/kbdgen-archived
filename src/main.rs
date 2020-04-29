@@ -591,13 +591,6 @@ fn main() {
                     &kbdgen::cli::to_errormodel::Options { layout },
                 )
                 .unwrap()
-                // "-t",
-                // "errormodel",
-                // "-o",
-                // &*output_path.to_str().unwrap(),
-                // "--layout",
-                // layout,
-                // &*project_path.to_str().unwrap(),
             }
             command => match command.to_py_args(
                 github_username.as_ref().map(|x| &**x),
