@@ -308,11 +308,20 @@ class AndroidGenerator(Generator):
         os.makedirs(json_path, exist_ok=True)
 
         for locale, layout in layouts.items():
-            logger.info("Adding dead keys and transforms data for '%s'…" % locale)
+            logger.info("Adding layout configuration JSON for '%s'…" % locale)
             o = {
                 "deadKeys": layout.dead_keys.get("android", {}),
                 "transforms": layout.transforms
             }
+
+            pahkat_key = self.layout_target(layout).get("spellerPackageKey", None)
+            speller_path = self.layout_target(layout).get("spellerPath", None)
+            if pahkat_key is not None and speller_path is not None:
+                o["speller"] = {
+                    "path": speller_path,
+                    "packageUrl": pahkat_key
+                }
+
             o = json.dumps(o, indent=2, ensure_ascii=False)
             with open(os.path.join(json_path, "%s.json" % locale), 'w') as f:
                 f.write(o)

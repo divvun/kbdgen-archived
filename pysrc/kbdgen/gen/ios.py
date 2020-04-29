@@ -772,9 +772,12 @@ class AppleiOSGenerator(Generator):
         plist["NSExtension"]["NSExtensionAttributes"]["PrimaryLanguage"] = locale
         plist["DivvunKeyboardIndex"] = n
 
-        pahkat_id = self.layout_target(layout).get("spellerPackageId", {})
-        if pahkat_id is not None:
-            plist["DivvunPackageId"] = pahkat_id
+        pahkat_key = self.layout_target(layout).get("spellerPackageKey", None)
+        speller_path = self.layout_target(layout).get("spellerPath", None)
+
+        if pahkat_key is not None and speller_path is not None:
+            plist["DivvunSpellerPackageKey"] = pahkat_key
+            plist["DivvunSpellerPath"] = speller_path
 
         dsn = self.ios_target.sentry_dsn
         if dsn is not None:
