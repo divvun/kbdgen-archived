@@ -448,7 +448,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
-<li><a href="#introduction_to_kbdgen_2_0_0_alpha_2">1. Introduction to kbdgen 2.0.0-alpha.3</a>
+<li><a href="#introduction_to_kbdgen_2_0_0_alpha_6">1. Introduction to kbdgen 2.0.0-alpha.6</a>
 <ul class="sectlevel2">
 <li><a href="#what_is_kbdgen">1.1. What is kbdgen?</a></li>
 <li><a href="#supported_targets">1.2. Supported targets</a></li>
@@ -554,7 +554,7 @@ an issue on GitHub.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="introduction_to_kbdgen_2_0_0_alpha_2"><a class="link" href="#introduction_to_kbdgen_2_0_0_alpha_2">1. Introduction to kbdgen 2.0.0-alpha.3</a></h2>
+<h2 id="introduction_to_kbdgen_2_0_0_alpha_6"><a class="link" href="#introduction_to_kbdgen_2_0_0_alpha_6">1. Introduction to kbdgen 2.0.0-alpha.6</a></h2>
 <div class="sectionbody">
 <div class="sect2">
 <h3 id="what_is_kbdgen"><a class="link" href="#what_is_kbdgen">1.1. What is kbdgen?</a></h3>
@@ -648,7 +648,7 @@ the bundle after either a locale or a macrolanguage family in BCP 47 (ie "en-US"
 requirement is not enforced, it makes identifying the purpose of a bundle much easier.</p>
 </div>
 <div class="paragraph">
-<p>Below is an exammple of the directory hierarchy of a bundle, with the example of the <code>smi</code> Sami macrolanguage family:</p>
+<p>Below is an example of the directory hierarchy of a bundle, with the example of the <code>smi</code> Sami macrolanguage family:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1721,7 +1721,7 @@ For a list of all supported properties of the Android target files, see <a href=
 </table>
 </div>
 <div class="listingblock">
-<div class="title">A full example of the targets section for Android</div>
+<div class="title">A full example of the targets section for Windows</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">appName</span>: <span class="string"><span class="content">New Fancy Keyboards</span></span>
 <span class="key">version</span>: <span class="string"><span class="content">1.0.2</span></span>
@@ -1746,7 +1746,7 @@ See <a href="#layouttargetwindows">LayoutTargetWindows</a> in the reference sect
 </table>
 </div>
 <div class="listingblock">
-<div class="title">Example of the layout-level targets section for Chrome</div>
+<div class="title">Example of the layout-level targets section for Windows</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="yaml"><span class="key">targets</span>:
   <span class="key">win</span>:
@@ -1756,55 +1756,18 @@ See <a href="#layouttargetwindows">LayoutTargetWindows</a> in the reference sect
 </div>
 <div class="sect4">
 <h5 id="preparing_build_environment"><a class="link" href="#preparing_build_environment">Preparing build environment</a></h5>
-<div class="sect5">
-<h6 id="building_the_windows_target_on_unix_like_operating_systems"><a class="link" href="#building_the_windows_target_on_unix_like_operating_systems">Building the Windows target on Unix-like operating systems</a></h6>
 <div class="paragraph">
-<p>You will need to install:</p>
+<p>Download and install these dependencies:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>wine</p>
-</li>
-<li>
-<p>winetricks</p>
-</li>
-</ul>
-</div>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-warning" title="Warning"></i>
-</td>
-<td class="content">
-You will need to use wine in 32-bit mode. If you are concerned or unsure, just set WINEARCH="win32" in your environment before beginning.
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>Run <code>wine</code> at least once to generate a wine prefix.</p>
-</div>
-<div class="paragraph">
-<p>Run <code>winetricks -q dotnet20</code> to install .NET Framework 2.0, required by the keyboard layout creator tools.</p>
-</div>
-<div class="paragraph">
-<p>Download and install the following dependencies into your wine prefix:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><a href="http://www.jrsoftware.org/download.php/is-unicode.exe">Inno Setup 5 (Unicode)</a></p>
+<p><a href="https://jrsoftware.org/download.php/is.exe">Inno Setup 6</a></p>
 </li>
 <li>
 <p><a href="https://download.microsoft.com/download/1/1/8/118aedd2-152c-453f-bac9-5dd8fb310870/MSKLC.exe">Microsoft Keyboard Layout Creator</a></p>
 </li>
 </ul>
-</div>
-<div class="paragraph">
-<p>Now when you generate the release version of the <code>win</code> target, an installer will be generated that is fully compatible with Windows systems.</p>
-</div>
 </div>
 </div>
 <div class="sect4">
@@ -1812,19 +1775,22 @@ You will need to use wine in 32-bit mode. If you are concerned or unsure, just s
 <div class="ulist">
 <ul>
 <li>
-<p>Windows does not support Unicode glyphbombs ("grapheme clusters") in deadkeys,
+<p>Windows does not support Unicode grapheme clusters in deadkeys,
 but does support them as ordinary keys.</p>
 </li>
 <li>
-<p>Using <code>iso-caps</code> and <code>iso-caps+shift</code> with Windows is limited to single
-codepoints, as the glyphbomb limitation also applies here.</p>
+<p>Using <code>caps</code> and <code>caps+shift</code> with Windows is limited to single
+codepoints, as the grapheme cluster limitation also applies here.</p>
 </li>
 <li>
 <p>Windows keyboard identifiers must be unique, are 8 characters long and
 begin with <code>kbd</code>. The next 5 characters are generated from the next 5
-alphanumeric characters of the keyboard&#8217;s <code>internalName</code>. For example, if
-the <code>internalName</code> of a keyboard is <code>se-1-foo</code>, the internal keyboard name
-for Windows will be <code>kbdse1fo</code>.</p>
+alphanumeric characters of the keyboard&#8217;s <code>locale</code>. For example, if
+the <code>locale</code> of a keyboard is <code>smn-Latn-NO</code>, the internal keyboard name
+for Windows will be <code>kbdsmnla</code>.</p>
+</li>
+<li>
+<p>This behaviour can be overriden by specifying a name to use in the targets section. TODO: what is the specific text needed?</p>
 </li>
 <li>
 <p>If a keyboard is generated with erroneous data, MSKLC does not provide any
@@ -1840,27 +1806,27 @@ investigation.</p>
 <div class="dlist">
 <div class="title">Mappings from kbdgen modes to Windows keyboards</div>
 <dl>
-<dt class="hdlist1">iso-default</dt>
+<dt class="hdlist1">default</dt>
 <dd>
 <p>Base keyboard</p>
 </dd>
-<dt class="hdlist1">iso-shift</dt>
+<dt class="hdlist1">shift</dt>
 <dd>
 <p>Shift pressed</p>
 </dd>
-<dt class="hdlist1">iso-alt</dt>
+<dt class="hdlist1">alt</dt>
 <dd>
 <p>AltGr (or Ctrl+Alt if keyboard missing AltGr) pressed</p>
 </dd>
-<dt class="hdlist1">iso-alt+shift</dt>
+<dt class="hdlist1">alt+shift</dt>
 <dd>
 <p>AltGr plus shift</p>
 </dd>
-<dt class="hdlist1">iso-caps+alt</dt>
+<dt class="hdlist1">caps+alt</dt>
 <dd>
 <p>AltGr plus caps lock</p>
 </dd>
-<dt class="hdlist1">iso-ctrl</dt>
+<dt class="hdlist1">ctrl</dt>
 <dd>
 <p>Ctrl pressed (mostly will not work due to OS-level key combinations overriding this layer)</p>
 </dd>
@@ -1869,11 +1835,11 @@ investigation.</p>
 <div class="dlist">
 <div class="title">Special cased mappings</div>
 <dl>
-<dt class="hdlist1">iso-caps</dt>
+<dt class="hdlist1">caps</dt>
 <dd>
 <p>Caps lock enabled</p>
 </dd>
-<dt class="hdlist1">iso-caps+shift</dt>
+<dt class="hdlist1">caps+shift</dt>
 <dd>
 <p>Caps lock and shift pressed</p>
 </dd>
