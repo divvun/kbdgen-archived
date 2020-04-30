@@ -311,11 +311,6 @@ class AndroidGenerator(Generator):
             logger.info("Adding layout configuration JSON for '%s'…" % locale)
             o = {}
 
-            if layout.dead_keys is not None:
-                o["deadKeys"] = layout.dead_keys.get("android", {})
-            else:
-                o["deadKeys"] = {}
-            
             if layout.transforms is not None:
                 o["transforms"] = layout.transforms
             else:
