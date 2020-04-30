@@ -332,7 +332,7 @@ class AndroidGenerator(Generator):
             if self.layout_target(layout).get("spellerPackageKey", None) is not None:
                 locales.append(locale)
 
-        if locales.len() == 0:
+        if len(locales) == 0:
             locale.info("No speller keys to inject.")
             return
 
