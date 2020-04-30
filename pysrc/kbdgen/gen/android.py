@@ -333,10 +333,10 @@ class AndroidGenerator(Generator):
                 locales.append(locale)
 
         if len(locales) == 0:
-            locale.info("No speller keys to inject.")
+            logger.info("No speller keys to inject.")
             return
 
-        locale.info("Injecting speller keys for locales: [%s]" % (", ".join(locales)))
+        logger.info("Injecting speller keys for locales: [%s]" % (", ".join(locales)))
 
         path = os.path.join(
             build_dir, "deps", self.REPO, "app/src/main/res", "xml", "spellchecker.xml"
