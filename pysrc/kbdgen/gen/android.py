@@ -2,7 +2,6 @@ import copy
 import os.path
 import shutil
 import sys
-import glob
 import subprocess
 from collections import defaultdict, OrderedDict, namedtuple
 from pathlib import Path
@@ -170,8 +169,7 @@ class AndroidGenerator(Generator):
         self.create_gradle_properties(base, self.is_release)
         self.save_files(files, base)
 
-        # Add bhfst files if found
-        self.add_bhfst_files(base)
+        self.inject_speller_xml(self.supported_layouts, base)
         self.add_layout_json(self.supported_layouts, base)
 
         # self.update_dict_authority(base)
@@ -328,17 +326,17 @@ class AndroidGenerator(Generator):
             with open(os.path.join(json_path, "%s.json" % locale), 'w') as f:
                 f.write(o)
 
-    def add_bhfst_files(self, build_dir):
-        nm = "app/src/main/assets/dicts"
-        dict_path = os.path.join(build_dir, "deps", self.REPO, nm)
-        if os.path.exists(dict_path):
-            shutil.rmtree(dict_path)
-        os.makedirs(dict_path, exist_ok=True)
+    def inject_speller_xml(self, layouts, build_dir):
+        locales = []
+        for (locale, layout) in layouts.items():
+            if self.layout_target(layout).get("spellerPackageKey", None) is not None:
+                locales.append(locale)
 
-        files = glob.glob(os.path.join(self._bundle.path, "../*.bhfst"))
-        if len(files) == 0:
-            logger.warning("No BHFST files found.")
+        if locales.len() == 0:
+            locale.info("No speller keys to inject.")
             return
+
+        locale.info("Injecting speller keys for locales: [%s]" % (", ".join(locales)))
 
         path = os.path.join(
             build_dir, "deps", self.REPO, "app/src/main/res", "xml", "spellchecker.xml"
@@ -351,18 +349,9 @@ class AndroidGenerator(Generator):
         for child in root:
             root.remove(child)
 
-        for fn in files:
-            bfn = os.path.basename(fn)
-            logger.info("Adding '%s' to '%s'…" % (bfn, nm))
-            shutil.copyfile(fn, os.path.join(dict_path, bfn))
-
-            lang, _ = os.path.splitext(os.path.basename(fn))
-
-            if len(lang) > 2:
-                lang = "zz_%s" % lang.upper()
-
+        for locale in locales:
             self._android_subelement(
-                root, "subtype", label="@string/subtype_generic", subtypeLocale=lang
+                root, "subtype", label="@string/subtype_generic", subtypeLocale=locale
             )
 
         with open(path, "w", encoding="utf-8") as f:
