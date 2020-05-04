@@ -351,7 +351,7 @@ class AndroidGenerator(Generator):
 
         for locale in locales:
             self._android_subelement(
-                root, "subtype", label="@string/subtype_generic", subtypeLocale=locale
+                root, "subtype", label="@string/subtype_generic", subtypeLocale=locale.replace("-", "_")
             )
 
         with open(path, "w", encoding="utf-8") as f:
