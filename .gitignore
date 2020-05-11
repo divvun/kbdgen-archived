@@ -10,3 +10,4 @@ outputs
 **/*.rs.bk
 tmp
 vendor
+/support/convertor/node_modules
