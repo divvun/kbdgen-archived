@@ -6,6 +6,9 @@ import subprocess
 from collections import defaultdict, OrderedDict, namedtuple
 from pathlib import Path
 import json
+import reqwest
+import zipfile
+import io
 
 import xml.etree.ElementTree as etree
 from xml.etree.ElementTree import Element, SubElement
@@ -443,55 +446,21 @@ class AndroidGenerator(Generator):
         cmd = ["./gradlew"] + list(args) + ["-Dorg.gradle.jvmargs=-Xmx4096M"]
         return run_process(cmd, cwd=self.repo_dir, show_output=True) == 0
 
+    def download_jni_libs(self, out_path):
+        url = "https://pahkat.uit.no/artifacts/giellakbd-android-jnilibs.zip"
+
+        client = reqwest.Client(user_agent="kbdgen")
+        request = client.get(url)
+
+        response = request.send()
+        zip_data = io.BytesIO(response.bytes())
+        with zipfile.ZipFile(zip_data) as z:
+            z.extractall(out_path)
+
     def build(self, base, tree_id, release_mode=True):
-        targets = [
-            ("armv7-linux-androideabi", "armeabi-v7a"),
-            ("aarch64-linux-android", "arm64-v8a"),
-        ]
+        logger.info("Downloading JNI libraries…")
         res_dir = os.path.join(base, "deps", self.REPO, "app/src/main/jniLibs")
-        cwd = os.path.join(self.repo_dir, "..", "divvunspell", "divvunspell")
-
-        if not self.cache.inject_directory_tree(tree_id, res_dir, self.repo_dir):
-            logger.info("Building native components…")
-            for (target, jni_name) in targets:
-                logger.info("Building %s architecture…" % target)
-                returncode = run_process(
-                    [
-                        "cargo",
-                        "ndk",
-                        "--android-platform",
-                        "21",
-                        "--target",
-                        target,
-                        "--",
-                        "build",
-                        "--release",
-                        "--lib",
-                        "--no-default-features",
-                        "--features",
-                        "internal_ffi",
-                    ],
-                    cwd=cwd,
-                    show_output=True,
-                )
-
-                if returncode != 0:
-                    logger.error("Application ended with error code %s." % returncode)
-                    # TODO throw exception instead.
-                    sys.exit(returncode)
-
-                jni_dir = os.path.join(res_dir, jni_name)
-                Path(jni_dir).mkdir(parents=True, exist_ok=True)
-                shutil.copyfile(
-                    os.path.join(
-                        cwd, "..", "target", target, "release/libdivvunspell.so"
-                    ),
-                    os.path.join(jni_dir, "libdivvunspell.so"),
-                )
-
-            self.cache.save_directory_tree(tree_id, self.repo_dir, res_dir)
-        else:
-            logger.info("Native components copied from cache.")
+        self.download_jni_libs(res_dir)
 
         logger.info("Generating .apk…")
         if not self._gradle("assembleRelease" if release_mode else "assembleDebug"):

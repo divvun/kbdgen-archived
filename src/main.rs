@@ -411,8 +411,6 @@ impl BuildCommands {
                 args.push(&*project_path.to_str().unwrap());
                 args
             }
-            M17n { .. } => return Err(From::from("M17n isn't supported in Python".to_string())),
-            X11 { .. } => return Err(From::from("X11 isn't supported in Python".to_string())),
             Qr {
                 in_out:
                     InOutPaths {

@@ -1,7 +1,7 @@
 #![allow(clippy::transmute_ptr_to_ptr, clippy::zero_ptr)] // clippy vs. cpython macros
 
 use cpython::{
-    py_class, py_class_impl, py_coerce_item, py_module_initializer, PyClone, PyObject, PyResult,
+    py_class, py_class_impl, py_coerce_item, py_module_initializer, PyClone, PyObject, PyResult, PyBytes,
     PyString, PythonObject, ToPyObject,
 };
 use std::cell::RefCell;
@@ -48,6 +48,18 @@ py_class!(class Response |py| {
 
         let response = container.take().unwrap();
         Ok(response.text().unwrap().to_py_object(py).into_object())
+    }
+
+    def bytes(&self) -> PyResult<PyObject> {
+        let mut container = self.response(py).borrow_mut();
+        if container.is_none() {
+            return Ok(py.None());
+        }
+
+        let response = container.take().unwrap();
+        let bytes = response.bytes().unwrap();
+        let bytes = PyBytes::new(py, &bytes);
+        Ok(bytes.to_py_object(py).into_object())
     }
 });
 
