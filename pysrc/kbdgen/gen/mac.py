@@ -46,6 +46,14 @@ class MacGenerator(PhysicalGenerator):
     def sign_id(self):
         return self.mac_target.code_sign_id or os.environ.get("CODE_SIGN_ID")
 
+    @property
+    def developer_password_chain_item(self):
+        return os.environ.get("DEVELOPER_PASSWORD_CHAIN_ITEM")
+
+    @property
+    def developer_account(self):
+        return os.environ.get("DEVELOPER_ACCOUNT")
+
     def satisfies_requirements(self):
         if super().satisfies_requirements() is False:
             return False
@@ -62,6 +70,13 @@ class MacGenerator(PhysicalGenerator):
             logger.error("No signing identify found, release build not possible.")
             logger.error(
                 "Add `codeSignId` property to mac target yaml or set CODE_SIGN_ID environment variable."
+            )
+            return False
+
+        if self.developer_account is None or self.developer_password_chain_item is None:
+            logger.error("No notarization developer account details found")
+            logger.error(
+                "Set the DEVELOPER_ACCOUNT environment variable to the Apple developer account name, and DEVELOPER_PASSWORD_CHAIN_ITEM to the name of the keychain item with the password."
             )
             return False
 
@@ -415,6 +430,12 @@ class MacGenerator(PhysicalGenerator):
         run_process(cmd, self.build_dir)
 
         cmd = ["pkgutil", "--check-signature", signed_path]
+        out, err = run_process(cmd, self.build_dir)
+        logger.info(out.decode().strip())
+
+        logger.info("Notarizing installer…")
+        cmd = ["xcnotary", "notarize", signed_path, "--override-path-type", "pkg",
+               "-d", self.developer_account, "-k", self.developer_password_chain_item]
         out, err = run_process(cmd, self.build_dir)
 
         logger.info(out.decode().strip())
