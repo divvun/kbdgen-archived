@@ -675,8 +675,8 @@ class AndroidGenerator(Generator):
         hfst_ospell_tbl = self.cache.download_latest_from_github(
             divvunspell_repo,
             divvunspell_branch,
-            username=self._args.get("github_username", None),
-            password=self._args.get("github_token", None),
+            username=self.github_username,
+            password=self.github_token,
         )
 
         shutil.rmtree(str(deps_dir / "../divvunspell"), ignore_errors=True)
@@ -833,11 +833,13 @@ ext.app = [
                 + "alphabetShiftLockShifted",
             )
 
-            self.add_rows(kbd, n, layout_view.mode("shift")[n - 1], style, case, "shift")
+            self.add_rows(kbd, n, layout_view.mode(
+                "shift")[n - 1], style, case, "shift")
 
             default = self._subelement(switch, "default")
 
-            self.add_rows(kbd, n, layout_view.mode("default")[n - 1], style, default, "default")
+            self.add_rows(kbd, n, layout_view.mode("default")
+                          [n - 1], style, default, "default")
 
             yield (
                 "rowkeys_%s%s.xml" % (name.lower(), n),
