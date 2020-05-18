@@ -437,7 +437,6 @@ class MacGenerator(PhysicalGenerator):
         cmd = ["xcnotary", "notarize", signed_path, "--override-path-type", "pkg",
                "-d", self.developer_account, "-k", self.developer_password_chain_item]
         out, err = run_process(cmd, self.build_dir)
-
         logger.info(out.decode().strip())
         logger.info(
             "Installer generated at '%s'." % os.path.join(self.build_dir, signed_path)

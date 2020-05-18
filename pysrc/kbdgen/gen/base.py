@@ -13,7 +13,7 @@ from collections import OrderedDict
 from . import bin as resources
 from ..base import ISO_KEYS, KbdgenException
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 # Parses "\s{foo:42.12}", "\s{foo}" and "\{foo:42}"
 RE_SPECIAL_KEY = re.compile(r"^\\s{([^}:]+)(?::(\d+(?:\.\d+)?))?}$")
@@ -352,7 +352,6 @@ def run_process(
 
     if return_process:
         return process
-
     if show_output:
         process.wait()
         return process.returncode
