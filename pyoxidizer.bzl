@@ -65,6 +65,7 @@ def make_exe(dist):
         config=python_config,
         # Embed all extension modules, making this a fully-featured Python.
         extension_module_filter='all',
+        resources_policy="in-memory-only",
 
         # Only package the minimal set of extension modules needed to initialize
         # a Python interpreter. Many common packages in Python's standard
@@ -95,11 +96,11 @@ def make_exe(dist):
     # Invoke `pip install` with our Python distribution to install a single package.
     # `pip_install()` returns objects representing installed files.
     # `add_python_resources()` adds these objects to our embedded context.
-    exe.add_python_resources(dist.pip_install([CWD + "/pysrc"]))
+    exe.add_in_memory_python_resources(dist.pip_install([CWD + "/pysrc"]))
 
     # Invoke `pip install` using a requirements file and add the collected files
     # to our embedded context.
-    exe.add_python_resources(dist.pip_install(["-r", CWD + "/pysrc/requirements.txt"]))
+    # exe.add_in_memory_python_resources(dist.pip_install(["-r", CWD + "/pysrc/requirements.txt"]))
 
     
 
@@ -123,8 +124,8 @@ def make_exe(dist):
     # referenced by other consumers of this target.
     return exe
 
-def make_embedded_data(exe):
-    return exe.to_embedded_data()
+def make_embedded_resources(exe):
+    return exe.to_embedded_resources()
 
 def make_install(exe):
     # Create an object that represents our installed application file layout.
@@ -138,7 +139,7 @@ def make_install(exe):
 # Tell PyOxidizer about the build targets defined above.
 register_target("dist", make_dist)
 register_target("exe", make_exe, depends=["dist"], default=True)
-register_target("embedded", make_embedded_data, depends=["exe"], default_build_script=True)
+register_target("resources", make_embedded_resources, depends=["exe"], default_build_script=True)
 register_target("install", make_install, depends=["exe"])
 
 # Resolve whatever targets the invoker of this configuration file is requesting
@@ -150,5 +151,5 @@ resolve_targets()
 # Everything below this is typically managed by PyOxidizer and doesn't need
 # to be updated by people.
 
-PYOXIDIZER_VERSION = "0.6.0"
-PYOXIDIZER_COMMIT = ""
+PYOXIDIZER_VERSION = "0.7.0"
+PYOXIDIZER_COMMIT = "UNKNOWN"

@@ -7,8 +7,8 @@ edition = "2018"
 [dependencies]
 log = "0.4.8"
 
-cpython = "0.4"
-python3-sys = "0.4"
+cpython = "0.5"
+python3-sys = "0.5"
 
 [features]
 default = ["build-mode-extension", "cpython-link-unresolved-static"]

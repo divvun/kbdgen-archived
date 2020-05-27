@@ -178,6 +178,15 @@ enum NewCommands {
 }
 
 #[derive(Debug, StructOpt)]
+enum MetaCommands {
+    Fetch {
+        #[structopt(short, long)]
+        config: PathBuf,
+        target: PathBuf,
+    }
+}
+
+#[derive(Debug, StructOpt)]
 enum Commands {
     #[structopt(
         about = "Generate output for a given .kbdgen bundle",
@@ -200,6 +209,14 @@ enum Commands {
     New {
         #[structopt(subcommand)]
         command: NewCommands,
+    },
+    #[structopt(
+        about = "Manage meta-bundles",
+        setting(DisableHelpSubcommand)
+    )]
+    Meta {
+        #[structopt(subcommand)]
+        command: MetaCommands,
     },
     #[structopt(setting(Hidden))]
     Repl,
@@ -622,6 +639,90 @@ fn main() {
             }
         },
 
+        Commands::Meta { command } => match command {
+            MetaCommands::Fetch {
+                config,
+                target,
+            } => {
+                match meta::fetch(config, target) {
+                    Ok(_) => {},
+                    Err(e) => {
+                        eprintln!("ERROR: {:?}", e);
+                        std::process::exit(1)
+                    }
+                }
+            }
+        }
+
         Commands::Repl => std::process::exit(launch_repl()),
+    }
+}
+
+pub(crate) mod meta {
+    use super::*;
+    use serde::{Deserialize, Serialize};
+    use std::collections::BTreeMap;
+
+    pub fn fetch(config: PathBuf, target: PathBuf) -> anyhow::Result<()> {
+        log::info!("Fetching {} for {}...", config.display(), target.display());
+        log::debug!("Reading config");
+        let config = std::fs::read_to_string(config)?;
+        log::debug!("Parsing config");
+        let config: meta::MetaBundle = toml::from_str(&config)?;
+
+        log::debug!("Create layouts dir");
+        std::fs::create_dir_all(target.join("layouts"))?;
+
+        for (id, bundle) in config.bundle {
+            log::debug!("id: {}, bundle: {:?}", &id, &bundle);
+            let branch = 
+                bundle.branch.unwrap_or_else(|| "master".into());
+            let url = format!("https://github.com/{}/archive/{}.zip",
+                bundle.github, &branch);
+
+            let _ = std::fs::remove_dir_all("/tmp/kbdgen");
+            std::fs::create_dir_all("/tmp/kbdgen")?;
+
+            log::info!("Downloading {}...", id);
+            let mut proc = std::process::Command::new("wget")
+                .args(&[&*url, "-O", "kbdgen-layout.zip"])
+                .current_dir("/tmp/kbdgen")
+                .spawn()
+                .unwrap();
+            proc.wait().unwrap();
+
+            log::info!("Unzipping {}...", id);
+            let mut proc = std::process::Command::new("unzip")
+                .args(&["kbdgen-layout.zip"])
+                .current_dir("/tmp/kbdgen")
+                .spawn()
+                .unwrap();
+            proc.wait().unwrap();
+
+            let unzip_path = std::path::PathBuf::from(format!("/tmp/kbdgen/{}-{}/{}.kbdgen", bundle.github.split("/").nth(1).unwrap(), branch.replace("/", "-"), id));
+            for layout in bundle.layouts {
+                let from_path = unzip_path.join("layouts").join(format!("{}.yaml", layout));
+                let to_path = target.join("layouts").join(format!("{}.yaml", layout));
+                log::info!("Copying {} to {}...", from_path.display(), to_path.display());
+                std::fs::copy(from_path, to_path)?;
+            }
+        }
+
+        std::fs::remove_dir_all("/tmp/kbdgen")?;
+        Ok(())
+    }
+
+    #[derive(Debug, Serialize, Deserialize)]
+    pub struct MetaRecord {
+        github: String,
+        layouts: Vec<String>,
+        branch: Option<String>,
+        #[serde(rename = "ref")]
+        ref_: Option<String>
+    }
+
+    #[derive(Debug, Serialize, Deserialize)]
+    pub struct MetaBundle {
+        bundle: BTreeMap<String, MetaRecord>,
     }
 }

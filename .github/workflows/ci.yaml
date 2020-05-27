@@ -8,9 +8,9 @@ on:
     - develop
 
 env:
+  PYOXIDIZER_VERSION: 0.7.0
   # "the library kind 'static-nobundle' is only accepted on the nightly compiler"
-  RUST_VERSION: nightly-2020-03-12
-  PYOXIDIZER_VERSION: 0.6.0
+  RUSTC_BOOTSTRAP: 1
 
   CARGO_INCREMENTAL: 0
   RUSTUP_MAX_RETRIES: 10
