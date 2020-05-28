@@ -100,9 +100,7 @@ def make_exe(dist):
 
     # Invoke `pip install` using a requirements file and add the collected files
     # to our embedded context.
-    # exe.add_in_memory_python_resources(dist.pip_install(["-r", CWD + "/pysrc/requirements.txt"]))
-
-    
+    exe.add_in_memory_python_resources(dist.pip_install(["-r", CWD + "/pysrc/requirements.txt", "--global-option=--without-libyaml"]))
 
     # Read Python files from a local directory and add them to our embedded
     # context, taking just the resources belonging to the `foo` and `bar`
