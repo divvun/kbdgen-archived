@@ -11,6 +11,7 @@ env:
   PYOXIDIZER_VERSION: 0.7.0
   # "the library kind 'static-nobundle' is only accepted on the nightly compiler"
   RUSTC_BOOTSTRAP: 1
+  RUST_VERSION: 1.43.1
 
   CARGO_INCREMENTAL: 0
   RUSTUP_MAX_RETRIES: 10
@@ -26,7 +27,7 @@ jobs:
     - uses: actions-rs/toolchain@v1
       with:
         profile: minimal
-        toolchain: 1.42.0
+        toolchain: ${{ env.RUST_VERSION }}
         override: true
     - run: rustup component add rustfmt
     - uses: actions-rs/cargo@v1
