@@ -44,7 +44,7 @@ anyhow = "1.0.31"
 backtrace = "0.3.48"
 bigdecimal = "0.1.2"
 toml = "0.5.6"
-reqwest = { version = "0.10.4", default-features = false, features = ["native-tls-vendored", "gzip", "blocking"] }
+reqwest = { version = "0.10.4", default-features = false, features = ["rustls-tls", "gzip", "blocking"] }
 
 [target.'cfg(windows)'.dependencies]
 dialoguer = "0.5.0"
