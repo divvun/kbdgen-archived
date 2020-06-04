@@ -154,7 +154,7 @@ class AppleiOSGenerator(Generator):
 
         # Run all the commands!
         for cmd in cmds:
-            return_code = run_process(cmd, show_output=True)
+            return_code = run_process(cmd, show_output=True, retries=5)
             if return_code != 0:
                 logger.error("Application ended with error code %s." % (return_code))
                 sys.exit(return_code)
