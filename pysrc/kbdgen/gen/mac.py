@@ -391,7 +391,7 @@ class MacGenerator(PhysicalGenerator):
 
         dist_xml_path = self.generate_distribution_xml(component_pkg_path, working_dir)
 
-        bundle_name = self.mac_target.bundle_name.replace(" ", "_")
+        bundle_name = "keyboard-%s" % self._bundle.name
         pkg_name = "%s_%s.unsigned.pkg" % (bundle_name, version)
 
         cmd = [
@@ -424,7 +424,8 @@ class MacGenerator(PhysicalGenerator):
             )
             sys.exit(1)
 
-        signed_path = "%s %s.pkg" % (self.mac_target.bundle_name, version)
+        bundle_name = "keyboard-%s" % self._bundle.name
+        signed_path = "%s_%s.pkg" % (bundle_name, version)
 
         cmd = ["productsign", "--sign", self.sign_id, pkg_path, signed_path]
         run_process(cmd, self.build_dir)

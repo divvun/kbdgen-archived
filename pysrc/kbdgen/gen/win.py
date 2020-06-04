@@ -739,11 +739,12 @@ class WindowsGenerator(Generator):
             buf.write("%s.Enable=%s\n" % (key, custom_msgs["Enable"][key]))
         return buf.getvalue()
 
-    def _installer_fn(self, os_, name, version):
+    def _installer_fn(self, os_, version):
+        name = "keyboard-%s" % self._bundle.name
         if os_ == "Windows 7":
-            return "%s_%s.win7.exe" % (name, version)
+            return "%s_%s_windows7.exe" % (name, version)
         else:
-            return "%s_%s.exe" % (name, version)
+            return "%s_%s_windows.exe" % (name, version)
 
     def first_locale(self):
         tag = next(iter(self._bundle.project.locales.keys()))
@@ -986,7 +987,7 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
         logger.trace(cmd)
         run_process(cmd, cwd=build_dir)
 
-        fn = self._installer_fn(os_, name.replace(" ", "_"), version)
+        fn = self._installer_fn(os_, version)
         shutil.move(os.path.join(build_dir, "install.exe"), os.path.join(build_dir, fn))
 
         logger.info("Installer generated at '%s'." % os.path.join(build_dir, fn))
