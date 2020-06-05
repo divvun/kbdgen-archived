@@ -8,6 +8,5 @@ COPY . .
 
 RUN cargo build
 
-CMD [ "./target/debug/kbdgen" ]
-
+ENTRYPOINT [ "./target/debug/kbdgen" ]
 

@@ -111,6 +111,10 @@ class AndroidGenerator(Generator):
             logger.info("Dry run completed.")
             return
 
+        # Set XML namespaces
+        etree.register_namespace("android", self.ANDROID_NS)
+        etree.register_namespace("latin", self.NS)
+
         deps_dir = os.path.join(base, "deps")
         self.repo_dir = os.path.join(deps_dir, self.REPO)
         os.makedirs(deps_dir, exist_ok=True)
@@ -724,7 +728,7 @@ ext.app = [
             f.write(data)
 
     def kbd_layout_set(self, name, kbd):
-        out = Element("KeyboardLayoutSet", nsmap={"latin": self.NS})
+        out = Element("KeyboardLayoutSet")
 
         # TODO: need a target override for legacy keyboards
         kbd_str = "@xml/kbd_%s" % name.lower()
@@ -776,7 +780,7 @@ ext.app = [
         return False
 
     def rows(self, name, kbd, style):
-        out = Element("merge", nsmap={"latin": self.NS})
+        out = Element("merge")
 
         self._subelement(out, "include", keyboardLayout="@xml/key_styles_common")
 
@@ -811,7 +815,7 @@ ext.app = [
         self.key_width = vals[style] / m
 
     def keyboard(self, name, kbd, **kwargs):
-        out = Element("Keyboard", nsmap={"latin": self.NS})
+        out = Element("Keyboard")
 
         self._attrib(out, **kwargs)
 
@@ -823,7 +827,7 @@ ext.app = [
         layout_view = MobileLayoutView(kbd, "android")
         # TODO check that lengths of both modes are the same
         for n in range(1, len(layout_view.mode("default")) + 1):
-            merge = Element("merge", nsmap={"latin": self.NS})
+            merge = Element("merge")
             switch = self._subelement(merge, "switch")
 
             case = self._subelement(
