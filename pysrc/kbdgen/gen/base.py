@@ -359,11 +359,13 @@ def run_process(
             return process
         if show_output:
             process.wait()
-            if i == retries - 1:
-                return process.returncode
             if process.returncode != 0:
+                if i == retries - 1:
+                    return process.returncode
                 logger.warn("Process exited with code %s; retrying." % process.returncode)
                 continue
+            else:
+                return
         else:
             out, err = process.communicate()
 
