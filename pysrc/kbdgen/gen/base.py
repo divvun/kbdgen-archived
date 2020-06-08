@@ -333,51 +333,38 @@ def run_process(
     pipe=None,
     retries=1,
 ):
-    for i in range(0, retries):
-        if i != 0:
-            logger.debug("Attempt %s of %s" % (i + 1, retries))
-        logger.trace("%r cwd=%r" % (cmd, cwd))
+    logger.trace("%r cwd=%r" % (cmd, cwd))
+    try:
+        process = subprocess.Popen(
+            cmd,
+            shell=shell,
+            cwd=str(cwd) if cwd is not None else None,
+            env=env,
+            stderr=None if show_output else subprocess.PIPE,
+            stdout=None if show_output else subprocess.PIPE,
+            stdin=None if pipe is None else subprocess.PIPE,
+        )
+        if pipe is not None:
+            process.stdin.write(pipe)
+    except Exception as e:
+        logger.error("Process failed to launch with the following error message:")
+        logger.error(e)
+        sys.exit(1)
 
-        try:
-            process = subprocess.Popen(
-                cmd,
-                shell=shell,
-                cwd=str(cwd) if cwd is not None else None,
-                env=env,
-                stderr=None if show_output else subprocess.PIPE,
-                stdout=None if show_output else subprocess.PIPE,
-                stdin=None if pipe is None else subprocess.PIPE,
-            )
-            if pipe is not None:
-                process.stdin.write(pipe)
-        except Exception as e:
-            logger.error("Process failed to launch with the following error message:")
-            logger.error(e)
-            sys.exit(1)
+    if return_process:
+        return process
+    if show_output:
+        process.wait()
+        return process.returncode
+    else:
+        out, err = process.communicate()
 
-        if return_process:
-            return process
-        if show_output:
-            process.wait()
-            if process.returncode != 0:
-                if i == retries - 1:
-                    return process.returncode
-                logger.warn("Process exited with code %s; retrying." % process.returncode)
-                continue
-            else:
-                return
-        else:
-            out, err = process.communicate()
+        if process.returncode != 0:
+            x = err.decode()
+            if x.strip() == "":
+                x = out.decode()
+            logger.error(x)
+            logger.error("Application ended with error code %s." % (process.returncode))
+            sys.exit(process.returncode)
 
-            if process.returncode != 0:
-                if i != retries - 1:
-                    logger.warn("Process exited with code %s; retrying." % process.returncode)
-                    continue
-                x = err.decode()
-                if x.strip() == "":
-                    x = out.decode()
-                logger.error(x)
-                logger.error("Application ended with error code %s." % (process.returncode))
-                sys.exit(process.returncode)
-
-            return out, err
+        return out, err
