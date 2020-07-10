@@ -9,6 +9,7 @@ import json
 import reqwest
 import zipfile
 import io
+import glob
 
 import xml.etree.ElementTree as etree
 from xml.etree.ElementTree import Element, SubElement
@@ -176,10 +177,12 @@ class AndroidGenerator(Generator):
         self.create_gradle_properties(base, self.is_release)
         self.save_files(files, base)
 
-        self.inject_speller_xml(self.supported_layouts, base)
+        if self._args.get("local", False):
+            self.add_bhfst_files(base)
+        else:
+            self.inject_speller_xml(self.supported_layouts, base)
         self.add_layout_json(self.supported_layouts, base)
 
-        # self.update_dict_authority(base)
         self.update_localisation(base)
         self.generate_icons(base)
         self.build(base, tree_id, self.is_release)
@@ -190,16 +193,6 @@ class AndroidGenerator(Generator):
                 continue
 
             self.update_locale_exception(name, kbd, base)
-
-    def _find_ndk_version(self):
-        try:
-            p = os.path.join(os.environ["NDK_HOME"], "source.properties")
-            with open(p, encoding="utf-8") as f:
-                for line in f.readlines():
-                    if line.startswith("Pkg.Revision"):
-                        return [int(x) for x in line.split("=").pop().split(".")]
-        except Exception:
-            return None
 
     def satisfies_requirements(self):
         if super().satisfies_requirements() is False:
@@ -219,38 +212,6 @@ class AndroidGenerator(Generator):
         if os.environ.get("ANDROID_HOME", None) is None:
             logger.error(
                 "ANDROID_HOME must be provided and point to the Android SDK directory."
-            )
-            sane = False
-
-        if os.environ.get("NDK_HOME", None) is None:
-            logger.error(
-                "NDK_HOME must be provided and point to the Android NDK directory."
-            )
-            sane = False
-        else:
-            # Check for valid NDK version
-            ndk_version = self._find_ndk_version()
-            logger.debug("NDK version: %r" % ndk_version)
-            if (
-                ndk_version is None
-                or ndk_version[0] < 19
-                or (ndk_version[0] == 19 and ndk_version[1] < 2)
-            ):
-                logger.error(
-                    "Your NDK is too old - 19.2 or higher is required. Your version: %r"
-                    % ndk_version
-                )
-                sane = False
-
-        if shutil.which("cargo") is None:
-            logger.error(
-                "`cargo` could not be found. Please ensure it is on your PATH, or install Rust from <https://rustup.rs>."
-            )
-            sane = False
-
-        if shutil.which("cargo-ndk") is None:
-            logger.error(
-                "`cargo ndk` could not be found. Please run `cargo install cargo-ndk` to continue."
             )
             sane = False
 
@@ -333,6 +294,44 @@ class AndroidGenerator(Generator):
             with open(os.path.join(json_path, "%s.json" % locale), 'w') as f:
                 f.write(o)
 
+    def add_bhfst_files(self, build_dir):
+        nm = "app/src/main/assets"
+        dict_path = os.path.join(build_dir, "deps", self.REPO, nm)
+        if os.path.exists(dict_path):
+            shutil.rmtree(dict_path)
+        os.makedirs(dict_path, exist_ok=True)
+
+        files = glob.glob(os.path.join(self._bundle.path, "../*.bhfst"))
+        if len(files) == 0:
+            logger.warning("No BHFST files found.")
+            return
+
+        path = os.path.join(
+            build_dir, "deps", self.REPO, "app",
+            "src", "main", "res", "xml", "spellchecker.xml"
+        )
+
+        with open(path, encoding="utf-8") as f:
+            tree = etree.parse(f)
+        root = tree.getroot()
+        # Empty the file
+        for child in root:
+            root.remove(child)
+
+        for fn in files:
+            bfn = os.path.basename(fn)
+            logger.info("Adding '%s' to '%s'…" % (bfn, nm))
+            shutil.copyfile(fn, os.path.join(dict_path, bfn))
+
+            lang, _ = os.path.splitext(os.path.basename(fn))
+
+            self._android_subelement(
+                root, "subtype", label="@string/subtype_generic", subtypeLocale=lang
+            )
+
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(self._tostring(tree))
+
     def inject_speller_xml(self, layouts, build_dir):
         locales = []
         for (locale, layout) in layouts.items():
@@ -358,7 +357,8 @@ class AndroidGenerator(Generator):
 
         for locale in locales:
             self._android_subelement(
-                root, "subtype", label="@string/subtype_generic", subtypeLocale=locale.replace("-", "_")
+                root, "subtype", label="@string/subtype_generic",
+                subtypeLocale=locale.replace("-", "_")
             )
 
         with open(path, "w", encoding="utf-8") as f:
@@ -443,12 +443,15 @@ class AndroidGenerator(Generator):
 
     def _gradle(self, *args):
         # HACK: let's be honest it's all hacks
-        with open(
-            os.path.join(self.repo_dir, "local.properties"), "a", encoding="utf-8"
-        ) as f:
-            f.write("sdk.dir=%s\n" % os.environ["ANDROID_HOME"])
-        cmd = ["./gradlew"] + list(args) + ["-Dorg.gradle.jvmargs=-Xmx4096M"]
-        return run_process(cmd, cwd=self.repo_dir, show_output=True) == 0
+        # with open(
+        #     os.path.join(self.repo_dir, "local.properties"), "a", encoding="utf-8"
+        # ) as f:
+        #     f.write("sdk.dir=%r\n" % os.environ["ANDROID_HOME"])
+        cmd = [os.path.join('.', 'gradlew')]
+        cmd += list(args) + ["-Dorg.gradle.jvmargs=-Xmx4096M", "--info", "--stacktrace"]
+        cmd = " ".join(cmd)
+        return run_process(cmd, cwd=os.path.abspath(self.repo_dir),
+            shell=True, show_output=True) == 0
 
     def download_jni_libs(self, out_path):
         url = "https://pahkat.uit.no/artifacts/giellakbd-android-jnilibs.zip"
@@ -475,7 +478,8 @@ class AndroidGenerator(Generator):
         else:
             suffix = "release"
 
-        path = os.path.join(base, "deps", self.REPO, "app/build/outputs/apk", suffix)
+        path = os.path.join(base, "deps", self.REPO, "app",
+            "build", "outputs", "apk", suffix)
         fn = "app-%s.apk" % suffix
         out_fn = os.path.join(
             base, "%s-%s_%s.apk" % (self._name, self._version, suffix)
@@ -625,6 +629,7 @@ class AndroidGenerator(Generator):
             tarfile.open(tarball, "r:gz").extractall(str(tmpdir))
             target = [x for x in Path(tmpdir).iterdir() if x.is_dir()][0]
             os.makedirs(str(target_dir.parent), exist_ok=True)
+            logger.debug("tarball move: %r -> %r" % (target, target_dir))
             shutil.move(target, target_dir)
 
     def _get_local_source_tree(self, deps_dir, path):
@@ -672,21 +677,6 @@ class AndroidGenerator(Generator):
 
             self._unfurl_tarball(tarball, deps_dir / self.REPO)
 
-        logger.info("Getting source files for divvunspell…")
-
-        divvunspell_repo = self._args["divvunspell_repo"]
-        divvunspell_branch = self._args["divvunspell_branch"]
-        hfst_ospell_tbl = self.cache.download_latest_from_github(
-            divvunspell_repo,
-            divvunspell_branch,
-            username=self.github_username,
-            password=self.github_token,
-        )
-
-        shutil.rmtree(str(deps_dir / "../divvunspell"), ignore_errors=True)
-        self._unfurl_tarball(hfst_ospell_tbl, deps_dir / "divvunspell")
-        return hfst_ospell_tbl.split("/")[-1].split(".")[0]
-
     def environ_or_target(self, env_key, target_key):
         return os.environ.get(env_key, getattr(self.android_target, target_key, None))
 
@@ -712,7 +702,7 @@ ext.app = [
 """
 
         data = tmpl.format(
-            store_file=os.path.abspath(key_store).replace('"', '\\"'),
+            store_file=os.path.abspath(key_store).replace('"', '\\"').replace("\\", "\\\\"),
             key_alias=key_alias.replace('"', '\\"'),
             version=self._version,
             build=self._build,

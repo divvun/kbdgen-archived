@@ -347,8 +347,11 @@ def run_process(
         if pipe is not None:
             process.stdin.write(pipe)
     except Exception as e:
-        logger.error("Process failed to launch with the following error message:")
+        logger.error(
+            "Process '%s' failed to launch with the following error message:" % cmd
+        )
         logger.error(e)
+        logger.error("cwd: %r" % cwd)
         sys.exit(1)
 
     if return_process:

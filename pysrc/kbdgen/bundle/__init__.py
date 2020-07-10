@@ -215,6 +215,9 @@ def try_decode_target(cls, target, obj):
 
 
 def decode_target(name, obj):
+    if obj is None:
+        obj = {}
+    
     if name.startswith("win"):
         return try_decode_target(TargetWindows, "win", obj)
     if name.startswith("mac"):

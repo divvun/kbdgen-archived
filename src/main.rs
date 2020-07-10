@@ -38,6 +38,9 @@ enum BuildCommands {
         #[structopt(short = "D", long = "dry-run")]
         dry_run: bool,
 
+        #[structopt(long)]
+        local: bool,
+
         #[structopt(flatten)]
         build_mode: BuildMode,
     },
@@ -270,6 +273,7 @@ impl BuildCommands {
                         project_path,
                     },
                 dry_run,
+                local,
                 build_mode: BuildMode { release, ci },
             } => {
                 let mut args = vec![
@@ -297,6 +301,10 @@ impl BuildCommands {
 
                 if *ci {
                     args.push("--ci");
+                }
+
+                if *local {
+                    args.push("--local");
                 }
 
                 args.push(&*project_path.to_str().unwrap());

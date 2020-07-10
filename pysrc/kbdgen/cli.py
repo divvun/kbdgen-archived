@@ -29,6 +29,7 @@ def parse_args(args):
 
     p.add_argument("--version", action="version", version="%(prog)s " + __version__)
     p.add_argument("--logging", type=logging_type, default=20, help="Logging level")
+    p.add_argument("--local", action="store_true", help="local build")
     p.add_argument(
         "-K",
         "--key",
@@ -140,9 +141,8 @@ def run_cli(cli_args):
         )
         return 1
     except Exception as e:
-        # if logger.getEffectiveLevel() < 10:
-        #     raise e
-        logger.critical(str(e))
+        for arg in e.args:
+            logger.critical(str(arg))
 
         # Short-circuit for user-caused exceptions
         if isinstance(e, UserException):

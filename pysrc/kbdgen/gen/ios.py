@@ -295,8 +295,9 @@ class AppleiOSGenerator(Generator):
         # Install CocoaPods deps
         self.run_cocoapods(deps_dir)
 
-        # Add ZHFST files
-        self.add_zhfst_files(deps_dir)
+        # Add BHFST files
+        if self._args.get("local", False):
+            self.add_bhfst_files(deps_dir)
 
         if self.is_release:
             self.build_release(base, deps_dir, path, pbxproj)
@@ -574,35 +575,22 @@ class AppleiOSGenerator(Generator):
             tree, pretty_print=True, xml_declaration=True, encoding="utf-8"
         ).decode()
 
-    def add_zhfst_files(self, build_dir):
+    def add_bhfst_files(self, build_dir):
         nm = "dicts.bundle"
         path = os.path.join(build_dir, nm)
         if os.path.exists(path):
             shutil.rmtree(path)
         os.makedirs(path, exist_ok=True)
 
-        use_bhfst = self.ios_target.bhfst or False
+        files = glob.glob(os.path.join(self._bundle.path, "../*.bhfst"))
+        if len(files) == 0:
+            logger.warning("No BHFST files found.")
+            return
 
-        if use_bhfst:
-            files = glob.glob(os.path.join(self._bundle.path, "../*.bhfst"))
-            if len(files) == 0:
-                logger.warning("No BHFST files found.")
-                return
-
-            for fn in files:
-                bfn = os.path.basename(fn)
-                logger.info("Adding '%s' to '%s'…" % (bfn, nm))
-                shutil.copyfile(fn, os.path.join(path, bfn))
-        else:
-            files = glob.glob(os.path.join(self._bundle.path, "../*.zhfst"))
-            if len(files) == 0:
-                logger.warning("No ZHFST files found.")
-                return
-
-            for fn in files:
-                bfn = os.path.basename(fn)
-                logger.info("Adding '%s' to '%s'…" % (bfn, nm))
-                shutil.copyfile(fn, os.path.join(path, bfn))
+        for fn in files:
+            bfn = os.path.basename(fn)
+            logger.info("Adding '%s' to '%s'…" % (bfn, nm))
+            shutil.copyfile(fn, os.path.join(path, bfn))
 
     @property
     def ios_resources(self):
