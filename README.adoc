@@ -1,6 +1,6 @@
 # kbdgen
 
-image::https://github.com/divvun/kbdgen/workflows/badge.svg[CI status]
+image::https://github.com/divvun/kbdgen/workflows/CI/badge.svg[CI status]
 
 ## User documentation
 
