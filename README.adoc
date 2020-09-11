@@ -1,5 +1,7 @@
 # kbdgen
 
+image::https://github.com/divvun/kbdgen/workflows/badge.svg[CI status]
+
 ## User documentation
 
 See the link:docs/index.adoc[kbdgen User Manual]!
