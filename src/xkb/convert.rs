@@ -96,7 +96,7 @@ fn collect_keys(key_map: &DesktopModes, _default: Option<&Symbols>) -> Result<Ve
         .ok_or(Error::NoDefaultKeyMap)?;
     let shift = key_map.get("shift").cloned().unwrap_or_default();
     let alt = key_map.get("alt").cloned().unwrap_or_default();
-    let alt_shift = key_map.get("alt_shift").cloned().unwrap_or_default();
+    let alt_shift = key_map.get("alt+shift").cloned().unwrap_or_default();
 
     let mut res = Vec::new();
 
