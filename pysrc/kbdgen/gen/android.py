@@ -291,7 +291,7 @@ class AndroidGenerator(Generator):
                 }
 
             o = json.dumps(o, indent=2, ensure_ascii=False)
-            with open(os.path.join(json_path, "%s.json" % locale), 'w') as f:
+            with open(os.path.join(json_path, "%s.json" % locale), 'w', encoding="utf-8") as f:
                 f.write(o)
 
     def add_bhfst_files(self, build_dir):

@@ -227,7 +227,7 @@ class AppleiOSGenerator(Generator):
             layouts.append(self.generate_json_layout(name, layout))
 
         fn = os.path.join(deps_dir, "Keyboard", "Models", "KeyboardDefinitions.json")
-        with open(fn, "w") as f:
+        with open(fn, "w", encoding="utf-8") as f:
             json.dump(layouts, f, indent=2, ensure_ascii=False)
 
         plist_path = os.path.join(deps_dir, "HostingApp", "Info.plist")
@@ -283,7 +283,7 @@ class AppleiOSGenerator(Generator):
         self.create_locales(pbxproj, deps_dir)
 
         # Update pbxproj with locales
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             self.update_pbxproj(pbxproj, f)
 
         # Generate icons for hosting app
@@ -409,7 +409,7 @@ class AppleiOSGenerator(Generator):
             )
             o[item] = profile["UUID"]
 
-        with open(pbxproj_path, "w") as f:
+        with open(pbxproj_path, "w", encoding="utf-8") as f:
             f.write(str(pbxproj))
         return o
 
@@ -611,7 +611,7 @@ class AppleiOSGenerator(Generator):
             build_dir, "HostingApp", "Images.xcassets", "AppIcon.appiconset"
         )
 
-        with open(os.path.join(path, "Contents.json")) as f:
+        with open(os.path.join(path, "Contents.json"), encoding="utf-8") as f:
             contents = json.load(f, object_pairs_hook=OrderedDict)
 
         cmd_tmpl = "convert -resize {h}x{w} -background white -alpha remove -gravity center -extent {h}x{w} {src} {out}"
@@ -634,11 +634,11 @@ class AppleiOSGenerator(Generator):
             logger.info(msg)
             process.wait()
 
-        with open(os.path.join(path, "Contents.json"), "w") as f:
+        with open(os.path.join(path, "Contents.json"), "w", encoding="utf-8") as f:
             json.dump(contents, f)
 
     def get_translatables_from_storyboard(self, xml_fn):
-        with open(xml_fn) as f:
+        with open(xml_fn, encoding="utf-8") as f:
             tree = etree.parse(f)
 
         o = []
@@ -658,7 +658,7 @@ class AppleiOSGenerator(Generator):
             attr_node.getparent().remove(attr_node)
         o.sort()
 
-        with open(xml_fn, "w") as f:
+        with open(xml_fn, "w", encoding="utf-8") as f:
             f.write(self._tostring(tree))
 
         return o

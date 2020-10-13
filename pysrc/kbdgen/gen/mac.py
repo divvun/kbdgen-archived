@@ -139,7 +139,7 @@ class MacGenerator(PhysicalGenerator):
                 translations[locale][fn] = lname
 
             logger.debug("%s.keylayout -> bundle" % fn)
-            with open(os.path.join(res_path, "%s.keylayout" % fn), "w") as f:
+            with open(os.path.join(res_path, "%s.keylayout" % fn), "w", encoding="utf-8") as f:
                 f.write(data)
 
             self.write_icon(res_path, name, layout)
@@ -263,7 +263,7 @@ class MacGenerator(PhysicalGenerator):
             layout_name = self._layout_name(name, layout)
             targets.append(target_tmpl % (layout_name, bundle_id, layout_name, name))
 
-        with open(os.path.join(bundle_path, "Contents", "Info.plist"), "w") as f:
+        with open(os.path.join(bundle_path, "Contents", "Info.plist"), "w", encoding="utf-8") as f:
             f.write(
                 dedent(
                     """\

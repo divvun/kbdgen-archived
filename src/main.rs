@@ -474,7 +474,7 @@ impl BuildCommands {
     }
 }
 
-fn python_config() -> pyembed::PythonConfig {
+fn python_config() -> pyembed::OxidizedPythonInterpreterConfig<'static> {
     let mut config = default_python_config();
 
     let mod_language_tags = ExtensionModule {
@@ -492,7 +492,7 @@ fn python_config() -> pyembed::PythonConfig {
         init_func: py_reqwest::PyInit_reqwest,
     };
 
-    config.extra_extension_modules = vec![mod_language_tags, mod_logger, mod_reqwest];
+    config.extra_extension_modules = Some(vec![mod_language_tags, mod_logger, mod_reqwest]);
     config
 }
 
@@ -516,10 +516,12 @@ fn launch_py_kbdgen(args: &[&str]) -> i32 {
                     .collect::<Vec<_>>()
                     .join(", ")
             );
-            match interp.run_code(&format!("import kbdgen.cli; kbdgen.cli.run_cli({})", args)) {
+
+            let py = interp.acquire_gil().unwrap();
+            
+            match pyembed::run_code(py, &format!("import kbdgen.cli; kbdgen.cli.run_cli({})", args)) {
                 Ok(_) => 0,
                 Err(msg) => {
-                    let py = interp.acquire_gil();
                     msg.print(py);
                     1
                 }
@@ -535,12 +537,14 @@ fn launch_py_kbdgen(args: &[&str]) -> i32 {
 fn launch_repl() -> i32 {
     let config = python_config();
     match MainPythonInterpreter::new(config) {
-        Ok(mut interp) => match interp.run_repl() {
-            Ok(_) => 0,
-            Err(msg) => {
-                let py = interp.acquire_gil();
-                msg.print(py);
-                1
+        Ok(mut interp) => {
+            let py = interp.acquire_gil().unwrap();
+            match pyembed::run_repl(py) {
+                Ok(_) => 0,
+                Err(msg) => {
+                    msg.print(py);
+                    1
+                }
             }
         },
         Err(msg) => {
