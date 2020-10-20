@@ -1,147 +1,197 @@
 name: CI
 
-on:
-  pull_request:
-  push:
-    branches:
-    - master
-    - develop
+on: [pull_request, push]
 
 env:
-  PYOXIDIZER_VERSION: 0.7.0
-  # "the library kind 'static-nobundle' is only accepted on the nightly compiler"
-  RUSTC_BOOTSTRAP: 1
-  RUST_VERSION: 1.43.1
-
+  PYOXIDIZER_VERSION: 0.9.0
   CARGO_INCREMENTAL: 0
   RUSTUP_MAX_RETRIES: 10
   CARGO_NET_RETRY: 10
   RUST_BACKTRACE: full
 
 jobs:
-  fmt:
-    name: Rustfmt
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: ${{ env.RUST_VERSION }}
-        override: true
-    - run: rustup component add rustfmt
-    - uses: actions-rs/cargo@v1
-      with:
-        command: fmt
-        args: --all -- --check
-
-  rust:
-    name: Rust
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-
+  build-windows:
+    runs-on: windows-latest
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
-
-    - name: Install Rust toolchain on Linux
-      if: startsWith(matrix.os, 'ubuntu')
+    - name: Setup Divvun CI
+      uses: divvun/actions/setup@master
+      with:
+        key: ${{ secrets.DIVVUN_KEY }}
+    - name: Get version
+      id: version
+      uses: divvun/actions/version@master
+      with:
+        cargo: true
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Install build dependencies
+      uses: divvun/actions/pahkat/init@master
+      with:
+        repo: https://pahkat.uit.no/devtools/
+        channel: nightly
+        packages: pahkat-uploader
+    - name: Install Rust toolchain
       uses: actions-rs/toolchain@v1
       with:
-        toolchain: ${{ env.RUST_VERSION }}
-        target: x86_64-unknown-linux-musl
+        toolchain: stable
         profile: minimal
         override: true
-        components: clippy
-    - name: Install Rust toolchain on macOS
-      if: startsWith(matrix.os, 'macos')
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: ${{ env.RUST_VERSION }}
-        profile: minimal
-        override: true
-        components: clippy
-    - name: Install Rust toolchain on Windows
-      if: startsWith(matrix.os, 'windows')
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: ${{ env.RUST_VERSION }}
-        profile: minimal
-        override: true
-        components: clippy
-
-    - name: Ensure rustup is used
-      if: "!startsWith(matrix.os, 'windows')"
-      run: |
-        source $HOME/.cargo/env
-
-    - name: Install MUSL tooling on Linux
-      if: startsWith(matrix.os, 'ubuntu')
-      run: |
-        sudo apt install -y musl musl-tools
-    - name: Uninstall system libyaml on macOS
-      if: startsWith(matrix.os, 'macos')
-      run: |
-        brew uninstall --ignore-dependencies libyaml
-
-    - name: Install python
-      uses: actions/setup-python@v1
-      with:
-        python-version: '3.7'
-
-    - name: Cache cargo registry
-      uses: actions/cache@v1
-      with:
-        path: ~/.cargo/registry
-        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-    - name: Cache cargo index
-      uses: actions/cache@v1
-      with:
-        path: ~/.cargo/git
-        key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+        components: rustfmt
+        target: x86_64-pc-windows-msvc
     - name: Install pyoxidizer
       run: |
-        cargo "+$RUST_VERSION" install pyoxidizer --vers ${{ env.PYOXIDIZER_VERSION }}
-
-    - name: Build
-      uses: actions-rs/cargo@v1
-      with:
-        command: build
-        args: --all --release
-        toolchain: ${{ env.RUST_VERSION }}
-    - name: Tests
-      if: startsWith(matrix.os, 'ubuntu')
-      uses: actions-rs/cargo@v1
-      with:
-        command: test
-        args: --all --release
-    - name: Clippy
-      uses: actions-rs/cargo@v1
-      with:
-        command: clippy
-
-    - name: collect artifact on Linux
-      if: startsWith(matrix.os, 'ubuntu')
+        cargo install pyoxidizer --vers ${{ env.PYOXIDIZER_VERSION }}
+    - name: Build kbdgen
       run: |
-        mkdir -pv dist
-        cp target/release/kbdgen dist/
-        strip dist/kbdgen
-    - name: collect artifact on macOS
-      if: startsWith(matrix.os, 'macos')
+        cargo build --release
+      env:
+        RUSTC_BOOTSTRAP: 1
+    - name: Create dist
       run: |
-        mkdir -pv dist
-        cp target/release/kbdgen dist/
-        strip dist/kbdgen
-    - name: collect artifact on Windows
-      if: startsWith(matrix.os, 'windows')
-      run: |
-        mkdir dist
-        cp target\release\kbdgen.exe dist\
-    - uses: actions/upload-artifact@v1
+        mkdir -p dist/bin
+        mv target/release/kbdgen.exe dist/bin/kbdgen.exe
+    - name: Sign code
+      uses: divvun/actions/codesign@master
       with:
-        name: kbdgen-${{ runner.os }}
+        path: dist/bin/kbdgen.exe
+    - name: Create tarball package
+      id: installer
+      uses: divvun/actions/create-txz@master
+      with:
         path: dist
+    - name: Deploy
+      uses: divvun/actions/deploy@master
+      with:
+        package-id: kbdgen
+        type: TarballPackage
+        platform: windows
+        arch: x86_64
+        version: ${{ steps.version.outputs.version }}
+        payload-path: ${{ steps.installer.outputs['txz-path'] }}
+        repo: https://pahkat.thetc.se/devtools/
+        channel: ${{ steps.version.outputs.channel }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  build-macos:
+    runs-on: macos-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Setup Divvun CI
+      uses: divvun/actions/setup@master
+      with:
+        key: ${{ secrets.DIVVUN_KEY }}
+    - name: Get version
+      id: version
+      uses: divvun/actions/version@master
+      with:
+        cargo: true
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Install build dependencies
+      uses: divvun/actions/pahkat/init@master
+      with:
+        repo: https://pahkat.uit.no/devtools/
+        channel: nightly
+        packages: pahkat-uploader
+    - name: Install Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        profile: minimal
+        components: rustfmt
+        override: true
+    - name: Uninstall homebrew libyaml
+      run: |
+        brew uninstall --ignore-dependencies libyaml
+    - name: Install pyoxidizer
+      run: |
+        cargo install pyoxidizer --vers ${{ env.PYOXIDIZER_VERSION }}
+    - name: Build kbdgen
+      run: |
+        cargo build --release
+    - name: Create dist
+      run: |
+        strip target/release/kbdgen
+        mkdir -p dist/bin
+        mv target/release/kbdgen dist/bin/kbdgen
+    - name: Sign code
+      uses: divvun/actions/codesign@master
+      with:
+        path: dist/bin/kbdgen
+    - name: Create tarball package
+      id: installer
+      uses: divvun/actions/create-txz@master
+      with:
+        path: dist
+    - name: Deploy
+      uses: divvun/actions/deploy@master
+      with:
+        package-id: kbdgen
+        type: TarballPackage
+        platform: macos
+        arch: x86_64
+        version: ${{ steps.version.outputs.version }}
+        payload-path: ${{ steps.installer.outputs['txz-path'] }}
+        repo: https://pahkat.thetc.se/devtools/
+        channel: ${{ steps.version.outputs.channel }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Setup Divvun CI
+      uses: divvun/actions/setup@master
+      with:
+        key: ${{ secrets.DIVVUN_KEY }}
+    - name: Get version
+      id: version
+      uses: divvun/actions/version@master
+      with:
+        cargo: true
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Install musl libs and tools
+      run: |
+        sudo apt install -y musl musl-tools
+    - name: Install build dependencies
+      uses: divvun/actions/pahkat/init@master
+      with:
+        repo: https://pahkat.uit.no/devtools/
+        channel: nightly
+        packages: pahkat-uploader
+    - name: Install Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        target: x86_64-unknown-linux-musl
+        profile: minimal
+        components: rustfmt
+        override: true
+    - name: Install pyoxidizer
+      run: |
+        cargo install pyoxidizer --vers ${{ env.PYOXIDIZER_VERSION }}
+    - name: Build kbdgen
+      run: |
+        cargo build --release
+    - name: Create dist
+      run: |
+        strip target/release/kbdgen
+        mkdir -p dist/bin
+        mv target/release/kbdgen dist/bin/kbdgen
+    - name: Create tarball package
+      id: installer
+      uses: divvun/actions/create-txz@master
+      with:
+        path: dist
+    - name: Deploy
+      uses: divvun/actions/deploy@master
+      with:
+        package-id: kbdgen
+        type: TarballPackage
+        platform: linux
+        arch: x86_64
+        version: ${{ steps.version.outputs.version }}
+        payload-path: ${{ steps.installer.outputs['txz-path'] }}
+        repo: https://pahkat.thetc.se/devtools/
+        channel: ${{ steps.version.outputs.channel }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

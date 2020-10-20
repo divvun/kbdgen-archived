@@ -10,7 +10,7 @@ license = "Apache-2.0 OR MIT"
 repository = "https://github.com/divvun/kbdgen"
 
 [dependencies]
-pyembed = { version = "0.8", default-features = false, features = ["build-mode-pyoxidizer-exe", "cpython-link-unresolved-static"] }
+pyembed = { version = "0.9", default-features = false, features = ["build-mode-pyoxidizer-exe", "cpython-link-unresolved-static"] }
 py-language-tags = { path = "modules/language-tags" }
 py-logger = { path = "modules/logger" }
 py-reqwest = { path = "modules/reqwest" }
