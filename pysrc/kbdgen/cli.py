@@ -3,6 +3,7 @@ import yaml
 import sys
 import os.path
 import platform
+import logging
 
 from . import __version__, gen
 from .base import KbdgenException, Parser, get_logger, UserException
@@ -116,9 +117,9 @@ def enable_verbose_requests_log():
 def print_diagnostics():
     logger.debug("Python version: %r" % " ".join(sys.version.split("\n")))
     logger.debug("Platform: %r" % platform.platform())
-
-
-import logging
+    logger.debug("Environment:")
+    for k, v in os.environ.items():
+        logger.debug("  %s = %r" % (k, v))
 
 
 def run_cli(cli_args):
