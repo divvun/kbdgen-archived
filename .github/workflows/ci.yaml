@@ -8,7 +8,7 @@ env:
   RUSTUP_MAX_RETRIES: 10
   CARGO_NET_RETRY: 10
   RUST_BACKTRACE: full
-
+  LZMA_API_STATIC: 1
 jobs:
   build-windows:
     runs-on: windows-latest
