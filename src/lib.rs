@@ -8,3 +8,53 @@ pub use bundle::*;
 
 pub(crate) mod pad;
 pub(crate) mod utils;
+
+use std::{convert::TryFrom, sync::Arc};
+
+use pahkat_client::{InstallTarget, package_store::prefix::PrefixPackageStore, types::package_key::PackageKeyParams};
+use pahkat_client::transaction::{PackageAction, PackageTransaction};
+use pahkat_client::types::{repo::RepoUrl, PackageKey};
+
+use futures::stream::StreamExt;
+
+async fn create_prefix() -> Arc<PrefixPackageStore> {
+    let kbdgen_data = pathos::user::app_data_dir("kbdgen").unwrap();
+    let prefix_path = kbdgen_data.join("prefix");
+
+    let prefix = PrefixPackageStore::open_or_create(prefix_path).await.unwrap();
+    Arc::new(prefix)
+}
+
+async fn install_kbdi() {
+    log::info!("Updating 'kbdi' and 'kbdi-legacy'...");
+
+    let store = create_prefix().await;
+    
+    let repo_url: RepoUrl = "https://pahkat.uit.no/devtools/".parse().unwrap();
+    
+    let pkg_key_kbdi = PackageKey::new_unchecked(repo_url.clone(), "kbdi".to_string(), Some(PackageKeyParams {
+        channel: Some("nightly".to_string()),
+        ..Default::default()
+    }));
+    let pkg_key_kbdi_legacy = PackageKey::new_unchecked(repo_url.clone(), "kbdi-legacy".to_string(), Some(PackageKeyParams {
+        channel: Some("nightly".to_string()),
+        ..Default::default()
+    }));
+
+    let actions = vec![
+        PackageAction::install(pkg_key_kbdi, InstallTarget::System),
+        PackageAction::install(pkg_key_kbdi_legacy, InstallTarget::System)
+    ];
+
+    let tx = PackageTransaction::new(store, actions).unwrap();
+    let (_, mut stream) = tx.process();
+    
+    while let Some(value) = stream.next().await {
+        log::info!("{:?}", value);
+    }
+}
+
+pub fn install_kbdi_blocking() {
+    let mut rt = tokio::runtime::Runtime::new().unwrap();
+    rt.block_on(install_kbdi());
+}

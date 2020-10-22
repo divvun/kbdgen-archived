@@ -392,6 +392,8 @@ impl BuildCommands {
                 dry_run,
                 build_mode: BuildMode { release, ci },
             } => {
+                kbdgen::install_kbdi_blocking();
+                
                 let mut args = vec!["-t", "win", "-o", &*output_path.to_str().unwrap()];
 
                 if *release {
