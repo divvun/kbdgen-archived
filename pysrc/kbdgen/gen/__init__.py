@@ -1,26 +1,31 @@
-from collections import OrderedDict
+def keys():
+    return sorted(["win", "mac", "svg", "android", "ios", "json", "qr", "errormodel", "chrome"])
 
-from .ios import AppleiOSGenerator
-from .android import AndroidGenerator
-from .win import WindowsGenerator
-from .mac import MacGenerator
-from .x11 import XKBGenerator
-from .svgkbd import SVGGenerator
-from .json import QRGenerator, JSONGenerator
-from .errormodel import ErrorModelGenerator
-from .chromeos import ChromeOSGenerator
-
-generators = OrderedDict(
-    (
-        ("win", WindowsGenerator),
-        ("mac", MacGenerator),
-        ("x11", XKBGenerator),
-        ("svg", SVGGenerator),
-        ("android", AndroidGenerator),
-        ("ios", AppleiOSGenerator),
-        ("json", JSONGenerator),
-        ("qr", QRGenerator),
-        ("errormodel", ErrorModelGenerator),
-        ("chrome", ChromeOSGenerator),
-    )
-)
+def get(key):
+    if key == 'win':
+        from .win import WindowsGenerator
+        return WindowsGenerator
+    if key == 'ios':
+        from .ios import AppleiOSGenerator
+        return AppleiOSGenerator
+    if key == 'android':
+        from .android import AndroidGenerator
+        return AndroidGenerator
+    if key == 'mac':
+        from .mac import MacGenerator
+        return MacGenerator
+    if key == 'svg':
+        from .svgkbd import SVGGenerator
+        return SVGGenerator
+    if key == 'json':
+        from .json import JSONGenerator
+        return JSONGenerator
+    if key == 'errormodel':
+        from .errormodel import ErrorModelGenerator
+        return ErrorModelGenerator
+    if key == 'chrome':
+        from .chromeos import ChromeOSGenerator
+        return ChromeOSGenerator
+    if key == 'qr':
+        from .json import QRGenerator
+        return QRGenerator

@@ -393,7 +393,18 @@ impl BuildCommands {
                 build_mode: BuildMode { release, ci },
             } => {
                 kbdgen::install_kbdi_blocking();
-                
+
+                let prefix_dir  = kbdgen::prefix_dir();
+                let mut kbdi_pkg_path = prefix_dir.join("pkg").join("kbdi").join("bin").join("kbdi");
+                let mut kbdi_legacy_pkg_path = prefix_dir.join("pkg").join("kbdi-legacy").join("bin").join("kbdi-legacy");
+
+                if cfg!(windows) {
+                    kbdi_pkg_path.set_extension("exe");
+                    kbdi_legacy_pkg_path.set_extension("exe");
+                }
+                std::env::set_var("KBDI", kbdi_pkg_path);
+                std::env::set_var("KBDI_LEGACY", kbdi_legacy_pkg_path);
+
                 let mut args = vec!["-t", "win", "-o", &*output_path.to_str().unwrap()];
 
                 if *release {

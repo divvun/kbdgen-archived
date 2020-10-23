@@ -95,11 +95,11 @@ def make_exe(dist):
 
     # Control whether `oxidized_importer` is the first importer on
     # `sys.meta_path`.
-    # python_config.oxidized_importer = False
+    python_config.oxidized_importer = True
 
     # Enable the standard path-based importer which attempts to load
     # modules from the filesystem.
-    # python_config.filesystem_importer = True
+    python_config.filesystem_importer = False
 
     # Set `sys.frozen = True`
     python_config.sys_frozen = True
@@ -204,5 +204,5 @@ resolve_targets()
 # Everything below this is typically managed by PyOxidizer and doesn't need
 # to be updated by people.
 
-PYOXIDIZER_VERSION = "0.8.0"
+PYOXIDIZER_VERSION = "0.9.0"
 PYOXIDIZER_COMMIT = "UNKNOWN"

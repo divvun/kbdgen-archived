@@ -66,7 +66,7 @@ def parse_args(args):
         "-t",
         "--target",
         required=True,
-        choices=gen.generators.keys(),
+        choices=gen.keys(),
         help="Target output.",
     )
     p.add_argument(
@@ -158,11 +158,11 @@ def run_cli(cli_args):
         logger.critical("URL: <https://github.com/divvun/kbdgen/issues/>")
         return 1
 
-    generator = gen.generators.get(args.target, None)
+    generator = gen.get(args.target)
 
     if generator is None:
         print("Error: '%s' is not a valid target." % args.target, file=sys.stderr)
-        print("Valid targets: %s" % ", ".join(gen.generators.keys()), file=sys.stderr)
+        print("Valid targets: %s" % ", ".join(gen.keys()), file=sys.stderr)
         return 1
 
     x = generator(project, dict(args._get_kwargs()))
