@@ -1318,7 +1318,7 @@ dependencies = [
 
 [[package]]
 name = "kbdgen"
-version = "2.0.0-alpha.17"
+version = "2.0.0-alpha.18"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -1690,7 +1690,7 @@ checksum = "2ac6fe3538f701e339953a3ebbe4f39941aababa8a3f6964635b24ab526daeac"
 [[package]]
 name = "pahkat-client"
 version = "0.1.0"
-source = "git+https://github.com/divvun/pahkat?branch=main#bf3516fff5f65d71c491ecc72622e2808709f6a0"
+source = "git+https://github.com/divvun/pahkat?branch=main#c8d583545c8952659773821b7c0f9728672ca989"
 dependencies = [
  "android_log",
  "anyhow",
@@ -1741,7 +1741,7 @@ dependencies = [
 [[package]]
 name = "pahkat-types"
 version = "1.0.0-alpha.0"
-source = "git+https://github.com/divvun/pahkat?branch=main#bf3516fff5f65d71c491ecc72622e2808709f6a0"
+source = "git+https://github.com/divvun/pahkat?branch=main#c8d583545c8952659773821b7c0f9728672ca989"
 dependencies = [
  "chrono",
  "indexmap",
