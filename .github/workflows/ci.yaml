@@ -100,8 +100,10 @@ jobs:
         profile: minimal
         components: rustfmt
         override: true
-    - name: Uninstall homebrew libyaml
+    - name: Configure environment using homebrew
       run: |
+        brew unlink python
+        brew install --ignore-dependencies https://raw.githubusercontent.com/Homebrew/homebrew-core/f2a764ef944b1080be64bd88dca9a1d80130c558/Formula/python.rb
         brew uninstall --ignore-dependencies libyaml
     - name: Install pyoxidizer
       run: |
