@@ -22,12 +22,17 @@ pub fn prefix_dir() -> PathBuf {
     kbdgen_data.join("prefix")
 }
 
-async fn create_prefix() -> Arc<PrefixPackageStore> {
+async fn create_prefix() -> Arc<dyn PackageStore> {
     let prefix_path = prefix_dir();
-    let mut prefix = PrefixPackageStore::open_or_create(prefix_path).await.unwrap();
-    let mut config = prefix.config();
+    let prefix = PrefixPackageStore::open_or_create(prefix_path).await.unwrap();
+    let config = prefix.config();
+    
     let mut config = config.write().unwrap();
-    let mut repos = config.repos_mut();
+    let settings = config.settings_mut();
+    settings.set_cache_dir(pathos::user::app_cache_dir("kbdgen").unwrap().try_into().unwrap()).unwrap();
+    settings.set_tmp_dir(pathos::user::app_temporary_dir("kbdgen").unwrap().try_into().unwrap()).unwrap();
+
+    let repos = config.repos_mut();
     repos.insert("https://pahkat.uit.no/devtools/".parse().unwrap(), RepoRecord { channel: Some("nightly".into()) }).unwrap();
     
     Arc::new(prefix)
@@ -54,8 +59,28 @@ async fn install_kbdi() {
         PackageAction::install(pkg_key_kbdi_legacy, InstallTarget::System)
     ];
 
-    let tx = PackageTransaction::new(store, actions).unwrap();
-    let (_, mut stream) = tx.process();
+    let tx = PackageTransaction::new(Arc::clone(&store as _), actions).unwrap();
+
+    for record in tx.actions().iter() {
+        let action = &record.action;
+        let mut download = store.download(&action.id);
+
+        use pahkat_client::package_store::DownloadEvent;
+
+        while let Some(event) = download.next().await {
+            match event {
+                DownloadEvent::Error(e) => {
+                    log::error!("{:?}", &e);
+                    std::process::exit(1);
+                }
+                event => {
+                    log::debug!("{:?}", &event);
+                }
+            };
+        }
+    }
+
+    let (_cancel, mut stream) = tx.process();
     
     while let Some(value) = stream.next().await {
         println!("{:?}", value);
