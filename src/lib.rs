@@ -35,6 +35,8 @@ async fn create_prefix() -> Arc<dyn PackageStore> {
     let repos = config.repos_mut();
     repos.insert("https://pahkat.uit.no/devtools/".parse().unwrap(), RepoRecord { channel: Some("nightly".into()) }).unwrap();
     
+    let _ = prefix.force_refresh_repos().await;
+
     Arc::new(prefix)
 }
 
