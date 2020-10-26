@@ -837,10 +837,10 @@ UninstallDisplayName={cm:AppName}
 %s
 
 [Files]
-Source: "{#BuildDir}\\kbdi.exe"; DestDir: "{app}"
-Source: "{#BuildDir}\\i386\\*"; DestDir: "{sys}"; Check: not Is64BitInstallMode; Flags: restartreplace uninsrestartdelete
-Source: "{#BuildDir}\\amd64\\*"; DestDir: "{sys}"; Check: Is64BitInstallMode; Flags: restartreplace uninsrestartdelete
-Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMode; Flags: restartreplace uninsrestartdelete
+Source: "{#BuildDir}\\kbdi.exe"; DestDir: "{app}"; Flags: restartreplace uninsrestartdelete ignoreversion
+Source: "{#BuildDir}\\i386\\*"; DestDir: "{sys}"; Check: not Is64BitInstallMode; Flags: restartreplace uninsrestartdelete ignoreversion
+Source: "{#BuildDir}\\amd64\\*"; DestDir: "{sys}"; Check: Is64BitInstallMode; Flags: restartreplace uninsrestartdelete ignoreversion
+Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMode; Flags: restartreplace uninsrestartdelete ignoreversion
         """.strip() % (  # noqa: E501
             app_version,
             app_publisher,
@@ -893,12 +893,6 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
         uninst_scr.write("[UninstallRun]\n")
         icons_scr = io.StringIO()
         icons_scr.write("[Icons]\n")
-
-        # Pre-install clean script
-        run_scr.write(
-            'Filename: "{app}\\kbdi.exe"; Parameters: "clean"; '
-            "Flags: runhidden waituntilterminated\n"
-        )
 
         for locale, layout in self.supported_layouts.items():
             kbd_id = self._klc_get_name(locale, layout)
