@@ -1690,7 +1690,7 @@ checksum = "2ac6fe3538f701e339953a3ebbe4f39941aababa8a3f6964635b24ab526daeac"
 [[package]]
 name = "pahkat-client"
 version = "0.1.0"
-source = "git+https://github.com/divvun/pahkat?branch=main#b214e1e0008eb5d40775d4318d3616e293f88f45"
+source = "git+https://github.com/divvun/pahkat?branch=main#bf3516fff5f65d71c491ecc72622e2808709f6a0"
 dependencies = [
  "android_log",
  "anyhow",
@@ -1741,7 +1741,7 @@ dependencies = [
 [[package]]
 name = "pahkat-types"
 version = "1.0.0-alpha.0"
-source = "git+https://github.com/divvun/pahkat?branch=main#b214e1e0008eb5d40775d4318d3616e293f88f45"
+source = "git+https://github.com/divvun/pahkat?branch=main#bf3516fff5f65d71c491ecc72622e2808709f6a0"
 dependencies = [
  "chrono",
  "indexmap",

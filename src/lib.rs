@@ -24,7 +24,7 @@ pub fn prefix_dir() -> PathBuf {
 
 async fn create_prefix() -> Arc<dyn PackageStore> {
     let prefix_path = prefix_dir();
-    let prefix = PrefixPackageStore::open_or_create(prefix_path).await.unwrap();
+    let prefix = PrefixPackageStore::open_or_create(&prefix_path).await.unwrap();
     let config = prefix.config();
     
     let mut config = config.write().unwrap();
@@ -34,9 +34,10 @@ async fn create_prefix() -> Arc<dyn PackageStore> {
 
     let repos = config.repos_mut();
     repos.insert("https://pahkat.uit.no/devtools/".parse().unwrap(), RepoRecord { channel: Some("nightly".into()) }).unwrap();
-    
-    let _ = prefix.force_refresh_repos().await;
+    drop(prefix);
 
+    // We can't just refresh repos because it locks up, reason unknown.
+    let prefix = PrefixPackageStore::open(&prefix_path).await.unwrap();
     Arc::new(prefix)
 }
 
@@ -44,6 +45,7 @@ async fn install_kbdi() {
     log::info!("Updating 'kbdi' and 'kbdi-legacy'...");
 
     let store = create_prefix().await;
+    log::debug!("Got a prefix");
     
     let repo_url: RepoUrl = "https://pahkat.uit.no/devtools/".parse().unwrap();
     
@@ -61,8 +63,10 @@ async fn install_kbdi() {
         PackageAction::install(pkg_key_kbdi_legacy, InstallTarget::System)
     ];
 
+    log::debug!("Creating package transaction");
     let tx = PackageTransaction::new(Arc::clone(&store as _), actions).unwrap();
 
+    log::debug!("Beginning downloads");
     for record in tx.actions().iter() {
         let action = &record.action;
         let mut download = store.download(&action.id);
@@ -90,6 +94,10 @@ async fn install_kbdi() {
 }
 
 pub fn install_kbdi_blocking() {
-    let mut rt = tokio::runtime::Runtime::new().unwrap();
+    let mut rt = tokio::runtime::Builder::new()
+        .threaded_scheduler()
+        .enable_all()
+        .build()
+        .expect("failed to build tokio runtime");
     rt.block_on(install_kbdi());
 }
