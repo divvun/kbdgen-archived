@@ -324,13 +324,6 @@ class WindowsGenerator(Generator):
         )
         return self.cache.download(kbdi_url, kbdi_sha256)
 
-    def get_or_download_signcode(self):
-        signcode_sha256 = (
-            "b347a3bfe9a0370366a24cb4e535c8f7cc113e8903fd2e13ebe09595090d8d54"
-        )
-        signcode_url = "https://brendan.so/files/signcode.exe"
-        return self.cache.download(signcode_url, signcode_sha256)
-
     @property
     # @lru_cache(maxsize=1)
     def supported_layouts(self):
@@ -367,7 +360,7 @@ class WindowsGenerator(Generator):
         build_dir = os.path.abspath(base)
         os.makedirs(build_dir, exist_ok=True)
 
-        signcode = self.get_or_download_signcode()
+        # signcode = self.get_or_download_signcode()
         executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
         try:
             futures = []
@@ -379,17 +372,17 @@ class WindowsGenerator(Generator):
                 if self.is_release:
                     futures.append(
                         executor.submit(
-                            self.build_dll, name, "i386", klc_path, signcode, build_dir
+                            self.build_dll, name, "i386", klc_path, build_dir
                         )
                     )
                     futures.append(
                         executor.submit(
-                            self.build_dll, name, "amd64", klc_path, signcode, build_dir
+                            self.build_dll, name, "amd64", klc_path, build_dir
                         )
                     )
                     futures.append(
                         executor.submit(
-                            self.build_dll, name, "wow64", klc_path, signcode, build_dir
+                            self.build_dll, name, "wow64", klc_path, build_dir
                         )
                     )
 
@@ -449,16 +442,6 @@ class WindowsGenerator(Generator):
             if os.path.isdir(p):
                 return p
 
-    def get_mono_dir(self):
-        possibles = [os.environ.get("MONO_PATH", None)]
-        if is_windows:
-            possibles += ["C:\\Program Files\\Mono", "C:\\Program Files (x86)\\Mono"]
-        for p in possibles:
-            if p is None:
-                continue
-            if os.path.isdir(p):
-                return p
-
     def layout_target(self, layout):
         if layout.targets is not None:
             return layout.targets.get("win", {})
@@ -466,10 +449,15 @@ class WindowsGenerator(Generator):
 
     @property
     def codesign_pfx(self):
-        logger.trace(self.win_target)
         return self.win_target.code_sign_pfx or os.environ.get("CODESIGN_PFX", None)
 
+    @property
+    def codesign_pw(self):
+        return os.environ.get("CODESIGN_PW", None)
+
     def satisfies_requirements(self):
+        logger.debug("Is release? %s" % self.is_release)
+
         if super().satisfies_requirements() is False:
             return False
         pfx = self.codesign_pfx
@@ -616,7 +604,7 @@ class WindowsGenerator(Generator):
         else:
             return "%s/bin/i386/kbdutool.exe" % self.get_msklc_dir()
 
-    def build_dll(self, name, arch, klc_path, signcode, build_dir):
+    def build_dll(self, name, arch, klc_path, build_dir):
         # x86, x64, wow64
         flags = {"i386": "-x", "amd64": "-m", "wow64": "-o"}
 
@@ -643,25 +631,19 @@ class WindowsGenerator(Generator):
         pfx_path = self._wine_path(self._bundle.relpath(pfx))
         logger.debug("PFX path: %s" % pfx_path)
 
-        cmd = self._wine_cmd(
-            self._wine_path(signcode),
-            "-a",
-            "sha1",
-            "-t",
-            "http://timestamp.verisign.com/scripts/timstamp.dll",
-            "-pkcs12",
-            pfx_path,
-            "-$",
-            "commercial",
-            self._wine_path(os.path.join(out_path, "%s.dll" % name)),
-        )
+        cmd = [
+            "signtool.exe"
+            "sign", "/t", "http://timestamp.verisign.com/scripts/timstamp.dll",
+            "/f", pfx_path, "/p", self.codesign_pw,
+            self._wine_path(os.path.join(out_path, "%s.dll" % name))
+        ]
         run_process(cmd, cwd=out_path)
 
     @property
     def win_resources_list(self):
         try:
             return os.listdir(self.win_resources)
-        except:
+        except Exception:
             return []
 
     def _generate_inno_languages(self):
