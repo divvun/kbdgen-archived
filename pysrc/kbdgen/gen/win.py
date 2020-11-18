@@ -746,14 +746,6 @@ class WindowsGenerator(Generator):
         if pfx is None:
             return o
         pfx = self._bundle.relpath(pfx)
-        app_name = self.first_locale().name
-
-        o += (
-            "SignTool=signtool -a sha1 "
-            + "-t http://timestamp.verisign.com/scripts/timstamp.dll "
-            + "-pkcs12 $q%s$q -$ commercial "
-            + "-n $q%s$q -i $q%s$q $f"
-        ) % (self._wine_path(pfx), app_name, app_url)
         return o
 
     def _generate_inno_os_config(self, os_):
@@ -959,13 +951,17 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
         fn_os = "all" if os_ != "Windows 7" else "win7"
         script_path = self._wine_path(os.path.join(build_dir, "install.%s.iss" % fn_os))
 
-        name = self.first_locale().name
         version = self.win_target.version
+
+        sign_flag = ('/S"signtool=signtool.exe sign ' +
+                     '/t http://timestamp.verisign.com/scripts/timstamp.dll ' +
+                     '/f %s ' % self.codesign_pfx +
+                     '/p %s $f"' % self.codesign_pw)
 
         cmd = self._wine_cmd(
             iscc,
+            sign_flag,
             "/O%s" % output_path,
-            "/Ssigntool=%s $p" % self._wine_path(self.get_or_download_signcode()),
             script_path,
         )
         logger.trace(cmd)
