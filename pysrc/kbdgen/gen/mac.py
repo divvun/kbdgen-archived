@@ -66,19 +66,20 @@ class MacGenerator(PhysicalGenerator):
             logger.error("'productbuild' not found on PATH; are you running on macOS?")
             return False
 
-        if self.sign_id is None:
-            logger.error("No signing identify found, release build not possible.")
-            logger.error(
-                "Add `codeSignId` property to mac target yaml or set CODE_SIGN_ID environment variable."
-            )
-            return False
+        if self.is_release:
+            if self.sign_id is None:
+                logger.error("No signing identify found, release build not possible.")
+                logger.error(
+                    "Add `codeSignId` property to mac target yaml or set CODE_SIGN_ID environment variable."
+                )
+                return False
 
-        if self.developer_account is None or self.developer_password_chain_item is None:
-            logger.error("No notarization developer account details found")
-            logger.error(
-                "Set the DEVELOPER_ACCOUNT environment variable to the Apple developer account name, and DEVELOPER_PASSWORD_CHAIN_ITEM to the name of the keychain item with the password."
-            )
-            return False
+            if self.developer_account is None or self.developer_password_chain_item is None:
+                logger.error("No notarization developer account details found")
+                logger.error(
+                    "Set the DEVELOPER_ACCOUNT environment variable to the Apple developer account name, and DEVELOPER_PASSWORD_CHAIN_ITEM to the name of the keychain item with the password."
+                )
+                return False
 
         fail = False
         ids = []
@@ -198,7 +199,7 @@ class MacGenerator(PhysicalGenerator):
             else:
                 logger.warning("no icon for layout '%s'." % name)
                 return
-        except:
+        except Exception:
             logger.debug("No resources directory.")
             return
 
