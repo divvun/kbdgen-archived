@@ -66,6 +66,10 @@ class MacGenerator(PhysicalGenerator):
             logger.error("'productbuild' not found on PATH; are you running on macOS?")
             return False
 
+        if shutil.which("convert") is None:
+            logger.error("`convert` not found. Is imagemagick installed?")
+            return False
+
         if self.is_release:
             if self.sign_id is None:
                 logger.error("No signing identify found, release build not possible.")
