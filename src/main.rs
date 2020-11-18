@@ -423,7 +423,7 @@ impl BuildCommands {
                     args.push("--ci");
                 }
 
-                if build_legacy {
+                if *build_legacy {
                     args.push("--legacy")
                 }
 
