@@ -23,13 +23,13 @@ enum BuildCommands {
         #[structopt(long = "kbd-repo", default_value = "divvun/giellakbd-android")]
         kbd_repo: String,
 
-        #[structopt(long = "kbd-branch", default_value = "develop")]
+        #[structopt(long = "kbd-branch", default_value = "main")]
         kbd_branch: String,
 
         #[structopt(long = "divvunspell-repo", default_value = "divvun/divvunspell")]
         divvunspell_repo: String,
 
-        #[structopt(long = "divvunspell-branch", default_value = "develop")]
+        #[structopt(long = "divvunspell-branch", default_value = "main")]
         divvunspell_branch: String,
 
         #[structopt(flatten)]
@@ -54,7 +54,7 @@ enum BuildCommands {
         #[structopt(long = "kbd-repo", default_value = "divvun/giellakbd-ios")]
         kbd_repo: String,
 
-        #[structopt(long = "kbd-branch", default_value = "develop")]
+        #[structopt(long = "kbd-branch", default_value = "main")]
         kbd_branch: String,
 
         #[structopt(flatten)]
