@@ -394,11 +394,19 @@ class WindowsGenerator(Generator):
         if self.is_release:
             self.copy_nlp_files(build_dir)
 
-            for os_ in [("Windows 7", kbdi_legacy), ("Windows 8/8.1/10", kbdi)]:
+            oses = [("Windows 8.1/10", kbdi)]
+            if self.is_legacy:
+                oses.append(("legacy Windows", kbdi_legacy))
+
+            for os_ in oses:
                 shutil.copyfile(os_[1], os.path.join(build_dir, "kbdi.exe"))
                 self.generate_inno_script(os_[0], build_dir)
                 self.build_installer(os_[0], build_dir)
 
+    @property
+    def is_legacy(self):
+        return self._args.get("legacy", False)
+    
     def copy_nlp_files(self, build_dir):
         target = self.win_target
         src_path = target.custom_locales

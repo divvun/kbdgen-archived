@@ -31,6 +31,7 @@ def parse_args(args):
     p.add_argument("--version", action="version", version="%(prog)s " + __version__)
     p.add_argument("--logging", type=logging_type, default=20, help="Logging level")
     p.add_argument("--local", action="store_true", help="local build")
+    p.add_argument("--legacy", action="store_true", help='(Windows only)')
     p.add_argument(
         "-K",
         "--key",

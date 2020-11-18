@@ -67,7 +67,7 @@ enum BuildCommands {
         build_mode: BuildMode,
     },
 
-    #[structopt(about = "Generates installers for Windows 7/8 and 8.1+")]
+    #[structopt(about = "Generates installers for Windows.")]
     Win {
         #[structopt(flatten)]
         in_out: InOutPaths,
@@ -77,6 +77,9 @@ enum BuildCommands {
 
         #[structopt(flatten)]
         build_mode: BuildMode,
+
+        #[structopt(long = "legacy", help = "Build installers for Windows 8 and older.")]
+        build_legacy: bool
     },
 
     #[cfg(target_os = "macos")]
@@ -391,6 +394,7 @@ impl BuildCommands {
                     },
                 dry_run,
                 build_mode: BuildMode { release, ci },
+                build_legacy,
             } => {
                 kbdgen::install_kbdi_blocking();
 
@@ -417,6 +421,10 @@ impl BuildCommands {
 
                 if *ci {
                     args.push("--ci");
+                }
+
+                if build_legacy {
+                    args.push("--legacy")
                 }
 
                 args.push(&*project_path.to_str().unwrap());
