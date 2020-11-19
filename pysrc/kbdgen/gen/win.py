@@ -640,7 +640,7 @@ class WindowsGenerator(Generator):
         logger.debug("PFX path: %s" % pfx_path)
 
         cmd = [
-            "signtool.exe"
+            "signtool.exe",
             "sign", "/t", "http://timestamp.verisign.com/scripts/timstamp.dll",
             "/f", pfx_path, "/p", self.codesign_pw,
             self._wine_path(os.path.join(out_path, "%s.dll" % name))
