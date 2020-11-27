@@ -599,12 +599,6 @@ class WindowsGenerator(Generator):
         else:
             return "Z:%s" % ntpath.abspath(thing)
 
-    def _wine_cmd(self, *args):
-        if is_windows:
-            return args
-        else:
-            return ["wine"] + list(args)
-
     @property
     def _kbdutool(self):
         if is_windows:
@@ -622,9 +616,7 @@ class WindowsGenerator(Generator):
         os.makedirs(out_path, exist_ok=True)
 
         logger.info("Building '%s' for %s…" % (name, arch))
-        cmd = self._wine_cmd(
-            self._kbdutool, "-n", flag, "-u", self._wine_path(klc_path)
-        )
+        cmd = [self._kbdutool, "-n", flag, "-u", self._wine_path(klc_path)]
         run_process(cmd, cwd=out_path)
 
         pfx = self.codesign_pfx
@@ -958,14 +950,14 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
                      '/f %s ' % self.codesign_pfx +
                      '/p %s $f"' % self.codesign_pw)
 
-        cmd = self._wine_cmd(
+        cmd = [
             iscc,
             sign_flag,
             "/O%s" % output_path,
-            script_path,
-        )
+            script_path
+        ]
         logger.trace(cmd)
-        run_process(cmd, cwd=build_dir)
+        run_process(cmd, cwd=build_dir, show_output=True)
 
         fn = self._installer_fn(os_, version)
         shutil.move(os.path.join(build_dir, "install.exe"), os.path.join(build_dir, fn))
