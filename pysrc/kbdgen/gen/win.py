@@ -950,14 +950,14 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
                      '/f %s ' % self.codesign_pfx +
                      '/p %s $f"' % self.codesign_pw)
 
-        cmd = [
+        cmd = " ".join([
             iscc,
             sign_flag,
             "/O%s" % output_path,
             script_path
-        ]
+        ])
         logger.trace(cmd)
-        run_process(cmd, cwd=build_dir, show_output=True)
+        run_process(cmd, shell=True, cwd=build_dir, show_output=True)
 
         fn = self._installer_fn(os_, version)
         shutil.move(os.path.join(build_dir, "install.exe"), os.path.join(build_dir, fn))
