@@ -951,7 +951,7 @@ Source: "{#BuildDir}\\wow64\\*"; DestDir: "{syswow64}"; Check: Is64BitInstallMod
                      '/p %s $f"' % self.codesign_pw)
 
         cmd = " ".join([
-            iscc,
+            '"%s"' % iscc,
             sign_flag,
             "/O%s" % output_path,
             script_path
