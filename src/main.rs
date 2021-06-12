@@ -1,4 +1,4 @@
-use pyembed::{ExtensionModule, MainPythonInterpreter};
+use pyembed::{ExtensionModule, MainPythonInterpreter, OxidizedPythonInterpreterConfig};
 use std::path::PathBuf;
 use structopt::{clap::AppSettings::*, StructOpt};
 
@@ -495,7 +495,7 @@ impl BuildCommands {
     }
 }
 
-fn python_config() -> pyembed::PythonConfig {
+fn python_config<'a>(args: &[&str]) -> OxidizedPythonInterpreterConfig<'a> {
     let mut config = default_python_config();
 
     let mod_language_tags = ExtensionModule {
@@ -513,38 +513,35 @@ fn python_config() -> pyembed::PythonConfig {
         init_func: py_reqwest::PyInit_reqwest,
     };
 
-    config.extra_extension_modules = vec![mod_language_tags, mod_logger, mod_reqwest];
+    config.extra_extension_modules = Some(vec![mod_language_tags, mod_logger, mod_reqwest]);
+
+    if args.len() > 0 {
+        let args = format!(
+            "[{}]",
+            args.iter()
+                .map(|x| format!("{:?}", x))
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
+        config.interpreter_config.run_command = Some(format!("import kbdgen.cli; kbdgen.cli.run_cli({})", args));
+    }
     config
 }
 
 fn launch_py_kbdgen(args: &[&str]) -> i32 {
     // Load the default Python configuration as derived by the PyOxidizer config
     // file used at build time.
-    let config = python_config();
+    let config = python_config(args);
 
     // Construct a new Python interpreter using that config, handling any errors
     // from construction.
     match MainPythonInterpreter::new(config) {
-        Ok(mut interp) => {
+        Ok(interp) => {
             // And run it using the default run configuration as specified by the
             // configuration. If an uncaught Python exception is raised, handle it.
             // This includes the special SystemExit, which is a request to terminate the
             // process.
-            let args = format!(
-                "[{}]",
-                args.iter()
-                    .map(|x| format!("{:?}", x))
-                    .collect::<Vec<_>>()
-                    .join(", ")
-            );
-            match interp.run_code(&format!("import kbdgen.cli; kbdgen.cli.run_cli({})", args)) {
-                Ok(_) => 0,
-                Err(msg) => {
-                    let py = interp.acquire_gil();
-                    msg.print(py);
-                    1
-                }
-            }
+            interp.py_runmain()
         }
         Err(msg) => {
             eprintln!("{}", msg);
@@ -554,15 +551,10 @@ fn launch_py_kbdgen(args: &[&str]) -> i32 {
 }
 
 fn launch_repl() -> i32 {
-    let config = python_config();
+    let config = python_config(&[]);
     match MainPythonInterpreter::new(config) {
-        Ok(mut interp) => match interp.run_repl() {
-            Ok(_) => 0,
-            Err(msg) => {
-                let py = interp.acquire_gil();
-                msg.print(py);
-                1
-            }
+        Ok(interp) => {
+            interp.py_runmain()
         },
         Err(msg) => {
             eprintln!("{}", msg);

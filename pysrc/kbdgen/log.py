@@ -9,7 +9,6 @@ import os.path
 class RustLogger:
     def __init__(self, target):
         import rust_logger
-
         self.rust_logger = rust_logger.Logger(target)
 
     def _log(self, level, msg):
@@ -64,6 +63,7 @@ def get_logger(target=None):
 
 
 def hijack_logging_getLogger():
+    import rust_logger
     logging.getLogger = get_logger
 
 
