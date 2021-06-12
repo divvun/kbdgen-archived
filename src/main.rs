@@ -696,8 +696,8 @@ pub(crate) mod meta {
 
         for (id, bundle) in config.bundle {
             log::debug!("id: {}, bundle: {:?}", &id, &bundle);
-            let branch = 
-                bundle.branch.unwrap_or_else(|| "master".into());
+            let branch =
+                bundle.branch.unwrap_or_else(|| "main".into());
             let url = format!("https://github.com/{}/archive/{}.zip",
                 bundle.github, &branch);
 

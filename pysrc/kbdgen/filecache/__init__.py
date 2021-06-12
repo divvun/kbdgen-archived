@@ -88,7 +88,7 @@ class FileCache:
     def download_latest_from_github(
         self,
         repo: str,
-        branch: str = "master",
+        branch: str = "main",
         username: str = None,
         password: str = None,
     ) -> str:
@@ -99,7 +99,7 @@ class FileCache:
 
         client = reqwest.Client(user_agent="kbdgen/%s" % __version__)
         request = client.get(url)
-        
+
         if username is not None and password is not None:
             request = request.basic_auth(username, password)
         response = request.send()

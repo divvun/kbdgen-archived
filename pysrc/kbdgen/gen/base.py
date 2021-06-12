@@ -150,7 +150,7 @@ class Generator:
 
     @property
     def branch(self):
-        return self._args.get("branch", "master")
+        return self._args.get("branch", "main")
 
     @property
     def is_release(self):

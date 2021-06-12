@@ -59,7 +59,7 @@ def parse_args(args):
     )
     p.add_argument("-r", "--kbd-repo", help="Git repo to generate output from")
     p.add_argument(
-        "-b", "--kbd-branch", default="master", help="Git branch (default: master)"
+        "-b", "--kbd-branch", default="main", help="Git branch (default: main)"
     )
     p.add_argument("--divvunspell-repo")
     p.add_argument("--divvunspell-branch")
