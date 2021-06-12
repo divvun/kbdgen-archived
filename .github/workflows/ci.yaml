@@ -3,11 +3,6 @@ name: CI
 on: [pull_request, push]
 
 env:
-  PYOXIDIZER_VERSION: 0.7.0
-  CARGO_INCREMENTAL: 0
-  RUSTUP_MAX_RETRIES: 10
-  CARGO_NET_RETRY: 10
-  RUST_BACKTRACE: full
   LZMA_API_STATIC: 1
 jobs:
   build-windows:
@@ -41,11 +36,13 @@ jobs:
         target: x86_64-pc-windows-msvc
     - name: Install pyoxidizer
       run: |
-        cargo install pyoxidizer --vers ${{ env.PYOXIDIZER_VERSION }}
+        python3 -m pip install pyoxidizer
+        pyoxidizer python-distribution-extract --download-default tmp
     - name: Build kbdgen
       run: |
         cargo build --release
       env:
+        PYTHON_SYS_EXECUTABLE: ${{ github.workspace }}/tmp/python/install/python.exe
         RUSTC_BOOTSTRAP: 1
     - name: Create dist
       run: |
@@ -100,18 +97,21 @@ jobs:
         profile: minimal
         components: rustfmt
         override: true
-    - name: Configure environment using homebrew
-      run: |
-        brew unlink python
-        brew install python@3.7
-        brew link --force python@3.7
-        brew uninstall --ignore-dependencies libyaml
+    # - name: Configure environment using homebrew
+    #   run: |
+    #     brew unlink python
+    #     brew install python@3.7
+    #     brew link --force python@3.7
+    #     brew uninstall --ignore-dependencies libyaml
     - name: Install pyoxidizer
       run: |
-        cargo install pyoxidizer --vers ${{ env.PYOXIDIZER_VERSION }}
+        python3 -m pip install pyoxidizer
+        pyoxidizer python-distribution-extract --download-default tmp
     - name: Build kbdgen
       run: |
         cargo build --release
+      env:
+        PYTHON_SYS_EXECUTABLE: ${{ github.workspace }}/tmp/python/install/bin/python3
     - name: Create dist
       run: |
         strip target/release/kbdgen
@@ -172,10 +172,13 @@ jobs:
         override: true
     - name: Install pyoxidizer
       run: |
-        cargo install pyoxidizer --vers ${{ env.PYOXIDIZER_VERSION }}
+        python3 -m pip install pyoxidizer
+        pyoxidizer python-distribution-extract --download-default tmp
     - name: Build kbdgen
       run: |
         cargo build --release
+      env:
+        PYTHON_SYS_EXECUTABLE: ${{ github.workspace }}/tmp/python/install/bin/python3
     - name: Create dist
       run: |
         strip target/release/kbdgen
