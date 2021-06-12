@@ -22,6 +22,7 @@ pub struct ProjectDesc {
 }
 
 /// Meta data for the project, stored in the `project.yaml` file.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default, CollectDocs)]
 #[example(
     yaml,
     r#"
@@ -35,10 +36,9 @@ locales:
 author: Example Person
 email: person@place.example
 organisation: Example Corp
-copyright: Copyright © 2017 Example Corpa
+copyright: Copyright © 2017 Example Corp
 "#
 )]
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default, CollectDocs)]
 pub struct Project {
     /// Strings for describing the project.
     ///
@@ -70,6 +70,7 @@ pub struct Project {
 }
 
 /// Strings to be shown on some OSes
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
 #[example(
     yaml,
     r#"
@@ -77,7 +78,6 @@ pub struct Project {
     return: return
     "#
 )]
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
 pub struct LayoutStrings {
     #[example(yaml, r#"space: gasska"#)]
     pub space: String,
@@ -187,6 +187,8 @@ impl IsoKey {
 ///
 /// NOTE: Each target is either described by <<DesktopModes>>, or by
 /// <<MobileModes>>.
+#[derive(Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Default, CollectDocs)]
 #[example(
     yaml,
     r#"
@@ -215,8 +217,6 @@ modes:
       Ž Z Č C V B N M ; : _
 "#
 )]
-#[derive(Debug, Clone, PartialEq)]
-#[derive(Serialize, Deserialize, Default, CollectDocs)]
 pub struct Modes {
     /// Windows
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -286,6 +286,8 @@ pub struct MobileModes(pub BTreeMap<String, MobileKeyMap>);
 /// In general only the `default` and `shift` modes are strictly required.
 /// Some targets require other modes, and the tool will inform you if they are
 /// missing.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Shrinkwrap, CollectDocs)]
 #[example(
     yaml,
     r#"
@@ -306,8 +308,6 @@ cmd+shift: |
   > Z X C V B N M ; : _
 "#
 )]
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
-#[derive(Shrinkwrap, CollectDocs)]
 pub struct DesktopModes(pub BTreeMap<String, DesktopKeyMap>);
 
 pub enum Mode {

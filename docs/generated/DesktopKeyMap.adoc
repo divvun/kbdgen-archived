@@ -8,7 +8,7 @@ Map of keys on a desktop keyboard
 A full keymap has 48 items. It has two forms of representation, a
 string-based one with 12 items per line; the other representation is a
 regular YAML map. Some keys might be omitted, which is represented as
-`\\u{0}` (the unicode escape for a `NULL` byte) in the string representation
+`\u{0}` (the unicode escape for a `NULL` byte) in the string representation
 or `None` in the map.
 
 We will try to serialize everything that is more than half of a full map as

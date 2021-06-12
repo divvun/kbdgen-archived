@@ -36,7 +36,7 @@ Type: `<<Modes>>`
 +
 The different modes.
 +
-NOTE: Do not forget the `\\|` symbol after the `<mode>` key or you will
+NOTE: Do not forget the `\|` symbol after the `<mode>` key or you will
 receive unexpected parsing errors.
 +
 .Example
@@ -67,7 +67,7 @@ modes:
 Type: `String`
 +
 Specify the decimal separator for the given locale. Required for the
-numpad keys on some targets. Normally a \'.\' or \',\'.
+numpad keys on some targets. Normally a '.' or ','.
 +
 .Example
 [source,yaml]
@@ -141,11 +141,11 @@ The chain of inputs necessary to provide an output after a deadkey is
 pressed. Keyed by each individual input.
 +
 Always includes deadkeys but some targets support key sequencing
-(replacing glyphs based on input pattern) \u{2014} this behaviour is target
+(replacing glyphs based on input pattern) — this behaviour is target
 dependent.
 +
 This map may be repeatedly nested until a terminal is reached. If a
-sequence is short-circuited, the `\" \"` is used as the fallback output in
+sequence is short-circuited, the `" "` is used as the fallback output in
 all cases.
 +
 .Example

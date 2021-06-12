@@ -20,6 +20,7 @@ use thiserror::Error;
 ///
 /// We will try to serialize everything that is more than half of a full map as
 /// string-based key map; other sizes will be regular maps in YAML.
+#[derive(Debug, Clone, PartialEq, Eq, Shrinkwrap, CollectDocs)]
 #[example(
     yaml,
     r#"
@@ -29,7 +30,6 @@ use thiserror::Error;
 ž z č c v b n m , . -"
 "#
 )]
-#[derive(Debug, Clone, PartialEq, Eq, Shrinkwrap, CollectDocs)]
 pub struct DesktopKeyMap(pub(crate) BTreeMap<IsoKey, keys::KeyValue>);
 
 impl From<BTreeMap<IsoKey, keys::KeyValue>> for DesktopKeyMap {
@@ -160,6 +160,7 @@ pub enum Error {
 ///
 /// NOTE: This does not need to map to a physical keyboard layout,
 /// so it is treated as a two-dimensional list of symbols.
+#[derive(Debug, Clone, PartialEq, Eq, CollectDocs)]
 #[example(
     yaml,
     r#"
@@ -168,7 +169,6 @@ a s d f g h j k l ö ä
    z x c v b n m ŋ"
 "#
 )]
-#[derive(Debug, Clone, PartialEq, Eq, CollectDocs)]
 pub struct MobileKeyMap(pub(crate) Vec<Vec<KeyValue>>);
 
 impl MobileKeyMap {

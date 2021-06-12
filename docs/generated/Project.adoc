@@ -19,7 +19,7 @@ locales:
 author: Example Person
 email: person@place.example
 organisation: Example Corp
-copyright: Copyright © 2017 Example Corpa
+copyright: Copyright © 2017 Example Corp
 ----
 
 .Fields

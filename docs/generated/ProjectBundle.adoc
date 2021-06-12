@@ -11,20 +11,20 @@ files in the bundle directory.
 .Example of the structure of a `.kbdgen` bundle
 ```console
 smj.kbdgen
-\u{251c}\u{2500}\u{2500} layouts
-\u{2502}  \u{251c}\u{2500}\u{2500} smj-NO.yaml
-\u{2502}  \u{2514}\u{2500}\u{2500} smj-SE.yaml
-\u{251c}\u{2500}\u{2500} project.yaml
-\u{251c}\u{2500}\u{2500} resources
-\u{2502}  \u{2514}\u{2500}\u{2500} mac
-\u{2502}     \u{251c}\u{2500}\u{2500} background.png
-\u{2502}     \u{251c}\u{2500}\u{2500} icon.smj-NO.png
-\u{2502}     \u{2514}\u{2500}\u{2500} icon.smj-SE.png
-\u{2514}\u{2500}\u{2500} targets
-   \u{251c}\u{2500}\u{2500} android.yaml
-   \u{251c}\u{2500}\u{2500} ios.yaml
-   \u{251c}\u{2500}\u{2500} mac.yaml
-   \u{2514}\u{2500}\u{2500} win.yaml
+├── layouts
+│  ├── smj-NO.yaml
+│  └── smj-SE.yaml
+├── project.yaml
+├── resources
+│  └── mac
+│     ├── background.png
+│     ├── icon.smj-NO.png
+│     └── icon.smj-SE.png
+└── targets
+   ├── android.yaml
+   ├── ios.yaml
+   ├── mac.yaml
+   └── win.yaml
 ```
 
 
