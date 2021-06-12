@@ -1,3 +1,5 @@
+use std::convert::TryFrom;
+
 use bigdecimal::BigDecimal;
 use derive_collect_docs::CollectDocs;
 use lazy_static::lazy_static;
@@ -65,7 +67,7 @@ pub fn deserialize_special(input: &str) -> Option<KeyValue> {
         width: cap
             .get(2)
             .and_then(|v| v.as_str().parse::<BigDecimal>().ok())
-            .unwrap_or_else(|| BigDecimal::from(1.0)),
+            .unwrap_or_else(|| BigDecimal::try_from(1.0).unwrap()),
     })
 }
 
@@ -86,7 +88,7 @@ pub fn serialize_special(id: &str, width: &BigDecimal) -> String {
         &id[1..]
     };
 
-    if width == &BigDecimal::from(1.0) {
+    if width == &BigDecimal::try_from(1.0).unwrap() {
         format!("\\s{{{}}}", id)
     } else {
         format!("\\s{{{}:{:.2}}}", id, width)

@@ -94,8 +94,7 @@ async fn install_kbdi() {
 }
 
 pub fn install_kbdi_blocking() {
-    let mut rt = tokio::runtime::Builder::new()
-        .threaded_scheduler()
+    let rt = tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()
         .expect("failed to build tokio runtime");

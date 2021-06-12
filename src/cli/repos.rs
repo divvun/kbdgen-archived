@@ -2,9 +2,10 @@ use std::{
     path::{Path, PathBuf},
     process::Command,
 };
+use pathos::AppDirs;
 
-fn kbdgen_dirs() -> directories::ProjectDirs {
-    directories::ProjectDirs::from("", "", "kbdgen").expect("project dir")
+fn kbdgen_dirs() -> pathos::user::AppDirs {
+    pathos::user::AppDirs::new("kbdgen").unwrap()
 }
 
 pub fn cldr_dir() -> PathBuf {
