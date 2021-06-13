@@ -40,7 +40,7 @@ jobs:
         pyoxidizer python-distribution-extract --download-default tmp
     - name: Build kbdgen
       run: |
-        cargo build --release
+        cargo build --release -vv
       env:
         PYTHON_SYS_EXECUTABLE: ${{ github.workspace }}/tmp/python/install/python.exe
         RUSTC_BOOTSTRAP: 1
@@ -109,7 +109,7 @@ jobs:
         pyoxidizer python-distribution-extract --download-default tmp
     - name: Build kbdgen
       run: |
-        cargo build --release
+        cargo build --release -vv
       env:
         PYTHON_SYS_EXECUTABLE: ${{ github.workspace }}/tmp/python/install/bin/python3
     - name: Create dist
@@ -176,7 +176,7 @@ jobs:
         pyoxidizer python-distribution-extract --download-default tmp
     - name: Build kbdgen
       run: |
-        cargo build --release
+        cargo build --release -vv
       env:
         PYTHON_SYS_EXECUTABLE: ${{ github.workspace }}/tmp/python/install/bin/python3
     - name: Create dist

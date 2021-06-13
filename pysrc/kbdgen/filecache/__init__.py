@@ -10,7 +10,6 @@ from pathlib import Path
 
 from kbdgen import __version__
 from ..base import get_logger
-from .downloader import stream_download
 
 logger = get_logger(__name__)
 
@@ -124,6 +123,9 @@ class FileCache:
         logger.debug("Download URL: %s" % download_url)
         with tempfile.TemporaryDirectory() as tmpdir:
             fp = os.path.join(tmpdir, filename)
-            stream_download(download_url, filename, fp)
+            response = client.get(download_url).send()
+            data = response.bytes()
+            with open(fp, "wb") as f:
+                f.write(data)
             shutil.move(fp, candidate)
         return candidate

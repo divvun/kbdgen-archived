@@ -11,7 +11,7 @@ cpython = "0.6.0"
 python3-sys = "0.6.0"
 
 [features]
-default = ["build-mode-extension", "cpython-link-unresolved-static"]
+default = ["cpython/extension-module", "cpython-link-unresolved-static"]
 
 cpython-link-unresolved-static = [
     "cpython/py-link-mode-unresolved-static",
@@ -19,6 +19,6 @@ cpython-link-unresolved-static = [
     "cpython/no-auto-initialize",
 ]
 
-build-mode-extension = [
-    "cpython/extension-module"
-]
+# build-mode-extension = [
+#     "cpython/extension-module"
+# ]

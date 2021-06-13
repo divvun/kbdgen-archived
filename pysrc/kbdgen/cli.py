@@ -129,9 +129,6 @@ def run_cli(cli_args):
 
     print_diagnostics()
 
-    if args.logging == 5:  # logging.TRACE
-        enable_verbose_requests_log()
-
     try:
         project = Parser().parse(args.project, args.cfg_pairs)
         if project is None:

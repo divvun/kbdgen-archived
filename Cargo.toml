@@ -28,6 +28,7 @@ shrinkwraprs = "0.3.0"
 xml-rs = "0.8.3"
 structopt = "0.3.14"
 env_logger = "0.7.1"
+tempfile = "3"
 
 # CLI stuff
 console = "0.14.1"
@@ -43,10 +44,11 @@ backtrace = "0.3.48"
 bigdecimal = "0.2"
 toml = "0.5.6"
 reqwest = { version = "0.11.3", default-features = false, features = ["rustls-tls", "gzip", "blocking"] }
-pahkat-client = { git = "https://github.com/divvun/pahkat", branch = "main", features = ["prefix"] }
-pathos = "0.3.0-pre.1"
+pahkat-client = { git = "https://github.com/divvun/pahkat", branch = "feature/tokio-1", features = ["prefix"] }
+pathos = "0.3.0-pre.3"
 tokio = { version = "1.6.1", features = ["full"] }
 futures = { version = "0.3.6", default-features = false, features = ["alloc"] }
+zip = "0.5.13"
 
 [dependencies.pyembed]
 version = "0.16.0"
@@ -66,7 +68,6 @@ embed-resource = "1.3"
 pretty_env_logger = "0.4.0"
 proptest = "0.9.6"
 assert_cmd = "1.0.1"
-tempfile = "3.1.0"
 
 [profile.release]
 debug = true

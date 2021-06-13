@@ -1,8 +1,8 @@
+use pathos::AppDirs;
 use std::{
     path::{Path, PathBuf},
     process::Command,
 };
-use pathos::AppDirs;
 
 fn kbdgen_dirs() -> pathos::user::AppDirs {
     pathos::user::AppDirs::new("kbdgen").unwrap()

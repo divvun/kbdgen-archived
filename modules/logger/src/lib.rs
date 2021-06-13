@@ -1,8 +1,6 @@
 #![allow(clippy::transmute_ptr_to_ptr, clippy::zero_ptr)] // clippy vs. cpython macros
 
-use cpython::{
-    py_class, py_module_initializer, PyObject, PyResult, PyString,
-};
+use cpython::{py_class, py_module_initializer, PyObject, PyResult, PyString};
 
 py_class!(class Logger |py| {
     data target: String;

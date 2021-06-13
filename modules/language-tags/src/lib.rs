@@ -1,8 +1,8 @@
 #![allow(clippy::transmute_ptr_to_ptr, clippy::zero_ptr)] // clippy vs. cpython macros
 
 use cpython::{
-    py_class, py_module_initializer, PyDict, PyErr, PyList,
-    PyObject, PyResult, PyString, ToPyObject,
+    py_class, py_module_initializer, PyDict, PyErr, PyList, PyObject, PyResult, PyString,
+    ToPyObject,
 };
 use std::cell::RefCell;
 

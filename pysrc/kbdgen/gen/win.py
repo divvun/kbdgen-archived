@@ -17,7 +17,6 @@ from distutils.dir_util import copy_tree
 from textwrap import dedent
 
 from ..base import get_logger
-from ..filecache import FileCache
 from .base import (
     Generator,
     bind_iso_keys,
@@ -32,7 +31,7 @@ logger = get_logger(__name__)
 
 KBDGEN_NAMESPACE = uuid.uuid5(uuid.NAMESPACE_DNS, "divvun.no")
 
-is_windows = sys.platform.startswith("win32") or sys.platform.startswith("cygwin")
+is_windows = sys.platform.startswith("win32")
 
 with get_bin_resource("lcids.json", text=True) as f:
     _lcid_data = json.load(f)
@@ -289,40 +288,16 @@ custom_msgs = {"Enable": {"en": "Enable %1", "fi": "Aktivoi %1", "nb": "Aktiver 
 
 
 class WindowsGenerator(Generator):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.cache = FileCache()
-
     @property
     def win_target(self):
-        return self._bundle.targets.get("win", {})
+        try:
+            return self._bundle.targets["win"]
+        except:
+            raise Exception("Project does not contain a `win` target!")
 
     @property
     def win_resources(self):
         return self._bundle.resources("win")
-
-    def get_or_download_kbdi(self):
-        if os.environ.get("KBDI", None) is not None:
-            kbdi = os.environ["KBDI"]
-            logger.info("Using kbdi provided by KBDI environment variable: '%s'" % kbdi)
-            return kbdi
-        kbdi_sha256 = "79c7cc003c0bf66e73c18f3980cf3a0d58966fb974090a94aaf6d9a7cd45aeb4"
-        kbdi_url = "https://github.com/bbqsrc/kbdi/releases/download/v0.4.3/kbdi.exe"
-        return self.cache.download(kbdi_url, kbdi_sha256)
-
-    def get_or_download_kbdi_legacy(self):
-        if os.environ.get("KBDI_LEGACY", None) is not None:
-            kbdi = os.environ["KBDI_LEGACY"]
-            logger.info(
-                "Using kbdi-legacy provided by KBDI_LEGACY environment variable: '%s'"
-                % kbdi
-            )
-            return kbdi
-        kbdi_sha256 = "442303f689bb6c4ca668c28193d30b2cf27202265b5bc8adf0952473581337b2"
-        kbdi_url = (
-            "https://github.com/bbqsrc/kbdi/releases/download/v0.4.3/kbdi-legacy.exe"
-        )
-        return self.cache.download(kbdi_url, kbdi_sha256)
 
     @property
     # @lru_cache(maxsize=1)
@@ -341,8 +316,8 @@ class WindowsGenerator(Generator):
 
         if self.is_release:
             try:
-                kbdi = self.get_or_download_kbdi()
-                kbdi_legacy = self.get_or_download_kbdi_legacy()
+                kbdi = os.environ["KBDI"]
+                kbdi_legacy = os.environ["KBDI_LEGACY"]
             except Exception as e:
                 logger.critical("kbdi did a fail")
                 raise e

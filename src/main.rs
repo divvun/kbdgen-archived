@@ -79,7 +79,7 @@ enum BuildCommands {
         build_mode: BuildMode,
 
         #[structopt(long = "legacy", help = "Build installers for Windows 8 and older.")]
-        build_legacy: bool
+        build_legacy: bool,
     },
 
     #[cfg(target_os = "macos")]
@@ -185,11 +185,7 @@ enum NewCommands {
 
 #[derive(Debug, StructOpt)]
 enum MetaCommands {
-    Fetch {
-        #[structopt(short, long)]
-        config: PathBuf,
-        target: PathBuf,
-    }
+    Fetch { target: PathBuf },
 }
 
 #[derive(Debug, StructOpt)]
@@ -216,10 +212,7 @@ enum Commands {
         #[structopt(subcommand)]
         command: NewCommands,
     },
-    #[structopt(
-        about = "Manage meta-bundles",
-        setting(DisableHelpSubcommand)
-    )]
+    #[structopt(about = "Manage meta-bundles", setting(DisableHelpSubcommand))]
     Meta {
         #[structopt(subcommand)]
         command: MetaCommands,
@@ -243,7 +236,7 @@ struct Opts {
 }
 
 impl BuildCommands {
-    fn to_py_args<'a>(
+    async fn to_py_args<'a>(
         &'a self,
         github_username: Option<&'a str>,
         github_token: Option<&'a str>,
@@ -396,11 +389,16 @@ impl BuildCommands {
                 build_mode: BuildMode { release, ci },
                 build_legacy,
             } => {
-                kbdgen::install_kbdi_blocking();
+                kbdgen::install_kbdi().await;
 
-                let prefix_dir  = kbdgen::prefix_dir();
-                let mut kbdi_pkg_path = prefix_dir.join("pkg").join("kbdi").join("bin").join("kbdi");
-                let mut kbdi_legacy_pkg_path = prefix_dir.join("pkg").join("kbdi-legacy").join("bin").join("kbdi-legacy");
+                let prefix_dir = kbdgen::prefix_dir();
+                let mut kbdi_pkg_path =
+                    prefix_dir.join("pkg").join("kbdi").join("bin").join("kbdi");
+                let mut kbdi_legacy_pkg_path = prefix_dir
+                    .join("pkg")
+                    .join("kbdi-legacy")
+                    .join("bin")
+                    .join("kbdi-legacy");
 
                 if cfg!(windows) {
                     kbdi_pkg_path.set_extension("exe");
@@ -523,7 +521,8 @@ fn python_config<'a>(args: &[&str]) -> OxidizedPythonInterpreterConfig<'a> {
                 .collect::<Vec<_>>()
                 .join(", ")
         );
-        config.interpreter_config.run_command = Some(format!("import kbdgen.cli; kbdgen.cli.run_cli({})", args));
+        config.interpreter_config.run_command =
+            Some(format!("import kbdgen.cli; kbdgen.cli.run_cli({})", args));
     }
     config
 }
@@ -553,9 +552,7 @@ fn launch_py_kbdgen(args: &[&str]) -> i32 {
 fn launch_repl() -> i32 {
     let config = python_config(&[]);
     match MainPythonInterpreter::new(config) {
-        Ok(interp) => {
-            interp.py_runmain()
-        },
+        Ok(interp) => interp.py_runmain(),
         Err(msg) => {
             eprintln!("{}", msg);
             1
@@ -563,7 +560,8 @@ fn launch_repl() -> i32 {
     }
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let opt = Opts::from_args();
 
     let logging = match &*opt.logging {
@@ -622,19 +620,20 @@ fn main() {
                         project_path,
                     },
                 layout,
-            } => {
-                kbdgen::cli::to_errormodel::kbdgen_to_errormodel(
-                    &project_path,
-                    &output_path,
-                    &kbdgen::cli::to_errormodel::Options { layout },
+            } => kbdgen::cli::to_errormodel::kbdgen_to_errormodel(
+                &project_path,
+                &output_path,
+                &kbdgen::cli::to_errormodel::Options { layout },
+            )
+            .unwrap(),
+            command => match command
+                .to_py_args(
+                    github_username.as_ref().map(|x| &**x),
+                    github_token.as_ref().map(|x| &**x),
+                    &opt.logging,
                 )
-                .unwrap()
-            }
-            command => match command.to_py_args(
-                github_username.as_ref().map(|x| &**x),
-                github_token.as_ref().map(|x| &**x),
-                &opt.logging,
-            ) {
+                .await
+            {
                 Ok(args) => std::process::exit(launch_py_kbdgen(&args)),
                 Err(e) => {
                     eprintln!("{:?}", e);
@@ -661,19 +660,14 @@ fn main() {
         },
 
         Commands::Meta { command } => match command {
-            MetaCommands::Fetch {
-                config,
-                target,
-            } => {
-                match meta::fetch(config, target) {
-                    Ok(_) => {},
-                    Err(e) => {
-                        eprintln!("ERROR: {:?}", e);
-                        std::process::exit(1)
-                    }
+            MetaCommands::Fetch { target } => match meta::fetch(target).await {
+                Ok(_) => {}
+                Err(e) => {
+                    eprintln!("ERROR: {:?}", e);
+                    std::process::exit(1)
                 }
-            }
-        }
+            },
+        },
 
         Commands::Repl => std::process::exit(launch_repl()),
     }
@@ -684,7 +678,8 @@ pub(crate) mod meta {
     use serde::{Deserialize, Serialize};
     use std::collections::BTreeMap;
 
-    pub fn fetch(config: PathBuf, target: PathBuf) -> anyhow::Result<()> {
+    pub async fn fetch(target: PathBuf) -> anyhow::Result<()> {
+        let config = target.join("meta.toml");
         log::info!("Fetching {} for {}...", config.display(), target.display());
         log::debug!("Reading config");
         let config = std::fs::read_to_string(config)?;
@@ -696,40 +691,43 @@ pub(crate) mod meta {
 
         for (id, bundle) in config.bundle {
             log::debug!("id: {}, bundle: {:?}", &id, &bundle);
-            let branch =
-                bundle.branch.unwrap_or_else(|| "main".into());
-            let url = format!("https://github.com/{}/archive/{}.zip",
-                bundle.github, &branch);
+            let branch = bundle.branch.unwrap_or_else(|| "main".into());
+            let url = format!(
+                "https://github.com/{}/archive/{}.zip",
+                bundle.github, &branch
+            );
 
-            let _ = std::fs::remove_dir_all("/tmp/kbdgen");
-            std::fs::create_dir_all("/tmp/kbdgen")?;
+            let tempdir = tempfile::tempdir()?;
 
             log::info!("Downloading {}...", id);
-            let mut proc = std::process::Command::new("wget")
-                .args(&[&*url, "-O", "kbdgen-layout.zip"])
-                .current_dir("/tmp/kbdgen")
-                .spawn()
-                .unwrap();
-            proc.wait().unwrap();
+            let bytes = reqwest::get(url).await?.bytes().await?;
+            let bytes = std::io::Cursor::new(bytes);
+            let mut zipfile = zip::ZipArchive::new(bytes)?;
 
             log::info!("Unzipping {}...", id);
-            let mut proc = std::process::Command::new("unzip")
-                .args(&["kbdgen-layout.zip"])
-                .current_dir("/tmp/kbdgen")
-                .spawn()
-                .unwrap();
-            proc.wait().unwrap();
+            zipfile.extract(tempdir.path())?;
 
-            let unzip_path = std::path::PathBuf::from(format!("/tmp/kbdgen/{}-{}/{}.kbdgen", bundle.github.split("/").nth(1).unwrap(), branch.replace("/", "-"), id));
+            let kbdgen_path = tempdir
+                .path()
+                .join(format!(
+                    "{}-{}",
+                    bundle.github.split("/").nth(1).unwrap(),
+                    branch.replace("/", "-")
+                ))
+                .join(format!("{}.kbdgen", id));
+
             for layout in bundle.layouts {
-                let from_path = unzip_path.join("layouts").join(format!("{}.yaml", layout));
+                let from_path = kbdgen_path.join("layouts").join(format!("{}.yaml", layout));
                 let to_path = target.join("layouts").join(format!("{}.yaml", layout));
-                log::info!("Copying {} to {}...", from_path.display(), to_path.display());
+                log::info!(
+                    "Copying {} to {}...",
+                    from_path.display(),
+                    to_path.display()
+                );
                 std::fs::copy(from_path, to_path)?;
             }
         }
 
-        std::fs::remove_dir_all("/tmp/kbdgen")?;
         Ok(())
     }
 
@@ -739,7 +737,7 @@ pub(crate) mod meta {
         layouts: Vec<String>,
         branch: Option<String>,
         #[serde(rename = "ref")]
-        ref_: Option<String>
+        ref_: Option<String>,
     }
 
     #[derive(Debug, Serialize, Deserialize)]
