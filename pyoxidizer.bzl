@@ -12,6 +12,10 @@ def make_dist():
     else:
         return default_python_distribution()
 
+# def resource_callback(policy, resource):
+#     if type(resource) in ("PythonExtensionModule"):
+#         print(type(resource), resource.name)
+
 # Configuration files consist of functions which define build "targets."
 # This function creates a Python executable and installs it in a destination
 # directory.
@@ -21,6 +25,8 @@ def make_exe(dist):
     # the executable. You can customize the default behavior by assigning
     # to attributes and calling functions.
     policy = dist.make_python_packaging_policy()
+
+    # policy.register_resource_callback(resource_callback)
 
     # Enable support for non-classified "file" resources to be added to
     # resource collections.
@@ -49,11 +55,11 @@ def make_exe(dist):
     # Package Python extensions in the distribution not having additional
     # library dependencies. This will exclude working support for SSL,
     # compression formats, and other functionality.
-    policy.extension_module_filter = "no-libraries"
+    # policy.extension_module_filter = "no-libraries"
 
     # Package Python extensions in the distribution not having a dependency on
     # copyleft licensed software like GPL.
-    #policy.extension_module_filter = "no-copyleft"
+    policy.extension_module_filter = "no-copyleft"
 
     # Controls whether the file scanner attempts to classify files and emit
     # resource-specific values.
@@ -278,21 +284,6 @@ def make_install(exe):
     files.add_python_resource("kbdgen", exe)
 
     return files
-
-def make_msi(exe):
-    # See the full docs for more. But this will convert your Python executable
-    # into a `WiXMSIBuilder` Starlark type, which will be converted to a Windows
-    # .msi installer when it is built.
-    return exe.to_wix_msi_builder(
-        # Simple identifier of your app.
-        "myapp",
-        # The name of your application.
-        "My Application",
-        # The version of your application.
-        "1.0",
-        # The author/manufacturer of your application.
-        "Alice Jones"
-    )
 
 # Tell PyOxidizer about the build targets defined above.
 register_target("dist", make_dist)
