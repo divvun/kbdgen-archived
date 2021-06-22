@@ -502,7 +502,9 @@ class AppleiOSGenerator(Generator):
                     logger.warn("Application ended with error code %s." % returncode)
 
         logger.info("Downloading signing certificates…")
-        cmd = "fastlane match appstore --app_identifier=%s" % self.command_ids()
+        cmd = "fastlane match appstore --app_identifier=%s --api_key_path=%s" % (
+            self.command_ids(), env["APP_STORE_KEY_JSON"]
+        )
         logger.debug(cmd)
         returncode = run_process(
             cmd, env=env, cwd=deps_dir, shell=True, show_output=True
@@ -513,10 +515,11 @@ class AppleiOSGenerator(Generator):
 
         logger.info("Downloading provisioning profiles…")
         for item in self.all_bundle_ids() + [self.pkg_id]:
-            cmd = "fastlane sigh -a %s -b %s -z -q %s.mobileprovision" % (
+            cmd = "fastlane sigh -a %s -b %s -z -q %s.mobileprovision --api_key_path=%s" % (
                 item,
                 team_id,
                 item,
+                env["APP_STORE_KEY_JSON"],
             )
             logger.debug(cmd)
             returncode = run_process(
