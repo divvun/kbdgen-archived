@@ -44,13 +44,15 @@ def make_exe(dist):
     # policy.bytecode_optimize_level_two = True
 
     # Package all available Python extensions in the distribution.
-    # policy.extension_module_filter = "all"
+    if BUILD_TARGET_TRIPLE.find("windows") < 0:
+        policy.extension_module_filter = "all"
 
     # Package the minimum set of Python extensions in the distribution needed
     # to run a Python interpreter. Various functionality from the Python
     # standard library won't work with this setting! But it can be used to
     # reduce the size of generated executables by omitting unused extensions.
-    #policy.extension_module_filter = "minimal"
+    if BUILD_TARGET_TRIPLE.find("windows") >= 0:
+        policy.extension_module_filter = "minimal"
 
     # Package Python extensions in the distribution not having additional
     # library dependencies. This will exclude working support for SSL,
@@ -59,7 +61,7 @@ def make_exe(dist):
 
     # Package Python extensions in the distribution not having a dependency on
     # copyleft licensed software like GPL.
-    policy.extension_module_filter = "no-copyleft"
+    # policy.extension_module_filter = "no-copyleft"
 
     # Controls whether the file scanner attempts to classify files and emit
     # resource-specific values.
