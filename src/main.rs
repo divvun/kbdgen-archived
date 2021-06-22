@@ -634,7 +634,16 @@ async fn main() {
                 )
                 .await
             {
-                Ok(args) => std::process::exit(launch_py_kbdgen(&args)),
+                Ok(args) => {
+                    let args = args.iter().map(|x| x.to_string()).collect::<Vec<String>>();
+                    let exit_code = std::thread::spawn(move || {
+                        let args = args.iter().map(|x| &**x).collect::<Vec<_>>();
+                        launch_py_kbdgen(&args)
+                    })
+                        .join()
+                        .unwrap();
+                    std::process::exit(exit_code)
+                }
                 Err(e) => {
                     eprintln!("{:?}", e);
                     std::process::exit(1);
@@ -669,7 +678,10 @@ async fn main() {
             },
         },
 
-        Commands::Repl => std::process::exit(launch_repl()),
+        Commands::Repl => {
+            let exit_code = std::thread::spawn(|| launch_repl()).join().unwrap();
+            std::process::exit(exit_code)
+        }
     }
 }
 
