@@ -1,6 +1,9 @@
 name: CI
 
-on: [pull_request, push]
+on:
+  push:
+    branches:
+      - main
 
 env:
   LZMA_API_STATIC: 1
