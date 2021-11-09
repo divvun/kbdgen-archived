@@ -1,11 +1,7 @@
 use crate::{bundle::keys::KeyValue, Load, ProjectBundle};
-use bigdecimal::ToPrimitive;
 use log::{debug, log_enabled};
-use std::{
-    fs::File,
-    io::Write,
-    path::{Path, PathBuf},
-};
+use rust_decimal::prelude::ToPrimitive;
+use std::{fs::File, io::Write, path::{Path, PathBuf}};
 
 fn key_width(key: &KeyValue) -> f32 {
     match key {

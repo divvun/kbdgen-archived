@@ -1,6 +1,6 @@
 use std::convert::TryFrom;
 
-use bigdecimal::BigDecimal;
+use rust_decimal::Decimal;
 use derive_collect_docs::CollectDocs;
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -11,7 +11,7 @@ use thiserror::Error;
 #[derive(CollectDocs)]
 pub enum KeyValue {
     Symbol(String),
-    Special { id: String, width: BigDecimal },
+    Special { id: String, width: Decimal },
     None,
 }
 
@@ -66,8 +66,8 @@ pub fn deserialize_special(input: &str) -> Option<KeyValue> {
         },
         width: cap
             .get(2)
-            .and_then(|v| v.as_str().parse::<BigDecimal>().ok())
-            .unwrap_or_else(|| BigDecimal::try_from(1.0).unwrap()),
+            .and_then(|v| v.as_str().parse::<Decimal>().ok())
+            .unwrap_or_else(|| Decimal::try_from(1.0).unwrap()),
     })
 }
 
@@ -81,14 +81,14 @@ pub fn deserialize(input: &str) -> KeyValue {
     }
 }
 
-pub fn serialize_special(id: &str, width: &BigDecimal) -> String {
+pub fn serialize_special(id: &str, width: &Decimal) -> String {
     let id = if id.starts_with('"') && id.ends_with('"') {
         id
     } else {
         &id[1..]
     };
 
-    if width == &BigDecimal::try_from(1.0).unwrap() {
+    if width == &Decimal::try_from(1.0).unwrap() {
         format!("\\s{{{}}}", id)
     } else {
         format!("\\s{{{}:{:.2}}}", id, width)
