@@ -183,11 +183,12 @@ mod tests {
 
     #[test]
     fn special_chars() {
+        use rust_decimal::{Decimal, prelude::FromPrimitive};
         assert_eq!(
             deserialize_special(r"\s{hello:1.00}"),
             Some(KeyValue::Special {
                 id: "_hello".to_owned(),
-                width: 1.0.into()
+                width: Decimal::from_f32(1.0).unwrap(),
             })
         )
     }
