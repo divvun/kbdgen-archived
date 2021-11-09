@@ -1,8 +1,7 @@
 use derive_collect_docs::CollectDocs;
 use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
-pub struct LayoutTarget {
-}
+pub struct LayoutTarget {}
 
 // TODO: Keyboards have a provisioningProfileId -- add this here?
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]

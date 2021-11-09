@@ -1,4 +1,6 @@
-use std::path::PathBuf;
+use anyhow::Error;
+use kbdgen::{Load, ProjectBundle};
+use std::path::{Path, PathBuf};
 use structopt::{clap::AppSettings::*, StructOpt};
 
 #[derive(Debug, StructOpt)]
@@ -143,6 +145,38 @@ enum BuildCommands {
     },
 }
 
+impl BuildCommands {
+    pub fn project_path(&self) -> &Path {
+        match self {
+            BuildCommands::Svg { in_out } => &in_out.project_path,
+            BuildCommands::Android { in_out, .. } => &in_out.project_path,
+            BuildCommands::IOS { in_out, .. } => &in_out.project_path,
+            BuildCommands::Win { in_out, .. } => &in_out.project_path,
+            BuildCommands::Mac { in_out, .. } => &in_out.project_path,
+            BuildCommands::X11 { in_out, .. } => &in_out.project_path,
+            BuildCommands::M17n { in_out, .. } => &in_out.project_path,
+            BuildCommands::Chrome { in_out, .. } => &in_out.project_path,
+            BuildCommands::Qr { in_out, .. } => &in_out.project_path,
+            BuildCommands::ErrorModel { in_out, .. } => &in_out.project_path,
+        }
+    }
+
+    pub fn output_path(&self) -> &Path {
+        match self {
+            BuildCommands::Svg { in_out } => &in_out.output_path,
+            BuildCommands::Android { in_out, .. } => &in_out.output_path,
+            BuildCommands::IOS { in_out, .. } => &in_out.output_path,
+            BuildCommands::Win { in_out, .. } => &in_out.output_path,
+            BuildCommands::Mac { in_out, .. } => &in_out.output_path,
+            BuildCommands::X11 { in_out, .. } => &in_out.output_path,
+            BuildCommands::M17n { in_out, .. } => &in_out.output_path,
+            BuildCommands::Chrome { in_out, .. } => &in_out.output_path,
+            BuildCommands::Qr { in_out, .. } => &in_out.output_path,
+            BuildCommands::ErrorModel { in_out, .. } => &in_out.output_path,
+        }
+    }
+}
+
 #[derive(Debug, StructOpt)]
 struct InOutPaths {
     #[structopt(short, long = "output", default_value = ".", parse(from_os_str))]
@@ -230,8 +264,88 @@ struct Opts {
     command: Commands,
 }
 
+async fn build(command: BuildCommands) -> Result<(), Error> {
+    let bundle = ProjectBundle::load(command.project_path())?;
+
+    match command {
+        BuildCommands::X11 {
+            in_out:
+                InOutPaths {
+                    output_path,
+                    project_path,
+                },
+            build_mode: BuildMode { .. },
+            standalone,
+        } => kbdgen::cli::to_xkb::kbdgen_to_xkb(
+            &project_path,
+            &output_path,
+            &kbdgen::cli::to_xkb::Options { standalone },
+        )
+        .unwrap(),
+        BuildCommands::M17n {
+            in_out:
+                InOutPaths {
+                    output_path,
+                    project_path,
+                },
+            build_mode: BuildMode { .. },
+        } => kbdgen::cli::to_m17n_mim::kbdgen_to_mim(&project_path, &output_path).unwrap(),
+        BuildCommands::ErrorModel {
+            in_out:
+                InOutPaths {
+                    output_path,
+                    project_path,
+                },
+            layout,
+        } => kbdgen::cli::to_errormodel::kbdgen_to_errormodel(
+            &project_path,
+            &output_path,
+            &kbdgen::cli::to_errormodel::Options { layout },
+        )
+        .unwrap(),
+        BuildCommands::Svg { in_out } => todo!(),
+        BuildCommands::Android {
+            kbd_repo,
+            kbd_branch,
+            divvunspell_repo,
+            divvunspell_branch,
+            in_out,
+            dry_run,
+            local,
+            build_mode,
+        } => todo!(),
+        BuildCommands::IOS {
+            command,
+            kbd_repo,
+            kbd_branch,
+            in_out,
+            dry_run,
+            build_mode,
+        } => todo!(),
+        BuildCommands::Win {
+            in_out:
+                InOutPaths {
+                    output_path,
+                    project_path,
+                },
+            build_mode: BuildMode { .. },
+            dry_run,
+            build_legacy,
+        } => todo!(),
+        BuildCommands::Mac {
+            in_out,
+            dry_run,
+            build_mode,
+        } => todo!(),
+        BuildCommands::Chrome { in_out, build_mode } => todo!(),
+        BuildCommands::Qr { in_out, layout } => todo!(),
+    };
+
+    Ok(())
+}
+
 #[tokio::main]
-async fn main() {
+async fn main() -> anyhow::Result<()> {
     let opt = Opts::from_args();
 
     let logging = match &*opt.logging {
@@ -260,75 +374,7 @@ async fn main() {
             github_username,
             github_token,
             command,
-        } => match command {
-            BuildCommands::X11 {
-                in_out:
-                    InOutPaths {
-                        output_path,
-                        project_path,
-                    },
-                build_mode: BuildMode { .. },
-                standalone,
-            } => kbdgen::cli::to_xkb::kbdgen_to_xkb(
-                &project_path,
-                &output_path,
-                &kbdgen::cli::to_xkb::Options { standalone },
-            )
-            .unwrap(),
-            BuildCommands::M17n {
-                in_out:
-                    InOutPaths {
-                        output_path,
-                        project_path,
-                    },
-                build_mode: BuildMode { .. },
-            } => kbdgen::cli::to_m17n_mim::kbdgen_to_mim(&project_path, &output_path).unwrap(),
-            BuildCommands::ErrorModel {
-                in_out:
-                    InOutPaths {
-                        output_path,
-                        project_path,
-                    },
-                layout,
-            } => kbdgen::cli::to_errormodel::kbdgen_to_errormodel(
-                &project_path,
-                &output_path,
-                &kbdgen::cli::to_errormodel::Options { layout },
-            )
-            .unwrap(),
-            BuildCommands::Svg { in_out } => todo!(),
-            BuildCommands::Android {
-                kbd_repo,
-                kbd_branch,
-                divvunspell_repo,
-                divvunspell_branch,
-                in_out,
-                dry_run,
-                local,
-                build_mode,
-            } => todo!(),
-            BuildCommands::IOS {
-                command,
-                kbd_repo,
-                kbd_branch,
-                in_out,
-                dry_run,
-                build_mode,
-            } => todo!(),
-            BuildCommands::Win {
-                in_out,
-                dry_run,
-                build_mode,
-                build_legacy,
-            } => todo!(),
-            BuildCommands::Mac {
-                in_out,
-                dry_run,
-                build_mode,
-            } => todo!(),
-            BuildCommands::Chrome { in_out, build_mode } => todo!(),
-            BuildCommands::Qr { in_out, layout } => todo!(),
-        },
+        } => build(command).await,
 
         Commands::New { command } => match command {
             NewCommands::Bundle {
@@ -349,7 +395,7 @@ async fn main() {
 
         Commands::Meta { command } => match command {
             MetaCommands::Fetch { target } => match meta::fetch(target).await {
-                Ok(_) => {}
+                Ok(_) => Ok(()),
                 Err(e) => {
                     eprintln!("ERROR: {:?}", e);
                     std::process::exit(1)
