@@ -78,8 +78,8 @@ impl Load for Targets {
         Ok(Targets {
             android: read_yml_if_exists(&path.join("android.yaml"))?,
             i_os: read_yml_if_exists(&path.join("ios.yaml"))?,
-            mac_os: read_yml_if_exists(&path.join("macos.yaml"))?,
-            windows: read_yml_if_exists(&path.join("windows.yaml"))?,
+            mac_os: read_yml_if_exists(&path.join("mac.yaml"))?,
+            windows: read_yml_if_exists(&path.join("win.yaml"))?,
             chrome: read_yml_if_exists(&path.join("chrome.yaml"))?,
             x11: read_yml_if_exists(&path.join("x11.yaml"))?,
             mim: read_yml_if_exists(&path.join("mim.yaml"))?,
