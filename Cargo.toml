@@ -10,10 +10,6 @@ license = "Apache-2.0 OR MIT"
 repository = "https://github.com/divvun/kbdgen"
 
 [dependencies]
-py-language-tags = { path = "modules/language-tags" }
-py-logger = { path = "modules/logger" }
-py-reqwest = { path = "modules/reqwest" }
-
 derive-collect-docs = "0.1.0"
 serde = { version = "1.0.110", features = ["derive"] }
 serde_yaml = { git = "https://github.com/divvun/serde-yaml/", branch = "feature/multiline-strings" }
@@ -50,11 +46,6 @@ tokio = { version = "1.6.1", features = ["full"] }
 futures = { version = "0.3.6", default-features = false, features = ["alloc"] }
 zip = "0.5.13"
 
-[dependencies.pyembed]
-version = "0.16.0"
-default-features = false
-features = ["build-mode-pyoxidizer-exe", "cpython-link-unresolved-static"]
-
 [target.'cfg(windows)'.dependencies]
 dialoguer = "0.8.0"
 
@@ -71,9 +62,3 @@ assert_cmd = "1.0.1"
 
 [profile.release]
 debug = true
-
-[workspace]
-members = [
-    # ".",
-    "modules/*",
-]

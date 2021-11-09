@@ -1,7 +1,0 @@
-paths = [
-  "proto"
-]
-output = "target"
-
-[packages]
-"kbdgen.index" = "*"

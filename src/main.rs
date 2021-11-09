@@ -1,8 +1,5 @@
-use pyembed::{ExtensionModule, MainPythonInterpreter, OxidizedPythonInterpreterConfig};
 use std::path::PathBuf;
 use structopt::{clap::AppSettings::*, StructOpt};
-
-include!(env!("PYOXIDIZER_DEFAULT_PYTHON_CONFIG_RS"));
 
 #[derive(Debug, StructOpt)]
 enum IOSCommands {
@@ -217,8 +214,6 @@ enum Commands {
         #[structopt(subcommand)]
         command: MetaCommands,
     },
-    #[structopt(setting(Hidden))]
-    Repl,
 }
 
 #[derive(Debug, StructOpt)]
@@ -233,331 +228,6 @@ struct Opts {
 
     #[structopt(subcommand)]
     command: Commands,
-}
-
-impl BuildCommands {
-    async fn to_py_args<'a>(
-        &'a self,
-        github_username: Option<&'a str>,
-        github_token: Option<&'a str>,
-        logging: &'a str,
-    ) -> Result<Vec<&'a str>, Box<dyn std::error::Error>> {
-        use BuildCommands::*;
-
-        let mut args = match self {
-            Svg {
-                in_out:
-                    InOutPaths {
-                        output_path,
-                        project_path,
-                    },
-            } => vec![
-                "-t",
-                "svg",
-                "-o",
-                &*output_path.to_str().unwrap(),
-                &*project_path.to_str().unwrap(),
-            ],
-            Android {
-                kbd_repo,
-                kbd_branch,
-                divvunspell_repo,
-                divvunspell_branch,
-                in_out:
-                    InOutPaths {
-                        output_path,
-                        project_path,
-                    },
-                dry_run,
-                local,
-                build_mode: BuildMode { release, ci },
-            } => {
-                let mut args = vec![
-                    "-t",
-                    "android",
-                    "--kbd-repo",
-                    kbd_repo,
-                    "--kbd-branch",
-                    kbd_branch,
-                    "--divvunspell-repo",
-                    divvunspell_repo,
-                    "--divvunspell-branch",
-                    divvunspell_branch,
-                    "-o",
-                    &*output_path.to_str().unwrap(),
-                ];
-
-                if *release {
-                    args.push("-R");
-                }
-
-                if *dry_run {
-                    args.push("-D");
-                }
-
-                if *ci {
-                    args.push("--ci");
-                }
-
-                if *local {
-                    args.push("--local");
-                }
-
-                args.push(&*project_path.to_str().unwrap());
-
-                args
-            }
-            #[cfg(target_os = "macos")]
-            IOS {
-                command,
-                kbd_repo,
-                kbd_branch,
-                in_out:
-                    InOutPaths {
-                        output_path,
-                        project_path,
-                    },
-                dry_run,
-                build_mode: BuildMode { release, ci },
-            } => {
-                let mut args = vec![
-                    "-t",
-                    "ios",
-                    "--kbd-repo",
-                    kbd_repo,
-                    "--kbd-branch",
-                    kbd_branch,
-                    "-o",
-                    &*output_path.to_str().unwrap(),
-                ];
-
-                if *release {
-                    args.push("-R");
-                }
-
-                if *dry_run {
-                    args.push("-D");
-                }
-
-                if *ci {
-                    args.push("--ci");
-                }
-
-                match command {
-                    Some(IOSCommands::Init) => {
-                        args.push("--command");
-                        args.push("init");
-                    }
-                    Some(IOSCommands::Ids) => {
-                        args.push("--command");
-                        args.push("ids");
-                    }
-                    _ => {}
-                }
-
-                args.push(&*project_path.to_str().unwrap());
-                args
-            }
-            Chrome {
-                in_out:
-                    InOutPaths {
-                        output_path,
-                        project_path,
-                    },
-                build_mode: BuildMode { release, ci },
-            } => {
-                let mut args = vec!["-t", "chrome", "-o", &*output_path.to_str().unwrap()];
-
-                if *release {
-                    args.push("-R");
-                }
-
-                if *ci {
-                    args.push("--ci");
-                }
-
-                args.push(&*project_path.to_str().unwrap());
-                args
-            }
-            Win {
-                in_out:
-                    InOutPaths {
-                        output_path,
-                        project_path,
-                    },
-                dry_run,
-                build_mode: BuildMode { release, ci },
-                build_legacy,
-            } => {
-                kbdgen::install_kbdi().await;
-
-                let prefix_dir = kbdgen::prefix_dir();
-                let mut kbdi_pkg_path =
-                    prefix_dir.join("pkg").join("kbdi").join("bin").join("kbdi");
-                let mut kbdi_legacy_pkg_path = prefix_dir
-                    .join("pkg")
-                    .join("kbdi-legacy")
-                    .join("bin")
-                    .join("kbdi-legacy");
-
-                if cfg!(windows) {
-                    kbdi_pkg_path.set_extension("exe");
-                    kbdi_legacy_pkg_path.set_extension("exe");
-                }
-                std::env::set_var("KBDI", kbdi_pkg_path);
-                std::env::set_var("KBDI_LEGACY", kbdi_legacy_pkg_path);
-
-                let mut args = vec!["-t", "win", "-o", &*output_path.to_str().unwrap()];
-
-                if *release {
-                    args.push("-R");
-                }
-
-                if *dry_run {
-                    args.push("-D");
-                }
-
-                if *ci {
-                    args.push("--ci");
-                }
-
-                if *build_legacy {
-                    args.push("--legacy")
-                }
-
-                args.push(&*project_path.to_str().unwrap());
-                args
-            }
-            #[cfg(target_os = "macos")]
-            Mac {
-                in_out:
-                    InOutPaths {
-                        output_path,
-                        project_path,
-                    },
-                dry_run,
-                build_mode: BuildMode { release, ci },
-            } => {
-                let mut args = vec!["-t", "mac", "-o", &*output_path.to_str().unwrap()];
-
-                if *release {
-                    args.push("-R");
-                }
-
-                if *dry_run {
-                    args.push("-D");
-                }
-
-                if *ci {
-                    args.push("--ci");
-                }
-
-                args.push(&*project_path.to_str().unwrap());
-                args
-            }
-            Qr {
-                in_out:
-                    InOutPaths {
-                        output_path,
-                        project_path,
-                    },
-                layout,
-            } => vec![
-                "-t",
-                "qr",
-                "-o",
-                &*output_path.to_str().unwrap(),
-                "--command",
-                layout,
-                &*project_path.to_str().unwrap(),
-            ],
-            ErrorModel { .. } | M17n { .. } | X11 { .. } => {
-                unreachable!("covered in previous match")
-            }
-        };
-
-        if let Some(gh_username) = github_username {
-            args.push("--github-username");
-            args.push(&*gh_username);
-        }
-
-        if let Some(gh_token) = github_token {
-            args.push("--github-token");
-            args.push(&*gh_token);
-        }
-
-        args.push("--logging");
-        args.push(logging);
-
-        Ok(args)
-    }
-}
-
-fn python_config<'a>(args: &[&str]) -> OxidizedPythonInterpreterConfig<'a> {
-    let mut config = default_python_config();
-
-    let mod_language_tags = ExtensionModule {
-        name: std::ffi::CString::new("language_tags").unwrap(),
-        init_func: py_language_tags::PyInit_language_tags,
-    };
-
-    let mod_logger = ExtensionModule {
-        name: std::ffi::CString::new("rust_logger").unwrap(),
-        init_func: py_logger::PyInit_rust_logger,
-    };
-
-    let mod_reqwest = ExtensionModule {
-        name: std::ffi::CString::new("reqwest").unwrap(),
-        init_func: py_reqwest::PyInit_reqwest,
-    };
-
-    config.extra_extension_modules = Some(vec![mod_language_tags, mod_logger, mod_reqwest]);
-
-    if args.len() > 0 {
-        let args = format!(
-            "[{}]",
-            args.iter()
-                .map(|x| format!("{:?}", x))
-                .collect::<Vec<_>>()
-                .join(", ")
-        );
-        config.interpreter_config.run_command =
-            Some(format!("import kbdgen.cli; kbdgen.cli.run_cli({})", args));
-    }
-    config
-}
-
-fn launch_py_kbdgen(args: &[&str]) -> i32 {
-    // Load the default Python configuration as derived by the PyOxidizer config
-    // file used at build time.
-    let config = python_config(args);
-
-    // Construct a new Python interpreter using that config, handling any errors
-    // from construction.
-    match MainPythonInterpreter::new(config) {
-        Ok(interp) => {
-            // And run it using the default run configuration as specified by the
-            // configuration. If an uncaught Python exception is raised, handle it.
-            // This includes the special SystemExit, which is a request to terminate the
-            // process.
-            interp.py_runmain()
-        }
-        Err(msg) => {
-            eprintln!("{}", msg);
-            1
-        }
-    }
-}
-
-fn launch_repl() -> i32 {
-    let config = python_config(&[]);
-    match MainPythonInterpreter::new(config) {
-        Ok(interp) => interp.py_runmain(),
-        Err(msg) => {
-            eprintln!("{}", msg);
-            1
-        }
-    }
 }
 
 #[tokio::main]
@@ -626,29 +296,38 @@ async fn main() {
                 &kbdgen::cli::to_errormodel::Options { layout },
             )
             .unwrap(),
-            command => match command
-                .to_py_args(
-                    github_username.as_ref().map(|x| &**x),
-                    github_token.as_ref().map(|x| &**x),
-                    &opt.logging,
-                )
-                .await
-            {
-                Ok(args) => {
-                    let args = args.iter().map(|x| x.to_string()).collect::<Vec<String>>();
-                    let exit_code = std::thread::spawn(move || {
-                        let args = args.iter().map(|x| &**x).collect::<Vec<_>>();
-                        launch_py_kbdgen(&args)
-                    })
-                        .join()
-                        .unwrap();
-                    std::process::exit(exit_code)
-                }
-                Err(e) => {
-                    eprintln!("{:?}", e);
-                    std::process::exit(1);
-                }
-            },
+            BuildCommands::Svg { in_out } => todo!(),
+            BuildCommands::Android {
+                kbd_repo,
+                kbd_branch,
+                divvunspell_repo,
+                divvunspell_branch,
+                in_out,
+                dry_run,
+                local,
+                build_mode,
+            } => todo!(),
+            BuildCommands::IOS {
+                command,
+                kbd_repo,
+                kbd_branch,
+                in_out,
+                dry_run,
+                build_mode,
+            } => todo!(),
+            BuildCommands::Win {
+                in_out,
+                dry_run,
+                build_mode,
+                build_legacy,
+            } => todo!(),
+            BuildCommands::Mac {
+                in_out,
+                dry_run,
+                build_mode,
+            } => todo!(),
+            BuildCommands::Chrome { in_out, build_mode } => todo!(),
+            BuildCommands::Qr { in_out, layout } => todo!(),
         },
 
         Commands::New { command } => match command {
@@ -677,11 +356,6 @@ async fn main() {
                 }
             },
         },
-
-        Commands::Repl => {
-            let exit_code = std::thread::spawn(|| launch_repl()).join().unwrap();
-            std::process::exit(exit_code)
-        }
     }
 }
 

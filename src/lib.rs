@@ -2,6 +2,7 @@ pub mod bundle;
 pub mod cldr;
 pub mod cli;
 pub mod m17n_mim;
+pub mod mac;
 pub mod xkb;
 
 pub use bundle::*;
