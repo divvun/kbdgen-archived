@@ -3,7 +3,8 @@ use crate::{
     cldr::Keyboard,
     cli::repos::{cldr_dir, update_repo},
 };
-use std::{collections::BTreeMap, path::Path};
+use indexmap::IndexMap;
+use std::path::Path;
 
 const REPO_URL: &str = "https://github.com/unicode-org/cldr";
 
@@ -72,11 +73,11 @@ pub enum Error {
 }
 
 #[cfg(windows)]
-pub fn select_base_locale() -> Option<(String, BTreeMap<String, Vec<String>>)> {
+pub fn select_base_locale() -> Option<(String, IndexMap<String, Vec<String>>)> {
     use std::io::Write;
 
     let kbd_path = cldr_dir().join("keyboards");
-    let set: BTreeMap<String, BTreeMap<String, Vec<String>>> = BTreeMap::new();
+    let set: IndexMap<String, IndexMap<String, Vec<String>>> = IndexMap::new();
     let mut locale_map = globwalk::GlobWalkerBuilder::new(kbd_path, "*.xml")
         .build()
         .unwrap()
@@ -105,7 +106,7 @@ pub fn select_base_locale() -> Option<(String, BTreeMap<String, Vec<String>>)> {
                 .to_string();
             let entry = acc
                 .entry(tag)
-                .or_insert_with(BTreeMap::new)
+                .or_insert_with(IndexMap::new)
                 .entry(kbd_os)
                 .or_insert_with(Vec::new);
             (*entry).push(
@@ -150,9 +151,9 @@ pub fn select_base_locale() -> Option<(String, BTreeMap<String, Vec<String>>)> {
 }
 
 #[cfg(unix)]
-pub fn select_base_locale() -> Option<(String, BTreeMap<String, Vec<String>>)> {
+pub fn select_base_locale() -> Option<(String, IndexMap<String, Vec<String>>)> {
     let kbd_path = cldr_dir().join("keyboards");
-    let set: BTreeMap<String, BTreeMap<String, Vec<String>>> = BTreeMap::new();
+    let set: IndexMap<String, IndexMap<String, Vec<String>>> = IndexMap::new();
     let mut locale_map = globwalk::GlobWalkerBuilder::new(kbd_path, "*.xml")
         .build()
         .unwrap()
@@ -181,7 +182,7 @@ pub fn select_base_locale() -> Option<(String, BTreeMap<String, Vec<String>>)> {
                 .to_string();
             let entry = acc
                 .entry(tag)
-                .or_insert_with(BTreeMap::new)
+                .or_insert_with(IndexMap::new)
                 .entry(kbd_os)
                 .or_insert_with(Vec::new);
             (*entry).push(
@@ -194,7 +195,7 @@ pub fn select_base_locale() -> Option<(String, BTreeMap<String, Vec<String>>)> {
             acc
         });
     let mut locales = locale_map.iter().collect::<Vec<_>>();
-    locales.sort();
+    locales.sort_by_key(|x| x.0);
 
     let options = skim::SkimOptionsBuilder::default()
         .prompt(Some("Which locale to use as base? "))

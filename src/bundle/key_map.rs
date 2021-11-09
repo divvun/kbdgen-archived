@@ -1,13 +1,14 @@
 pub use crate::bundle::keys::{Error as KeyValueError, KeyValue};
 use crate::{bundle::keys, models::IsoKey};
 use derive_collect_docs::CollectDocs;
+use indexmap::IndexMap;
 use serde::{
     de::{self, Deserializer},
     ser::{SerializeMap, Serializer},
     Deserialize, Serialize,
 };
 use shrinkwraprs::Shrinkwrap;
-use std::{collections::BTreeMap, fmt, str::FromStr};
+use std::{fmt, str::FromStr};
 use thiserror::Error;
 
 /// Map of keys on a desktop keyboard
@@ -30,17 +31,17 @@ use thiserror::Error;
 ž z č c v b n m , . -"
 "#
 )]
-pub struct DesktopKeyMap(pub(crate) BTreeMap<IsoKey, keys::KeyValue>);
+pub struct DesktopKeyMap(pub(crate) IndexMap<IsoKey, keys::KeyValue>);
 
-impl From<BTreeMap<IsoKey, keys::KeyValue>> for DesktopKeyMap {
-    fn from(x: BTreeMap<IsoKey, keys::KeyValue>) -> Self {
+impl From<IndexMap<IsoKey, keys::KeyValue>> for DesktopKeyMap {
+    fn from(x: IndexMap<IsoKey, keys::KeyValue>) -> Self {
         DesktopKeyMap(x)
     }
 }
 
 impl Default for DesktopKeyMap {
     fn default() -> Self {
-        DesktopKeyMap(BTreeMap::new())
+        DesktopKeyMap(IndexMap::new())
     }
 }
 
@@ -62,7 +63,7 @@ impl<'de> Deserialize<'de> for DesktopKeyMap {
         #[serde(untagged)]
         enum Wat {
             String(String),
-            Map(BTreeMap<IsoKey, keys::KeyValue>),
+            Map(IndexMap<IsoKey, keys::KeyValue>),
         }
 
         match Wat::deserialize(deserializer)? {

@@ -4,7 +4,7 @@ use crate::{
     models::{DesktopModes, Layout},
     utils::UnwrapOrUnknownExt,
 };
-use std::collections::BTreeMap;
+use indexmap::IndexMap;
 
 impl XkbFile {
     pub fn from_layout(name: &str, layout: Layout) -> Result<Self, Error> {
@@ -118,7 +118,7 @@ fn collect_keys(key_map: &DesktopModes, _default: Option<&Symbols>) -> Result<Ve
 }
 
 fn collect_dead_keys(
-    key_map: &BTreeMap<String, Vec<String>>,
+    key_map: &IndexMap<String, Vec<String>>,
     parent: &DesktopModes,
 ) -> Result<Vec<Key>, Error> {
     fn char_to_dead(c: &str) -> Option<char> {
@@ -141,7 +141,7 @@ fn collect_dead_keys(
     let alt = parent.get("alt").cloned().unwrap_or_default();
     let alt_shift = parent.get("alt_shift").cloned().unwrap_or_default();
 
-    let mut overwritten_keys = BTreeMap::new();
+    let mut overwritten_keys = IndexMap::new();
 
     for (mode, map) in key_map {
         let parent_key = parent

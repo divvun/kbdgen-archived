@@ -10,7 +10,7 @@ A layout is defined as a file by the name `<locale>.yaml` and lives in the
 .Fields
 * `displayNames` _(required)_
 +
-Type: `Map<String, String>`
+Type: `<<IndexMap>><String, String>`
 +
 The display names for the layout, keyed by locale.
 +
@@ -77,7 +77,7 @@ decimal: ","
 
 * `space` _(optional)_
 +
-Type: `Map<String, Map<String, String>>`
+Type: `<<IndexMap>><String, <<IndexMap>><String, String>>`
 +
 An override for space keys on some OSes. Keyed by target.
 +
@@ -93,7 +93,7 @@ space:
 
 * `deadKeys` _(optional)_
 +
-Type: `Map<String, Map<String, Vec<String>>>`
+Type: `<<IndexMap>><String, <<IndexMap>><String, Vec<String>>>`
 +
 Defines the dead keys for a target for a given `<mode>`.
 +
@@ -118,7 +118,7 @@ deadKeys:
 
 * `longpress` _(optional)_
 +
-Type: `Map<String, String>`
+Type: `<<IndexMap>><String, String>`
 +
 The items to be shown when a key is long-pressed. Values are space
 separated in one string.
@@ -135,7 +135,7 @@ deadKeys:
 
 * `transforms` _(optional)_
 +
-Type: `Map<String, Map<String, String>>`
+Type: `<<IndexMap>><String, <<IndexMap>><String, String>>`
 +
 The chain of inputs necessary to provide an output after a deadkey is
 pressed. Keyed by each individual input.

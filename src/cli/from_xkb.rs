@@ -1,14 +1,14 @@
 use crate::{
     bundle::{
-        target::x11::Target,
         models::{DesktopModes, IsoKey},
+        target::x11::Target,
         KeyValue,
     },
     cli::repos::{update_repo, xkb_dir},
     Load, ProjectBundle, Save,
 };
+use indexmap::IndexMap;
 use std::{
-    collections::BTreeMap,
     convert::TryFrom,
     error::Error as StdError,
     path::{Path, PathBuf},
@@ -86,7 +86,7 @@ pub fn xkb_to_kbdgen(output: &Path, is_updating_bundle: bool) -> Result<(), Erro
 #[cfg(unix)]
 fn select_base_locale() -> Result<(String, PathBuf), Error> {
     let kbd_path = xkb_dir().join("symbols");
-    let files: BTreeMap<String, PathBuf> = globwalk::GlobWalkerBuilder::new(&kbd_path, "**")
+    let files: IndexMap<String, PathBuf> = globwalk::GlobWalkerBuilder::new(&kbd_path, "**")
         .max_depth(8)
         .build()
         .unwrap()
@@ -171,8 +171,8 @@ fn select_sub_locale(file: &str) -> Result<ast::XkbSymbols, Box<dyn StdError>> {
         .ok_or(Error::NoLocaleSelected)?)
 }
 
-type LayeredKeyMap = BTreeMap<String, BTreeMap<IsoKey, KeyValue>>;
-type DeadKeyMap = BTreeMap<String, Vec<String>>;
+type LayeredKeyMap = IndexMap<String, IndexMap<IsoKey, KeyValue>>;
+type DeadKeyMap = IndexMap<String, Vec<String>>;
 
 /// Build a partial layout from an xkb symbols definition
 ///
@@ -190,10 +190,10 @@ fn resolve_keys(
     let layers = &["default", "shift", "alt", "shift+alt"];
 
     // Collect keys into modes while iterating
-    let mut map: BTreeMap<String, BTreeMap<IsoKey, KeyValue>> = BTreeMap::new();
+    let mut map: IndexMap<String, IndexMap<IsoKey, KeyValue>> = IndexMap::new();
 
     // Collect dead keys while iterating.
-    let mut dead_keys: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    let mut dead_keys: IndexMap<String, Vec<String>> = IndexMap::new();
 
     let keys = extract_keys(symbols, include_dir)?;
     log::debug!("found {} keys in {}", keys.len(), symbols.name.content);

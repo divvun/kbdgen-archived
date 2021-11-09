@@ -1,8 +1,8 @@
-use crate::{DesktopKeyMap, MobileKeyMap, target::*};
+use crate::{target::*, DesktopKeyMap, MobileKeyMap};
 use derive_collect_docs::CollectDocs;
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use shrinkwraprs::Shrinkwrap;
-use std::collections::BTreeMap;
 use strum_macros::{Display, EnumIter, EnumString};
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
@@ -57,7 +57,7 @@ pub struct Project {
             description: A keyboard supporting zero languages.
     "
     )]
-    pub locales: BTreeMap<String, ProjectDesc>,
+    pub locales: IndexMap<String, ProjectDesc>,
     /// The primary author(s)
     pub author: String,
     /// One email address to contact the author(s) of the project
@@ -289,7 +289,7 @@ impl Modes {
 ///
 /// Both mobile-default and mobile-shift modes are required.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default, Shrinkwrap, CollectDocs)]
-pub struct MobileModes(pub BTreeMap<String, MobileKeyMap>);
+pub struct MobileModes(pub IndexMap<String, MobileKeyMap>);
 
 /// Maps modifier combination to map of keys
 ///
@@ -317,7 +317,7 @@ cmd+shift: |
   > Z X C V B N M ; : _
 "#
 )]
-pub struct DesktopModes(pub BTreeMap<String, DesktopKeyMap>);
+pub struct DesktopModes(pub IndexMap<String, DesktopKeyMap>);
 
 pub enum Mode {
     Mobile(MobileModes),
@@ -345,7 +345,7 @@ pub struct Layout {
     "#
     )]
     #[serde(rename = "displayNames")]
-    pub display_names: BTreeMap<String, String>,
+    pub display_names: IndexMap<String, String>,
 
     /// The different modes.
     ///
@@ -392,7 +392,7 @@ pub struct Layout {
     "#
     )]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub space: Option<BTreeMap<String, BTreeMap<String, String>>>,
+    pub space: Option<IndexMap<String, IndexMap<String, String>>>,
 
     /// Defines the dead keys for a target for a given `<mode>`.
     ///
@@ -415,7 +415,7 @@ pub struct Layout {
     )]
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "deadKeys")]
-    pub dead_keys: Option<BTreeMap<String, BTreeMap<String, Vec<String>>>>,
+    pub dead_keys: Option<IndexMap<String, IndexMap<String, Vec<String>>>>,
 
     /// The items to be shown when a key is long-pressed. Values are space
     /// separated in one string.
@@ -429,7 +429,7 @@ pub struct Layout {
     "#
     )]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub longpress: Option<BTreeMap<String, String>>,
+    pub longpress: Option<IndexMap<String, String>>,
 
     /// The chain of inputs necessary to provide an output after a deadkey is
     /// pressed. Keyed by each individual input.
@@ -452,7 +452,7 @@ pub struct Layout {
     "#
     )]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub transforms: Option<BTreeMap<String, BTreeMap<String, String>>>,
+    pub transforms: Option<IndexMap<String, IndexMap<String, String>>>,
 
     /// Strings to be shown on some OSes
     ///
@@ -522,4 +522,3 @@ pub struct LayoutTarget {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mim: Option<mim::LayoutTarget>,
 }
-

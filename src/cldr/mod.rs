@@ -70,7 +70,7 @@ use crate::bundle::{
     keys,
     models::{DesktopModes, IsoKey, MobileModes, Mode},
 };
-use std::collections::BTreeMap;
+use indexmap::IndexMap;
 
 impl Keyboard {
     pub fn is_mobile(&self) -> bool {
@@ -101,7 +101,7 @@ impl Keyboard {
     }
 
     pub fn to_mobile_modes(&self) -> MobileModes {
-        let mut out = BTreeMap::new();
+        let mut out = IndexMap::new();
 
         for key_map in self.key_maps.iter() {
             let layer = MobileLayer::from(key_map);
@@ -127,10 +127,10 @@ impl Keyboard {
     pub fn to_desktop_modes(&self) -> DesktopModes {
         use std::str::FromStr;
 
-        let mut out = BTreeMap::new();
+        let mut out = IndexMap::new();
 
         for key_map in self.key_maps.iter() {
-            let mut keys = BTreeMap::new();
+            let mut keys = IndexMap::new();
 
             for map in key_map.keys.iter() {
                 if let Ok(key) = RawIsoKey::from_str(&map.iso) {
@@ -141,7 +141,7 @@ impl Keyboard {
             let mods = parse_modifiers(key_map.modifiers.as_ref());
 
             let layer = DesktopLayer::new(mods.clone(), keys);
-            let mut keys_out: BTreeMap<IsoKey, keys::KeyValue> = BTreeMap::new();
+            let mut keys_out: IndexMap<IsoKey, keys::KeyValue> = IndexMap::new();
 
             for (letter, n, value) in layer.iter() {
                 let k = format!("{}{:02}", letter, n);

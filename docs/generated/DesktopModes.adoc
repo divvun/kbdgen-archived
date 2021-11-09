@@ -33,5 +33,5 @@ cmd+shift: |
 .Fields
 * `unnamed internal field #0` _(required)_
 +
-Type: `Map<String, <<DesktopKeyMap>>>`
+Type: `<<IndexMap>><String, <<DesktopKeyMap>>>`
 

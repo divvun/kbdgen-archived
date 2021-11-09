@@ -1,7 +1,7 @@
 use crate::{bundle::keys::KeyValue, m17n_mim::*, models::DesktopModes, Load, ProjectBundle};
+use indexmap::IndexMap;
 use log::{debug, log_enabled};
 use std::{
-    collections::BTreeMap,
     convert::TryFrom,
     fs::File,
     io::BufWriter,
@@ -202,8 +202,8 @@ fn dead_key_transforms(
 ) -> Result<Vec<Rule>, MimConversion> {
     let mut rules = vec![];
 
-    let empty_dead_keys = BTreeMap::new();
-    let empty_transforms = BTreeMap::new();
+    let empty_dead_keys = IndexMap::new();
+    let empty_transforms = IndexMap::new();
 
     let dead_key_map = layout
         .dead_keys

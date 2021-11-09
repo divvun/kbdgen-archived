@@ -1,5 +1,5 @@
 use super::{models::RawIsoKey, KeyMap};
-use std::collections::BTreeMap;
+use indexmap::IndexMap;
 
 #[derive(Debug, Clone)]
 pub enum Layer {
@@ -41,7 +41,7 @@ pub(crate) fn parse_modifiers(mods: Option<&String>) -> String {
 #[derive(Debug, Clone)]
 pub struct DesktopLayer {
     pub mode: String,
-    pub keys: BTreeMap<RawIsoKey, String>,
+    pub keys: IndexMap<RawIsoKey, String>,
 }
 
 #[derive(Debug, Clone)]
@@ -51,7 +51,7 @@ pub struct MobileLayer {
 }
 
 impl DesktopLayer {
-    pub(crate) fn new(mode: String, keys: BTreeMap<RawIsoKey, String>) -> DesktopLayer {
+    pub(crate) fn new(mode: String, keys: IndexMap<RawIsoKey, String>) -> DesktopLayer {
         DesktopLayer { mode, keys }
     }
 
@@ -158,7 +158,7 @@ impl From<&KeyMap> for DesktopLayer {
     fn from(key_map: &KeyMap) -> DesktopLayer {
         use std::str::FromStr;
 
-        let mut keys = BTreeMap::new();
+        let mut keys = IndexMap::new();
 
         for map in key_map.keys.iter() {
             if let Ok(key) = RawIsoKey::from_str(&map.iso) {

@@ -7,7 +7,7 @@
 // use log::{debug, log_enabled};
 // use snafu::{ResultExt, Snafu};
 // use snafu_cli_debug::SnafuCliDebug;
-// use std::{collections::BTreeMap, fs::File, io::BufWriter, path::PathBuf};
+// use std::{collections::IndexMap, fs::File, io::BufWriter, path::PathBuf};
 // use structopt::StructOpt;
 
 // pub fn kbdgen_to_cldr() -> Result<(), Error> {
@@ -90,7 +90,7 @@
 //     name: &str,
 //     target: &str,
 //     desktop: &DesktopModes,
-//     long_presses: Option<&BTreeMap<String, String>>,
+//     long_presses: Option<&IndexMap<String, String>>,
 //     layout: &crate::models::Layout,
 // ) -> Keyboard {
 //     let mut key_maps = vec![];
@@ -138,7 +138,7 @@
 //     name: &str,
 //     target: &str,
 //     mobile: &MobileModes,
-//     long_presses: Option<&BTreeMap<String, String>>,
+//     long_presses: Option<&IndexMap<String, String>>,
 //     layout: &crate::models::Layout,
 // ) -> Keyboard {
 //     let mut key_maps = vec![];
@@ -176,7 +176,7 @@
 //     }
 // }
 
-// fn pick_name_from_display_names(names: &BTreeMap<String, String>) -> String {
+// fn pick_name_from_display_names(names: &IndexMap<String, String>) -> String {
 //     names
 //         .get("en")
 //         .or_else(|| names.values().next())

@@ -361,8 +361,8 @@ async fn main() {
 
 pub(crate) mod meta {
     use super::*;
+    use indexmap::IndexMap;
     use serde::{Deserialize, Serialize};
-    use std::collections::BTreeMap;
 
     pub async fn fetch(target: PathBuf) -> anyhow::Result<()> {
         let config = target.join("meta.toml");
@@ -428,6 +428,6 @@ pub(crate) mod meta {
 
     #[derive(Debug, Serialize, Deserialize)]
     pub struct MetaBundle {
-        bundle: BTreeMap<String, MetaRecord>,
+        bundle: IndexMap<String, MetaRecord>,
     }
 }

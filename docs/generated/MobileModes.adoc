@@ -11,5 +11,5 @@ Both mobile-default and mobile-shift modes are required.
 .Fields
 * `unnamed internal field #0` _(required)_
 +
-Type: `Map<String, <<MobileKeyMap>>>`
+Type: `<<IndexMap>><String, <<MobileKeyMap>>>`
 
