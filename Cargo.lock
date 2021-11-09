@@ -1276,6 +1276,7 @@ dependencies = [
  "lazy_static",
  "log",
  "nom",
+ "once_cell",
  "pahkat-client",
  "pathos",
  "pretty_env_logger",

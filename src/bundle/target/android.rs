@@ -66,8 +66,4 @@ pub struct LayoutTarget {
     /// Styles
     #[serde(skip_serializing_if = "Option::is_none")]
     pub style: Option<IndexMap<String, serde_yaml::Value>>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "legacyName")]
-    pub legacy_name: Option<String>,
 }

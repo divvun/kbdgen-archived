@@ -2,10 +2,6 @@ use derive_collect_docs::CollectDocs;
 use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
 pub struct LayoutTarget {
-    /// Minimum SDK can be specified for a specific layout
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "legacyName")]
-    pub legacy_name: Option<String>,
 }
 
 // TODO: Keyboards have a provisioningProfileId -- add this here?
@@ -48,7 +44,4 @@ pub struct Target {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "aboutDir")]
     pub about_dir: Option<String>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub chfst: Option<bool>,
 }

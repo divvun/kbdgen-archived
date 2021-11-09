@@ -5,6 +5,8 @@ pub mod m17n_mim;
 pub mod mac;
 pub mod xkb;
 
+pub mod gen;
+
 pub use bundle::*;
 
 pub(crate) mod pad;
