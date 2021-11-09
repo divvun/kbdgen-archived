@@ -58,8 +58,7 @@ impl<'de> Deserialize<'de> for DesktopKeyMap {
     where
         D: Deserializer<'de>,
     {
-        #[derive(Debug, Clone, PartialEq, Eq)]
-        #[derive(Serialize, Deserialize)]
+        #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
         #[serde(untagged)]
         enum Wat {
             String(String),

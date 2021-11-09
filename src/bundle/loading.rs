@@ -77,8 +77,8 @@ impl Load for Targets {
         let path: &Path = path.as_ref();
         Ok(Targets {
             android: read_yml_if_exists(&path.join("android.yaml"))?,
-            i_os: read_yml_if_exists(&path.join("ios.yaml"))?,
-            mac_os: read_yml_if_exists(&path.join("mac.yaml"))?,
+            ios: read_yml_if_exists(&path.join("ios.yaml"))?,
+            macos: read_yml_if_exists(&path.join("mac.yaml"))?,
             windows: read_yml_if_exists(&path.join("win.yaml"))?,
             chrome: read_yml_if_exists(&path.join("chrome.yaml"))?,
             x11: read_yml_if_exists(&path.join("x11.yaml"))?,

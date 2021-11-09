@@ -1,6 +1,7 @@
 use crate::{
     bundle::{
-        models::{DesktopModes, IsoKey, TargetX11},
+        target::x11::Target,
+        models::{DesktopModes, IsoKey},
         KeyValue,
     },
     cli::repos::{update_repo, xkb_dir},
@@ -54,7 +55,7 @@ pub fn xkb_to_kbdgen(output: &Path, is_updating_bundle: bool) -> Result<(), Erro
     let (keys, dead_keys) = resolve_keys(&section, &include_dir)?;
 
     // Set X11 target metadata to some values that not completely random
-    bundle.targets.x11 = Some(TargetX11 {
+    bundle.targets.x11 = Some(Target {
         version: chrono::Utc::now().format("%Y-%m-%d").to_string(),
         build: 1,
     });

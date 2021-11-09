@@ -45,6 +45,7 @@ pathos = "0.3.0-pre.3"
 tokio = { version = "1.6.1", features = ["full"] }
 futures = { version = "0.3.6", default-features = false, features = ["alloc"] }
 zip = "0.5.13"
+indexmap = "1.7.0"
 
 [target.'cfg(windows)'.dependencies]
 dialoguer = "0.8.0"

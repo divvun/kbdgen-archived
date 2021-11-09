@@ -27,7 +27,7 @@ minimumSdk: 16
 
 * `style` _(optional)_
 +
-Type: `Map<String, <<YamlValue>>>`
+Type: `<<IndexMap>><String, <<Value>>>`
 +
 Styles
 * `legacyName` _(optional)_

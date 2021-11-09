@@ -1,7 +1,6 @@
-use crate::{DesktopKeyMap, MobileKeyMap};
+use crate::{DesktopKeyMap, MobileKeyMap, target::*};
 use derive_collect_docs::CollectDocs;
 use serde::{Deserialize, Serialize};
-use serde_yaml as yaml;
 use shrinkwraprs::Shrinkwrap;
 use std::collections::BTreeMap;
 use strum_macros::{Display, EnumIter, EnumString};
@@ -99,9 +98,22 @@ pub struct DeriveOptions {
 ///
 /// cf. <https://commons.wikimedia.org/wiki/File:Keyboard-sections-zones-grid-ISOIEC-9995-1.jpg>
 /// and <https://commons.wikimedia.org/wiki/File:Keyboard-alphanumeric-section-ISOIEC-9995-2-2009-with-amd1-2012.png>
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
-#[derive(EnumString, Display, EnumIter)]
-#[derive(Serialize, Deserialize, CollectDocs)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    Hash,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    EnumString,
+    Display,
+    EnumIter,
+    Serialize,
+    Deserialize,
+    CollectDocs,
+)]
 #[repr(u8)]
 pub enum IsoKey {
     E00 = 0,
@@ -187,8 +199,7 @@ impl IsoKey {
 ///
 /// NOTE: Each target is either described by <<DesktopModes>>, or by
 /// <<MobileModes>>.
-#[derive(Debug, Clone, PartialEq)]
-#[derive(Serialize, Deserialize, Default, CollectDocs)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, CollectDocs)]
 #[example(
     yaml,
     r#"
@@ -277,8 +288,7 @@ impl Modes {
 /// Maps modifier combination to map of keys
 ///
 /// Both mobile-default and mobile-shift modes are required.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
-#[derive(Shrinkwrap, CollectDocs)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default, Shrinkwrap, CollectDocs)]
 pub struct MobileModes(pub BTreeMap<String, MobileKeyMap>);
 
 /// Maps modifier combination to map of keys
@@ -286,8 +296,7 @@ pub struct MobileModes(pub BTreeMap<String, MobileKeyMap>);
 /// In general only the `default` and `shift` modes are strictly required.
 /// Some targets require other modes, and the tool will inform you if they are
 /// missing.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
-#[derive(Shrinkwrap, CollectDocs)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default, Shrinkwrap, CollectDocs)]
 #[example(
     yaml,
     r#"
@@ -490,276 +499,27 @@ impl Layout {
 }
 
 /// Targets for settings per layout
-#[derive(Debug, Clone, PartialEq)]
-#[derive(Serialize, Deserialize, Default, CollectDocs)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, CollectDocs)]
 pub struct LayoutTarget {
     #[serde(skip_serializing_if = "Option::is_none")]
-    win: Option<LayoutTargetWindows>,
+    pub win: Option<windows::LayoutTarget>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    mac: Option<YamlValue>,
+    pub mac: Option<macos::LayoutTarget>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    ios: Option<LayoutTargetIOS>,
-
-    #[example(
-        yaml,
-        r#"
-        android:
-          legacyName: kpv"#
-    )]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    android: Option<LayoutTargetAndroid>,
-
-    #[example(
-        yaml,
-        r#"
-        chrome:
-          locale: sv
-          xkbLayout: se
-    "#
-    )]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    chrome: Option<YamlValue>,
+    pub ios: Option<ios::LayoutTarget>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    x11: Option<YamlValue>,
+    pub android: Option<android::LayoutTarget>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    desktop: Option<YamlValue>,
+    pub chrome: Option<chrome::LayoutTarget>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    mobile: Option<YamlValue>,
+    pub x11: Option<x11::LayoutTarget>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mim: Option<mim::LayoutTarget>,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
-pub struct LayoutTargetWindows {
-    /// The actual locale within Windows, as per their broken ISO 639-3 scheme
-    /// or secret hardcoded lists.
-    pub locale: String,
-
-    /// The language name to be cached, in order to try to mask the ugly ISO
-    /// code name that often shows.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "languageName")]
-    pub language_name: Option<String>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
-pub struct LayoutTargetIOS {
-    /// Minimum SDK can be specified for a specific layout
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "legacyName")]
-    pub legacy_name: Option<String>,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
-pub struct LayoutTargetAndroid {
-    /// The API level that is the minimum supported for a keyboard. Useful for
-    /// limiting access to a keyboard where it is known several glyphs are
-    /// missing on older devices.
-    ///
-    /// https://source.android.com/source/build-numbers.html[See the Android documentation for API versions compared to OS version].
-    ///
-    /// NOTE: The lowest API supported by this keyboard is API 16, but it may
-    /// work on older variants.
-    #[example(yaml, "minimumSdk: 16")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "minimumSdk")]
-    pub minimum_sdk: Option<u32>,
-
-    /// Styles
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub style: Option<BTreeMap<String, YamlValue>>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "legacyName")]
-    pub legacy_name: Option<String>,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
-pub struct TargetAndroid {
-    pub version: String,
-
-    pub build: u32,
-
-    /// The reverse-domain notation ID for the package
-    #[example(yaml, "packageId: com.example.mypackageid")]
-    #[serde(rename = "packageId")]
-    pub package_id: String,
-
-    /// Path to the icon file to be converted into the various sizes required by
-    /// Android, relative to project root.
-    #[example(yaml, "icon: icons/icon.png")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub icon: Option<String>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "sentryDsn")]
-    pub sentry_dsn: Option<String>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "showNumberHints")]
-    pub show_number_hints: Option<bool>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "minimumSdk")]
-    pub minimum_sdk: Option<u32>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub chfst: Option<bool>,
-
-    /// Path to the Android keystore (see <<Generating keystores>> section for
-    /// more information)
-    #[example(yaml, "keyStore: my.keystore")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "keyStore")]
-    pub key_store: Option<String>,
-
-    /// The key to use within the provided keystore
-    #[example(yaml, "keyAlias: myprojectkey")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "keyAlias")]
-    pub key_alias: Option<String>,
-}
-
-// TODO: Keyboards have a provisioningProfileId -- add this here?
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
-pub struct TargetIOS {
-    #[example(yaml, r#"version: 0.1.0"#)]
-    pub version: String,
-
-    #[example(yaml, r#"build: 1"#)]
-    pub build: u32,
-
-    #[example(yaml, r#"packageId: com.example.mypackageid"#)]
-    #[serde(rename = "packageId")]
-    pub package_id: String,
-
-    #[example(yaml, r#"icon: icons/icon.png"#)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub icon: Option<String>,
-
-    #[example(yaml, r#"bundleName: Fancy Example Keyboards"#)]
-    #[serde(rename = "bundleName")]
-    pub bundle_name: String,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "teamId")]
-    pub team_id: Option<String>,
-
-    #[example(
-        yaml,
-        r#"codeSignId: "iPhone Distribution: The University of Tromso (000ABC000)""#
-    )]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "codeSignId")]
-    pub code_sign_id: Option<String>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "sentryDsn")]
-    pub sentry_dsn: Option<String>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "aboutDir")]
-    pub about_dir: Option<String>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub chfst: Option<bool>,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
-pub struct TargetWindows {
-    #[example(yaml, r#"version: 0.2.0"#)]
-    pub version: String,
-
-    #[example(yaml, r#"appName: Fancy Example Keyboards"#)]
-    #[serde(rename = "appName")]
-    pub app_name: String,
-
-    #[example(yaml, r#"url: 'http://divvun.no'"#)]
-    pub url: String,
-
-    #[example(yaml, r#"uuid: 0D18406F-1209-43EF-B18F-58961BC8E2E3"#)]
-    pub uuid: String,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "codeSignPfx")]
-    pub code_sign_pfx: Option<String>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "customLocales")]
-    pub custom_locales: Option<String>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "licensePath")]
-    pub license_path: Option<String>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "readmePath")]
-    pub readme_path: Option<String>,
-}
-
-// TODO: Keyboards have a provisioningProfileId -- add this here?
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
-pub struct TargetMacOS {
-    #[example(yaml, r#"version: 0.1.6"#)]
-    pub version: String,
-
-    #[example(yaml, r#"build: 12"#)]
-    pub build: u32,
-
-    #[example(yaml, r#"packageId: com.example.mypackageid"#)]
-    #[serde(rename = "packageId")]
-    pub package_id: String,
-
-    #[example(yaml, r#"icon: icons/icon.png"#)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub icon: Option<String>,
-
-    #[example(yaml, r#"bundleName: Fancy Example Keyboards"#)]
-    #[serde(rename = "bundleName")]
-    pub bundle_name: String,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "teamId")]
-    pub team_id: Option<String>,
-
-    #[example(
-        yaml,
-        r#"codeSignId: "iPhone Distribution: The University of Tromso (000ABC000)""#
-    )]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "codeSignId")]
-    pub code_sign_id: Option<String>,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
-pub struct TargetChrome {
-    pub version: String,
-    pub build: u32,
-
-    #[serde(rename = "appId")]
-    pub app_id: String,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
-pub struct TargetX11 {
-    pub version: String,
-    pub build: u32,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
-pub struct TargetMim {
-    pub language_code: String,
-    pub description: Option<String>,
-}
-
-/// Opaque YAML value
-///
-/// Sorry, that means there is no further documentation on its structure here.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
-pub struct YamlValue(yaml::Value);

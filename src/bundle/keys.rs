@@ -1,14 +1,13 @@
 use std::convert::TryFrom;
 
-use rust_decimal::Decimal;
 use derive_collect_docs::CollectDocs;
 use lazy_static::lazy_static;
 use regex::Regex;
+use rust_decimal::Decimal;
 use serde::{de::Deserializer, ser::Serializer, Deserialize, Serialize};
 use thiserror::Error;
 
-#[derive(Clone, Debug, PartialEq, PartialOrd, Eq, Ord)]
-#[derive(CollectDocs)]
+#[derive(Clone, Debug, PartialEq, PartialOrd, Eq, Ord, CollectDocs)]
 pub enum KeyValue {
     Symbol(String),
     Special { id: String, width: Decimal },
@@ -183,7 +182,7 @@ mod tests {
 
     #[test]
     fn special_chars() {
-        use rust_decimal::{Decimal, prelude::FromPrimitive};
+        use rust_decimal::{prelude::FromPrimitive, Decimal};
         assert_eq!(
             deserialize_special(r"\s{hello:1.00}"),
             Some(KeyValue::Special {

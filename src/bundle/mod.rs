@@ -2,16 +2,18 @@ use derive_collect_docs::CollectDocs;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf};
 
-pub mod models;
-
 pub mod key_map;
-pub use key_map::{DesktopKeyMap, Error as KeyMapError, MobileKeyMap};
-mod modes;
-pub use modes::{Desktop, Mobile};
+pub mod models;
+pub mod target;
 
 mod loading;
-pub use loading::{Error as LoadError, Load};
+mod modes;
 mod saving;
+
+pub use key_map::{DesktopKeyMap, Error as KeyMapError, MobileKeyMap};
+pub use modes::{Desktop, Mobile};
+
+pub use loading::{Error as LoadError, Load};
 pub use saving::{Error as SaveError, Save};
 
 pub(crate) mod keys;
@@ -24,14 +26,13 @@ pub use keys::KeyValue;
 /// See the documentation for each target for more information.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, CollectDocs)]
 pub struct Targets {
-    /// Android keyboard settings
-    pub android: Option<models::TargetAndroid>,
-    pub i_os: Option<models::TargetIOS>,
-    pub mac_os: Option<models::TargetMacOS>,
-    pub windows: Option<models::TargetWindows>,
-    pub chrome: Option<models::TargetChrome>,
-    pub x11: Option<models::TargetX11>,
-    pub mim: Option<models::TargetMim>,
+    pub android: Option<target::android::Target>,
+    pub ios: Option<target::ios::Target>,
+    pub macos: Option<target::macos::Target>,
+    pub windows: Option<target::windows::Target>,
+    pub chrome: Option<target::chrome::Target>,
+    pub x11: Option<target::x11::Target>,
+    pub mim: Option<target::mim::Target>,
 }
 
 /// A `.kbdgen` bundle is a directory with a specific structure.

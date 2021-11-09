@@ -73,8 +73,8 @@ impl Save for Targets {
         // destructure to get yelled at for missing a field
         let Targets {
             android,
-            i_os,
-            mac_os,
+            ios,
+            macos,
             windows,
             chrome,
             x11,
@@ -82,8 +82,8 @@ impl Save for Targets {
         } = self;
 
         write_yaml(&path.join("android.yaml"), android)?;
-        write_yaml(&path.join("ios.yaml"), i_os)?;
-        write_yaml(&path.join("macos.yaml"), mac_os)?;
+        write_yaml(&path.join("ios.yaml"), ios)?;
+        write_yaml(&path.join("macos.yaml"), macos)?;
         write_yaml(&path.join("windows.yaml"), windows)?;
         write_yaml(&path.join("chrome.yaml"), chrome)?;
         write_yaml(&path.join("x11.yaml"), x11)?;

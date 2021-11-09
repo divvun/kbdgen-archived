@@ -3,7 +3,6 @@
 
 = LayoutTarget
 
-Targets for settings per layout
 
 
 

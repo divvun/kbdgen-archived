@@ -13,25 +13,23 @@ See the documentation for each target for more information.
 .Fields
 * `android` _(optional)_
 +
-Type: `<<TargetAndroid>>`
+Type: `<<Target>>`
+* `ios` _(optional)_
 +
-Android keyboard settings
-* `i_os` _(optional)_
+Type: `<<Target>>`
+* `macos` _(optional)_
 +
-Type: `<<TargetIOS>>`
-* `mac_os` _(optional)_
-+
-Type: `<<TargetMacOS>>`
+Type: `<<Target>>`
 * `windows` _(optional)_
 +
-Type: `<<TargetWindows>>`
+Type: `<<Target>>`
 * `chrome` _(optional)_
 +
-Type: `<<TargetChrome>>`
+Type: `<<Target>>`
 * `x11` _(optional)_
 +
-Type: `<<TargetX11>>`
+Type: `<<Target>>`
 * `mim` _(optional)_
 +
-Type: `<<TargetMim>>`
+Type: `<<Target>>`
 

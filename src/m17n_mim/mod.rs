@@ -114,8 +114,18 @@ pub enum KeyDef {
 ///
 /// > "S-" (Shift), "C-" (Control), "M-" (Meta), "A-" (Alt), "G-" (AltGr), "s-"
 /// > (Super), and "H-" (Hyper)
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[derive(strum_macros::EnumString, strum_macros::Display)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
+    strum_macros::EnumString,
+    strum_macros::Display,
+)]
 #[strum(serialize_all = "snake_case")]
 pub enum Modifier {
     Shift,
