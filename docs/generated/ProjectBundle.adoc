@@ -41,7 +41,7 @@ Type: `<<Project>>`
 Data from `project.yaml` file
 * `layouts` _(required)_
 +
-Type: `Map<String, <<Layout>>>`
+Type: `Map<<<LanguageTag>>, <<Layout>>>`
 +
 The layouts to be included in this project, read from the `layouts/`
 directory. The layout names are the names of the YAML files without the

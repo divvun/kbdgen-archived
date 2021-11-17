@@ -2,6 +2,7 @@ use crate::{
     models::{Layout, Project},
     ProjectBundle, Targets,
 };
+use language_tags::LanguageTag;
 use log::trace;
 use serde::Serialize;
 use std::{
@@ -46,7 +47,7 @@ impl Save for Project {
     }
 }
 
-impl<S: BuildHasher> Save for HashMap<String, Layout, S> {
+impl<S: BuildHasher> Save for HashMap<LanguageTag, Layout, S> {
     fn save(&self, target_path: impl AsRef<Path>) -> Result<(), Error> {
         let path: &Path = target_path.as_ref();
         std::fs::create_dir_all(&path).map_err(|source| Error::WriteFile {
@@ -55,7 +56,7 @@ impl<S: BuildHasher> Save for HashMap<String, Layout, S> {
         })?;
 
         for (name, data) in self {
-            write_yaml(&path.join(&name).with_extension("yaml"), data)?;
+            write_yaml(&path.join(&name.to_string()).with_extension("yaml"), data)?;
         }
 
         Ok(())

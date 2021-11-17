@@ -2,6 +2,7 @@ use crate::{
     models::{Layout, Project},
     ProjectBundle, Targets,
 };
+use language_tags::LanguageTag;
 use log::trace;
 use serde::de::DeserializeOwned;
 use std::{
@@ -45,7 +46,7 @@ impl Load for Project {
     }
 }
 
-impl<S: BuildHasher + Default> Load for HashMap<String, Layout, S> {
+impl<S: BuildHasher + Default> Load for HashMap<LanguageTag, Layout, S> {
     fn load(path: impl AsRef<Path>) -> Result<Self, Error> {
         let path: &Path = path.as_ref();
         let yml_files = read_dir(path)
@@ -60,13 +61,16 @@ impl<S: BuildHasher + Default> Load for HashMap<String, Layout, S> {
 
         yml_files
             .map(|path| {
-                let name = path
+                let tag = path
                     .file_stem()
                     .ok_or_else(|| Error::MalformedFilename { path: path.clone() })?
-                    .to_string_lossy()
-                    .to_string();
+                    .to_string_lossy();
+
+                let tag: LanguageTag = tag.parse().map_err(|_| Error::InvalidLanguageTag {
+                    tag: tag.to_string(),
+                })?;
                 let data = read_yml(&path)?;
-                Ok((name, data))
+                Ok((tag, data))
             })
             .collect()
     }
@@ -119,6 +123,8 @@ pub enum Error {
     },
     #[error("Could not parse file with malfolmed name:: `{}`", path.display())]
     MalformedFilename { path: PathBuf },
+    #[error("Could not parse language tag: `{}`", tag)]
+    InvalidLanguageTag { tag: String },
     #[error("Could not parse `{}`: {}", path.display(), source)]
     ParseFile {
         path: PathBuf,

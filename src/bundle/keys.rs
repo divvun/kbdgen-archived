@@ -1,4 +1,4 @@
-use std::convert::TryFrom;
+use std::{convert::TryFrom, fmt::Display};
 
 use derive_collect_docs::CollectDocs;
 use lazy_static::lazy_static;
@@ -26,9 +26,9 @@ impl From<String> for KeyValue {
     }
 }
 
-impl ToString for KeyValue {
-    fn to_string(&self) -> String {
-        serialize(self)
+impl Display for KeyValue {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&serialize(self))
     }
 }
 

@@ -8,6 +8,7 @@ use crate::{
     Load, ProjectBundle, Save,
 };
 use indexmap::IndexMap;
+use language_tags::LanguageTag;
 use std::{
     convert::TryFrom,
     error::Error as StdError,
@@ -66,10 +67,7 @@ pub fn xkb_to_kbdgen(output: &Path, is_updating_bundle: bool) -> Result<(), Erro
         keys.into_iter().map(|(k, v)| (k, v.into())).collect(),
     ));
 
-    // Do a neat switcheroo with possibly-None dead keys map
-    let mut dead = layout.dead_keys.take().unwrap_or_default();
-    dead.insert("x11".to_string(), dead_keys);
-    layout.dead_keys = Some(dead);
+    layout.dead_keys.insert("x11".to_string(), dead_keys);
 
     bundle
         .save(output)
@@ -84,7 +82,7 @@ pub fn xkb_to_kbdgen(output: &Path, is_updating_bundle: bool) -> Result<(), Erro
 }
 
 #[cfg(unix)]
-fn select_base_locale() -> Result<(String, PathBuf), Error> {
+fn select_base_locale() -> Result<(LanguageTag, PathBuf), Error> {
     let kbd_path = xkb_dir().join("symbols");
     let files: IndexMap<String, PathBuf> = globwalk::GlobWalkerBuilder::new(&kbd_path, "**")
         .max_depth(8)
@@ -130,7 +128,7 @@ fn select_base_locale() -> Result<(String, PathBuf), Error> {
         .ok_or(Error::NoLocaleSelected)?
         .get_text();
 
-    Ok((result.into(), files[result].clone()))
+    Ok((result.parse().unwrap(), files[result].clone()))
 }
 
 fn select_sub_locale(file: &str) -> Result<ast::XkbSymbols, Box<dyn StdError>> {

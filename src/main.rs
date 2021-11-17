@@ -1,5 +1,5 @@
 use anyhow::Error;
-use kbdgen::{Load, ProjectBundle};
+use kbdgen::{gen, Load, ProjectBundle};
 use std::path::{Path, PathBuf};
 use structopt::{clap::AppSettings::*, StructOpt};
 
@@ -300,7 +300,9 @@ async fn build(command: BuildCommands) -> Result<(), Error> {
         } => kbdgen::cli::to_errormodel::kbdgen_to_errormodel(
             &project_path,
             &output_path,
-            &kbdgen::cli::to_errormodel::Options { layout },
+            &kbdgen::cli::to_errormodel::Options {
+                layout: layout.parse().unwrap(),
+            },
         )
         .unwrap(),
         BuildCommands::Svg { in_out } => todo!(),
@@ -331,7 +333,9 @@ async fn build(command: BuildCommands) -> Result<(), Error> {
             build_mode: BuildMode { .. },
             dry_run,
             build_legacy,
-        } => todo!(),
+        } => {
+            gen::windows::generate(bundle, project_path);
+        }
         BuildCommands::Mac {
             in_out,
             dry_run,

@@ -42,7 +42,8 @@ pub fn cldr_to_kbdgen(output: &Path, bundle_name: &str) -> Result<(), Error> {
     layout.modes = modes;
 
     let mut bundle = crate::bundle::ProjectBundle::default();
-    bundle.layouts.insert(locale.0, layout);
+    let locale = locale.0.parse().unwrap();
+    bundle.layouts.insert(locale, layout);
 
     let bundle_name = if !bundle_name.ends_with(".kbdgen") {
         format!("{}.kbdgen", bundle_name)

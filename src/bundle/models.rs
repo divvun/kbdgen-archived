@@ -1,8 +1,9 @@
-use crate::{target::*, DesktopKeyMap, MobileKeyMap};
+use crate::{keys, target::*, DesktopKeyMap, MobileKeyMap};
 use derive_collect_docs::CollectDocs;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use shrinkwraprs::Shrinkwrap;
+use strum::IntoEnumIterator;
 use strum_macros::{Display, EnumIter, EnumString};
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, CollectDocs)]
@@ -319,6 +320,35 @@ cmd+shift: |
 )]
 pub struct DesktopModes(pub IndexMap<String, DesktopKeyMap>);
 
+pub struct DesktopModeKeys<'a> {
+    modes: &'a DesktopModes,
+    cur: IsoKeyIter,
+}
+
+impl<'a> Iterator for DesktopModeKeys<'a> {
+    type Item = (IsoKey, IndexMap<String, keys::KeyValue>);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.cur.next().map(|k| (k, self.modes.key(k)))
+    }
+}
+
+impl DesktopModes {
+    pub fn key(&self, iso_key: IsoKey) -> IndexMap<String, keys::KeyValue> {
+        self.0
+            .iter()
+            .filter_map(|(k, v)| v.0.get(&iso_key).map(|v| (k.clone(), v.clone())))
+            .collect()
+    }
+
+    pub fn keys(&self) -> DesktopModeKeys<'_> {
+        DesktopModeKeys {
+            modes: self,
+            cur: IsoKey::iter(),
+        }
+    }
+}
+
 pub enum Mode {
     Mobile(MobileModes),
     Desktop(DesktopModes),
@@ -413,19 +443,23 @@ pub struct Layout {
             shift: ['`']
     "#
     )]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "deadKeys")]
-    pub dead_keys: Option<IndexMap<String, IndexMap<String, Vec<String>>>>,
+    #[serde(
+        default,
+        rename = "deadKeys",
+        skip_serializing_if = "IndexMap::is_empty"
+    )]
+    pub dead_keys: IndexMap<String, IndexMap<String, Vec<String>>>,
 
     /// The items to be shown when a key is long-pressed. Values are space
     /// separated in one string.
     #[example(
         yaml,
         r#"
-        deadKeys:
-          mac:
-            default: ["`"]
-            shift: ['`']
+        longpress:
+          A: Æ Ä Å Â
+          Á: Q
+          C: Č
+          D: Đ
     "#
     )]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -444,15 +478,14 @@ pub struct Layout {
     #[example(
         yaml,
         r#"
-        longpress:
-          A: Æ Ä Å Â
-          Á: Q
-          C: Č
-          D: Đ
+        deadKeys:
+          mac:
+            default: ["`"]
+            shift: ['`']
     "#
     )]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub transforms: Option<IndexMap<String, IndexMap<String, String>>>,
+    #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
+    pub transforms: IndexMap<String, IndexMap<String, String>>,
 
     /// Strings to be shown on some OSes
     ///
@@ -490,11 +523,15 @@ pub struct Layout {
 }
 
 impl Layout {
-    pub fn name(&self) -> Option<String> {
+    pub fn english_name(&self) -> Option<String> {
         self.display_names
             .get("en")
             .or_else(|| self.display_names.values().next())
             .cloned()
+    }
+
+    pub fn native_name(&self, locale: &str) -> Option<String> {
+        self.display_names.get(locale).cloned()
     }
 }
 

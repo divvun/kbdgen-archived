@@ -1,4 +1,5 @@
 use derive_collect_docs::CollectDocs;
+use language_tags::LanguageTag;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf};
 
@@ -7,11 +8,9 @@ pub mod models;
 pub mod target;
 
 mod loading;
-mod modes;
 mod saving;
 
 pub use key_map::{DesktopKeyMap, Error as KeyMapError, MobileKeyMap};
-pub use modes::{Desktop, Mobile};
 
 pub use loading::{Error as LoadError, Load};
 pub use saving::{Error as SaveError, Save};
@@ -67,7 +66,7 @@ pub struct ProjectBundle {
     /// The layouts to be included in this project, read from the `layouts/`
     /// directory. The layout names are the names of the YAML files without the
     /// `.yaml` suffix.
-    pub layouts: HashMap<String, models::Layout>,
+    pub layouts: HashMap<LanguageTag, models::Layout>,
     /// Target-specific project-level properties stored in `targets/` directory.
     pub targets: Targets,
 }

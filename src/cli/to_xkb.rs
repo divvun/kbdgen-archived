@@ -27,13 +27,18 @@ pub fn kbdgen_to_xkb(input: &Path, output: &Path, _options: &Options) -> Result<
             if !can_be_converted {
                 log::info!(
                     "skipping {}, no modes that can be converted to xkb",
-                    layout.name().unwrap_or_unknown()
+                    layout.english_name().unwrap_or_unknown()
                 );
                 log::trace!("modes found: {}", layout.modes.available_modes().join(", "));
             }
             can_be_converted
         })
-        .map(|(name, layout)| (name, XkbFile::from_layout(name, layout.clone())))
+        .map(|(name, layout)| {
+            (
+                name,
+                XkbFile::from_layout(&name.to_string(), layout.clone()),
+            )
+        })
         .try_for_each(|(name, symbols)| {
             let symbols = match symbols {
                 Ok(symbols) => symbols,
@@ -50,12 +55,15 @@ pub fn kbdgen_to_xkb(input: &Path, output: &Path, _options: &Options) -> Result<
                         .clone()
                         .map(|x| format!("{}", x.display()))
                         .unwrap_or_unknown(),
-                    layout: name.clone(),
+                    layout: name.to_string(),
                     source,
                 })?,
             };
 
-            let path = output.join("linux").join(name).with_extension("xkb");
+            let path = output
+                .join("linux")
+                .join(&name.to_string())
+                .with_extension("xkb");
             std::fs::create_dir_all(path.parent().unwrap()).map_err(|source| {
                 SavingError::CannotCreateFile {
                     path: path.clone(),

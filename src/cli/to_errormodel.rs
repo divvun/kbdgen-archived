@@ -1,4 +1,5 @@
 use crate::{bundle::keys::KeyValue, Load, ProjectBundle};
+use language_tags::LanguageTag;
 use log::{debug, log_enabled};
 use rust_decimal::prelude::ToPrimitive;
 use std::{
@@ -33,7 +34,7 @@ impl KeyCoordinate {
     }
 }
 
-pub fn kbdgen_to_errormodel(input: &Path, output: &Path, _options: &Options) -> Result<(), Error> {
+pub fn kbdgen_to_errormodel(input: &Path, output: &Path, options: &Options) -> Result<(), Error> {
     let bundle = ProjectBundle::load(input).map_err(|source| Error::CannotLoad { source })?;
 
     if log_enabled!(log::Level::Debug) {
@@ -49,9 +50,9 @@ pub fn kbdgen_to_errormodel(input: &Path, output: &Path, _options: &Options) -> 
 
     let layout = bundle
         .layouts
-        .get(&_options.layout)
+        .get(&options.layout)
         .ok_or_else(|| Error::CouldNotFindLayout {
-            layout: _options.layout.to_owned(),
+            layout: options.layout.to_string(),
         })?;
 
     let ios = layout.modes.ios.as_ref().unwrap();
@@ -132,7 +133,7 @@ pub fn kbdgen_to_errormodel(input: &Path, output: &Path, _options: &Options) -> 
 
 #[derive(Debug, Clone)]
 pub struct Options {
-    pub layout: String,
+    pub layout: LanguageTag,
 }
 
 #[derive(Debug, thiserror::Error)]

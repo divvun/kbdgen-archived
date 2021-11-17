@@ -91,7 +91,7 @@ space:
 
 ----
 
-* `deadKeys` _(optional)_
+* `deadKeys` _(required)_
 +
 Type: `<<IndexMap>><String, <<IndexMap>><String, Vec<String>>>`
 +
@@ -126,14 +126,15 @@ separated in one string.
 .Example
 [source,yaml]
 ----
-deadKeys:
-  mac:
-    default: ["`"]
-    shift: ['`']
+longpress:
+  A: Æ Ä Å Â
+  Á: Q
+  C: Č
+  D: Đ
 
 ----
 
-* `transforms` _(optional)_
+* `transforms` _(required)_
 +
 Type: `<<IndexMap>><String, <<IndexMap>><String, String>>`
 +
@@ -151,11 +152,10 @@ all cases.
 .Example
 [source,yaml]
 ----
-longpress:
-  A: Æ Ä Å Â
-  Á: Q
-  C: Č
-  D: Đ
+deadKeys:
+  mac:
+    default: ["`"]
+    shift: ['`']
 
 ----
 

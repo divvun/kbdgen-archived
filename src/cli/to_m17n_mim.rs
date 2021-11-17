@@ -26,10 +26,13 @@ pub fn kbdgen_to_mim(input: &Path, output: &Path) -> Result<(), Error> {
     bundle
         .layouts
         .iter()
-        .map(|(name, layout)| (name, layout_to_mim(&name, layout, &bundle)))
+        .map(|(name, layout)| (name, layout_to_mim(&name.to_string(), layout, &bundle)))
         .try_for_each(|(name, keyboards)| {
             for (platform, keyboard) in keyboards? {
-                let path = output.join(name).join(platform).with_extension("mim");
+                let path = output
+                    .join(name.to_string())
+                    .join(platform)
+                    .with_extension("mim");
                 std::fs::create_dir_all(path.parent().unwrap()).map_err(|source| {
                     SavingError::CannotCreateFile {
                         path: path.clone(),
@@ -202,18 +205,8 @@ fn dead_key_transforms(
 ) -> Result<Vec<Rule>, MimConversion> {
     let mut rules = vec![];
 
-    let empty_dead_keys = IndexMap::new();
-    let empty_transforms = IndexMap::new();
-
-    let dead_key_map = layout
-        .dead_keys
-        .as_ref()
-        .and_then(|dead_keys| dead_keys.get(platform))
-        .unwrap_or_else(|| &empty_dead_keys);
-    let transforms = layout
-        .transforms
-        .as_ref()
-        .unwrap_or_else(|| &empty_transforms);
+    let dead_key_map = layout.dead_keys.get(platform).cloned().unwrap_or_default();
+    let transforms = &layout.transforms;
 
     let dead_keys = dead_key_map.iter().flat_map(|(_modifier, keys)| keys);
 

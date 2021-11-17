@@ -22,7 +22,7 @@ impl XkbFile {
             .map(|(target, mode)| {
                 Ok(Symbols {
                     id: "basic".to_string(),
-                    name: format!("{} ({})", layout.name().unwrap_or_unknown(), target),
+                    name: format!("{} ({})", layout.english_name().unwrap_or_unknown(), target),
                     leading_includes: vec!["latin".to_string()],
                     keys: collect_keys(&mode, None)?,
                     trailing_includes: vec!["level3(ralt_switch)".to_string()],
@@ -36,7 +36,7 @@ impl XkbFile {
             .map(|(target, mode)| {
                 Ok(Symbols {
                     id: target.to_string(),
-                    name: format!("{} ({})", layout.name().unwrap_or_unknown(), target),
+                    name: format!("{} ({})", layout.english_name().unwrap_or_unknown(), target),
                     leading_includes: vec![format!("{}(basic)", name)],
                     keys: collect_keys(&mode, Some(&default))?,
                     trailing_includes: vec!["level3(ralt_switch)".to_string()],
@@ -44,45 +44,52 @@ impl XkbFile {
             })
             .collect::<Result<Vec<Symbols>, Error>>()?;
 
-        if let Some(dead_keys) = layout.dead_keys.as_ref() {
-            for (target, mode_keys) in dead_keys {
-                let parent =
-                    match target.as_str() {
-                        "x11" => layout.modes.x11.as_ref().ok_or(
-                            Error::DeadKeysForUnconfiguredTarget {
-                                target: target.clone(),
-                            },
-                        )?,
-                        "win" => layout.modes.win.as_ref().ok_or(
-                            Error::DeadKeysForUnconfiguredTarget {
-                                target: target.clone(),
-                            },
-                        )?,
-                        "mac" => layout.modes.mac.as_ref().ok_or(
-                            Error::DeadKeysForUnconfiguredTarget {
-                                target: target.clone(),
-                            },
-                        )?,
-                        "chrome" => layout.modes.chrome.as_ref().ok_or(
-                            Error::DeadKeysForUnconfiguredTarget {
-                                target: target.clone(),
-                            },
-                        )?,
-                        _ => continue,
-                    };
+        for (target, mode_keys) in &layout.dead_keys {
+            let parent = match target.as_str() {
+                "x11" => layout
+                    .modes
+                    .x11
+                    .as_ref()
+                    .ok_or(Error::DeadKeysForUnconfiguredTarget {
+                        target: target.clone(),
+                    })?,
+                "win" => layout
+                    .modes
+                    .win
+                    .as_ref()
+                    .ok_or(Error::DeadKeysForUnconfiguredTarget {
+                        target: target.clone(),
+                    })?,
+                "mac" => layout
+                    .modes
+                    .mac
+                    .as_ref()
+                    .ok_or(Error::DeadKeysForUnconfiguredTarget {
+                        target: target.clone(),
+                    })?,
+                "chrome" => {
+                    layout
+                        .modes
+                        .chrome
+                        .as_ref()
+                        .ok_or(Error::DeadKeysForUnconfiguredTarget {
+                            target: target.clone(),
+                        })?
+                }
+                _ => continue,
+            };
 
-                others.push(Symbols {
-                    id: format!("{}_deadkeys", target.to_string()),
-                    name: format!(
-                        "{} ({}) (dead keys)",
-                        layout.name().unwrap_or_unknown(),
-                        target
-                    ),
-                    leading_includes: vec![format!("{}({})", name, target)],
-                    keys: collect_dead_keys(&mode_keys, parent)?,
-                    trailing_includes: vec![],
-                });
-            }
+            others.push(Symbols {
+                id: format!("{}_deadkeys", target.to_string()),
+                name: format!(
+                    "{} ({}) (dead keys)",
+                    layout.english_name().unwrap_or_unknown(),
+                    target
+                ),
+                leading_includes: vec![format!("{}({})", name, target)],
+                keys: collect_dead_keys(&mode_keys, parent)?,
+                trailing_includes: vec![],
+            });
         }
 
         Ok(XkbFile { default, others })
