@@ -6,6 +6,7 @@ mod layout;
 mod ligature;
 
 use codecs::utf16::Utf16Ext;
+use indexmap::IndexMap;
 use language_tags::LanguageTag;
 use std::{fmt::Display, path::PathBuf};
 
@@ -18,6 +19,7 @@ use crate::{
 use self::{deadkey::DeadkeySection, key::Char, layout::LayoutSection, ligature::LigatureSection};
 
 struct KlcFile {
+    tag: LanguageTag,
     kbd: String,
     description: String,
     copyright: String,
@@ -38,36 +40,61 @@ impl Display for KlcFile {
         f.write_fmt(format_args!("COPYRIGHT\t\"{}\"\n\n", self.copyright))?;
         f.write_fmt(format_args!("COMPANY\t\"{}\"\n\n", self.company))?;
         f.write_fmt(format_args!("LOCALENAME\t\"{}\"\n\n", self.locale_name))?;
-        f.write_fmt(format_args!("LOCALEID\t\"{:08X}\"\n\n", self.locale_id))?;
+        f.write_fmt(format_args!("LOCALEID\t\"{:08x}\"\n\n", self.locale_id))?;
         f.write_str("VERSION\t1.0\n\n")?;
 
         f.write_fmt(format_args!("{}", self.layout))?;
         f.write_fmt(format_args!("{}", self.ligatures))?;
         f.write_fmt(format_args!("{}", self.deadkeys))?;
 
+        f.write_str(consts::FOOTER_CONTENT)?;
+
+        f.write_str("\nDESCRIPTIONS\n\n")?;
+        f.write_fmt(format_args!(
+            "{:04x}\t{}\n\n",
+            self.locale_id, self.description
+        ))?;
+
+        f.write_str("LANGUAGENAMES\n\n")?;
+        let autonym = iso639::autonym::get(self.tag.primary_language())
+            .map(|x| x.autonym.unwrap_or_else(|| x.name))
+            .unwrap_or("Undefined");
+        f.write_fmt(format_args!("{:04x}\t{}\n\n", self.locale_id, autonym))?;
+
         f.write_str("ENDKBD\n")?;
         Ok(())
     }
 }
 
-fn expected_outputs() {}
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    #[error("IO error")]
+    Io(#[from] std::io::Error),
+}
 
-pub fn generate(bundle: ProjectBundle, project_path: PathBuf) {
-    let target = bundle.targets.windows.as_ref();
+pub fn generate(bundle: ProjectBundle, output_path: PathBuf) -> Result<(), Error> {
+    std::fs::create_dir_all(&output_path)?;
 
     let klcs = bundle
         .layouts
         .iter()
         .filter(|(_, v)| v.modes.win.is_some())
         .map(|(name, layout)| {
-            generate_layout(&bundle, &name, &layout, layout.modes.win.as_ref().unwrap())
+            (
+                name.clone(),
+                generate_layout(&bundle, &name, &layout, layout.modes.win.as_ref().unwrap()),
+            )
         })
-        .collect::<Vec<_>>();
+        .collect::<IndexMap<_, _>>();
 
-    // TODO: write files
-    for klc in klcs {
+    for (tag, klc) in klcs {
         let bytes = klc.to_string().encode_utf16_le_bom();
+
+        let klc_path = output_path.join(format!("{}.klc", klc.kbd));
+        std::fs::write(klc_path, bytes)?;
     }
+
+    Ok(())
 }
 
 pub fn build(bundle: ProjectBundle, project_path: PathBuf) {}
@@ -118,12 +145,11 @@ fn generate_layout(
             .unwrap_or_else(|| tag.as_str().chars().take(5).collect::<String>())
     );
 
-    // TODO: review
     let lcid = iso639::lcid::get(tag.primary_language(), tag.script(), tag.region());
 
     let locale_id = match lcid {
         Some(r) => r.lcid,
-        None => 0x0200, // TODO: check what this is meant to be
+        None => 0x2000,
     };
 
     let locale_name = target
@@ -139,6 +165,7 @@ fn generate_layout(
         });
 
     KlcFile {
+        tag: tag.to_owned(),
         kbd,
         description,
         copyright,

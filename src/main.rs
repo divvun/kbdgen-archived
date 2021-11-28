@@ -334,7 +334,7 @@ async fn build(command: BuildCommands) -> Result<(), Error> {
             dry_run,
             build_legacy,
         } => {
-            gen::windows::generate(bundle, project_path);
+            gen::windows::generate(bundle, output_path)?;
         }
         BuildCommands::Mac {
             in_out,
