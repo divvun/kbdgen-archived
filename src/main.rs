@@ -337,10 +337,16 @@ async fn build(command: BuildCommands) -> Result<(), Error> {
             gen::windows::generate(bundle, output_path)?;
         }
         BuildCommands::Mac {
-            in_out,
+            in_out:
+                InOutPaths {
+                    output_path,
+                    project_path,
+                },
             dry_run,
             build_mode,
-        } => todo!(),
+        } => {
+            gen::macos::generate(bundle, project_path);
+        }
         BuildCommands::Chrome { in_out, build_mode } => todo!(),
         BuildCommands::Qr { in_out, layout } => todo!(),
     };

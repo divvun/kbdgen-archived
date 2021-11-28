@@ -50,6 +50,8 @@ once_cell = "1.8.0"
 codecs = "0.0.1"
 language-tags = { version = "0.3.2", features = ["serde"] }
 iso639 = "0.1.0"
+nova = "0.5.1"
+xmlem = { path = "../xmlem" }
 
 [target.'cfg(windows)'.dependencies]
 dialoguer = "0.8.0"

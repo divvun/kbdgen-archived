@@ -357,7 +357,9 @@ dependencies = [
 
 [[package]]
 name = "codecs"
-version = "0.1.0"
+version = "0.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7e7d821d0c46a6022cdfd61dd5d9fde095c959f9a428d7b5ead0d59be67586bf"
 dependencies = [
  "core2",
  "thiserror",
@@ -521,8 +523,18 @@ version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0d706e75d87e35569db781a9b5e2416cff1236a47ed380831f959382ccd5f858"
 dependencies = [
- "darling_core",
- "darling_macro",
+ "darling_core 0.10.2",
+ "darling_macro 0.10.2",
+]
+
+[[package]]
+name = "darling"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "757c0ded2af11d8e739c4daea1ac623dd1624b06c844cf3f5a39f1bdbd99bb12"
+dependencies = [
+ "darling_core 0.13.0",
+ "darling_macro 0.13.0",
 ]
 
 [[package]]
@@ -540,12 +552,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "darling_core"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2c34d8efb62d0c2d7f60ece80f75e5c63c1588ba68032740494b0b9a996466e3"
+dependencies = [
+ "fnv",
+ "ident_case",
+ "proc-macro2 1.0.27",
+ "quote 1.0.9",
+ "strsim 0.10.0",
+ "syn 1.0.73",
+]
+
+[[package]]
 name = "darling_macro"
 version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d9b5a2f4ac4969822c62224815d069952656cadc7084fdca9751e6d959189b72"
 dependencies = [
- "darling_core",
+ "darling_core 0.10.2",
+ "quote 1.0.9",
+ "syn 1.0.73",
+]
+
+[[package]]
+name = "darling_macro"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ade7bff147130fe5e6d39f089c6bd49ec0250f35d70b2eebf72afdfc919f15cc"
+dependencies = [
+ "darling_core 0.13.0",
  "quote 1.0.9",
  "syn 1.0.73",
 ]
@@ -581,7 +618,7 @@ version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a2658621297f2cf68762a6f7dc0bb7e1ff2cfd6583daef8ee0fed6f7ec468ec0"
 dependencies = [
- "darling",
+ "darling 0.10.2",
  "derive_builder_core",
  "proc-macro2 1.0.27",
  "quote 1.0.9",
@@ -594,7 +631,7 @@ version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2791ea3e372c8495c0bc2033991d76b512cd799d07491fbd6890124db9458bef"
 dependencies = [
- "darling",
+ "darling 0.10.2",
  "proc-macro2 1.0.27",
  "quote 1.0.9",
  "syn 1.0.73",
@@ -1330,6 +1367,7 @@ dependencies = [
  "lazy_static",
  "log",
  "nom",
+ "nova",
  "once_cell",
  "pahkat-client",
  "pathos",
@@ -1355,6 +1393,7 @@ dependencies = [
  "x11-keysymdef",
  "xkb-parser",
  "xml-rs",
+ "xmlem",
  "zip",
 ]
 
@@ -1550,6 +1589,39 @@ dependencies = [
  "memchr",
  "regex",
  "version_check",
+]
+
+[[package]]
+name = "nova"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8de01274a5a7d768f379cbe7f92594672e7afc15e4e829dc49238b4c54d27191"
+dependencies = [
+ "nova-macro",
+]
+
+[[package]]
+name = "nova-impl"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0bfba419e690e3fe06a12e33d6245357f54453286605dd80caa406bfef21e6b2"
+dependencies = [
+ "darling 0.13.0",
+ "proc-macro2 1.0.27",
+ "quote 1.0.9",
+ "syn 1.0.73",
+]
+
+[[package]]
+name = "nova-macro"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "14079e36058569b1769a063530f0e2e7c2144691b94ccc2b5eac4a1d7d480602"
+dependencies = [
+ "nova-impl",
+ "proc-macro2 1.0.27",
+ "quote 1.0.9",
+ "syn 1.0.73",
 ]
 
 [[package]]
@@ -2013,6 +2085,15 @@ name = "quick-error"
 version = "1.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a1d01941d82fa2ab50be1e79e6714289dd7cde78eba4c074bc5a4374f650dfe0"
+
+[[package]]
+name = "quick-xml"
+version = "0.22.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8533f14c8382aaad0d592c812ac3b826162128b65662331e1127b45c3d18536b"
+dependencies = [
+ "memchr",
+]
 
 [[package]]
 name = "quote"
@@ -2767,6 +2848,12 @@ name = "strsim"
 version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6446ced80d6c486436db5c078dde11a9f73d42b57fb273121e160b84f63d894c"
+
+[[package]]
+name = "strsim"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "73473c0e59e6d5812c5dfe2a064a6444949f089e20eec9a2e5506596494e4623"
 
 [[package]]
 name = "structopt"
@@ -3548,6 +3635,15 @@ name = "xml-rs"
 version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b07db065a5cf61a7e4ba64f29e67db906fb1787316516c4e6e5ff0fea1efcd8a"
+
+[[package]]
+name = "xmlem"
+version = "0.0.0"
+dependencies = [
+ "indexmap",
+ "quick-xml",
+ "url",
+]
 
 [[package]]
 name = "xz2"
