@@ -220,7 +220,26 @@ enum MetaCommands {
 }
 
 #[derive(Debug, StructOpt)]
+enum WindowsCommands {
+    #[structopt(about = "Generates installers for Windows.")]
+    Build {
+        #[structopt(flatten)]
+        in_out: InOutPaths,
+    },
+    #[structopt(about = "Generates KLC files.")]
+    Generate {
+        #[structopt(flatten)]
+        in_out: InOutPaths,
+    },
+}
+
+#[derive(Debug, StructOpt)]
 enum Commands {
+    #[structopt(about = "Windows", setting(DisableHelpSubcommand))]
+    Windows {
+        #[structopt(subcommand)]
+        command: WindowsCommands,
+    },
     #[structopt(
         about = "Generate output for a given .kbdgen bundle",
         setting(DisableHelpSubcommand)
@@ -375,16 +394,14 @@ async fn main() -> anyhow::Result<()> {
         .target(env_logger::Target::Stderr)
         .init();
 
-    // info!("logging mode {}", logging);
-
-    std::env::set_var("RUST_LOG", logging.to_string());
-
-    match opt.command {
+    let _ = match opt.command {
         Commands::Build {
             github_username,
             github_token,
             command,
-        } => build(command).await,
+        } => {
+            build(command).await?;
+        }
 
         Commands::New { command } => match command {
             NewCommands::Bundle {
@@ -399,20 +416,32 @@ async fn main() -> anyhow::Result<()> {
             },
             NewCommands::Layout { .. } => {
                 eprintln!("Not yet supported.");
-                std::process::exit(1)
+                std::process::exit(1);
             }
         },
 
         Commands::Meta { command } => match command {
             MetaCommands::Fetch { target } => match meta::fetch(target).await {
-                Ok(_) => Ok(()),
+                Ok(_) => {}
                 Err(e) => {
                     eprintln!("ERROR: {:?}", e);
-                    std::process::exit(1)
+                    std::process::exit(1);
                 }
             },
         },
-    }
+        Commands::Windows { command } => match command {
+            WindowsCommands::Build { in_out } => {
+                let bundle = ProjectBundle::load(&in_out.project_path)?;
+                gen::windows::build(bundle, in_out.project_path)?;
+            }
+            WindowsCommands::Generate { in_out } => {
+                let bundle = ProjectBundle::load(&in_out.project_path)?;
+                gen::windows::generate(bundle, in_out.project_path)?;
+            }
+        },
+    };
+
+    Ok(())
 }
 
 pub(crate) mod meta {

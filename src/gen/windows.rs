@@ -6,15 +6,13 @@ mod layout;
 mod ligature;
 
 use codecs::utf16::Utf16Ext;
+use futures::StreamExt;
 use indexmap::IndexMap;
 use language_tags::LanguageTag;
-use std::{fmt::Display, path::PathBuf};
+use pahkat_client::{InstallTarget, PackageAction, PackageKey, PackageTransaction, types::{package_key::PackageKeyParams, repo::RepoUrl}};
+use std::{fmt::Display, path::{Path, PathBuf}, sync::Arc};
 
-use crate::{
-    gen::windows::layout::derive_rows,
-    models::{DesktopModes, Layout},
-    ProjectBundle,
-};
+use crate::{ProjectBundle, create_prefix, gen::windows::layout::derive_rows, models::{DesktopModes, Layout}, prefix_dir};
 
 use self::{deadkey::DeadkeySection, key::Char, layout::LayoutSection, ligature::LigatureSection};
 
@@ -80,14 +78,10 @@ pub fn generate(bundle: ProjectBundle, output_path: PathBuf) -> Result<(), Error
         .iter()
         .filter(|(_, v)| v.modes.win.is_some())
         .map(|(name, layout)| {
-            (
-                name.clone(),
-                generate_layout(&bundle, &name, &layout, layout.modes.win.as_ref().unwrap()),
-            )
-        })
-        .collect::<IndexMap<_, _>>();
+            generate_layout(&bundle, &name, &layout, layout.modes.win.as_ref().unwrap())
+        });
 
-    for (tag, klc) in klcs {
+    for klc in klcs {
         let bytes = klc.to_string().encode_utf16_le_bom();
 
         let klc_path = output_path.join(format!("{}.klc", klc.kbd));
@@ -97,7 +91,111 @@ pub fn generate(bundle: ProjectBundle, output_path: PathBuf) -> Result<(), Error
     Ok(())
 }
 
-pub fn build(bundle: ProjectBundle, project_path: PathBuf) {}
+pub fn build(_bundle: ProjectBundle, output_path: PathBuf) -> Result<(), Error> {
+    let rt = tokio::runtime::Runtime::new().unwrap();
+    rt.block_on(install_msklc());
+
+    for entry in output_path.read_dir()?.filter_map(Result::ok) {
+        let path = entry.path();
+        if let Some(x) = path.extension() {
+            if x == "klc" {
+                build_dll(&path, KlcBuildTarget::Amd64, &output_path);
+                build_dll(&path, KlcBuildTarget::I386, &output_path);
+                build_dll(&path, KlcBuildTarget::Wow64, &output_path);
+            }
+        }
+    }
+
+    Ok(())
+}
+
+enum KlcBuildTarget {
+    Wow64,
+    I386,
+    Amd64,
+}
+
+impl KlcBuildTarget {
+    fn flag(&self) -> &str {
+        match self {
+            KlcBuildTarget::Wow64 => "-o",
+            KlcBuildTarget::I386 => "-x",
+            KlcBuildTarget::Amd64 => "-m",
+        }
+    }
+
+    fn arch(&self) -> &str {
+        match self {
+            KlcBuildTarget::Wow64 => "wow64",
+            KlcBuildTarget::I386 => "i386",
+            KlcBuildTarget::Amd64 => "amd64",
+        }
+    }
+}
+
+fn build_dll(klc_path: &Path, target: KlcBuildTarget, output_path: &Path) {
+    let kbdutool = prefix_dir().join("msklc").join("bin").join("i386").join("kbdutool.exe");
+    let mut proc = std::process::Command::new(kbdutool)
+        .arg("-n")
+        .arg(target.flag())
+        .arg("-u")
+        .arg(klc_path)
+        .current_dir(output_path.join(target.arch()))
+        .spawn()
+        .unwrap();
+    proc.wait().unwrap();
+}
+
+async fn install_msklc() {
+    log::info!("Updating 'msklc'...");
+
+    let store = create_prefix().await;
+    log::debug!("Got a prefix");
+
+    let repo_url: RepoUrl = "https://pahkat.uit.no/devtools/".parse().unwrap();
+
+    let pkg_key = PackageKey::new_unchecked(
+        repo_url.clone(),
+        "msklc".to_string(),
+        Some(PackageKeyParams {
+            channel: Some("nightly".to_string()),
+            ..Default::default()
+        }),
+    );
+
+    let actions = vec![
+        PackageAction::install(pkg_key, InstallTarget::System),
+    ];
+
+    log::debug!("Creating package transaction");
+    let tx = PackageTransaction::new(Arc::clone(&store as _), actions).unwrap();
+
+    log::debug!("Beginning downloads");
+    for record in tx.actions().iter() {
+        let action = &record.action;
+        let mut download = store.download(&action.id);
+
+        use pahkat_client::package_store::DownloadEvent;
+
+        while let Some(event) = download.next().await {
+            match event {
+                DownloadEvent::Error(e) => {
+                    log::error!("{:?}", &e);
+                    std::process::exit(1);
+                }
+                event => {
+                    log::debug!("{:?}", &event);
+                }
+            };
+        }
+    }
+
+    let (_cancel, mut stream) = tx.process();
+
+    while let Some(value) = stream.next().await {
+        println!("{:?}", value);
+    }
+}
 
 fn generate_layout(
     bundle: &ProjectBundle,

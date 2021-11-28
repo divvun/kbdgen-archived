@@ -2,7 +2,6 @@ pub mod bundle;
 pub mod cldr;
 pub mod cli;
 pub mod m17n_mim;
-pub mod mac;
 pub mod xkb;
 
 pub mod gen;
@@ -68,64 +67,4 @@ async fn create_prefix() -> Arc<dyn PackageStore> {
     // We can't just refresh repos because it locks up, reason unknown.
     let prefix = PrefixPackageStore::open(&prefix_path).await.unwrap();
     Arc::new(prefix)
-}
-
-pub async fn install_kbdi() {
-    log::info!("Updating 'kbdi' and 'kbdi-legacy'...");
-
-    let store = create_prefix().await;
-    log::debug!("Got a prefix");
-
-    let repo_url: RepoUrl = "https://pahkat.uit.no/devtools/".parse().unwrap();
-
-    let pkg_key_kbdi = PackageKey::new_unchecked(
-        repo_url.clone(),
-        "kbdi".to_string(),
-        Some(PackageKeyParams {
-            channel: Some("nightly".to_string()),
-            ..Default::default()
-        }),
-    );
-    let pkg_key_kbdi_legacy = PackageKey::new_unchecked(
-        repo_url.clone(),
-        "kbdi-legacy".to_string(),
-        Some(PackageKeyParams {
-            channel: Some("nightly".to_string()),
-            ..Default::default()
-        }),
-    );
-
-    let actions = vec![
-        PackageAction::install(pkg_key_kbdi, InstallTarget::System),
-        PackageAction::install(pkg_key_kbdi_legacy, InstallTarget::System),
-    ];
-
-    log::debug!("Creating package transaction");
-    let tx = PackageTransaction::new(Arc::clone(&store as _), actions).unwrap();
-
-    log::debug!("Beginning downloads");
-    for record in tx.actions().iter() {
-        let action = &record.action;
-        let mut download = store.download(&action.id);
-
-        use pahkat_client::package_store::DownloadEvent;
-
-        while let Some(event) = download.next().await {
-            match event {
-                DownloadEvent::Error(e) => {
-                    log::error!("{:?}", &e);
-                    std::process::exit(1);
-                }
-                event => {
-                    log::debug!("{:?}", &event);
-                }
-            };
-        }
-    }
-
-    let (_cancel, mut stream) = tx.process();
-
-    while let Some(value) = stream.next().await {
-        println!("{:?}", value);
-    }
 }
