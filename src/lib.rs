@@ -29,6 +29,7 @@ pub fn prefix_dir() -> PathBuf {
 
 async fn create_prefix() -> Arc<dyn PackageStore> {
     let prefix_path = prefix_dir();
+    log::info!("Prefix: {}", prefix_path.display());
     let prefix = PrefixPackageStore::open_or_create(&prefix_path)
         .await
         .unwrap();

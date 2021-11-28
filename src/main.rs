@@ -150,8 +150,12 @@ impl BuildCommands {
         match self {
             BuildCommands::Svg { in_out } => &in_out.project_path,
             BuildCommands::Android { in_out, .. } => &in_out.project_path,
+
+            #[cfg(target_os = "macos")]
             BuildCommands::IOS { in_out, .. } => &in_out.project_path,
             BuildCommands::Win { in_out, .. } => &in_out.project_path,
+
+            #[cfg(target_os = "macos")]
             BuildCommands::Mac { in_out, .. } => &in_out.project_path,
             BuildCommands::X11 { in_out, .. } => &in_out.project_path,
             BuildCommands::M17n { in_out, .. } => &in_out.project_path,
@@ -165,8 +169,12 @@ impl BuildCommands {
         match self {
             BuildCommands::Svg { in_out } => &in_out.output_path,
             BuildCommands::Android { in_out, .. } => &in_out.output_path,
+
+            #[cfg(target_os = "macos")]
             BuildCommands::IOS { in_out, .. } => &in_out.output_path,
             BuildCommands::Win { in_out, .. } => &in_out.output_path,
+
+            #[cfg(target_os = "macos")]
             BuildCommands::Mac { in_out, .. } => &in_out.output_path,
             BuildCommands::X11 { in_out, .. } => &in_out.output_path,
             BuildCommands::M17n { in_out, .. } => &in_out.output_path,
@@ -335,6 +343,7 @@ async fn build(command: BuildCommands) -> Result<(), Error> {
             local,
             build_mode,
         } => todo!(),
+        #[cfg(target_os = "macos")]
         BuildCommands::IOS {
             command,
             kbd_repo,
@@ -355,6 +364,7 @@ async fn build(command: BuildCommands) -> Result<(), Error> {
         } => {
             gen::windows::generate(bundle, output_path)?;
         }
+        #[cfg(target_os = "macos")]
         BuildCommands::Mac {
             in_out:
                 InOutPaths {
@@ -432,11 +442,11 @@ async fn main() -> anyhow::Result<()> {
         Commands::Windows { command } => match command {
             WindowsCommands::Build { in_out } => {
                 let bundle = ProjectBundle::load(&in_out.project_path)?;
-                gen::windows::build(bundle, in_out.project_path)?;
+                gen::windows::build(bundle, in_out.output_path).await?;
             }
             WindowsCommands::Generate { in_out } => {
                 let bundle = ProjectBundle::load(&in_out.project_path)?;
-                gen::windows::generate(bundle, in_out.project_path)?;
+                gen::windows::generate(bundle, in_out.output_path)?;
             }
         },
     };

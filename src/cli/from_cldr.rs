@@ -120,7 +120,7 @@ pub fn select_base_locale() -> Option<(String, IndexMap<String, Vec<String>>)> {
             acc
         });
     let mut locales = locale_map.iter().collect::<Vec<_>>();
-    locales.sort();
+    // locales.sort();
 
     let cyan = console::Style::new().cyan().dim();
     let text = locales

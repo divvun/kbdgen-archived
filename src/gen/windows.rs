@@ -9,10 +9,22 @@ use codecs::utf16::Utf16Ext;
 use futures::StreamExt;
 use indexmap::IndexMap;
 use language_tags::LanguageTag;
-use pahkat_client::{InstallTarget, PackageAction, PackageKey, PackageTransaction, types::{package_key::PackageKeyParams, repo::RepoUrl}};
-use std::{fmt::Display, path::{Path, PathBuf}, sync::Arc};
+use pahkat_client::{
+    types::{package_key::PackageKeyParams, repo::RepoUrl},
+    InstallTarget, PackageAction, PackageKey, PackageTransaction,
+};
+use std::{
+    fmt::Display,
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 
-use crate::{ProjectBundle, create_prefix, gen::windows::layout::derive_rows, models::{DesktopModes, Layout}, prefix_dir};
+use crate::{
+    create_prefix,
+    gen::windows::layout::derive_rows,
+    models::{DesktopModes, Layout},
+    prefix_dir, ProjectBundle,
+};
 
 use self::{deadkey::DeadkeySection, key::Char, layout::LayoutSection, ligature::LigatureSection};
 
@@ -91,9 +103,8 @@ pub fn generate(bundle: ProjectBundle, output_path: PathBuf) -> Result<(), Error
     Ok(())
 }
 
-pub fn build(_bundle: ProjectBundle, output_path: PathBuf) -> Result<(), Error> {
-    let rt = tokio::runtime::Runtime::new().unwrap();
-    rt.block_on(install_msklc());
+pub async fn build(_bundle: ProjectBundle, output_path: PathBuf) -> Result<(), Error> {
+    install_msklc().await;
 
     for entry in output_path.read_dir()?.filter_map(Result::ok) {
         let path = entry.path();
@@ -134,13 +145,20 @@ impl KlcBuildTarget {
 }
 
 fn build_dll(klc_path: &Path, target: KlcBuildTarget, output_path: &Path) {
-    let kbdutool = prefix_dir().join("msklc").join("bin").join("i386").join("kbdutool.exe");
+    let kbdutool = prefix_dir()
+        .join("pkg")
+        .join("msklc")
+        .join("bin")
+        .join("i386")
+        .join("kbdutool.exe");
+    let current_dir = output_path.join(target.arch());
+    std::fs::create_dir_all(&current_dir).unwrap();
     let mut proc = std::process::Command::new(kbdutool)
         .arg("-n")
         .arg(target.flag())
         .arg("-u")
-        .arg(klc_path)
-        .current_dir(output_path.join(target.arch()))
+        .arg(dunce::canonicalize(klc_path).unwrap())
+        .current_dir(dunce::canonicalize(current_dir).unwrap())
         .spawn()
         .unwrap();
     proc.wait().unwrap();
@@ -163,9 +181,7 @@ async fn install_msklc() {
         }),
     );
 
-    let actions = vec![
-        PackageAction::install(pkg_key, InstallTarget::System),
-    ];
+    let actions = vec![PackageAction::install(pkg_key, InstallTarget::System)];
 
     log::debug!("Creating package transaction");
     let tx = PackageTransaction::new(Arc::clone(&store as _), actions).unwrap();
